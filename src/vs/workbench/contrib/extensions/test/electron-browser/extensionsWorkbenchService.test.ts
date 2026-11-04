@@ -163,6 +163,11 @@ suite('ExtensionsWorkbenchServiceTest', () => {
 		(<TestExtensionEnablementService>instantiationService.get(IWorkbenchExtensionEnablementService)).reset();
 		instantiationService.stub(IUpdateService, { onStateChange: Event.None, state: State.Uninitialized });
 		instantiationService.stub(IMeteredConnectionService, { isConnectionMetered: false, onDidChangeIsConnectionMetered: Event.None });
+
+		// Finish the enablement fixture's initialization, including its separate
+		// security-manifest poll, before a test installs a virtual clock.
+		await (<TestExtensionEnablementService>instantiationService.get(IWorkbenchExtensionEnablementService)).waitUntilInitialized();
+		await timeout(0);
 	});
 
 	test('test gallery extension', async () => {
@@ -466,7 +471,7 @@ suite('ExtensionsWorkbenchServiceTest', () => {
 		}
 	});
 
-	test('stale auto-update settings and background events never check or install updates', () => runWithExtensionUpdateTimers(async () => {
+	test('stale auto-update settings and background events never check or install updates', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 		const local = aLocalExtension('a', { version: '1.0.1' }, { forceAutoUpdate: true });
 		const gallery = aGalleryExtension(local.manifest.name, { identifier: local.identifier, version: '1.0.2' });
 		const galleryChecks = sinon.spy(async () => [gallery]);
@@ -500,7 +505,7 @@ suite('ExtensionsWorkbenchServiceTest', () => {
 		testObject.dispose();
 	}));
 
-	test('manual checks and Update All still work without scheduling automatic installs', () => runWithExtensionUpdateTimers(async () => {
+	test('manual checks and Update All still work without scheduling automatic installs', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 		const local = aLocalExtension('a', { version: '1.0.1' }, { forceAutoUpdate: true });
 		const gallery = aGalleryExtension(local.manifest.name, { identifier: local.identifier, version: '1.0.2', lastUpdated: Date.now() });
 		const galleryChecks = sinon.spy(async () => [gallery]);
@@ -1704,14 +1709,6 @@ suite('ExtensionsWorkbenchServiceTest', () => {
 		testObject = await aWorkbenchService();
 		await assert.rejects(testObject.install(gallery.identifier.id), /reported to be problematic/);
 	});
-
-	async function runWithExtensionUpdateTimers(fn: () => Promise<void>): Promise<void> {
-		// Enablement has its own five-minute security-manifest poll. Finish its
-		// initialization on the real clock before observing workbench update timers.
-		await (<TestExtensionEnablementService>instantiationService.get(IWorkbenchExtensionEnablementService)).waitUntilInitialized();
-		await timeout(0);
-		await runWithFakedTimers({ useFakeTimers: true }, fn);
-	}
 
 	async function aWorkbenchService(): Promise<ExtensionsWorkbenchService> {
 		const workbenchService: ExtensionsWorkbenchService = disposableStore.add(instantiationService.createInstance(ExtensionsWorkbenchService));

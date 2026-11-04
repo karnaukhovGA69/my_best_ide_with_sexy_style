@@ -3,54 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../nls.js';
 import { ILogger } from '../../log/common/log.js';
-import { IMcpServerConfiguration, IMcpServerVariable } from './mcpPlatformTypes.js';
-import { IMcpManagementService } from './mcpManagement.js';
 
-type ValidatedConfig = { name: string; config: IMcpServerConfiguration; inputs?: IMcpServerVariable[] };
-
+/** Compatibility entry point for CLI callers while built-in MCP is removed. */
 export class McpManagementCli {
-	constructor(
-		private readonly _logger: ILogger,
-		@IMcpManagementService private readonly _mcpManagementService: IMcpManagementService,
-	) { }
+	constructor(_logger: ILogger) { }
 
-	async addMcpDefinitions(
-		definitions: string[],
-	) {
-		const configs = definitions.map((config) => this.validateConfiguration(config));
-		await this.updateMcpInResource(configs);
-		this._logger.info(`Added MCP servers: ${configs.map(c => c.name).join(', ')}`);
-	}
-
-	private async updateMcpInResource(configs: ValidatedConfig[]) {
-		await Promise.all(configs.map(({ name, config, inputs }) => this._mcpManagementService.install({ name, config, inputs })));
-	}
-
-	private validateConfiguration(config: string): ValidatedConfig {
-		let parsed: IMcpServerConfiguration & { name: string; inputs?: IMcpServerVariable[] };
-		try {
-			parsed = JSON.parse(config);
-		} catch (e) {
-			throw new InvalidMcpOperationError(`Invalid JSON '${config}': ${e}`);
-		}
-
-		if (!parsed.name) {
-			throw new InvalidMcpOperationError(`Missing name property in ${config}`);
-		}
-
-		if (!('command' in parsed) && !('url' in parsed)) {
-			throw new InvalidMcpOperationError(`Missing command or URL property in ${config}`);
-		}
-
-		const { name, inputs, ...rest } = parsed;
-		return { name, inputs, config: rest as IMcpServerConfiguration };
-	}
-}
-
-class InvalidMcpOperationError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.stack = message;
+	async addMcpDefinitions(_definitions: string[]): Promise<void> {
+		throw new Error(localize('mcp.disabled', "MCP is not available in this IDE."));
 	}
 }

@@ -9,14 +9,13 @@ import { Codicon } from '../../../../../../base/common/codicons.js';
 import { appendEscapedMarkdownInlineCode, createCommandUri, isMarkdownString, MarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
 import { localize } from '../../../../../../nls.js';
-import { CommandsRegistry } from '../../../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { hasKey } from '../../../../../../base/common/types.js';
 import { IChatWidgetService } from '../../../../chat/browser/chat.js';
 import { IChatService, IChatMultiSelectAnswer, IChatQuestionAnswerValue, IChatQuestionCarousel, IChatSingleSelectAnswer } from '../../../../chat/common/chatService/chatService.js';
 import { ToolDataSource, type CountTokensCallback, type IPreparedToolInvocation, type IToolData, type IToolImpl, type IToolInvocation, type IToolInvocationPreparationContext, type IToolResult, type ToolProgress } from '../../../../chat/common/tools/languageModelToolsService.js';
 import { URI } from '../../../../../../base/common/uri.js';
-import { ITerminalChatService, ITerminalInstance, ITerminalService } from '../../../../terminal/browser/terminal.js';
+import { ITerminalChatService, ITerminalInstance } from '../../../../terminal/browser/terminal.js';
 import { getOutput } from '../outputHelpers.js';
 import { buildCommandDisplayText, isMultilineCommand, normalizeCommandForExecution } from '../runInTerminalHelpers.js';
 import { RunInTerminalTool } from './runInTerminalTool.js';
@@ -70,26 +69,7 @@ function isCancelSignal(command: string): boolean {
 }
 
 const FocusTerminalByIdCommandId = 'workbench.action.terminal.chat.focusTerminalById';
-CommandsRegistry.registerCommand(FocusTerminalByIdCommandId, async (accessor, instanceId: number) => {
-	const terminalService = accessor.get(ITerminalService);
-	const instance = terminalService.getInstanceFromId(instanceId);
-	if (instance) {
-		terminalService.setActiveInstance(instance);
-		await terminalService.revealActiveTerminal();
-		instance.focus();
-	}
-});
-
 const FocusTerminalByExecutionIdCommandId = 'workbench.action.terminal.chat.focusTerminalByExecutionId';
-CommandsRegistry.registerCommand(FocusTerminalByExecutionIdCommandId, async (accessor, executionId: string) => {
-	const execution = RunInTerminalTool.getExecution(executionId);
-	if (execution) {
-		const terminalService = accessor.get(ITerminalService);
-		terminalService.setActiveInstance(execution.instance);
-		await terminalService.revealActiveTerminal();
-		execution.instance.focus();
-	}
-});
 
 export class SendToTerminalTool extends Disposable implements IToolImpl {
 

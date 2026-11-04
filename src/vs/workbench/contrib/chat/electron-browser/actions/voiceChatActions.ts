@@ -217,7 +217,7 @@ interface IActiveVoiceChatSession extends IVoiceChatSession {
 	hasRecognizedInput: boolean;
 }
 
-class VoiceChatSessions {
+export class VoiceChatSessions {
 
 	private static instance: VoiceChatSessions | undefined = undefined;
 	static getInstance(instantiationService: IInstantiationService): VoiceChatSessions {
@@ -267,7 +267,14 @@ class VoiceChatSessions {
 
 		controller.updateState(VoiceChatSessionState.GettingReady);
 
-		const voiceChatSession = await this.voiceChatService.createVoiceChatSession(cts.token, { usesAgents: controller.context !== 'inline', model: context?.widget?.viewModel?.model });
+		let voiceChatSession: Awaited<ReturnType<IVoiceChatService['createVoiceChatSession']>>;
+		try {
+			voiceChatSession = await this.voiceChatService.createVoiceChatSession(cts.token, { usesAgents: controller.context !== 'inline', model: context?.widget?.viewModel?.model });
+		} catch (error) {
+			// Only release this failed start; a newer session may already own the UI.
+			this.stop(sessionId, controller.context);
+			throw error;
+		}
 
 		let inputValue = controller.getInput();
 

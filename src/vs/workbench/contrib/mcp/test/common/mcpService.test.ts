@@ -747,12 +747,13 @@ suite('Workbench - MCP - McpService', () => {
 		});
 	});
 
-	test('app request metadata does not change sampling policy outside chat', async () => {
+	test('app request metadata and legacy permissions cannot enable MCP sampling', async () => {
 		const { mcpService, registry, instantiationService } = createMcpService();
 		instantiationService.stub(IConfigurationService, new TestConfigurationService());
+		const sendChatRequest = sinon.stub().resolves({ stream: AsyncIterableObject.EMPTY, result: Promise.resolve(undefined) });
 		instantiationService.stub(ILanguageModelsService, {
 			lookupLanguageModel: () => upcastPartial<ILanguageModelChatMetadata>({}),
-			sendChatRequest: async () => ({ stream: AsyncIterableObject.EMPTY, result: Promise.resolve(undefined) }),
+			sendChatRequest,
 		});
 		const samplingService = store.add(instantiationService.createInstance(McpSamplingService));
 		const config = { allowedDuringChat: true, allowedOutsideChat: false, allowedModels: ['test-model'] };
@@ -807,8 +808,9 @@ suite('Workbench - MCP - McpService', () => {
 			results: results.map(result => result.status === 'fulfilled' ? result.status : result.reason instanceof McpError ? result.reason.code : result.reason),
 		}, {
 			duringToolCall: [false, false, false, false, false, false],
-			results: [McpError.notAllowed().code, McpError.notAllowed().code, McpError.notAllowed().code, 'fulfilled', 'fulfilled', 'fulfilled'],
+			results: [McpError.notAllowed().code, McpError.notAllowed().code, McpError.notAllowed().code, McpError.notAllowed().code, McpError.notAllowed().code, McpError.notAllowed().code],
 		});
+		assert.strictEqual(sendChatRequest.callCount, 0);
 	});
 
 	test('first autostart waits for discovery and loads the newly discovered server tools', async () => {

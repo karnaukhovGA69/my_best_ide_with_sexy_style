@@ -1,0 +1,82 @@
+{
+  "name": "myself-documents",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "myself",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "l10n": "./l10n",
+  "activationEvents": [],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "myself.documents.new",
+        "title": "%new%",
+        "category": "Documents",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "myself.documents.open",
+        "title": "%open%",
+        "category": "Documents",
+        "icon": "$(book)"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "myself.documents.editor",
+        "displayName": "%editor%",
+        "selector": [
+          {
+            "filenamePattern": "*.txt"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
+    "menus": {
+      "file/newFile": [
+        {
+          "command": "myself.documents.new",
+          "group": "file@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "myself.documents.new",
+          "group": "navigation@30"
+        },
+        {
+          "command": "myself.documents.open",
+          "when": "resourceExtname == .txt && !explorerResourceIsFolder",
+          "group": "navigation@31"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "myself.documents.open",
+          "when": "resourceExtname == .txt && activeCustomEditorId != myself.documents.editor",
+          "group": "navigation@30"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p . && tsc -p webview",
+    "test": "pnpm run compile && node --test test/*.test.cts",
+    "test-webview": "node --test test/webview.test.cts"
+  }
+}

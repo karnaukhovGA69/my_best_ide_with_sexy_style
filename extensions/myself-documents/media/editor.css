@@ -1,0 +1,53 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+:root {
+	--space-small: 8px;
+	--space-medium: 16px;
+	--space-large: 24px;
+	--document-font: Georgia, 'Times New Roman', serif;
+	--document-size: 12pt;
+	--document-leading: 1.5;
+	--document-margin: 20mm;
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--vscode-foreground); background: var(--vscode-sideBar-background); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
+header { display: flex; gap: var(--space-medium); justify-content: space-between; flex-wrap: wrap; padding: var(--space-medium) var(--space-large); background: var(--vscode-editor-background); }
+.heading { display: grid; gap: 4px; min-width: 0; }
+.heading strong { font-size: var(--vscode-font-size); font-weight: 600; overflow-wrap: anywhere; }
+.eyebrow, #pageHelp, footer { color: var(--vscode-descriptionForeground); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-small); align-items: center; }
+button, select, input { font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); border-radius: var(--vscode-cornerRadius-small, 4px); padding: 6px 8px; min-height: 32px; }
+button { cursor: pointer; color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
+button:hover { background: var(--vscode-button-secondaryHoverBackground); }
+button.primary { color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+button.primary:hover { background: var(--vscode-button-hoverBackground); }
+button:disabled { opacity: 0.5; cursor: default; }
+:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 2px; }
+.settings { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-medium); padding: var(--space-medium) var(--space-large); }
+.settings label { display: grid; gap: 4px; }
+.settings input { width: 88px; }
+.paper-size { padding-bottom: 8px; font-weight: 600; }
+#pageHelp { max-width: 220px; padding-bottom: 4px; }
+.find { display: flex; gap: var(--space-small); align-items: center; padding: 0 var(--space-large) var(--space-medium); }
+.find input { min-width: 0; max-width: 280px; }
+main { padding: 0 var(--space-large) var(--space-large); overflow-x: auto; }
+.sheet { width: 210mm; max-width: 100%; min-height: 297mm; margin: 0 auto; padding: var(--document-margin); background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); }
+#text { display: block; width: 100%; min-height: calc(297mm - 2 * var(--document-margin)); border: 0; padding: 0; resize: none; overflow: hidden; background: transparent; color: var(--vscode-editor-foreground); font-family: var(--document-font); font-size: var(--document-size); line-height: var(--document-leading); white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
+#text:focus-visible { outline: none; }
+.sheet:focus-within { border-color: var(--vscode-focusBorder); }
+footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-small); padding: var(--space-medium) var(--space-large); }
+#notice:not(:empty) { padding: var(--space-medium) var(--space-large); color: var(--vscode-notifications-foreground); background: var(--vscode-notifications-background); }
+#conflict { margin: 0 var(--space-large) var(--space-medium); padding: var(--space-medium); border: 1px solid var(--vscode-inputValidation-warningBorder); background: var(--vscode-inputValidation-warningBackground); }
+#conflict p { margin-top: 0; }
+[hidden] { display: none !important; }
+@media (max-width: 600px) {
+	header, .settings, footer { padding: var(--space-medium); }
+	main { padding: 0 var(--space-small) var(--space-medium); }
+	.sheet { padding: var(--space-medium); }
+	.find { padding-left: var(--space-medium); padding-right: var(--space-medium); }
+	#pageHelp { max-width: none; }
+}
+@media (forced-colors: active) { button, .sheet, input, select { border: 1px solid CanvasText; } }

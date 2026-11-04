@@ -1,6 +1,6 @@
 # Myself IDE
 
-An experimental Code - OSS distribution undergoing incremental cleanup. The current changes cover the first three implementation stages; the visual redesign and planned new features are not complete.
+An experimental Code - OSS distribution undergoing incremental cleanup. The current changes cover the first four implementation stages; the visual redesign and planned new features are not complete.
 
 ## Distribution
 
@@ -19,7 +19,8 @@ An experimental Code - OSS distribution undergoing incremental cleanup. The curr
 - The code editor's Sticky Scroll contribution and its workbench actions are no longer loaded. Shared implementation files may remain in the source tree.
 - Built-in format-on-save participants and settings are removed for text editors and notebooks. Manual formatting and extension formatting providers remain. An installed extension can still implement its own save hook independently.
 - The extension recommendation engine, notification service and installed-program tips scanner are no longer loaded. Recommended views and actions are removed; compatible empty services preserve extension management and IPC contracts. Manual catalog browsing, VSIX installation and manual updates remain.
-- Extension auto-updates, update checks, welcome startup, and snippet suggestions start disabled. Their remaining implementations have not all been physically removed. Snippet support needed by extensions remains available.
+- Periodic extension update checks, automatic installation/replacement, and automatic extension restarts are removed, along with their settings and controls. Old settings and per-extension preferences cannot reactivate them. Explicit Check for Updates, Update All, individual updates, manual restarts and VSIX installation remain. Legacy internal auto-update methods return disabled values or do nothing for compatibility. Security and catalog metadata requests are retained; independently installed extensions can implement their own network behavior.
+- Welcome startup and snippet suggestions start disabled. Their remaining implementations have not all been physically removed. Snippet support needed by extensions remains available.
 
 ## Privacy and diagnostics
 

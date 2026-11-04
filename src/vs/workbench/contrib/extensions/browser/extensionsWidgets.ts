@@ -826,8 +826,7 @@ export class ExtensionHoverWidget extends ExtensionWidget {
 				this.options.target,
 				{
 					markdown: async () => {
-						// Recompute the status so any time-sensitive content (e.g. the
-						// delayed auto-update message) reflects the current time on each hover.
+						// Refresh the extension status before displaying the hover.
 						try {
 							await this.extensionStatusAction.recomputeStatus();
 						} catch (error) {

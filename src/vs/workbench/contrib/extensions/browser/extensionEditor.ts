@@ -7,7 +7,6 @@ import { $, Dimension, append, hide, setParentFlowTo, show } from '../../../../b
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { DomScrollableElement } from '../../../../base/browser/ui/scrollbar/scrollableElement.js';
-import { CheckboxActionViewItem } from '../../../../base/browser/ui/toggle/toggle.js';
 import { Action, IAction } from '../../../../base/common/actions.js';
 import * as arrays from '../../../../base/common/arrays.js';
 import { Cache, CacheResult } from '../../../../base/common/cache.js';
@@ -39,7 +38,6 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { buttonForeground, buttonHoverBackground, editorBackground, textLinkActiveForeground, textLinkForeground } from '../../../../platform/theme/common/colorRegistry.js';
 import { IColorTheme, ICssStyleCollector, IThemeService, registerThemingParticipant } from '../../../../platform/theme/common/themeService.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
@@ -64,7 +62,6 @@ import {
 	SetFileIconThemeAction,
 	SetLanguageAction,
 	SetProductIconThemeAction,
-	ToggleAutoUpdateForExtensionAction,
 	UninstallAction,
 	UpdateAction,
 	WebInstallAction,
@@ -354,7 +351,6 @@ export class ExtensionEditor extends EditorPane {
 					this.instantiationService.createInstance(InstallAnotherVersionAction, null, true),
 				]
 			]),
-			this.instantiationService.createInstance(ToggleAutoUpdateForExtensionAction),
 			new ExtensionEditorManageExtensionAction(this.scopedContextKeyService || this.contextKeyService, this.instantiationService),
 		];
 
@@ -375,9 +371,6 @@ export class ExtensionEditor extends EditorPane {
 							menuActionClassNames: action.menuActionClassNames
 						},
 						this.contextMenuService);
-				}
-				if (action instanceof ToggleAutoUpdateForExtensionAction) {
-					return new CheckboxActionViewItem(undefined, action, { ...options, icon: true, label: true, checkboxStyles: defaultCheckboxStyles });
 				}
 				return undefined;
 			},

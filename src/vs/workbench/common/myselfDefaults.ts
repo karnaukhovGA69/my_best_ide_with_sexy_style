@@ -14,8 +14,6 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerDefaultCon
 		'chat.allowAnonymousAccess': false,
 		'chat.mcp.access': 'none',
 		'chat.agent.enabled': false,
-		'extensions.autoUpdate': false,
-		'extensions.autoCheckUpdates': false,
 		'workbench.startupEditor': 'none',
 		'workbench.secondarySideBar.defaultVisibility': 'hidden',
 		'workbench.tips.enabled': false,

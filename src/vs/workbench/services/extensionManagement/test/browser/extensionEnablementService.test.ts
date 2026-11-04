@@ -121,7 +121,7 @@ export class TestExtensionEnablementService extends ExtensionEnablementService {
 			chatEntitlementService ?? new TestChatEntitlementService(),
 			instantiationService,
 			new NullLogService(),
-			productService
+			instantiationService.get(IProductService) || productService
 		);
 		this._register(disposables);
 	}
@@ -1296,7 +1296,11 @@ suite('ExtensionEnablementService Test', () => {
 	});
 
 	test('test chat extension is disabled on profile switch when setup is not completed', async () => {
-		const chatExtensionId = productService.defaultChatAgent!.chatExtensionId;
+		const chatExtensionId = 'test.chat-extension';
+		instantiationService.stub(IProductService, {
+			...productService,
+			defaultChatAgent: { extensionId: 'test.completions-extension', chatExtensionId }
+		} as IProductService);
 		const chatExtension = aLocalExtension(chatExtensionId, undefined, ExtensionType.System);
 		installed.push(chatExtension);
 

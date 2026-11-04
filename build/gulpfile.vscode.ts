@@ -6,6 +6,7 @@
 import { gulp, rename, replace, filter, jsonEditor } from './lib/gulp/facade.ts';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import es from 'event-stream';
 import vfs from 'vinyl-fs';
 import electron from '@vscode/gulp-electron';
@@ -24,6 +25,7 @@ import { getProductionDependencies } from './lib/dependencies.ts';
 import { config } from './lib/electron.ts';
 import { isDistributionExtensionFile } from './lib/distributionExtensions.ts';
 import { excludedRuntimeDependencies, isDistributionRuntimeFile, runtimeDependencyExclusions } from './lib/distributionRuntime.ts';
+import { sanitizeDarwinDistribution } from './lib/distributionPrivacy.ts';
 import { createAsar } from './lib/asar.ts';
 import minimist from 'minimist';
 import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileAllExtensionsBuildTask, compileExtensionMediaBuildTask, cleanExtensionsBuildTask } from './gulpfile.extensions.ts';
@@ -547,6 +549,13 @@ BUILD_TARGETS.forEach(buildTarget => {
 		}
 		if (shouldGenerateNodeCompileCache(platform, arch, product)) {
 			packageTasks.push(generateNodeCompileCacheTask(platform, destinationFolderName));
+		}
+		if (platform === 'darwin') {
+			packageTasks.push(task.define('sanitize-darwin-build-paths', async () => {
+				const application = path.join(buildRoot, destinationFolderName, `${product.nameLong}.app`);
+				const stripped = await sanitizeDarwinDistribution(application, [root, os.homedir()]);
+				console.log(`Removed private native debug maps from ${stripped} files; distribution build-path check passed.`);
+			}));
 		}
 
 		const vscodeTaskCI = task.define(`vscode${dashed(platform)}${dashed(arch)}${dashed(minified)}-ci`, task.series(...packageTasks));

@@ -61,3 +61,20 @@ export interface IExtensionIgnoredRecommendationsService {
 }
 
 
+
+/** Keeps service consumers compatible without collecting recommendation signals. */
+export class NullExtensionRecommendationsService implements IExtensionRecommendationsService {
+	declare readonly _serviceBrand: undefined;
+	readonly onDidChangeRecommendations = Event.None;
+
+	getAllRecommendationsWithReason(): IStringDictionary<IExtensionRecommendationReason> { return {}; }
+	async getImportantRecommendations(): Promise<string[]> { return []; }
+	async getOtherRecommendations(): Promise<string[]> { return []; }
+	getFileBasedRecommendations(): string[] { return []; }
+	async getExeBasedRecommendations(): Promise<{ important: string[]; others: string[] }> { return { important: [], others: [] }; }
+	async getConfigBasedRecommendations(): Promise<{ important: string[]; others: string[] }> { return { important: [], others: [] }; }
+	async getWorkspaceRecommendations(): Promise<Array<string | URI>> { return []; }
+	getKeymapRecommendations(): string[] { return []; }
+	getLanguageRecommendations(): string[] { return []; }
+	getRemoteRecommendations(): string[] { return []; }
+}

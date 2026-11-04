@@ -47,3 +47,21 @@ export interface IExtensionRecommendationNotificationService {
 	promptWorkspaceRecommendations(recommendations: Array<string | URI>): Promise<void>;
 }
 
+
+export class NullExtensionRecommendationNotificationService implements IExtensionRecommendationNotificationService {
+	readonly _serviceBrand: undefined;
+
+	readonly ignoredRecommendations: string[] = [];
+
+	hasToIgnoreRecommendationNotifications(): boolean {
+		return true;
+	}
+
+	async promptImportantExtensionsInstallNotification(): Promise<RecommendationsNotificationResult> {
+		return RecommendationsNotificationResult.Ignored;
+	}
+
+	async promptWorkspaceRecommendations(): Promise<void> {
+		// no-op
+	}
+}

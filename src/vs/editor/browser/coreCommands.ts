@@ -25,7 +25,7 @@ import { VerticalRevealType } from '../common/viewEvents.js';
 import { ICommandMetadata } from '../../platform/commands/common/commands.js';
 import { ContextKeyExpr } from '../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../platform/instantiation/common/instantiation.js';
-import { KeybindingWeight, KeybindingsRegistry } from '../../platform/keybinding/common/keybindingsRegistry.js';
+import { KeybindingWeight } from '../../platform/keybinding/common/keybindingsRegistry.js';
 import { EditorOption } from '../common/config/editorOptions.js';
 import { IViewModel } from '../common/viewModel.js';
 import { ISelection } from '../common/core/selection.js';

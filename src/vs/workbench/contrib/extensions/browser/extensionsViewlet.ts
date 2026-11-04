@@ -19,12 +19,12 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { IExtensionsWorkbenchService, IExtensionsViewPaneContainer, VIEWLET_ID, CloseExtensionDetailsOnViewChangeKey, INSTALL_EXTENSION_FROM_VSIX_COMMAND_ID, WORKSPACE_RECOMMENDATIONS_VIEW_ID, AutoCheckUpdatesConfigurationKey, OUTDATED_EXTENSIONS_VIEW_ID, CONTEXT_HAS_GALLERY, extensionsSearchActionsMenu, AutoRestartConfigurationKey, ExtensionRuntimeActionType, SearchMcpServersContext, SearchAgentPluginsContext, DefaultViewsContext, CONTEXT_EXTENSIONS_GALLERY_STATUS } from '../common/extensions.js';
+import { IExtensionsWorkbenchService, IExtensionsViewPaneContainer, VIEWLET_ID, CloseExtensionDetailsOnViewChangeKey, INSTALL_EXTENSION_FROM_VSIX_COMMAND_ID, AutoCheckUpdatesConfigurationKey, OUTDATED_EXTENSIONS_VIEW_ID, CONTEXT_HAS_GALLERY, extensionsSearchActionsMenu, AutoRestartConfigurationKey, ExtensionRuntimeActionType, SearchMcpServersContext, SearchAgentPluginsContext, DefaultViewsContext, CONTEXT_EXTENSIONS_GALLERY_STATUS } from '../common/extensions.js';
 import { InstallLocalExtensionsInRemoteAction, InstallRemoteExtensionsInLocalAction } from './extensionsActions.js';
 import { IExtensionManagementService, ILocalExtension } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IWorkbenchExtensionEnablementService, IExtensionManagementServerService, IExtensionManagementServer } from '../../../services/extensionManagement/common/extensionManagement.js';
 import { ExtensionsInput } from '../common/extensionsInput.js';
-import { ExtensionsListView, EnabledExtensionsView, DisabledExtensionsView, RecommendedExtensionsView, WorkspaceRecommendedExtensionsView, ServerInstalledExtensionsView, DefaultRecommendedExtensionsView, UntrustedWorkspaceUnsupportedExtensionsView, UntrustedWorkspacePartiallySupportedExtensionsView, VirtualWorkspaceUnsupportedExtensionsView, VirtualWorkspacePartiallySupportedExtensionsView, DefaultPopularExtensionsView, DeprecatedExtensionsView, SearchMarketplaceExtensionsView, RecentlyUpdatedExtensionsView, OutdatedExtensionsView, StaticQueryExtensionsView, NONE_CATEGORY, AbstractExtensionsListView } from './extensionsViews.js';
+import { ExtensionsListView, EnabledExtensionsView, DisabledExtensionsView, ServerInstalledExtensionsView, UntrustedWorkspaceUnsupportedExtensionsView, UntrustedWorkspacePartiallySupportedExtensionsView, VirtualWorkspaceUnsupportedExtensionsView, VirtualWorkspacePartiallySupportedExtensionsView, DefaultPopularExtensionsView, DeprecatedExtensionsView, SearchMarketplaceExtensionsView, RecentlyUpdatedExtensionsView, OutdatedExtensionsView, StaticQueryExtensionsView, NONE_CATEGORY, AbstractExtensionsListView } from './extensionsViews.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import Severity from '../../../../base/common/severity.js';
@@ -51,7 +51,7 @@ import { ILabelService } from '../../../../platform/label/common/label.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { SIDE_BAR_DRAG_AND_DROP_BACKGROUND } from '../../../common/theme.js';
-import { VirtualWorkspaceContext, WorkbenchStateContext } from '../../../common/contextkeys.js';
+import { VirtualWorkspaceContext } from '../../../common/contextkeys.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { installLocalInRemoteIcon } from './extensionsIcons.js';
 import { registerAction2, Action2, MenuId } from '../../../../platform/actions/common/actions.js';
@@ -121,9 +121,6 @@ export class ExtensionsViewletViewsContribution extends Disposable implements IW
 
 		/* Search views */
 		viewDescriptors.push(...this.createSearchExtensionsViewDescriptors());
-
-		/* Recommendations views */
-		viewDescriptors.push(...this.createRecommendedExtensionsViewDescriptors());
 
 		/* Built-in extensions views */
 		viewDescriptors.push(...this.createBuiltinExtensionsViewDescriptors());
@@ -260,7 +257,7 @@ export class ExtensionsViewletViewsContribution extends Disposable implements IW
 
 		/*
 		 * Default popular extensions view
-		 * Separate view for popular extensions required as we need to show popular and recommended sections
+		 * Separate view for popular extensions shown
 		 * in the default view when there is no search text, and user has no installed extensions.
 		 */
 		viewDescriptors.push({
@@ -271,21 +268,6 @@ export class ExtensionsViewletViewsContribution extends Disposable implements IW
 			weight: 60,
 			order: 2,
 			canToggleVisibility: false
-		});
-
-		/*
-		 * Default recommended extensions view
-		 * When user has installed extensions, this is shown along with the views for enabled & disabled extensions
-		 * When user has no installed extensions, this is shown along with the view for popular extensions
-		 */
-		viewDescriptors.push({
-			id: 'extensions.recommendedList',
-			name: localize2('recommendedExtensions', "Recommended"),
-			ctorDescriptor: new SyncDescriptor(DefaultRecommendedExtensionsView, [{ flexibleHeight: true }]),
-			when: ContextKeyExpr.and(DefaultViewsContext, SortByUpdateDateContext.negate(), ContextKeyExpr.not('config.extensions.showRecommendationsOnlyOnDemand'), CONTEXT_HAS_GALLERY),
-			weight: 40,
-			order: 3,
-			canToggleVisibility: true
 		});
 
 		/* Installed views shall be default in multi server window  */
@@ -408,28 +390,6 @@ export class ExtensionsViewletViewsContribution extends Disposable implements IW
 			name: localize2('workspaceUnsupported', "Workspace Unsupported"),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchWorkspaceUnsupportedExtensions')),
-		});
-
-		return viewDescriptors;
-	}
-
-	private createRecommendedExtensionsViewDescriptors(): IViewDescriptor[] {
-		const viewDescriptors: IViewDescriptor[] = [];
-
-		viewDescriptors.push({
-			id: WORKSPACE_RECOMMENDATIONS_VIEW_ID,
-			name: localize2('workspaceRecommendedExtensions', "Workspace Recommendations"),
-			ctorDescriptor: new SyncDescriptor(WorkspaceRecommendedExtensionsView, [{}]),
-			when: ContextKeyExpr.and(ContextKeyExpr.has('recommendedExtensions'), WorkbenchStateContext.notEqualsTo('empty')),
-			order: 1
-		});
-
-		viewDescriptors.push({
-			id: 'workbench.views.extensions.otherRecommendations',
-			name: localize2('otherRecommendedExtensions', "Other Recommendations"),
-			ctorDescriptor: new SyncDescriptor(RecommendedExtensionsView, [{}]),
-			when: ContextKeyExpr.has('recommendedExtensions'),
-			order: 2
 		});
 
 		return viewDescriptors;

@@ -120,7 +120,7 @@ import { ExtensionRecommendationNotificationServiceChannelClient } from '../../.
 import { INativeHostService } from '../../../platform/native/common/native.js';
 import { NativeHostService } from '../../../platform/native/common/nativeHostService.js';
 import { UserDataAutoSyncService } from '../../../platform/userDataSync/node/userDataAutoSyncService.js';
-import { ExtensionTipsService } from '../../../platform/extensionManagement/node/extensionTipsService.js';
+import { NullExtensionTipsService } from '../../../platform/extensionManagement/common/nullExtensionTipsService.js';
 import { IMainProcessService, MainProcessService } from '../../../platform/ipc/common/mainProcessService.js';
 import { RemoteStorageService } from '../../../platform/storage/common/storageService.js';
 import { IRemoteSocketFactoryService, RemoteSocketFactoryService } from '../../../platform/remote/common/remoteSocketFactoryService.js';
@@ -385,7 +385,7 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService, undefined, true));
 
 		// Extension Tips
-		services.set(IExtensionTipsService, new SyncDescriptor(ExtensionTipsService, undefined, false /* Eagerly scans and computes exe based recommendations */));
+		services.set(IExtensionTipsService, new SyncDescriptor(NullExtensionTipsService));
 
 		// Localizations
 		services.set(ILanguagePackService, new SyncDescriptor(NativeLanguagePackService, undefined, false /* proxied to other processes */));

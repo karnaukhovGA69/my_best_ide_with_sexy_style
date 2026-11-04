@@ -1,6 +1,6 @@
 # Myself IDE
 
-An experimental Code - OSS distribution undergoing incremental cleanup. The current changes cover the first two implementation stages; the visual redesign and planned new features are not complete.
+An experimental Code - OSS distribution undergoing incremental cleanup. The current changes cover the first three implementation stages; the visual redesign and planned new features are not complete.
 
 ## Distribution
 
@@ -18,7 +18,8 @@ An experimental Code - OSS distribution undergoing incremental cleanup. The curr
 - User-facing multiple-cursor actions, column-selection command registrations and mouse gestures are removed. The editor's internal multi-selection/multi-edit machinery remains for operations such as rename, snippets and extension APIs.
 - The code editor's Sticky Scroll contribution and its workbench actions are no longer loaded. Shared implementation files may remain in the source tree.
 - Built-in format-on-save participants and settings are removed for text editors and notebooks. Manual formatting and extension formatting providers remain. An installed extension can still implement its own save hook independently.
-- Extension auto-updates, update checks, recommendations, welcome startup, and snippet suggestions start disabled. Their remaining implementations have not all been physically removed. Snippet support needed by extensions remains available.
+- The extension recommendation engine, notification service and installed-program tips scanner are no longer loaded. Recommended views and actions are removed; compatible empty services preserve extension management and IPC contracts. Manual catalog browsing, VSIX installation and manual updates remain.
+- Extension auto-updates, update checks, welcome startup, and snippet suggestions start disabled. Their remaining implementations have not all been physically removed. Snippet support needed by extensions remains available.
 
 ## Privacy and diagnostics
 
@@ -35,6 +36,8 @@ Use the Node version in `.nvmrc` and the pnpm version in `package.json`. After d
 ```sh
 pnpm run gulp vscode-darwin-arm64
 ```
+
+macOS packaging removes native debug maps containing the local build/home paths using Apple’s `strip -S`, then scans the package again, including ASAR bytes. Packaging fails if those paths remain in runtime strings, source text or other files. Code signing must run after this step. If deep signing changes native binaries, run `refreshDarwinAsarMetadata(appDirectory)` from `build/lib/distributionPrivacy.ts`, then sign the outer application again without `--deep` and verify the signature. The metadata refresh updates unpacked file sizes and any SHA-256 integrity records while preserving packed payloads. This check covers the configured build paths, not every possible secret or third-party build identity. Use a GitHub noreply identity for published commits.
 
 The macOS ARM64 app is written to `../Myself-IDE-darwin-arm64/Myself IDE.app`. Other platform builds and live remote-server/SSH workflows need separate validation. The original baseline build can coexist with this directory.
 

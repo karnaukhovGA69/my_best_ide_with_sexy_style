@@ -16,7 +16,6 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerDefaultCon
 		'chat.agent.enabled': false,
 		'extensions.autoUpdate': false,
 		'extensions.autoCheckUpdates': false,
-		'extensions.ignoreRecommendations': true,
 		'workbench.startupEditor': 'none',
 		'workbench.secondarySideBar.defaultVisibility': 'hidden',
 		'workbench.tips.enabled': false,

@@ -13,6 +13,7 @@ import { Client, type IIPCOptions } from '../../../../base/parts/ipc/node/ipc.cp
 import { AiAgentEnvValue, AiAgentEnvVar } from '../../../chat/common/aiAgentEnv.js';
 import { TestConfigurationService } from '../../../configuration/test/common/testConfigurationService.js';
 import { INativeEnvironmentService } from '../../../environment/common/environment.js';
+import { IProductService } from '../../../product/common/productService.js';
 import { NullLogService } from '../../../log/common/log.js';
 import { NullTelemetryService } from '../../../telemetry/common/telemetryUtils.js';
 import { createCopilotCliEnvironment } from '../../node/copilot/copilotCliEnvironment.js';
@@ -37,7 +38,7 @@ class TestNodeAgentHostStarter extends NodeAgentHostStarter {
 suite('NodeAgentHostStarter', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createStarter(configuration = new TestConfigurationService()): TestNodeAgentHostStarter {
+	function createStarter(configuration = new TestConfigurationService(), hasBuiltinAI = true): TestNodeAgentHostStarter {
 		return disposables.add(new TestNodeAgentHostStarter(
 			configuration,
 			new class extends mock<INativeEnvironmentService>() {
@@ -48,8 +49,17 @@ suite('NodeAgentHostStarter', () => {
 			},
 			new NullLogService(),
 			NullTelemetryService,
+			hasBuiltinAI ? new class extends mock<IProductService>() {
+				override readonly defaultChatAgent = new class extends mock<IProductService['defaultChatAgent']>() { };
+			} : new class extends mock<IProductService>() { },
 		));
 	}
+
+	test('does not launch a runtime when the product has no built-in AI', async () => {
+		const starter = createStarter(new TestConfigurationService({ 'chat.disableAIFeatures': false }), false);
+		await assert.rejects(starter.start(), { message: 'Agent Host is not available in this product.', fatal: true });
+		assert.deepStrictEqual(starter.environments, []);
+	});
 
 	test('forwards AHP capture enablement to the host and refreshes it on restart', async () => {
 		const configuration = new TestConfigurationService({ [AgentHostAhpJsonlLoggingSettingId]: true });

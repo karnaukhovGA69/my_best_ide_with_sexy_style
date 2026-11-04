@@ -10,13 +10,14 @@ import { IProcessEnvironment, isWindows } from '../../../base/common/platform.js
 import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { Client, IIPCOptions } from '../../../base/parts/ipc/node/ipc.cp.js';
 import { AiAgentEnvValue, AiAgentEnvVar } from '../../chat/common/aiAgentEnv.js';
+import { IProductService } from '../../product/common/productService.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { IEnvironmentService, INativeEnvironmentService } from '../../environment/common/environment.js';
 import { parseAgentHostDebugPort } from '../../environment/node/environmentService.js';
 import { ILogService } from '../../log/common/log.js';
 import { getResolvedShellEnv } from '../../shell/node/shellEnv.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
-import { IAgentHostConnection, IAgentHostStarter } from '../common/agent.js';
+import { AgentHostStartError, IAgentHostConnection, IAgentHostStarter } from '../common/agent.js';
 import { AgentHostLaunchKind, AgentHostLaunchKindEnvVar, telemetryLevelToAgentHostValue } from '../common/agentHostTelemetry.js';
 import { AgentHostAhpJsonlLoggingEnvVar } from '../common/ahpJsonlLogger.js';
 import { AgentHostAhpJsonlLoggingSettingId, AgentHostClaudeAgentEnabledSettingId, AgentHostCodexAgentBinaryArgsSettingId, AgentHostCodexAgentEnabledSettingId, AgentHostCodexAgentSdkRootSettingId, AgentHostCodexAgentCodexHomeSettingId, AgentHostIpcChannels, AgentHostOTelCaptureContentSettingId, AgentHostOTelCaptureIdentitySettingId, AgentHostOTelDbSpanExporterEnabledSettingId, AgentHostOTelEnabledSettingId, AgentHostOTelExporterTypeSettingId, AgentHostOTelOtlpEndpointSettingId, AgentHostOTelOutfileSettingId, buildAgentHostOTelEnv, buildAgentSdkEnv, IAgentHostManagementService, readAgentHostOTelPolicySettings } from '../common/agentService.js';
@@ -66,6 +67,7 @@ export class NodeAgentHostStarter extends Disposable implements IAgentHostStarte
 		@IEnvironmentService private readonly _environmentService: INativeEnvironmentService,
 		@ILogService private readonly _logService: ILogService,
 		@ITelemetryService private readonly _telemetryService: ITelemetryService,
+		@IProductService private readonly _productService: IProductService,
 	) {
 		super();
 	}
@@ -84,6 +86,10 @@ export class NodeAgentHostStarter extends Disposable implements IAgentHostStarte
 	}
 
 	async start(): Promise<IAgentHostConnection> {
+		if (!this._productService.defaultChatAgent) {
+			throw new AgentHostStartError('Agent Host is not available in this product.', true);
+		}
+
 		// Resolve user shell environment so spawned tools/terminals inherit
 		// PATH and other vars from the user's login shell (macOS/Linux).
 		const shellEnv = await this._resolveShellEnv();

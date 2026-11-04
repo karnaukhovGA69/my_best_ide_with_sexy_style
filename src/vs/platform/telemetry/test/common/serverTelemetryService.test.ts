@@ -14,7 +14,7 @@ import { NullAppender } from '../../common/telemetryUtils.js';
 
 suite('ServerTelemetryService', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
-	const productService: IProductService = { _serviceBrand: undefined, ...product };
+	const productService: IProductService = { _serviceBrand: undefined, ...product, enableTelemetry: true, enabledTelemetryLevels: undefined };
 
 	test('exposes and preserves the most restrictive injected telemetry level', async () => {
 		const service = disposables.add(new ServerTelemetryService(

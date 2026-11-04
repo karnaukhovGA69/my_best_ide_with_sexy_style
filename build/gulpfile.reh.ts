@@ -23,14 +23,15 @@ import glob from 'glob';
 import { promisify } from 'util';
 import rceditCallback from 'rcedit';
 import { compileApiProposalNamesTask, copyCodiconsTask } from './lib/compilation.ts';
-import { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask, compileCopilotExtensionBuildTask } from './gulpfile.extensions.ts';
+import { isDistributionExtension, isDistributionExtensionFile } from './lib/distributionExtensions.ts';
+import { cleanExtensionsBuildTask, compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileExtensionMediaBuildTask } from './gulpfile.extensions.ts';
 import * as cp from 'child_process';
 import crypto from 'crypto';
 import log from 'fancy-log';
 import { runEsbuildBundle, getBootstrapEntryPointsForTarget } from './lib/esbuild.ts';
 import { fetchUrls } from './lib/fetch.ts';
 import { downloadFeedPackage } from './lib/azureFeed.ts';
-import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim } from './lib/copilot.ts';
+import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotTgrepExcludeFilter, getRipgrepExcludeFilter } from './lib/copilot.ts';
 import { readAgentSdkResults } from './agent-sdk/common.ts';
 
 
@@ -293,17 +294,18 @@ function packageTask(type: string, platform: string, arch: string, sourceFolderN
 				const manifest = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, extensionPath)).toString());
 				return !isUIExtension(manifest);
 			}).map((extensionPath) => path.basename(path.dirname(extensionPath)))
-			.filter(name => name !== 'vscode-api-tests' && name !== 'vscode-test-resolver'); // Do not ship the test extensions
+			.filter(isDistributionExtension);
 		const builtInExtensions: Array<{ name: string; platforms?: string[]; clientOnly?: boolean }> = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'product.json'), 'utf8')).builtInExtensions;
 		const marketplaceExtensions = builtInExtensions
 			.filter(entry => !entry.platforms || new Set(entry.platforms).has(platform))
-			.filter(entry => !entry.clientOnly)
+			.filter(entry => !entry.clientOnly && isDistributionExtension(entry.name))
 			.map(entry => entry.name);
 		const extensionPaths = [...localWorkspaceExtensions, ...marketplaceExtensions]
 			.map(name => `.build/extensions/${name}/**`);
 
 		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
-		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true });
+		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true })
+			.pipe(filter(file => isDistributionExtensionFile(path.relative(path.join(REPO_ROOT, '.build/extensions'), file.path))));
 		const sources = es.merge(src, extensions, extensionsCommonDependencies)
 			.pipe(filter(['**', '!**/*.{js,css}.map'], { dot: true }));
 
@@ -520,16 +522,6 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 	};
 }
 
-function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destinationFolderName: string) {
-	return async () => {
-		const outputDir = path.join(BUILD_ROOT, destinationFolderName);
-		const nodeModulesDir = path.join(outputDir, 'node_modules');
-
-		const builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');
-		prepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, nodeModulesDir);
-	};
-}
-
 ['reh', 'reh-web'].forEach(type => {
 	const target = type === 'reh' ? 'server' : 'server-web';
 	const esbuildBundleTask = task.define(`esbuild-vscode-${type}`, () => runEsbuildBundle(`out-vscode-${type}`, false, true, target));
@@ -548,8 +540,7 @@ function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destin
 				compileNativeExtensionsBuildTask,
 				task.task(`node-${platform}-${arch}`) as task.Task,
 				util.rimraf(path.join(BUILD_ROOT, destinationFolderName)),
-				packageTask(type, platform, arch, sourceFolderName, destinationFolderName),
-				prepareCopilotRipgrepShimTaskREH(platform, arch, destinationFolderName)
+				packageTask(type, platform, arch, sourceFolderName, destinationFolderName)
 			];
 
 			if (platform === 'win32') {
@@ -564,7 +555,6 @@ function prepareCopilotRipgrepShimTaskREH(platform: string, arch: string, destin
 				compileApiProposalNamesTask,
 				cleanExtensionsBuildTask,
 				compileNonNativeExtensionsBuildTask,
-				compileCopilotExtensionBuildTask,
 				compileExtensionMediaBuildTask,
 				writeISODate('out-build'),
 				minified ? esbuildBundleMinTask : esbuildBundleTask,

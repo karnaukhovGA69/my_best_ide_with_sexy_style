@@ -111,12 +111,32 @@ class ErrorTestingSettings {
 
 suite('TelemetryService', () => {
 
-	const TestProductService: IProductService = { _serviceBrand: undefined, ...product };
+	const TestProductService: IProductService = { _serviceBrand: undefined, ...product, enableTelemetry: true, enabledTelemetryLevels: undefined };
 
 	// Tests replace the global error handler, restore it so that later tests still report uncaught errors
 	let originalOnError: OnErrorEventHandler;
 	setup(() => originalOnError = mainWindow.onerror);
 	teardown(() => mainWindow.onerror = originalOnError);
+
+	test('product opt-out overrides configured and fixed telemetry levels', () => {
+		const appender = new TestTelemetryAppender();
+		const disabledProduct = { ...TestProductService, enableTelemetry: false };
+		const configured = new TelemetryService({ appenders: [appender], sendErrorTelemetry: true, waitForExperimentProperties: true },
+			new TestConfigurationService({ 'telemetry.telemetryLevel': TelemetryConfiguration.ON }), disabledProduct);
+		const fixed = TelemetryService.createWithLevel({ appenders: [appender], sendErrorTelemetry: true, telemetryLevel: TelemetryLevel.USAGE }, disabledProduct);
+		try {
+			for (const service of [configured, fixed]) {
+				service.publicLog('usageEvent');
+				service.publicLogError('errorEvent');
+				service.setExperimentProperty('experiment', 'enabled');
+			}
+			assert.deepStrictEqual({ levels: [configured.telemetryLevel, fixed.telemetryLevel], errors: [configured.sendErrorTelemetry, fixed.sendErrorTelemetry], events: appender.events },
+				{ levels: [TelemetryLevel.NONE, TelemetryLevel.NONE], errors: [false, false], events: [] });
+		} finally {
+			configured.dispose();
+			fixed.dispose();
+		}
+	});
 
 	test('Disposing', sinonTestFn(function () {
 		const testAppender = new TestTelemetryAppender();

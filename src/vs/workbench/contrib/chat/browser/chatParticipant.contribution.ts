@@ -16,6 +16,7 @@ import { ContextKeyExpr, IContextKeyService } from '../../../../platform/context
 import { ExtensionIdentifier, IExtensionManifest } from '../../../../platform/extensions/common/extensions.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
+import product from '../../../../platform/product/common/product.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
@@ -70,7 +71,7 @@ const chatViewDescriptor: IViewDescriptor = {
 		order: 1
 	},
 	ctorDescriptor: new SyncDescriptor(ChatViewPane),
-	when: ContextKeyExpr.and(
+	when: !product.defaultChatAgent ? ContextKeyExpr.false() : ContextKeyExpr.and(
 		ChatContextKeys.accountPolicyGateActive.negate(),
 		ContextKeyExpr.or(
 			ContextKeyExpr.and(
@@ -92,7 +93,7 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	canToggleVisibility: false,
 	canMoveView: false,
 	ctorDescriptor: new SyncDescriptor(ChatUpdateRequiredView),
-	when: ManagedSettingsUpdateRequiredContext,
+	when: product.defaultChatAgent ? ManagedSettingsUpdateRequiredContext : ContextKeyExpr.false(),
 	openCommandActionDescriptor: {
 		id: 'workbench.action.chat.showUpdateRequired',
 		title: localize2('chat.updateRequiredView', "Chat Update Requirement"),

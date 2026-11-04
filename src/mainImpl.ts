@@ -485,6 +485,11 @@ function getArgvConfigPath(): string {
 }
 
 function configureCrashReporter(): void {
+	// A product opt-out must also prevent local crash collection requested by argv.
+	if (product.enableTelemetry === false) {
+		return;
+	}
+
 	let crashReporterDirectory = args['crash-reporter-directory'];
 	let submitURL = '';
 	if (crashReporterDirectory) {

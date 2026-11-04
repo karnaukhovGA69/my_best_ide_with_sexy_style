@@ -6,14 +6,15 @@
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { localize } from '../../../nls.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
-import { ILogger, ILoggerService } from '../../log/common/log.js';
+import { ILogger, ILoggerService, NullLogger } from '../../log/common/log.js';
 import { IProductService } from '../../product/common/productService.js';
-import { ITelemetryAppender, TelemetryLogGroup, isLoggingOnly, telemetryLogId, validateTelemetryData } from './telemetryUtils.js';
+import { ITelemetryAppender, TelemetryLogGroup, isLoggingOnly, supportsTelemetry, telemetryLogId, validateTelemetryData } from './telemetryUtils.js';
 
 export class TelemetryLogAppender extends Disposable implements ITelemetryAppender {
 
 	private readonly logger: ILogger;
 	private readonly prefix: string;
+	private readonly enabled: boolean;
 
 	constructor(
 		prefixOrOptions: string | { readonly prefix: string; readonly loggerId: string },
@@ -23,6 +24,13 @@ export class TelemetryLogAppender extends Disposable implements ITelemetryAppend
 		@IProductService productService: IProductService,
 	) {
 		super();
+
+		this.enabled = supportsTelemetry(productService, environmentService);
+		if (!this.enabled) {
+			this.prefix = '';
+			this.logger = new NullLogger();
+			return;
+		}
 
 		const prefix = typeof prefixOrOptions === 'string' ? prefixOrOptions : prefixOrOptions.prefix;
 		this.prefix = prefix;
@@ -48,6 +56,9 @@ export class TelemetryLogAppender extends Disposable implements ITelemetryAppend
 	}
 
 	log(eventName: string, data: unknown): void {
+		if (!this.enabled) {
+			return;
+		}
 		this.logger.trace(`${this.prefix}telemetry/${eventName}`, validateTelemetryData(data));
 	}
 }

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IProductService } from '../../../../platform/product/common/productService.js';
 import { AgentHostEnablementService } from '../../../../platform/agentHost/browser/agentHostEnablementService.js';
 import { IAgentHostEnablementService } from '../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -17,8 +18,9 @@ export class WebAgentHostEnablementService extends AgentHostEnablementService {
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 		@IManagedSettingsService managedSettingsService: IManagedSettingsService,
+		@IProductService productService: IProductService,
 	) {
-		super(!!environmentService.remoteAuthority, configurationService, contextKeyService, managedSettingsService);
+		super(!!environmentService.remoteAuthority && !!productService.defaultChatAgent, configurationService, contextKeyService, managedSettingsService);
 	}
 }
 

@@ -4,38 +4,56 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getDevDeviceId } from '../../../base/node/id.js';
+import product from '../../product/common/product.js';
+import { IProductService } from '../../product/common/productService.js';
 import { ILogService } from '../../log/common/log.js';
 import { IStateService } from '../../state/node/state.js';
 import { machineIdKey, sqmIdKey, devDeviceIdKey } from '../common/telemetry.js';
 import { resolveMachineId as resolveNodeMachineId, resolveSqmId as resolveNodeSqmId, resolveDevDeviceId as resolveNodeDevDeviceId } from '../node/telemetryUtils.js';
 
-export async function resolveMachineId(stateService: IStateService, logService: ILogService): Promise<string> {
+export async function resolveMachineId(stateService: IStateService, logService: ILogService, productService: Pick<IProductService, 'enableTelemetry'> = product): Promise<string> {
+	if (productService.enableTelemetry === false) {
+		return '';
+	}
+
 	logService.trace('Resolving machine identifier...');
-	const machineId = await resolveNodeMachineId(stateService, logService);
+	const machineId = await resolveNodeMachineId(stateService, logService, productService);
 	stateService.setItem(machineIdKey, machineId);
 	logService.trace(`Resolved machine identifier: ${machineId}`);
 	return machineId;
 }
 
-export async function resolveSqmId(stateService: IStateService, logService: ILogService): Promise<string> {
+export async function resolveSqmId(stateService: IStateService, logService: ILogService, productService: Pick<IProductService, 'enableTelemetry'> = product): Promise<string> {
+	if (productService.enableTelemetry === false) {
+		return '';
+	}
+
 	logService.trace('Resolving SQM identifier...');
-	const sqmId = await resolveNodeSqmId(stateService, logService);
+	const sqmId = await resolveNodeSqmId(stateService, logService, productService);
 	stateService.setItem(sqmIdKey, sqmId);
 	logService.trace(`Resolved SQM identifier: ${sqmId}`);
 	return sqmId;
 }
 
-export async function resolveDevDeviceId(stateService: IStateService, logService: ILogService): Promise<string> {
+export async function resolveDevDeviceId(stateService: IStateService, logService: ILogService, productService: Pick<IProductService, 'enableTelemetry'> = product): Promise<string> {
+	if (productService.enableTelemetry === false) {
+		return '';
+	}
+
 	logService.trace('Resolving devDevice identifier...');
-	const devDeviceId = await resolveNodeDevDeviceId(stateService, logService);
+	const devDeviceId = await resolveNodeDevDeviceId(stateService, logService, productService);
 	stateService.setItem(devDeviceIdKey, devDeviceId);
 	logService.trace(`Resolved devDevice identifier: ${devDeviceId}`);
 	return devDeviceId;
 }
 
-export async function validateDevDeviceId(stateService: IStateService, logService: ILogService): Promise<void> {
+export async function validateDevDeviceId(stateService: IStateService, logService: ILogService, productService: Pick<IProductService, 'enableTelemetry'> = product): Promise<void> {
+	if (productService.enableTelemetry === false) {
+		return;
+	}
+
 	const actualDeviceId = await getDevDeviceId(logService.error.bind(logService));
-	const currentDeviceId = await resolveNodeDevDeviceId(stateService, logService);
+	const currentDeviceId = await resolveNodeDevDeviceId(stateService, logService, productService);
 	if (actualDeviceId !== currentDeviceId) {
 		stateService.setItem(devDeviceIdKey, actualDeviceId);
 	}

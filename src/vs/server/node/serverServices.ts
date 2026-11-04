@@ -172,9 +172,9 @@ export async function setupServerServices(connectionToken: ServerConnectionToken
 	const [, , machineId, sqmId, devDeviceId] = await Promise.all([
 		configurationService.initialize(),
 		userDataProfilesService.init(),
-		getMachineId(logService.error.bind(logService)),
-		getSqmMachineId(logService.error.bind(logService)),
-		getDevDeviceId(logService.error.bind(logService))
+		supportsTelemetry(productService, environmentService) ? getMachineId(logService.error.bind(logService)) : '',
+		supportsTelemetry(productService, environmentService) ? getSqmMachineId(logService.error.bind(logService)) : '',
+		supportsTelemetry(productService, environmentService) ? getDevDeviceId(logService.error.bind(logService)) : ''
 	]);
 
 	const extensionHostStatusService = new ExtensionHostStatusService();

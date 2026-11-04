@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mock } from '../../../../../base/test/common/mock.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { bufferToStream, VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationError } from '../../../../../base/common/errors.js';
@@ -49,6 +50,11 @@ suite('DefaultAccountProvider', () => {
 		scopes: ['user:email'],
 		authorizationServer: URI.parse('https://github.com/login/oauth'),
 	}];
+
+	test('product without built-in AI resolves account calls without a provider', async () => {
+		const service = disposables.add(new DefaultAccountService(new class extends mock<IProductService>() { }));
+		assert.deepStrictEqual(await Promise.all([service.getDefaultAccount(), service.refresh(), service.signIn()]), [null, null, null]);
+	});
 
 	test('cached settings perform one startup compatibility fetch', async () => {
 		const requestService = new TestRequestService(async () => jsonResponse({

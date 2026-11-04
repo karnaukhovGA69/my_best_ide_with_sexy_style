@@ -13,6 +13,7 @@ import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.
 import { Client as MessagePortClient } from '../../../base/parts/ipc/electron-main/ipc.mp.js';
 import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { AiAgentEnvValue, AiAgentEnvVar } from '../../chat/common/aiAgentEnv.js';
+import { IProductService } from '../../product/common/productService.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { IEnvironmentMainService } from '../../environment/electron-main/environmentMainService.js';
 import { parseAgentHostDebugPort } from '../../environment/node/environmentService.js';
@@ -73,6 +74,7 @@ export class ElectronAgentHostStarter extends Disposable implements IAgentHostSt
 		@ILifecycleMainService private readonly _lifecycleMainService: ILifecycleMainService,
 		@ILogService private readonly _logService: ILogService,
 		@ITelemetryService private readonly _telemetryService: ITelemetryService,
+		@IProductService private readonly _productService: IProductService,
 	) {
 		super();
 
@@ -135,6 +137,10 @@ export class ElectronAgentHostStarter extends Disposable implements IAgentHostSt
 	}
 
 	async start(): Promise<IAgentHostConnection> {
+		if (!this._productService.defaultChatAgent) {
+			throw new AgentHostStartError('Agent Host is not available in this product.', true);
+		}
+
 		if (this.utilityProcess) {
 			throw new Error('Agent Host utility process is already running.');
 		}

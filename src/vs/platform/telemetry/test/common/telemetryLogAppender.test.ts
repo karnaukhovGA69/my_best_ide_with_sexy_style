@@ -96,6 +96,21 @@ suite('TelemetryLogAdapter', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('product opt-out creates no telemetry log even at trace level', () => {
+		const loggerService = new TestTelemetryLoggerService(LogLevel.Trace);
+		const instantiationService = new TestInstantiationService();
+		const appender = new TelemetryLogAppender('', false, loggerService,
+			instantiationService.stub(IEnvironmentService, { isBuilt: false }),
+			instantiationService.stub(IProductService, { enableTelemetry: false }));
+		try {
+			appender.log('privateEvent', { action: 'openFile' });
+			assert.deepStrictEqual([loggerService.logger, loggerService.loggerId], [undefined, undefined]);
+		} finally {
+			appender.dispose();
+			instantiationService.dispose();
+		}
+	});
+
 	test('Do not Log Telemetry if log level is not trace', async () => {
 		const testLoggerService = new TestTelemetryLoggerService(DEFAULT_LOG_LEVEL);
 		const testInstantiationService = new TestInstantiationService();

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mock } from '../../../../../base/test/common/mock.js';
+import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { AGENT_HOST_ENABLED_CONTEXT_KEY } from '../../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { ChatAIDisabledSettingId } from '../../../../../platform/chat/common/chatSettings.js';
@@ -22,6 +24,7 @@ suite('WebAgentHostEnablementService', () => {
 	function getEnablement(options: {
 		readonly remoteAuthority?: string;
 		readonly aiDisabled?: boolean;
+		readonly hasBuiltinAI?: boolean;
 	}): {
 		readonly enabled: boolean;
 		readonly contextKey: boolean | undefined;
@@ -32,6 +35,7 @@ suite('WebAgentHostEnablementService', () => {
 		});
 		const contextKeyService = disposables.add(new MockContextKeyService());
 		instantiationService.stub(IConfigurationService, configurationService);
+		instantiationService.stub(IProductService, { defaultChatAgent: options.hasBuiltinAI === false ? undefined : new class extends mock<NonNullable<IProductService['defaultChatAgent']>>() { } });
 		instantiationService.stub(IContextKeyService, contextKeyService);
 		instantiationService.stub(IManagedSettingsService, new NullManagedSettingsService());
 		instantiationService.stub(IWorkbenchEnvironmentService, { remoteAuthority: options.remoteAuthority });
@@ -52,6 +56,13 @@ suite('WebAgentHostEnablementService', () => {
 
 	test('disables Agent Host for serverless web', () => {
 		assert.deepStrictEqual(getEnablement({}), {
+			enabled: false,
+			contextKey: false,
+		});
+	});
+
+	test('keeps Agent Host disabled without product support even if the setting enables AI', () => {
+		assert.deepStrictEqual(getEnablement({ remoteAuthority: 'ssh-remote+test', aiDisabled: false, hasBuiltinAI: false }), {
 			enabled: false,
 			contextKey: false,
 		});

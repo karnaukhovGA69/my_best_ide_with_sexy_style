@@ -4,14 +4,37 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../configuration/test/common/testConfigurationService.js';
+import { IEnvironmentService } from '../../../environment/common/environment.js';
+import { TestInstantiationService } from '../../../instantiation/test/common/instantiationServiceMock.js';
+import { IProductService } from '../../../product/common/productService.js';
 import { TelemetryConfiguration, TelemetryLevel } from '../../common/telemetry.js';
-import { cleanData, cleanRemoteAuthority, getTelemetryLevel } from '../../common/telemetryUtils.js';
+import { cleanData, cleanRemoteAuthority, getTelemetryLevel, isLoggingOnly, supportsTelemetry } from '../../common/telemetryUtils.js';
 
 suite('TelemetryUtils', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('product opt-out disables telemetry including development and extension tests', () => {
+		const instantiationService = new TestInstantiationService();
+		try {
+			const productService = instantiationService.stub(IProductService, { enableTelemetry: false });
+			const results: boolean[] = [];
+			for (const isBuilt of [false, true]) {
+				for (const disableTelemetry of [false, true]) {
+					for (const extensionTestsLocationURI of [undefined, URI.file('/extension-tests')]) {
+						const environmentService = instantiationService.stub(IEnvironmentService, { isBuilt, disableTelemetry, extensionTestsLocationURI });
+						results.push(supportsTelemetry(productService, environmentService), isLoggingOnly(productService, environmentService));
+					}
+				}
+			}
+			assert.deepStrictEqual(results, Array(16).fill(false));
+		} finally {
+			instantiationService.dispose();
+		}
+	});
 
 	test('getTelemetryLevel fails closed for invalid configuration', () => {
 		assert.deepStrictEqual([

@@ -22,15 +22,13 @@ import * as cp from 'child_process';
 import * as i18n from './lib/i18n.ts';
 import { getProductionDependencies } from './lib/dependencies.ts';
 import { config } from './lib/electron.ts';
+import { isDistributionExtensionFile } from './lib/distributionExtensions.ts';
 import { createAsar } from './lib/asar.ts';
 import minimist from 'minimist';
-import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileAllExtensionsBuildTask, compileExtensionMediaBuildTask, cleanExtensionsBuildTask, compileCopilotExtensionBuildTask } from './gulpfile.extensions.ts';
+import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileAllExtensionsBuildTask, compileExtensionMediaBuildTask, cleanExtensionsBuildTask } from './gulpfile.extensions.ts';
 import { checkApiProposalNamesTask, copyCodiconsTask } from './lib/compilation.ts';
-import { ensureCopilotPlatformPackage, getCopilotExcludeFilter, getCopilotRuntimePrebuildFiles, getCopilotRuntimeVersion, getCopilotTgrepExcludeFilter, getRipgrepExcludeFilter, prepareBuiltInCopilotRipgrepShim, renderCopilotShimLauncher } from './lib/copilot.ts';
-import { getLockedVersion } from './lib/pnpmLock.ts';
+import { getCopilotTgrepExcludeFilter, getRipgrepExcludeFilter } from './lib/copilot.ts';
 import { ensureOSProxyResolverPlatformPackage, getOSProxyResolverExcludeFilter, getOSProxyResolverPlatformFiles } from './lib/osProxyResolver.ts';
-import { readAgentSdkResults } from './agent-sdk/common.ts';
-import { readDictationRuntimeResults } from './dictation-runtime/common.ts';
 import { promisify } from 'util';
 import globCallback from 'glob';
 import rceditCallback from 'rcedit';
@@ -43,24 +41,10 @@ const glob = promisify(globCallback);
 const rcedit = promisify(rceditCallback);
 const root = path.dirname(import.meta.dirname);
 const commit = getVersion(root);
-const copilotRuntimeVersion = getCopilotRuntimeVersion(path.join(root, 'node_modules'));
-if (packageJson.copilotRuntimeVersion !== copilotRuntimeVersion) {
-	throw new Error(`package.json declares Copilot runtime ${packageJson.copilotRuntimeVersion}, but @github/copilot-sdk bundles ${copilotRuntimeVersion}.`);
-}
-
-function getLockedPackageVersion(packageName: string): string {
-	const version = getLockedVersion('', packageName, root);
-	if (!version) {
-		throw new Error(`Package ${packageName} is missing a version in pnpm-lock.yaml.`);
-	}
-
-	return version;
-}
-
 const sourceMappingURLBase = `https://main.vscode-cdn.net/sourcemaps/${commit}`;
 const isCI = !!process.env['CI'] || !!process.env['BUILD_ARTIFACTSTAGINGDIRECTORY'] || !!process.env['GITHUB_WORKSPACE'];
 const useCdnSourceMapsForPackagingTasks = isCI;
-const stripSourceMapsInPackagingTasks = isCI;
+const stripSourceMapsInPackagingTasks = true;
 
 const coreCIOutBuildTask = task.series(
 	checkApiProposalNamesTask,
@@ -153,11 +137,11 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			'vs/sessions/electron-browser/sessions.js'
 		]);
 
-		const src = gulp.src(out + '/**', { base: '.' })
+		const src = gulp.src([out + '/**', '!' + out + '/vs/platform/agentHost/**'], { base: '.' })
 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + out), 'out'); }))
 			.pipe(util.setExecutableBit(['**/*.sh']));
 
-		const platformSpecificBuiltInExtensionsExclusions = product.builtInExtensions.filter(ext => {
+		const platformSpecificBuiltInExtensionsExclusions = (product.builtInExtensions as { name: string; platforms?: string[] }[]).filter(ext => {
 			if (!(ext as { platforms?: string[] }).platforms) {
 				return false;
 			}
@@ -166,7 +150,8 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			return !set.has(platform);
 		}).map(ext => `!.build/extensions/${ext.name}/**`);
 
-		const extensions = gulp.src(['.build/extensions/**', ...platformSpecificBuiltInExtensionsExclusions], { base: '.build', dot: true });
+		const extensions = gulp.src(['.build/extensions/**', ...platformSpecificBuiltInExtensionsExclusions], { base: '.build', dot: true })
+			.pipe(filter(file => isDistributionExtensionFile(path.relative(path.join(root, '.build/extensions'), file.path))));
 
 		const sourceFilterPattern = stripSourceMapsInPackagingTasks
 			? ['**', '!**/*.{js,css}.map']
@@ -182,7 +167,8 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 		}
 
 		const name = product.nameShort;
-		const packageJsonUpdates: Record<string, unknown> = { name, version };
+		const { ['@github/copilot-sdk']: _copilotSdk, ...dependencies } = packageJson.dependencies;
+		const packageJsonUpdates: Record<string, unknown> = { name, version, dependencies };
 
 		if (platform === 'linux') {
 			packageJsonUpdates.desktopName = `${product.applicationName}.desktop`;
@@ -204,24 +190,6 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 				json.date = readISODate(out);
 				json.checksums = checksums;
 				json.version = version;
-				json.copilotVersions = {
-					runtime: copilotRuntimeVersion,
-					sdk: getLockedPackageVersion('@github/copilot-sdk'),
-				};
-				// Stamp agentSdks from the per-platform results file produced
-				// by `build/agent-sdk/produce.ts` (an earlier pipeline step).
-				// Local dev: file absent → empty → not stamped.
-				const agentSdks = readAgentSdkResults();
-				if (Object.keys(agentSdks).length > 0) {
-					json.agentSdks = agentSdks;
-				}
-				// Stamp dictationRuntime from the per-platform results file
-				// produced by `build/dictation-runtime/produce.ts`. Local dev /
-				// unsupported target: file absent → undefined → not stamped.
-				const dictationRuntime = readDictationRuntimeResults();
-				if (dictationRuntime) {
-					json.dictationRuntime = dictationRuntime;
-				}
 				return json;
 			}))
 			.pipe(es.through(function (file) {
@@ -241,7 +209,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 		const productionDependencies = getProductionDependencies(root);
 		const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat().concat('!**/*.mk');
 
-		const depFilterPattern = ['**', `!**/${config.version}/**`, '!**/bin/darwin-arm64-87/**', '!**/package-lock.json', '!**/yarn.lock'];
+		const depFilterPattern = ['**', `!**/${config.version}/**`, '!**/bin/darwin-arm64-87/**', '!**/package-lock.json', '!**/yarn.lock', '!**/@github/copilot-sdk/**', '!**/@github/copilot-sdk-*/**'];
 		if (stripSourceMapsInPackagingTasks) {
 			depFilterPattern.push('!**/*.{js,css}.map');
 		}
@@ -250,12 +218,9 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			.pipe(filter(depFilterPattern))
 			.pipe(util.cleanNodeModules(path.join(import.meta.dirname, '.moduleignore')))
 			.pipe(util.cleanNodeModules(path.join(import.meta.dirname, `.moduleignore.${process.platform}`)));
-		ensureCopilotPlatformPackage(platform, arch);
-		const copilotRuntimePrebuilds = gulp.src(getCopilotRuntimePrebuildFiles(platform, arch), { base: '.', dot: true, allowEmpty: true });
 		ensureOSProxyResolverPlatformPackage(platform, arch);
 		const osProxyResolverPlatformPackage = gulp.src(getOSProxyResolverPlatformFiles(platform, arch), { base: '.', dot: true, allowEmpty: true });
-		const deps = es.merge(cleanedDeps, copilotRuntimePrebuilds, osProxyResolverPlatformPackage)
-			.pipe(filter(getCopilotExcludeFilter(platform, arch)))
+		const deps = es.merge(cleanedDeps, osProxyResolverPlatformPackage)
 			.pipe(filter(getCopilotTgrepExcludeFilter(platform, arch)))
 			.pipe(filter(getRipgrepExcludeFilter(platform, arch)))
 			.pipe(filter(getFoundryLocalExcludeFilter()))
@@ -426,20 +391,6 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 				.pipe(replace('@@VERSIONFOLDER@@', versionedResourcesFolder ? `${versionedResourcesFolder}\\` : ''))
 				.pipe(rename(product.nameShort + '.VisualElementsManifest.xml')));
 
-			// Setup publishes it next to the copilot.exe shim; see build/win32/copilot.iss.
-			result = es.merge(result, gulp.src('resources/win32/bin/copilot.sh', { base: 'resources/win32' })
-				.pipe(es.through(function (file) {
-					file.contents = Buffer.from(renderCopilotShimLauncher(file.contents.toString('utf8'), {
-						commit: String(commit),
-						quality: String(quality),
-						applicationName: product.applicationName,
-						dataFolderName: product.dataFolderName,
-						serverDataFolderName: product.serverDataFolderName || '.vscode-remote',
-					}));
-					this.emit('data', file);
-				}))
-				.pipe(rename(f => { f.dirname = 'bin/copilot-shim'; f.basename = 'copilot'; f.extname = ''; })));
-
 			result = es.merge(result, gulp.src('.build/policies/win32/**', { base: '.build/policies/win32' })
 				.pipe(rename(f => f.dirname = `policies/${f.dirname}`)));
 
@@ -551,23 +502,6 @@ function patchWin32DependenciesTask(destinationFolderName: string) {
 	};
 }
 
-function prepareCopilotRipgrepShimTask(platform: string, arch: string, destinationFolderName: string) {
-	const outputDir = path.join(path.dirname(root), destinationFolderName);
-
-	return async () => {
-		// On Windows with win32VersionedUpdate, app resources live under a
-		// commit-hash prefix: {output}/{commitHash}/resources/app/
-		const versionedResourcesFolder = util.getVersionedResourcesFolder(platform, commit!);
-		const appBase = platform === 'darwin'
-			? path.join(outputDir, `${product.nameLong}.app`, 'Contents', 'Resources', 'app')
-			: path.join(outputDir, versionedResourcesFolder, 'resources', 'app');
-		const appNodeModulesDir = path.join(appBase, 'node_modules.asar.unpacked');
-
-		const builtInCopilotExtensionDir = path.join(appBase, 'extensions', 'copilot');
-		prepareBuiltInCopilotRipgrepShim(platform, arch, builtInCopilotExtensionDir, appNodeModulesDir);
-	};
-}
-
 function generateNodeCompileCacheTask(platform: string, destinationFolderName: string) {
 	const outputDirectory = path.join(path.dirname(root), destinationFolderName);
 
@@ -598,13 +532,12 @@ BUILD_TARGETS.forEach(buildTarget => {
 
 	const [vscode, vscodeMin] = ['', 'min'].map(minified => {
 		const sourceFolderName = `out-vscode${dashed(minified)}`;
-		const destinationFolderName = `VSCode${dashed(platform)}${dashed(arch)}`;
+		const destinationFolderName = `Myself-IDE${dashed(platform)}${dashed(arch)}`;
 
 		const packageTasks: task.Task[] = [
 			compileNativeExtensionsBuildTask,
 			util.rimraf(path.join(buildRoot, destinationFolderName)),
 			packageTask(platform, arch, sourceFolderName, destinationFolderName, opts),
-			prepareCopilotRipgrepShimTask(platform, arch, destinationFolderName)
 		];
 
 		if (platform === 'win32') {
@@ -631,7 +564,6 @@ BUILD_TARGETS.forEach(buildTarget => {
 			copyCodiconsTask,
 			cleanExtensionsBuildTask,
 			compileNonNativeExtensionsBuildTask,
-			compileCopilotExtensionBuildTask,
 			compileExtensionMediaBuildTask,
 			writeISODate('out-build'),
 			esbuildBundleTask,

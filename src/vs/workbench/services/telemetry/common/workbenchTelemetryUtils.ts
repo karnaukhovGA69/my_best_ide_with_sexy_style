@@ -6,7 +6,7 @@
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { TelemetryLevel } from '../../../../platform/telemetry/common/telemetry.js';
-import { getTelemetryLevel } from '../../../../platform/telemetry/common/telemetryUtils.js';
+import { getTelemetryLevel, supportsTelemetry } from '../../../../platform/telemetry/common/telemetryUtils.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 
 /**
@@ -18,7 +18,7 @@ export function experimentsEnabled(
 	productService: IProductService,
 	environmentService: IWorkbenchEnvironmentService
 ): boolean {
-	return getTelemetryLevel(configurationService) === TelemetryLevel.USAGE &&
+	return supportsTelemetry(productService, environmentService) && getTelemetryLevel(configurationService) === TelemetryLevel.USAGE &&
 		!!productService.tasConfig &&
 		!environmentService.disableExperiments &&
 		!environmentService.extensionTestsLocationURI &&

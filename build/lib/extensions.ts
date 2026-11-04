@@ -22,6 +22,7 @@ import { type IExtensionDefinition, getExtensionStream } from './builtInExtensio
 import { fetchUrls, fetchGithub } from './fetch.ts';
 import { createTsgoStream, spawnTsgo } from './tsgo.ts';
 import watcher from './watch/index.ts';
+import { isDistributionExtension } from './distributionExtensions.ts';
 
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -442,7 +443,7 @@ function doPackageLocalExtensionsStream(forWeb: boolean, native: boolean): Strea
 				return { name: extensionName, path: extensionPath, manifestPath: absoluteManifestPath };
 			})
 			.filter(({ name }) => native ? nativeExtensionsSet.has(name) : !nativeExtensionsSet.has(name))
-			.filter(({ name }) => excludedExtensions.indexOf(name) === -1)
+			.filter(({ name }) => excludedExtensions.indexOf(name) === -1 && isDistributionExtension(name))
 			.filter(({ name }) => builtInExtensions.every(b => b.name !== name))
 			.filter(({ manifestPath }) => (forWeb ? isWebExtension(require(manifestPath)) : true))
 	);
@@ -529,6 +530,10 @@ function getSharedExtensionDependencyFolders(): { folder: string; destination: s
 	const rootNodeModules = path.join(root, 'node_modules');
 	const result = new Map<string, string>();
 	for (const folder of getProductionDependencies('extensions/')) {
+		// Only the omitted language services use the shared TypeScript runtime.
+		if (path.basename(folder) === 'typescript') {
+			continue;
+		}
 		const relative = folder.startsWith(extensionsNodeModules + path.sep) ? path.relative(extensionsNodeModules, folder) : path.relative(rootNodeModules, folder);
 		if (relative.startsWith('..')) {
 			throw new Error(`Unexpected location of a shared extension dependency: ${folder}`);
@@ -543,38 +548,11 @@ function getSharedExtensionDependencyFolders(): { folder: string; destination: s
 	return [...result].map(([destination, folder]) => ({ folder: path.relative(root, folder).split(path.sep).join('/'), destination }));
 }
 
-/**
- * Package the built-in copilot extension specifically.
- * This is used by non-CI local builds where copilot is not downloaded as a VSIX
- * but must be compiled from source and included in the build.
- */
-export function packageCopilotExtensionStream(): Stream {
-	const extensionPath = path.join(root, 'extensions', 'copilot');
-	if (!fs.existsSync(extensionPath)) {
-		return es.readArray([]);
-	}
-
-	const localExtensionsStream = minifyExtensionResources(
-		fromLocal(extensionPath, false)
-			.pipe(rename(p => p.dirname = `extensions/copilot/${p.dirname}`))
-	);
-
-	const productionDependencies = getProductionDependencies('extensions/copilot');
-	const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat();
-
-	return es.merge(
-		localExtensionsStream,
-		gulp.src(dependenciesSrc, { base: '.' })
-			.pipe(util2.cleanNodeModules(path.join(root, 'build', '.moduleignore')))
-			.pipe(util2.cleanNodeModules(path.join(root, 'build', `.moduleignore.${process.platform}`)))
-	).pipe(util2.setExecutableBit(['**/*.sh']));
-}
-
 export function packageMarketplaceExtensionsStream(forWeb: boolean): Stream {
 	const marketplaceExtensionsDescriptions = [
 		...builtInExtensions.filter(({ name }) => (forWeb ? !marketplaceWebExtensionsExclude.has(name) : true)),
 		...(forWeb ? webBuiltInExtensions : [])
-	];
+	].filter(({ name }) => isDistributionExtension(name));
 	const marketplaceExtensionsStream = minifyExtensionResources(
 		es.merge(
 			...marketplaceExtensionsDescriptions
@@ -610,7 +588,7 @@ export function scanBuiltinExtensions(extensionsRoot: string, exclude: string[] 
 	try {
 		const extensionsFolders = fs.readdirSync(extensionsRoot);
 		for (const extensionFolder of extensionsFolders) {
-			if (exclude.indexOf(extensionFolder) >= 0) {
+			if (exclude.indexOf(extensionFolder) >= 0 || !isDistributionExtension(extensionFolder)) {
 				continue;
 			}
 			const packageJSONPath = path.join(extensionsRoot, extensionFolder, 'package.json');
@@ -717,12 +695,13 @@ const esbuildMediaScripts: { script: string; tsconfig: string }[] = [
 ];
 
 export function buildExtensionMedia(isWatch: boolean, outputRoot?: string): Promise<void> {
-	const esbuildTask = esbuildExtensions('esbuilding extension media', isWatch, esbuildMediaScripts.map(({ script }) => ({
+	const mediaScripts = esbuildMediaScripts.filter(({ script }) => isDistributionExtension(script.split('/')[0]));
+	const esbuildTask = esbuildExtensions('esbuilding extension media', isWatch, mediaScripts.map(({ script }) => ({
 		script: path.join(extensionsPath, script),
 		outputRoot: outputRoot ? path.join(root, outputRoot, path.dirname(script)) : undefined
 	})));
 
-	const typeCheckTasks = esbuildMediaScripts.map(({ tsconfig }) => {
+	const typeCheckTasks = mediaScripts.map(({ tsconfig }) => {
 		const tsconfigPath = path.join(extensionsPath, tsconfig);
 		const config = { taskName: 'typechecking extension media (tsgo)', noEmit: true };
 		if (!isWatch) {

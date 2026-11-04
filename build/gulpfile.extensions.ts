@@ -15,6 +15,7 @@ import { gulp, filter, plumber, sourcemaps } from './lib/gulp/facade.ts';
 import * as path from 'path';
 import * as nodeUtil from 'util';
 import * as ext from './lib/extensions.ts';
+import { isDistributionExtension } from './lib/distributionExtensions.ts';
 import { getVersion } from './lib/getVersion.ts';
 import { createReporter } from './lib/reporter.ts';
 import * as task from './lib/gulp/task.ts';
@@ -222,7 +223,9 @@ export function createExtensionTasks(tsconfigFile: string, repoRoot = root) {
 	return { transpileTask, compileTask, watchTask };
 }
 
-const tasks = compilations.map(tsconfigFile => createExtensionTasks(tsconfigFile));
+const tasks = compilations
+	.filter(tsconfigFile => !tsconfigFile.startsWith('extensions/') || isDistributionExtension(tsconfigFile.split('/')[1]))
+	.map(tsconfigFile => createExtensionTasks(tsconfigFile));
 
 const transpileExtensionsTask = task.define('transpile-extensions', task.parallel(...tasks.map(t => t.transpileTask)));
 task.task(transpileExtensionsTask);
@@ -276,13 +279,6 @@ export const compileNativeExtensionsBuildTask = task.define('compile-native-exte
 task.task(compileNativeExtensionsBuildTask);
 
 /**
- * Compiles the built-in copilot extension for the build.
- * Used by non-CI local builds where copilot is not downloaded as a VSIX.
- */
-export const compileCopilotExtensionBuildTask = task.define('compile-copilot-extension-build', () => ext.packageCopilotExtensionStream().pipe(gulp.dest('.build')));
-task.task(compileCopilotExtensionBuildTask);
-
-/**
  * Compiles the extensions for the build.
  * This is essentially a helper task that combines {@link cleanExtensionsBuildTask}, {@link compileNonNativeExtensionsBuildTask} and {@link compileNativeExtensionsBuildTask}
  */
@@ -307,10 +303,10 @@ async function buildWebExtensions(isWatch: boolean): Promise<void> {
 	const extensionsPath = path.join(root, 'extensions');
 
 	// Find all esbuild.browser.mts files
-	const esbuildConfigLocations = await nodeUtil.promisify(glob)(
+	const esbuildConfigLocations = (await nodeUtil.promisify(glob)(
 		path.join(extensionsPath, '**', 'esbuild.browser.mts'),
 		{ ignore: ['**/node_modules'] }
-	);
+	)).filter(script => isDistributionExtension(path.relative(extensionsPath, script).split(path.sep)[0]));
 
 	const promises: Promise<unknown>[] = [];
 

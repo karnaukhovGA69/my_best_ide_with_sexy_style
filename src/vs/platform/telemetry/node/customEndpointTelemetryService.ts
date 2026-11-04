@@ -13,6 +13,7 @@ import { ICustomEndpointTelemetryService, ITelemetryData, ITelemetryEndpoint, IT
 import { TelemetryAppenderClient } from '../common/telemetryIpc.js';
 import { TelemetryLogAppender } from '../common/telemetryLogAppender.js';
 import { TelemetryService } from '../common/telemetryService.js';
+import { NullTelemetryService, supportsTelemetry } from '../common/telemetryUtils.js';
 
 export class CustomEndpointTelemetryService implements ICustomEndpointTelemetryService {
 	declare readonly _serviceBrand: undefined;
@@ -28,6 +29,10 @@ export class CustomEndpointTelemetryService implements ICustomEndpointTelemetryS
 	) { }
 
 	private getCustomTelemetryService(endpoint: ITelemetryEndpoint): ITelemetryService {
+		if (!supportsTelemetry(this.productService, this.environmentService)) {
+			return NullTelemetryService;
+		}
+
 		if (!this.customTelemetryServices.has(endpoint.id)) {
 			const telemetryInfo: { [key: string]: string } = Object.create(null);
 			telemetryInfo['common.vscodemachineid'] = this.telemetryService.machineId;

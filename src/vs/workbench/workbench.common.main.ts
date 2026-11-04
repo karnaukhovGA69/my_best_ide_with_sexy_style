@@ -490,3 +490,6 @@ import './contrib/editTelemetry/browser/editTelemetry.contribution.js';
 import './contrib/opener/browser/opener.contribution.js';
 
 //#endregion
+
+// Distribution defaults
+import './common/myselfDefaults.js';

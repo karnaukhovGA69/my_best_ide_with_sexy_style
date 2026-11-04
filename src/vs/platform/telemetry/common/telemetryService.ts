@@ -151,7 +151,7 @@ export class TelemetryService implements ITelemetryService {
 
 		// Buffer events until experiment properties are set (or timeout expires).
 		// This ensures early events include experiment context when available.
-		if (config.waitForExperimentProperties) {
+		if (config.waitForExperimentProperties && this.telemetryLevel !== TelemetryLevel.NONE) {
 			this._flushTimeout = setTimeout(() => this._flushPendingEvents(), TelemetryService.BUFFER_FLUSH_TIMEOUT);
 		} else {
 			this._isExperimentPropertySet = true;
@@ -159,6 +159,10 @@ export class TelemetryService implements ITelemetryService {
 	}
 
 	setExperimentProperty(name: string, value: string): void {
+		if (this._productService.enableTelemetry === false) {
+			return;
+		}
+
 		this._experimentProperties[name] = new TelemetryTrustedValue(value);
 
 		// On first call, flush all pending events that were buffered waiting for experiment properties
@@ -168,6 +172,10 @@ export class TelemetryService implements ITelemetryService {
 	}
 
 	setCommonProperty(name: string, value: string | boolean | undefined): void {
+		if (this._productService.enableTelemetry === false) {
+			return;
+		}
+
 		if (value === undefined) {
 			delete this._commonProperties[name];
 		} else {
@@ -195,6 +203,12 @@ export class TelemetryService implements ITelemetryService {
 	}
 
 	private _updateTelemetryLevel(level: TelemetryLevel): void {
+		if (this._productService.enableTelemetry === false) {
+			this._telemetryLevel = TelemetryLevel.NONE;
+			this._sendErrorTelemetry = false;
+			return;
+		}
+
 		const collectableTelemetry = this._productService.enabledTelemetryLevels;
 		// Also ensure that error telemetry is respecting the product configuration for collectable telemetry
 		if (collectableTelemetry) {
@@ -344,7 +358,7 @@ configurationRegistry.registerConfiguration({
 				localize('telemetry.telemetryLevel.off', "Disables all product telemetry.")
 			],
 			'markdownDescription': getTelemetryLevelSettingDescription(),
-			'default': TelemetryConfiguration.ON,
+			'default': product.enableTelemetry === false ? TelemetryConfiguration.OFF : TelemetryConfiguration.ON,
 			'restricted': true,
 			'scope': ConfigurationScope.APPLICATION,
 			'tags': ['usesOnlineServices', 'telemetry'],

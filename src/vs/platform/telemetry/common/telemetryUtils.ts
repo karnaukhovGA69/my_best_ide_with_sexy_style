@@ -94,6 +94,10 @@ export interface URIDescriptor {
  * @returns false - telemetry is completely disabled, true - telemetry is logged locally, but may not be sent
  */
 export function supportsTelemetry(productService: IProductService, environmentService: IEnvironmentService): boolean {
+	// An explicit product opt-out also applies to development and extension tests.
+	if (productService.enableTelemetry === false) {
+		return false;
+	}
 	// If it's OSS and telemetry isn't disabled via the CLI we will allow it for logging only purposes
 	if (!environmentService.isBuilt && !environmentService.disableTelemetry) {
 		return true;
@@ -109,6 +113,9 @@ export function supportsTelemetry(productService: IProductService, environmentSe
  * @returns True if telemetry is actually disabled and we're only logging for debug purposes
  */
 export function isLoggingOnly(productService: IProductService, environmentService: IEnvironmentService): boolean {
+	if (productService.enableTelemetry === false || environmentService.disableTelemetry) {
+		return false;
+	}
 	// If we're testing an extension, log telemetry for debug purposes
 	if (environmentService.extensionTestsLocationURI) {
 		return true;

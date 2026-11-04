@@ -256,6 +256,9 @@ export class CloudSandboxApiService extends Disposable implements ICloudSandboxA
 			(session, token) => this._requestIdentityToken(session, token),
 			(session, request, token) => this._sealToken(request, token, session),
 		));
+		if (!this._productService.defaultChatAgent) {
+			return;
+		}
 		this._register(this._authenticationService.onDidChangeSessions(e => {
 			if (e.providerId === this._authenticationProviderId) {
 				void this._onAuthenticationChanged();
@@ -275,6 +278,12 @@ export class CloudSandboxApiService extends Disposable implements ICloudSandboxA
 
 	private get _authenticationProviderId(): string {
 		return this._productService.defaultChatAgent?.provider?.default?.id ?? 'github';
+	}
+
+	private _assertSupported(): void {
+		if (!this._productService.defaultChatAgent) {
+			throw new Error(localize('cloudSandbox.notSupported', "Cloud sandboxes are not available in this product."));
+		}
 	}
 
 	async getAccountKey(): Promise<string | undefined> {
@@ -356,6 +365,7 @@ export class CloudSandboxApiService extends Disposable implements ICloudSandboxA
 	}
 
 	private async _requestIdentityToken(session: AuthenticationSession, token: CancellationToken): Promise<ICloudSandboxIdentityTokenResponse | undefined> {
+		this._assertSupported();
 		const store = new DisposableStore();
 		try {
 			const signal = AbortSignal.any([CancellationToken.toAbortSignal(token, store), AbortSignal.timeout(REQUEST_TIMEOUT_MS)]);
@@ -418,6 +428,7 @@ export class CloudSandboxApiService extends Disposable implements ICloudSandboxA
 	}
 
 	async connectSessionFeed(token: CancellationToken): Promise<ICloudSandboxSessionFeedConnection | undefined> {
+		this._assertSupported();
 		const store = new DisposableStore();
 		let connection: ICloudSandboxSessionFeedConnection;
 		try {
@@ -1440,6 +1451,7 @@ export class CloudSandboxApiService extends Disposable implements ICloudSandboxA
 	}
 
 	private async _request(url: string, callSite: string, action: CloudSandboxRequestAction, headers: Record<string, string>, token: CancellationToken, timeoutMs: number = REQUEST_TIMEOUT_MS, body?: Record<string, unknown> | ((session: AuthenticationSession) => Record<string, unknown>), method?: 'GET' | 'POST' | 'DELETE' | 'PATCH', onRequest?: ICloudSandboxConnectionRequest['onRequest'], requestContext?: { readonly diagnosticId?: string; readonly authentication?: AuthenticationSession; readonly expectedAccountKey?: string }): Promise<IRequestContext> {
+		this._assertSupported();
 		let session = requestContext?.authentication ?? await this._resolveGitHubSession();
 		if (!session?.accessToken) {
 			// No request is issued, so there is no request outcome to count.
@@ -1634,6 +1646,9 @@ export class CloudSandboxApiService extends Disposable implements ICloudSandboxA
 
 	/** A GitHub session carrying at least the configured chat provider scopes. */
 	private async _resolveGitHubSession(): Promise<AuthenticationSession | undefined> {
+		if (!this._productService.defaultChatAgent) {
+			return undefined;
+		}
 		const providerId = this._authenticationProviderId;
 		const scopes = this._productService.defaultChatAgent?.providerScopes?.[0] ?? FALLBACK_SCOPES;
 

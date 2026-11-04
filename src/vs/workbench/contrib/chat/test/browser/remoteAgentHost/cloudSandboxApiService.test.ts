@@ -134,6 +134,7 @@ function createService(store: Pick<{ add<T extends { dispose(): void }>(t: T): T
 	readonly onRequest?: (url: URL, token: CancellationToken, options: IRequestOptions) => IRequestContext | undefined | Promise<IRequestContext | undefined>;
 	readonly discoveryDate?: () => string;
 	readonly authenticationSessions?: (scopes?: readonly string[]) => Promise<readonly AuthenticationSession[]>;
+	readonly builtInAI?: boolean;
 }): ITestSetup {
 	const requestedUrls: string[] = [];
 	const provisioningOutcomes: ProvisioningOutcome[] = [];
@@ -230,7 +231,7 @@ function createService(store: Pick<{ add<T extends { dispose(): void }>(t: T): T
 		override readonly onDidRegisterAuthenticationProvider = providerRegistered.event;
 		override readonly onDidUnregisterAuthenticationProvider = providerUnregistered.event;
 	}());
-	instantiationService.stub(IProductService, { defaultChatAgent: undefined } as unknown as IProductService);
+	instantiationService.stub(IProductService, { defaultChatAgent: options.builtInAI === false ? undefined : {} } as unknown as IProductService);
 	instantiationService.stub(ILogService, options.logService ?? new NullLogService());
 	instantiationService.stub(ICloudSandboxTelemetryService, new class extends mock<ICloudSandboxTelemetryService>() {
 		override readonly lifecycle = new CloudSandboxLifecycleTelemetry(new class extends mock<ITelemetryService>() {
@@ -304,6 +305,37 @@ function createService(store: Pick<{ add<T extends { dispose(): void }>(t: T): T
 		},
 	};
 }
+
+suite('CloudSandboxApiService product capability', () => {
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('ignores GitHub authentication events and sessions without built-in AI', async () => {
+		let sessionLookups = 0;
+		const logService = new TestLogService();
+		const h = createService(store, {
+			tasks: [], repositories: new Map(), builtInAI: false, logService,
+			authenticationSessions: async () => {
+				sessionLookups++;
+				return [{ accessToken: 'existing-token', id: 'session', account: { id: 'account', label: 'Account' }, scopes: ['read:user', 'user:email', 'repo', 'workflow'] }];
+			},
+		});
+		h.changeAuthentication('register');
+		h.changeAuthentication('sessions');
+		h.changeAuthentication('unregister');
+
+		assert.deepStrictEqual({ account: await h.service.getAccountKey(), sessionLookups, warnings: logService.warnings, requests: h.requestedUrls }, {
+			account: undefined, sessionLookups: 0, warnings: [], requests: [],
+		});
+	});
+
+	test('rejects model and session feed requests without built-in AI', async () => {
+		const h = createService(store, { tasks: [], repositories: new Map(), builtInAI: false });
+
+		await assert.rejects(h.service.listModels(CancellationToken.None), /Cloud sandboxes are not available in this product/);
+		await assert.rejects(h.service.connectSessionFeed(CancellationToken.None), /Cloud sandboxes are not available in this product/);
+		assert.deepStrictEqual(h.requestedUrls, []);
+	});
+});
 
 suite('CloudSandboxApiService discovery telemetry', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -4358,7 +4390,7 @@ function createServiceForCreate(store: Pick<{ add<T extends { dispose(): void }>
 		override readonly onDidRegisterAuthenticationProvider = Event.None;
 		override readonly onDidUnregisterAuthenticationProvider = Event.None;
 	}());
-	instantiationService.stub(IProductService, { defaultChatAgent: undefined } as unknown as IProductService);
+	instantiationService.stub(IProductService, { defaultChatAgent: {} } as unknown as IProductService);
 	instantiationService.stub(ILogService, new class extends NullLogService {
 		override error(message: string | Error): void {
 			errors.push(String(message));

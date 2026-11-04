@@ -17,13 +17,6 @@ import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/
 import { EditorExtensions } from '../../../common/editor.js';
 import { mcpSchemaId } from '../../../services/configuration/common/configuration.js';
 import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
-import { ExtensionMcpDiscovery } from '../common/discovery/extensionMcpDiscovery.js';
-import { InstalledMcpServersDiscovery } from '../common/discovery/installedMcpServersDiscovery.js';
-import { mcpDiscoveryRegistry } from '../common/discovery/mcpDiscovery.js';
-import { RemoteNativeMpcDiscovery } from '../common/discovery/nativeMcpRemoteDiscovery.js';
-import { PluginMcpDiscovery } from '../common/discovery/pluginMcpDiscovery.js';
-import { CursorWorkspaceMcpDiscoveryAdapter } from '../common/discovery/workspaceMcpDiscoveryAdapter.js';
-import { WorkspaceDotMcpDiscovery } from '../common/discovery/workspaceDotMcpDiscovery.js';
 import { McpCommandIds } from '../common/mcpCommandIds.js';
 import { mcpServerSchema } from '../common/mcpConfiguration.js';
 import { IMcpCopilotGlobalConfigurationService, McpCopilotGlobalConfigurationService } from '../common/mcpCopilotGlobalConfigurationService.js';
@@ -42,7 +35,6 @@ import { BrowserMcpGatewayService } from './mcpGatewayService.js';
 import { McpGatewayToolBrokerContribution } from './mcpGatewayToolBrokerContribution.js';
 import { McpAddContextContribution } from './mcpAddContextContribution.js';
 import { AddConfigurationAction, EditStoredInput, InstallFromManifestAction, ListMcpServerCommand, McpAgentHostServerOptionsCommand, McpBrowseCommand, McpBrowsePageCommand, McpBrowseResourcesCommand, McpConfigureSamplingModels, McpConfirmationServerOptionsCommand, MCPServerActionRendering, McpServerOptionsCommand, McpSkipCurrentAutostartCommand, McpStartPromptingServerCommand, OpenRemoteUserMcpResourceCommand, OpenUserMcpResourceCommand, OpenWorkspaceFolderMcpResourceCommand, OpenWorkspaceMcpResourceCommand, RemoveStoredInput, ResetMcpCachedTools, ResetMcpTrustCommand, RestartServer, SetOAuthClientSecret, ShowConfiguration, ShowInstalledMcpServersCommand, ShowOutput, StartServer, StopServer } from './mcpCommands.js';
-import { McpDiscovery } from './mcpDiscovery.js';
 import { McpElicitationService } from './mcpElicitationService.js';
 import { McpLanguageFeatures } from './mcpLanguageFeatures.js';
 import { McpConfigMigrationContribution } from './mcpMigration.js';
@@ -64,14 +56,6 @@ registerSingleton(IMcpSamplingService, McpSamplingService, InstantiationType.Del
 registerSingleton(IMcpElicitationService, McpElicitationService, InstantiationType.Delayed);
 registerSingleton(IWorkbenchMcpGatewayService, BrowserMcpGatewayService, InstantiationType.Delayed);
 
-mcpDiscoveryRegistry.register(new SyncDescriptor(RemoteNativeMpcDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(InstalledMcpServersDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(ExtensionMcpDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(CursorWorkspaceMcpDiscoveryAdapter));
-mcpDiscoveryRegistry.register(new SyncDescriptor(WorkspaceDotMcpDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(PluginMcpDiscovery));
-
-registerWorkbenchContribution2('mcpDiscovery', McpDiscovery, WorkbenchPhase.AfterRestored);
 registerWorkbenchContribution2('mcpContextKeys', McpContextKeysController, WorkbenchPhase.BlockRestore);
 registerWorkbenchContribution2('mcpLanguageFeatures', McpLanguageFeatures, WorkbenchPhase.Eventually);
 registerWorkbenchContribution2('mcpResourceFilesystem', McpResourceFilesystem, WorkbenchPhase.BlockRestore);

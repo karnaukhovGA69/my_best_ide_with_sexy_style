@@ -294,6 +294,9 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 	}
 
 	async openAgentsWindow(openConfig: IOpenConfiguration, folderUri?: URI, reveal?: URI | 'new', source?: AgentsWindowOpenSource, folderUriIsDefault = false, draft?: IAgentsWindowDraft, onboardingSessionResource?: URI): Promise<ICodeWindow[]> {
+		if (!product.defaultChatAgent) {
+			throw new Error(localize('agentsWindowNotAvailable', "Agent Sessions are not available in this product."));
+		}
 		this.logService.trace('windowsManager#openAgentsWindow');
 
 		const existingWindows = this.getWindows();
@@ -525,7 +528,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 	}
 
 	private handleChatRequest(openConfig: IOpenConfiguration, usedWindows: ICodeWindow[]): void {
-		if (openConfig.context !== OpenContext.CLI || !openConfig.cli.chat || usedWindows.length === 0) {
+		if (!product.defaultChatAgent || openConfig.context !== OpenContext.CLI || !openConfig.cli.chat || usedWindows.length === 0) {
 			return;
 		}
 
@@ -547,7 +550,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 
 	private handleChatSessionToOpen(openConfig: IOpenConfiguration, requestedPaths: readonly IPathToOpen[], usedWindows: ICodeWindow[], filesOpenedInWindow: ICodeWindow | undefined): void {
 		const chatSessionToOpen = openConfig.chatSessionToOpen;
-		if (!chatSessionToOpen) {
+		if (!product.defaultChatAgent || !chatSessionToOpen) {
 			return;
 		}
 
@@ -1627,7 +1630,7 @@ export class WindowsMainService extends Disposable implements IWindowsMainServic
 
 			cssModules: this.cssDevelopmentService.isEnabled ? await this.cssDevelopmentService.getCssModules() : undefined,
 
-			isSessionsWindow: isWorkspaceIdentifier(options.workspace) && isEqual(options.workspace.configPath, this.environmentMainService.agentSessionsWorkspace),
+			isSessionsWindow: !!product.defaultChatAgent && isWorkspaceIdentifier(options.workspace) && isEqual(options.workspace.configPath, this.environmentMainService.agentSessionsWorkspace),
 		};
 
 		// New window

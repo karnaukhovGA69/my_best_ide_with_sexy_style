@@ -15,12 +15,10 @@ import { Range } from '../../../../../../editor/common/core/range.js';
 import { Selection } from '../../../../../../editor/common/core/selection.js';
 import { CodeActionProvider, CodeActionTriggerType, IWorkspaceTextEdit } from '../../../../../../editor/common/languages.js';
 import { IReadonlyTextBuffer, ITextModel } from '../../../../../../editor/common/model.js';
-import { IEditorWorkerService } from '../../../../../../editor/common/services/editorWorker.js';
 import { ILanguageFeaturesService } from '../../../../../../editor/common/services/languageFeatures.js';
 import { ITextModelService } from '../../../../../../editor/common/services/resolverService.js';
 import { ApplyCodeActionReason, applyCodeAction, getCodeActions } from '../../../../../../editor/contrib/codeAction/browser/codeAction.js';
 import { CodeActionItem, CodeActionKind, CodeActionTriggerSource } from '../../../../../../editor/contrib/codeAction/common/types.js';
-import { FormattingMode, getDocumentFormattingEditsWithSelectedProvider } from '../../../../../../editor/contrib/format/browser/format.js';
 import { SnippetController2 } from '../../../../../../editor/contrib/snippet/browser/snippetController2.js';
 import { localize } from '../../../../../../nls.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
@@ -55,70 +53,6 @@ export abstract class NotebookSaveParticipant implements IStoredFileWorkingCopyS
 		}
 
 		return controller.getState() !== NotebookMultiCursorState.Editing;
-	}
-}
-
-class FormatOnSaveParticipant implements IStoredFileWorkingCopySaveParticipant {
-	constructor(
-		@IEditorWorkerService private readonly editorWorkerService: IEditorWorkerService,
-		@ILanguageFeaturesService private readonly languageFeaturesService: ILanguageFeaturesService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@ITextModelService private readonly textModelService: ITextModelService,
-		@IBulkEditService private readonly bulkEditService: IBulkEditService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
-	) { }
-
-	async participate(workingCopy: IStoredFileWorkingCopy<IStoredFileWorkingCopyModel>, context: IStoredFileWorkingCopySaveParticipantContext, progress: IProgress<IProgressStep>, token: CancellationToken): Promise<void> {
-		if (!workingCopy.model || !(workingCopy.model instanceof NotebookFileWorkingCopyModel)) {
-			return;
-		}
-
-		if (context.reason === SaveReason.AUTO) {
-			return undefined;
-		}
-
-		const enabled = this.configurationService.getValue<boolean>(NotebookSetting.formatOnSave);
-		if (!enabled) {
-			return undefined;
-		}
-		progress.report({ message: localize('notebookFormatSave.formatting', "Formatting") });
-
-		const notebook = workingCopy.model.notebookModel;
-		const formatApplied: boolean = await this.instantiationService.invokeFunction(CodeActionParticipantUtils.checkAndRunFormatCodeAction, notebook, progress, token);
-
-		const disposable = new DisposableStore();
-		try {
-			if (!formatApplied) {
-				const allCellEdits = await Promise.all(notebook.cells.map(async cell => {
-					const ref = await this.textModelService.createModelReference(cell.uri);
-					disposable.add(ref);
-
-					const model = ref.object.textEditorModel;
-
-					const formatEdits = await getDocumentFormattingEditsWithSelectedProvider(
-						this.editorWorkerService,
-						this.languageFeaturesService,
-						model,
-						FormattingMode.Silent,
-						token
-					);
-
-					const edits: ResourceTextEdit[] = [];
-
-					if (formatEdits) {
-						edits.push(...formatEdits.map(edit => new ResourceTextEdit(model.uri, edit, model.getVersionId())));
-						return edits;
-					}
-
-					return [];
-				}));
-
-				await this.bulkEditService.apply(/* edit */allCellEdits.flat(), { label: localize('formatNotebook', "Format Notebook"), code: 'undoredo.formatNotebook', });
-			}
-		} finally {
-			progress.report({ increment: 100 });
-			disposable.dispose();
-		}
 	}
 }
 
@@ -658,7 +592,6 @@ export class SaveParticipantsContribution extends Disposable implements IWorkben
 	private registerSaveParticipants(): void {
 		this._register(this.workingCopyFileService.addSaveParticipant(this.instantiationService.createInstance(TrimWhitespaceParticipant)));
 		this._register(this.workingCopyFileService.addSaveParticipant(this.instantiationService.createInstance(CodeActionOnSaveParticipant)));
-		this._register(this.workingCopyFileService.addSaveParticipant(this.instantiationService.createInstance(FormatOnSaveParticipant)));
 		this._register(this.workingCopyFileService.addSaveParticipant(this.instantiationService.createInstance(InsertFinalNewLineParticipant)));
 		this._register(this.workingCopyFileService.addSaveParticipant(this.instantiationService.createInstance(TrimFinalNewLinesParticipant)));
 	}

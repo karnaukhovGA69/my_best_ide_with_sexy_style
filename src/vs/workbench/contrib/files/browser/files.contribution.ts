@@ -27,7 +27,6 @@ import { ExplorerService, UNDO_REDO_SOURCE } from './explorerService.js';
 import { GUESSABLE_ENCODINGS, SUPPORTED_ENCODINGS } from '../../../services/textfile/common/encoding.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { WorkspaceWatcher } from './workspaceWatcher.js';
-import { editorConfigurationBaseNode } from '../../../../editor/common/config/editorConfigurationSchema.js';
 import { DirtyFilesIndicator } from '../common/dirtyFilesIndicator.js';
 import { UndoCommand, RedoCommand } from '../../../../editor/browser/editorExtensions.js';
 import { IUndoRedoService } from '../../../../platform/undoRedo/common/undoRedo.js';
@@ -389,33 +388,6 @@ configurationRegistry.registerConfiguration({
 			default: 60000,
 			markdownDescription: nls.localize('files.participants.timeout', "Timeout in milliseconds after which file participants for create, rename, and delete are cancelled. Use `0` to disable participants."),
 		}
-	}
-});
-
-configurationRegistry.registerConfiguration({
-	...editorConfigurationBaseNode,
-	properties: {
-		'editor.formatOnSave': {
-			'type': 'boolean',
-			'markdownDescription': nls.localize('formatOnSave', "Format a file on save. A formatter must be available and the editor must not be shutting down. When {0} is set to `afterDelay`, the file will only be formatted when saved explicitly.", '`#files.autoSave#`'),
-			'scope': ConfigurationScope.LANGUAGE_OVERRIDABLE,
-		},
-		'editor.formatOnSaveMode': {
-			'type': 'string',
-			'default': 'file',
-			'enum': [
-				'file',
-				'modifications',
-				'modificationsIfAvailable'
-			],
-			'enumDescriptions': [
-				nls.localize({ key: 'everything', comment: ['This is the description of an option'] }, "Format the whole file."),
-				nls.localize({ key: 'modification', comment: ['This is the description of an option'] }, "Format modifications. Requires source control and a formatter that supports 'Format Selection'."),
-				nls.localize({ key: 'modificationIfAvailable', comment: ['This is the description of an option'] }, "Will attempt to format modifications only (requires source control and a formatter that supports 'Format Selection'). If source control can't be used, then the whole file will be formatted."),
-			],
-			'markdownDescription': nls.localize('formatOnSaveMode', "Controls if format on save formats the whole file or only modifications. Only applies when `#editor.formatOnSave#` is enabled."),
-			'scope': ConfigurationScope.LANGUAGE_OVERRIDABLE,
-		},
 	}
 });
 

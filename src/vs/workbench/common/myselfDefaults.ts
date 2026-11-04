@@ -23,7 +23,6 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerDefaultCon
 		'editor.stickyScroll.enabled': false,
 		'editor.snippetSuggestions': 'none',
 		'editor.tabCompletion': 'off',
-		'editor.formatOnSave': false,
 		'update.mode': 'none',
 		'update.showReleaseNotes': false,
 		'telemetry.telemetryLevel': 'off',

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import assert from 'assert';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import * as sinon from 'sinon';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { EditorOption } from '../../../../common/config/editorOptions.js';
@@ -20,6 +21,13 @@ import { IStorageService, InMemoryStorageService } from '../../../../../platform
 suite('Multicursor', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('user multicursor actions are not registered', () => {
+		assert.deepStrictEqual([
+			'editor.action.insertCursorAbove', 'editor.action.insertCursorBelow',
+			'editor.action.addSelectionToNextFindMatch', 'editor.action.selectHighlights'
+		].filter(id => CommandsRegistry.getCommand(id)), []);
+	});
 
 	test('issue #26393: Multiple cursors + Word wrap', () => {
 		withTestCodeEditor([

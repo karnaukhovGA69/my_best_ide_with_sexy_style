@@ -60,7 +60,7 @@ import './services/mcp/electron-browser/mcpGalleryManifestService.js';
 import './services/mcp/electron-browser/mcpWorkbenchManagementService.js';
 import './services/encryption/electron-browser/encryptionService.js';
 import './services/imageResize/electron-browser/imageResizeService.js';
-import './services/localTranscription/electron-browser/localTranscriptionService.js';
+import './services/localTranscription/browser/localTranscriptionService.js';
 import './services/secrets/electron-browser/secretStorageService.js';
 import './services/localization/electron-browser/languagePackService.js';
 import './services/telemetry/electron-browser/telemetryService.js';
@@ -197,7 +197,6 @@ import './contrib/chat/electron-browser/chat.contribution.js';
 import './contrib/chat/electron-browser/tunnelHost.contribution.js';
 
 // Copilot Voice
-import './contrib/agentsVoice/electron-browser/agentsVoiceNativeCommands.js';
 
 // Encryption
 import './contrib/encryption/electron-browser/encryption.contribution.js';

@@ -8,6 +8,7 @@ import { URI } from '../../../base/common/uri.js';
 import { ExtHostLoggerService as BaseExtHostLoggerService } from '../common/extHostLoggerService.js';
 import { Schemas } from '../../../base/common/network.js';
 import { SpdLogLogger } from '../../../platform/log/node/spdlogLog.js';
+import { isCoreDiagnosticLogger } from '../../../platform/log/node/diagnosticLogRetention.js';
 import { generateUuid } from '../../../base/common/uuid.js';
 
 export class ExtHostLoggerService extends BaseExtHostLoggerService {
@@ -15,7 +16,7 @@ export class ExtHostLoggerService extends BaseExtHostLoggerService {
 	protected override doCreateLogger(resource: URI, logLevel: LogLevel, options?: ILoggerOptions): ILogger {
 		if (resource.scheme === Schemas.file) {
 			/* Create the logger in the Extension Host process to prevent loggers (log, output channels...) traffic  over IPC */
-			return new SpdLogLogger(options?.name || generateUuid(), resource.fsPath, !options?.donotRotate, !!options?.donotUseFormatters, logLevel);
+			return new SpdLogLogger(options?.name || generateUuid(), resource.fsPath, !options?.donotRotate, !!options?.donotUseFormatters, logLevel, isCoreDiagnosticLogger(options));
 		}
 		return super.doCreateLogger(resource, logLevel, options);
 	}

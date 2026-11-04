@@ -273,7 +273,9 @@ export async function setupServerServices(connectionToken: ServerConnectionToken
 	const spawnPort = args['agent-host-port'];
 	const spawnPath = args['agent-host-path'];
 	const spawnAgentHost = !!(spawnPort || spawnPath);
-	if (spawnAgentHost) {
+	if (!productService.defaultChatAgent) {
+		socketServer.registerChannel(AgentHostIpcChannels.RemoteProxy, new UnavailableAgentHostChannel<RemoteAgentConnectionContext>());
+	} else if (spawnAgentHost) {
 		const agentHostStarter = instantiationService.createInstance(NodeAgentHostStarter);
 		agentHostStarter.setWebSocketConfig({
 			port: spawnPort,

@@ -238,42 +238,45 @@ class ChatLifecycleHandler extends Disposable {
 	}
 }
 
-registerAction2(OpenWorkspaceInAgentsWindowAction);
-registerAction2(OpenWorkspaceInAgentsWindowChatTitleAction);
-registerAction2(OpenWorkspaceInAgentsWindowTitleBarAction);
-registerAction2(ToggleOpenInAgentsWindowTitleBarAction);
-registerAction2(OpenAgentsWindowAction);
-registerAction2(OpenChatSessionInAgentsWindowAction);
-if (!product.quality) {
-	registerAction2(ResetCopilotHarnessIntroductionAction);
+if (product.defaultChatAgent) {
+	registerAction2(OpenWorkspaceInAgentsWindowAction);
+	registerAction2(OpenWorkspaceInAgentsWindowChatTitleAction);
+	registerAction2(OpenWorkspaceInAgentsWindowTitleBarAction);
+	registerAction2(ToggleOpenInAgentsWindowTitleBarAction);
+	registerAction2(OpenAgentsWindowAction);
+	registerAction2(OpenChatSessionInAgentsWindowAction);
+	if (!product.quality) {
+		registerAction2(ResetCopilotHarnessIntroductionAction);
+	}
+	registerAction2(StartVoiceChatAction);
+
+	registerAction2(VoiceChatInChatViewAction);
+	registerAction2(HoldToVoiceChatInChatViewAction);
+	registerAction2(QuickVoiceChatAction);
+	registerAction2(InlineVoiceChatAction);
+
+	registerAction2(StopListeningAction);
+	registerAction2(StopListeningAndSubmitAction);
+
+	registerAction2(ReadChatResponseAloud);
+	registerAction2(StopReadChatItemAloud);
+	registerAction2(StopReadAloud);
+
+	registerChatDeveloperActions();
+	registerChatExportZipAction();
+	registerExportAgentTracesDbAction();
+	registerInstallDictationModelAction();
+
+	registerWorkbenchContribution2(KeywordActivationContribution.ID, KeywordActivationContribution, WorkbenchPhase.AfterRestored);
+	registerWorkbenchContribution2(OpenWorkspaceInAgentsContribution.ID, OpenWorkspaceInAgentsContribution, WorkbenchPhase.BlockRestore);
+	registerWorkbenchContribution2(AgentsWindowInvitationContribution.ID, AgentsWindowInvitationContribution, WorkbenchPhase.BlockRestore);
+	registerWorkbenchContribution2(CopilotHarnessIntroductionContribution.ID, CopilotHarnessIntroductionContribution, WorkbenchPhase.Eventually);
 }
-registerAction2(StartVoiceChatAction);
 
-registerAction2(VoiceChatInChatViewAction);
-registerAction2(HoldToVoiceChatInChatViewAction);
-registerAction2(QuickVoiceChatAction);
-registerAction2(InlineVoiceChatAction);
-
-registerAction2(StopListeningAction);
-registerAction2(StopListeningAndSubmitAction);
-
-registerAction2(ReadChatResponseAloud);
-registerAction2(StopReadChatItemAloud);
-registerAction2(StopReadAloud);
-
-registerChatDeveloperActions();
-registerChatExportZipAction();
-registerExportAgentTracesDbAction();
-registerInstallDictationModelAction();
-
-registerWorkbenchContribution2(KeywordActivationContribution.ID, KeywordActivationContribution, WorkbenchPhase.AfterRestored);
 registerWorkbenchContribution2(NativeBuiltinToolsContribution.ID, NativeBuiltinToolsContribution, WorkbenchPhase.AfterRestored);
 registerWorkbenchContribution2(ChatCommandLineHandler.ID, ChatCommandLineHandler, WorkbenchPhase.BlockRestore);
 registerWorkbenchContribution2(ChatSuspendThrottlingHandler.ID, ChatSuspendThrottlingHandler, WorkbenchPhase.AfterRestored);
 registerWorkbenchContribution2(ChatLifecycleHandler.ID, ChatLifecycleHandler, WorkbenchPhase.AfterRestored);
-registerWorkbenchContribution2(OpenWorkspaceInAgentsContribution.ID, OpenWorkspaceInAgentsContribution, WorkbenchPhase.BlockRestore);
-registerWorkbenchContribution2(AgentsWindowInvitationContribution.ID, AgentsWindowInvitationContribution, WorkbenchPhase.BlockRestore);
-registerWorkbenchContribution2(CopilotHarnessIntroductionContribution.ID, CopilotHarnessIntroductionContribution, WorkbenchPhase.Eventually);
 
 // How long to wait for the agent host to surface an AgentInfo before
 // throwing an error. Long enough for normal startup, short enough to avoid

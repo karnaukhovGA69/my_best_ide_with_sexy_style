@@ -4,11 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
+import { decodeKeybinding } from '../../../../base/common/keybindings.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { OperatingSystem } from '../../../../base/common/platform.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { TestInstantiationService } from '../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { TestThemeService } from '../../../../platform/theme/test/common/testThemeService.js';
 import { NavigationCommandRevealType } from '../../../browser/coreCommands.js';
+import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+import { KeybindingsRegistry } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ViewController } from '../../../browser/view/viewController.js';
 import { ViewUserInputEvents } from '../../../browser/view/viewUserInputEvents.js';
 import { Position } from '../../../common/core/position.js';
@@ -88,6 +93,49 @@ suite('ViewController - Bracket content selection', () => {
 			}
 		);
 	}
+
+	for (const modifier of ['altKey', 'ctrlKey', 'metaKey'] as const) {
+		test(`mouse ${modifier} click and drag keep a single selection`, () => {
+			const controller = createViewControllerWithText('first\nsecond\nthird');
+			const data = {
+				position: new Position(2, 2), mouseColumn: 2, startedOnLineNumbers: false,
+				revealType: NavigationCommandRevealType.Minimal, mouseDownCount: 1, inSelectionMode: false,
+				altKey: false, ctrlKey: false, metaKey: false, shiftKey: false, leftButton: true,
+				middleButton: false, onInjectedText: false, [modifier]: true
+			};
+			controller.dispatchMouse(data);
+			controller.dispatchMouse({ ...data, position: new Position(3, 3), mouseColumn: 3, inSelectionMode: true, shiftKey: true });
+			assert.deepStrictEqual(viewModel!.getCursorStates().map(cursor => ({
+				anchor: cursor.modelState.selection.getSelectionStart(),
+				position: cursor.modelState.selection.getPosition()
+			})), [{ anchor: new Position(2, 2), position: new Position(3, 3) }]);
+		});
+	}
+
+	test('column selection actions are not registered', () => {
+		assert.deepStrictEqual([
+			'cursorColumnSelectLeft', 'cursorColumnSelectRight', 'cursorColumnSelectUp', 'cursorColumnSelectDown',
+			'cursorColumnSelectPageUp', 'cursorColumnSelectPageDown'
+		].filter(id => CommandsRegistry.getCommand(id)), []);
+	});
+
+	test('stale column selection setting preserves normal Shift selection keybindings', () => {
+		const values: Record<string, unknown> = { textInputFocus: true, editorColumnSelection: true };
+		const context = { getValue<T>(key: string): T | undefined { return values[key] as T | undefined; } };
+		const commands = [
+			[KeyCode.LeftArrow, 'cursorLeftSelect'], [KeyCode.RightArrow, 'cursorRightSelect'],
+			[KeyCode.UpArrow, 'cursorUpSelect'], [KeyCode.DownArrow, 'cursorDownSelect'],
+			[KeyCode.PageUp, 'cursorPageUpSelect'], [KeyCode.PageDown, 'cursorPageDownSelect']
+		] as const;
+		for (const os of [OperatingSystem.Windows, OperatingSystem.Macintosh, OperatingSystem.Linux]) {
+			const bindings = KeybindingsRegistry.getDefaultKeybindingsForOS(os);
+			for (const [key, expectedCommand] of commands) {
+				const keybinding = decodeKeybinding(KeyMod.Shift | key, os);
+				const matches = bindings.filter(binding => binding.keybinding?.equals(keybinding) && (!binding.when || binding.when.evaluate(context)));
+				assert.strictEqual(matches.at(-1)?.command, expectedCommand);
+			}
+		}
+	});
 
 	function testBracketSelection(text: string, position: Position, expectedText: string | undefined) {
 		const controller = createViewControllerWithText(text);

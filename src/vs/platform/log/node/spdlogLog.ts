@@ -6,6 +6,7 @@
 import type * as spdlog from '@vscode/spdlog';
 import { ByteSize } from '../../files/common/files.js';
 import { AbstractMessageLogger, ILogger, LogLevel } from '../common/log.js';
+import { diagnosticLogBackupCount, diagnosticLogMaxFileSize, prepareDiagnosticLog } from './diagnosticLogRetention.js';
 
 enum SpdLogLevel {
 	Trace,
@@ -67,15 +68,18 @@ function setLogLevel(logger: spdlog.Logger, level: LogLevel): void {
 export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 
 	private buffer: ILog[] = [];
-	private readonly _loggerCreationPromise: Promise<void>;
+	private _loggerCreationPromise: Promise<void>;
+	private logDay = Math.floor(Date.now() / 86400000);
+	private bufferedBytes = 0;
 	private _logger: spdlog.Logger | undefined;
 
 	constructor(
-		name: string,
-		filepath: string,
-		rotating: boolean,
-		donotUseFormatters: boolean,
+		private readonly name: string,
+		private readonly filepath: string,
+		private readonly rotating: boolean,
+		private readonly donotUseFormatters: boolean,
 		level: LogLevel,
+		private readonly boundedDiagnostics = false,
 	) {
 		super();
 		this.setLevel(level);
@@ -87,9 +91,19 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 		}));
 	}
 
-	private async _createSpdLogLogger(name: string, filepath: string, rotating: boolean, donotUseFormatters: boolean): Promise<void> {
-		const filecount = rotating ? 6 : 1;
-		const filesize = (30 / filecount) * ByteSize.MB;
+	private async _createSpdLogLogger(name: string, filepath: string, rotating: boolean, donotUseFormatters: boolean, forceRotate = false): Promise<void> {
+		if (this.boundedDiagnostics) {
+			try {
+				await prepareDiagnosticLog(filepath, Date.now(), forceRotate);
+			} catch (error) {
+				console.error(error);
+				this.buffer = [];
+				this.bufferedBytes = 0;
+				return;
+			}
+		}
+		const filecount = this.boundedDiagnostics ? diagnosticLogBackupCount : rotating ? 6 : 1;
+		const filesize = this.boundedDiagnostics ? diagnosticLogMaxFileSize : (30 / filecount) * ByteSize.MB;
 		const logger = await createSpdLogLogger(name, filepath, filesize, filecount, donotUseFormatters);
 		if (logger) {
 			this._logger = logger;
@@ -98,13 +112,34 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
 				log(this._logger, level, message);
 			}
 			this.buffer = [];
+			this.bufferedBytes = 0;
 		}
 	}
 
 	protected log(level: LogLevel, message: string): void {
+		if (this.boundedDiagnostics) {
+			// A single diagnostic must not exceed the native rotation limit.
+			if (message.length > 16384) {
+				message = message.slice(0, 16384) + ' [truncated]';
+			}
+			const day = Math.floor(Date.now() / 86400000);
+			if (this._logger && day !== this.logDay) {
+				this.logDay = day;
+				this.flushLogger();
+				this.disposeLogger();
+				this._loggerCreationPromise = this._createSpdLogLogger(this.name, this.filepath, this.rotating, this.donotUseFormatters, true);
+			}
+		}
 		if (this._logger) {
 			log(this._logger, level, message);
 		} else if (this.getLevel() <= level) {
+			if (this.boundedDiagnostics) {
+				const bytes = Buffer.byteLength(message);
+				while (this.buffer.length && (this.bufferedBytes + bytes > 512 * 1024 || this.buffer.length >= 1024)) {
+					this.bufferedBytes -= Buffer.byteLength(this.buffer.shift()!.message);
+				}
+				this.bufferedBytes += bytes;
+			}
 			this.buffer.push({ level, message });
 		}
 	}

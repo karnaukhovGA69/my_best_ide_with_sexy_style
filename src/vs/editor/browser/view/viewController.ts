@@ -106,31 +106,6 @@ export class ViewController {
 		return viewPosition;
 	}
 
-	private _hasMulticursorModifier(data: IMouseDispatchData): boolean {
-		switch (this.configuration.options.get(EditorOption.multiCursorModifier)) {
-			case 'altKey':
-				return data.altKey;
-			case 'ctrlKey':
-				return data.ctrlKey;
-			case 'metaKey':
-				return data.metaKey;
-			default:
-				return false;
-		}
-	}
-
-	private _hasNonMulticursorModifier(data: IMouseDispatchData): boolean {
-		switch (this.configuration.options.get(EditorOption.multiCursorModifier)) {
-			case 'altKey':
-				return data.ctrlKey || data.metaKey;
-			case 'ctrlKey':
-				return data.altKey || data.metaKey;
-			case 'metaKey':
-				return data.ctrlKey || data.altKey;
-			default:
-				return false;
-		}
-	}
 
 	/**
 	 * Selects content inside brackets if the position is right after an opening bracket or right before a closing bracket.
@@ -217,96 +192,40 @@ export class ViewController {
 	public dispatchMouse(data: IMouseDispatchData): void {
 		const options = this.configuration.options;
 		const selectionClipboardIsOn = (platform.isLinux && options.get(EditorOption.selectionClipboard));
-		const columnSelection = options.get(EditorOption.columnSelection);
-		const scrollOnMiddleClick = options.get(EditorOption.scrollOnMiddleClick);
 		if (data.middleButton && !selectionClipboardIsOn) {
-			if (scrollOnMiddleClick) {
-				// nothing to do here, handled in the contribution
+			// Middle-button scrolling is handled by its own contribution.
+			return;
+		}
+		if (data.startedOnLineNumbers || data.mouseDownCount === 3) {
+			if (data.inSelectionMode) {
+				this._lineSelectDrag(data.position, data.revealType);
 			} else {
-				this._columnSelect(data.position, data.mouseColumn, data.inSelectionMode);
-			}
-		} else if (data.startedOnLineNumbers) {
-			// If the dragging started on the gutter, then have operations work on the entire line
-			if (this._hasMulticursorModifier(data)) {
-				if (data.inSelectionMode) {
-					this._lastCursorLineSelect(data.position, data.revealType);
-				} else {
-					this._createCursor(data.position, true);
-				}
-			} else {
-				if (data.inSelectionMode) {
-					this._lineSelectDrag(data.position, data.revealType);
-				} else {
-					this._lineSelect(data.position, data.revealType);
-				}
+				this._lineSelect(data.position, data.revealType);
 			}
 		} else if (data.mouseDownCount >= 4) {
 			this._selectAll();
-		} else if (data.mouseDownCount === 3) {
-			if (this._hasMulticursorModifier(data)) {
-				if (data.inSelectionMode) {
-					this._lastCursorLineSelectDrag(data.position, data.revealType);
-				} else {
-					this._lastCursorLineSelect(data.position, data.revealType);
-				}
-			} else {
-				if (data.inSelectionMode) {
-					this._lineSelectDrag(data.position, data.revealType);
-				} else {
-					this._lineSelect(data.position, data.revealType);
-				}
-			}
 		} else if (data.mouseDownCount === 2) {
 			if (!data.onInjectedText) {
-				if (this._hasMulticursorModifier(data)) {
-					this._lastCursorWordSelect(data.position, data.revealType);
-				} else {
-					if (data.inSelectionMode) {
-						this._wordSelectDrag(data.position, data.revealType);
-					} else {
-						let selection: Selection | undefined;
-						if (options.get(EditorOption.doubleClickSelectsBlock)) {
-							const model = this.viewModel.model;
-							const modelPos = this._convertViewToModelPosition(data.position);
-							selection = ViewController._trySelectBracketContent(model, modelPos) || ViewController._trySelectStringContent(model, modelPos);
-						}
-						if (selection) {
-							this._select(selection);
-						} else {
-							this._wordSelect(data.position, data.revealType);
-						}
-					}
-				}
-			}
-		} else {
-			if (this._hasMulticursorModifier(data)) {
-				if (!this._hasNonMulticursorModifier(data)) {
-					if (data.shiftKey) {
-						this._columnSelect(data.position, data.mouseColumn, true);
-					} else {
-						// Do multi-cursor operations only when purely alt is pressed
-						if (data.inSelectionMode) {
-							this._lastCursorMoveToSelect(data.position, data.revealType);
-						} else {
-							this._createCursor(data.position, false);
-						}
-					}
-				}
-			} else {
 				if (data.inSelectionMode) {
-					if (data.altKey) {
-						this._columnSelect(data.position, data.mouseColumn, true);
-					} else {
-						if (columnSelection) {
-							this._columnSelect(data.position, data.mouseColumn, true);
-						} else {
-							this._moveToSelect(data.position, data.revealType);
-						}
-					}
+					this._wordSelectDrag(data.position, data.revealType);
 				} else {
-					this.moveTo(data.position, data.revealType);
+					let selection: Selection | undefined;
+					if (options.get(EditorOption.doubleClickSelectsBlock)) {
+						const model = this.viewModel.model;
+						const modelPos = this._convertViewToModelPosition(data.position);
+						selection = ViewController._trySelectBracketContent(model, modelPos) || ViewController._trySelectStringContent(model, modelPos);
+					}
+					if (selection) {
+						this._select(selection);
+					} else {
+						this._wordSelect(data.position, data.revealType);
+					}
 				}
 			}
+		} else if (data.inSelectionMode) {
+			this._moveToSelect(data.position, data.revealType);
+		} else {
+			this.moveTo(data.position, data.revealType);
 		}
 	}
 
@@ -328,31 +247,6 @@ export class ViewController {
 		CoreNavigationCommands.MoveToSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
 	}
 
-	private _columnSelect(viewPosition: Position, mouseColumn: number, doColumnSelect: boolean): void {
-		viewPosition = this._validateViewColumn(viewPosition);
-		CoreNavigationCommands.ColumnSelect.runCoreEditorCommand(this.viewModel, {
-			source: 'mouse',
-			position: this._convertViewToModelPosition(viewPosition),
-			viewPosition: viewPosition,
-			mouseColumn: mouseColumn,
-			doColumnSelect: doColumnSelect
-		});
-	}
-
-	private _createCursor(viewPosition: Position, wholeLine: boolean): void {
-		viewPosition = this._validateViewColumn(viewPosition);
-		CoreNavigationCommands.CreateCursor.runCoreEditorCommand(this.viewModel, {
-			source: 'mouse',
-			position: this._convertViewToModelPosition(viewPosition),
-			viewPosition: viewPosition,
-			wholeLine: wholeLine
-		});
-	}
-
-	private _lastCursorMoveToSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorMoveToSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
-	}
-
 	private _wordSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
 		CoreNavigationCommands.WordSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
 	}
@@ -361,24 +255,12 @@ export class ViewController {
 		CoreNavigationCommands.WordSelectDrag.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
 	}
 
-	private _lastCursorWordSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorWordSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
-	}
-
 	private _lineSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
 		CoreNavigationCommands.LineSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
 	}
 
 	private _lineSelectDrag(viewPosition: Position, revealType: NavigationCommandRevealType): void {
 		CoreNavigationCommands.LineSelectDrag.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
-	}
-
-	private _lastCursorLineSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorLineSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
-	}
-
-	private _lastCursorLineSelectDrag(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorLineSelectDrag.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
 	}
 
 	private _select(selection: Selection): void {

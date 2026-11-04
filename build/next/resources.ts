@@ -11,6 +11,7 @@ import glob from 'glob';
 import type { BuildTarget } from '../lib/esbuild.ts';
 import { rewriteSourceMappingURL } from './source-map-url.ts';
 import { copyFile } from './transpile.ts';
+import { isDistributionRuntimeFile } from '../lib/distributionRuntime.ts';
 
 export type { BuildTarget };
 
@@ -199,7 +200,7 @@ export async function getResourcePaths(srcDir: string, target: BuildTarget): Pro
  */
 export async function copyResources(srcDir: string, outDir: string, target: BuildTarget, minify: boolean, sourceMapBaseUrl?: string): Promise<void> {
 	console.log(`[resources] Copying to ${outDir} for target '${target}'...`);
-	const files = await getResourcePaths(srcDir, target);
+	const files = (await getResourcePaths(srcDir, target)).filter(isDistributionRuntimeFile);
 	for (const file of files) {
 		try {
 			const srcPath = path.resolve(srcDir, file);

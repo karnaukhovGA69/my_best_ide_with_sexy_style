@@ -9,7 +9,7 @@ import { KeyChord, KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Constants } from '../../../../base/common/uint.js';
 import { ICodeEditor } from '../../../browser/editorBrowser.js';
-import { EditorAction, EditorContributionInstantiation, registerEditorAction, registerEditorContribution, ServicesAccessor } from '../../../browser/editorExtensions.js';
+import { EditorAction, EditorContributionInstantiation, registerEditorContribution, ServicesAccessor } from '../../../browser/editorExtensions.js';
 import { EditorOption } from '../../../common/config/editorOptions.js';
 import { CursorState } from '../../../common/cursorCommon.js';
 import { CursorChangeReason, ICursorSelectionChangedEvent } from '../../../common/cursorEvents.js';
@@ -143,123 +143,6 @@ export class InsertCursorBelow extends EditorAction {
 			CursorMoveCommands.addCursorDown(viewModel, previousCursorState, useLogicalLine)
 		);
 		viewModel.revealBottomMostCursor(args.source);
-		announceCursorChange(previousCursorState, viewModel.getCursorStates());
-	}
-}
-
-class InsertCursorAtEndOfEachLineSelected extends EditorAction {
-
-	constructor() {
-		super({
-			id: 'editor.action.insertCursorAtEndOfEachLineSelected',
-			label: nls.localize2('mutlicursor.insertAtEndOfEachLineSelected', "Add Cursors to Line Ends"),
-			precondition: undefined,
-			kbOpts: {
-				kbExpr: EditorContextKeys.editorTextFocus,
-				primary: KeyMod.Shift | KeyMod.Alt | KeyCode.KeyI,
-				weight: KeybindingWeight.EditorContrib
-			},
-			menuOpts: {
-				menuId: MenuId.MenubarSelectionMenu,
-				group: '3_multi',
-				title: nls.localize({ key: 'miInsertCursorAtEndOfEachLineSelected', comment: ['&& denotes a mnemonic'] }, "Add C&&ursors to Line Ends"),
-				order: 4
-			}
-		});
-	}
-
-	private getCursorsForSelection(selection: Selection, model: ITextModel, result: Selection[]): void {
-		if (selection.isEmpty()) {
-			return;
-		}
-
-		for (let i = selection.startLineNumber; i < selection.endLineNumber; i++) {
-			const currentLineMaxColumn = model.getLineMaxColumn(i);
-			result.push(new Selection(i, currentLineMaxColumn, i, currentLineMaxColumn));
-		}
-		if (selection.endColumn > 1) {
-			result.push(new Selection(selection.endLineNumber, selection.endColumn, selection.endLineNumber, selection.endColumn));
-		}
-	}
-
-	public run(accessor: ServicesAccessor, editor: ICodeEditor): void {
-		if (!editor.hasModel()) {
-			return;
-		}
-
-		const model = editor.getModel();
-		const selections = editor.getSelections();
-		const viewModel = editor._getViewModel();
-		const previousCursorState = viewModel.getCursorStates();
-		const newSelections: Selection[] = [];
-		selections.forEach((sel) => this.getCursorsForSelection(sel, model, newSelections));
-
-		if (newSelections.length > 0) {
-			editor.setSelections(newSelections);
-		}
-		announceCursorChange(previousCursorState, viewModel.getCursorStates());
-	}
-}
-
-class InsertCursorAtEndOfLineSelected extends EditorAction {
-
-	constructor() {
-		super({
-			id: 'editor.action.addCursorsToBottom',
-			label: nls.localize2('mutlicursor.addCursorsToBottom', "Add Cursors to Bottom"),
-			precondition: undefined
-		});
-	}
-
-	public run(accessor: ServicesAccessor, editor: ICodeEditor): void {
-		if (!editor.hasModel()) {
-			return;
-		}
-
-		const selections = editor.getSelections();
-		const lineCount = editor.getModel().getLineCount();
-
-		const newSelections: Selection[] = [];
-		for (let i = selections[0].startLineNumber; i <= lineCount; i++) {
-			newSelections.push(new Selection(i, selections[0].startColumn, i, selections[0].endColumn));
-		}
-
-		const viewModel = editor._getViewModel();
-		const previousCursorState = viewModel.getCursorStates();
-		if (newSelections.length > 0) {
-			editor.setSelections(newSelections);
-		}
-		announceCursorChange(previousCursorState, viewModel.getCursorStates());
-	}
-}
-
-class InsertCursorAtTopOfLineSelected extends EditorAction {
-
-	constructor() {
-		super({
-			id: 'editor.action.addCursorsToTop',
-			label: nls.localize2('mutlicursor.addCursorsToTop', "Add Cursors to Top"),
-			precondition: undefined
-		});
-	}
-
-	public run(accessor: ServicesAccessor, editor: ICodeEditor): void {
-		if (!editor.hasModel()) {
-			return;
-		}
-
-		const selections = editor.getSelections();
-
-		const newSelections: Selection[] = [];
-		for (let i = selections[0].startLineNumber; i >= 1; i--) {
-			newSelections.push(new Selection(i, selections[0].startColumn, i, selections[0].endColumn));
-		}
-
-		const viewModel = editor._getViewModel();
-		const previousCursorState = viewModel.getCursorStates();
-		if (newSelections.length > 0) {
-			editor.setSelections(newSelections);
-		}
 		announceCursorChange(previousCursorState, viewModel.getCursorStates());
 	}
 }
@@ -1199,17 +1082,3 @@ export class FocusPreviousCursor extends EditorAction {
 
 registerEditorContribution(MultiCursorSelectionController.ID, MultiCursorSelectionController, EditorContributionInstantiation.Lazy);
 registerEditorContribution(SelectionHighlighter.ID, SelectionHighlighter, EditorContributionInstantiation.AfterFirstRender);
-
-registerEditorAction(InsertCursorAbove);
-registerEditorAction(InsertCursorBelow);
-registerEditorAction(InsertCursorAtEndOfEachLineSelected);
-registerEditorAction(AddSelectionToNextFindMatchAction);
-registerEditorAction(AddSelectionToPreviousFindMatchAction);
-registerEditorAction(MoveSelectionToNextFindMatchAction);
-registerEditorAction(MoveSelectionToPreviousFindMatchAction);
-registerEditorAction(SelectHighlightsAction);
-registerEditorAction(CompatChangeAll);
-registerEditorAction(InsertCursorAtEndOfLineSelected);
-registerEditorAction(InsertCursorAtTopOfLineSelected);
-registerEditorAction(FocusNextCursor);
-registerEditorAction(FocusPreviousCursor);

@@ -22,6 +22,7 @@ import { isWebExtension, type IScannedBuiltinExtension } from '../lib/extensions
 import { runBuildFast } from './build-fast.ts';
 import { bundleDevTunnelsWeb, devTunnelsWebOutDir } from './devTunnelsWeb.ts';
 import { agentHostCryptoOutDir, bundleAgentHostCrypto } from './agentHostCrypto.ts';
+import { isDistributionRuntimeFile } from '../lib/distributionRuntime.ts';
 import { copyFile, mapWithConcurrency, MAX_CONCURRENT_FILE_OPERATIONS, transpileFile } from './transpile.ts';
 import { copyResources } from './resources.ts';
 import { optimizeSvgFiles } from './svg.ts';
@@ -479,7 +480,7 @@ async function bundle(outDir: string, doMinify: boolean, doNls: boolean, doMangl
 	const preserveEnglish = false; // Production mode: replace messages with null
 
 	// Get entry points based on target
-	const allEntryPoints = getEntryPointsForTarget(target);
+	const allEntryPoints = getEntryPointsForTarget(target).filter(isDistributionRuntimeFile);
 	const bootstrapEntryPoints = getBootstrapEntryPointsForTarget(target);
 	const bundleCssEntryPoints = getCssBundleEntryPointsForTarget(target);
 
@@ -696,7 +697,7 @@ async function bundle(outDir: string, doMinify: boolean, doNls: boolean, doMangl
 	// Compile standalone TypeScript files (like Electron preload scripts) that cannot be bundled
 	await compileStandaloneFiles(path.join(REPO_ROOT, SRC_DIR), outDirPath, target, doMinify, sourceMapBaseUrl);
 
-	if (target !== 'server') {
+	if (target !== 'server' && isDistributionRuntimeFile(agentHostCryptoOutDir)) {
 		await bundleAgentHostCrypto({
 			minify: doMinify,
 			outDir: path.join(outDir, agentHostCryptoOutDir),

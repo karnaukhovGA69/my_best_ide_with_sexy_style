@@ -86,7 +86,6 @@ suite('EditorGroupWatermark', () => {
 		keybindingsChanged = disposables.add(new Emitter<void>());
 		keybindings = new Map([
 			['workbench.action.chat.open', keybinding(KeyCode.KeyI)],
-			['workbench.action.showCommands', keybinding(KeyCode.KeyP)],
 			['workbench.action.openSettings', keybinding(KeyCode.Comma)],
 		]);
 		keybindingLookups = [];
@@ -147,22 +146,19 @@ suite('EditorGroupWatermark', () => {
 
 		assert.deepStrictEqual(rows(), [
 			{ label: 'Open Chat', icon: 'codicon codicon-watermark-chat watermark-icon', iconHidden: 'true', keybinding: keybindings.get('workbench.action.chat.open')?.getAriaLabel() },
-			{ label: 'Show All Commands', icon: 'codicon codicon-watermark-commands watermark-icon', iconHidden: 'true', keybinding: keybindings.get('workbench.action.showCommands')?.getAriaLabel() },
 			{ label: 'Open Settings', icon: 'codicon codicon-watermark-settings watermark-icon', iconHidden: 'true', keybinding: keybindings.get('workbench.action.openSettings')?.getAriaLabel() },
 		]);
 	});
 
-	test('uses consistent Chat and Settings glyphs and a command-picker glyph distinct from Terminal', () => {
+	test('uses consistent Chat, Settings and Terminal glyphs', () => {
 		const registry = getIconRegistry();
 
 		assert.deepStrictEqual({
 			chat: registry.getIcon('watermark-chat')?.defaults,
-			commands: registry.getIcon('watermark-commands')?.defaults,
 			settings: registry.getIcon('watermark-settings')?.defaults,
 			terminal: registry.getIcon('watermark-terminal')?.defaults,
 		}, {
 			chat: Codicon.chatSparkle,
-			commands: Codicon.listSelection,
 			settings: Codicon.settings,
 			terminal: Codicon.terminal,
 		});
@@ -174,7 +170,7 @@ suite('EditorGroupWatermark', () => {
 			row.click();
 		}
 
-		assert.deepStrictEqual(executedCommands, ['workbench.action.chat.open', 'workbench.action.showCommands', 'workbench.action.openSettings']);
+		assert.deepStrictEqual(executedCommands, ['workbench.action.chat.open', 'workbench.action.openSettings']);
 	});
 
 	test('renders each shortcut as a single interactive anchor without nested anchors', () => {
@@ -185,9 +181,9 @@ suite('EditorGroupWatermark', () => {
 			nestedAnchors: container.querySelectorAll('.watermark-box a a').length,
 			actionLabels: [...container.querySelectorAll('.watermark-box .action-label')].map(label => label.matches('a.watermark-entry[role="button"]')),
 		}, {
-			anchors: 3,
+			anchors: 2,
 			nestedAnchors: 0,
-			actionLabels: [true, true, true],
+			actionLabels: [true, true],
 		});
 	});
 
@@ -214,7 +210,7 @@ suite('EditorGroupWatermark', () => {
 			toolbarLabel: 'Editor Shortcuts',
 			buttons: [...keybindings.values()].map((keybinding, index) => ({
 				role: 'button',
-				label: `${['Open Chat', 'Show All Commands', 'Open Settings'][index]} (${keybinding.getAriaLabel()})`,
+				label: `${['Open Chat', 'Open Settings'][index]} (${keybinding.getAriaLabel()})`,
 				tabIndex: index === 0 ? 0 : -1,
 			})),
 		});
@@ -279,8 +275,8 @@ suite('EditorGroupWatermark', () => {
 			icons: container.querySelectorAll('.codicon').length,
 			keybinding: rows()[0].keybinding,
 		}, {
-			labels: ['Open Chat', 'Show All Commands'],
-			icons: 2,
+			labels: ['Open Chat'],
+			icons: 1,
 			keybinding: updatedKeybinding.getAriaLabel(),
 		});
 	});
@@ -292,7 +288,6 @@ suite('EditorGroupWatermark', () => {
 
 		assert.deepStrictEqual(keybindingLookups, [
 			'workbench.action.chat.open',
-			'workbench.action.showCommands',
 			'workbench.action.openSettings',
 		]);
 	});
@@ -301,7 +296,7 @@ suite('EditorGroupWatermark', () => {
 		chatEnabled = false;
 		render();
 
-		assert.deepStrictEqual(rows().map(row => row.label), ['Show All Commands', 'Open Settings']);
+		assert.deepStrictEqual(rows().map(row => row.label), ['Open Settings']);
 	});
 
 	test('hides and restores chat when its context condition changes after rendering', () => {
@@ -313,8 +308,8 @@ suite('EditorGroupWatermark', () => {
 		changeContext('chatSetupHidden');
 
 		assert.deepStrictEqual({ disabledLabels, enabledLabels: rows().map(row => row.label) }, {
-			disabledLabels: ['Show All Commands', 'Open Settings'],
-			enabledLabels: ['Open Chat', 'Show All Commands', 'Open Settings'],
+			disabledLabels: ['Open Settings'],
+			enabledLabels: ['Open Chat', 'Open Settings'],
 		});
 	});
 
@@ -326,8 +321,8 @@ suite('EditorGroupWatermark', () => {
 		changeContext('chatSetupDisabledInWorkspace');
 
 		assert.deepStrictEqual({ cachedLabels, labels: rows().map(row => row.label) }, {
-			cachedLabels: ['Open Chat', 'Show All Commands', 'Open Settings'],
-			labels: ['Show All Commands', 'Open Settings'],
+			cachedLabels: ['Open Chat', 'Open Settings'],
+			labels: ['Open Settings'],
 		});
 	});
 
@@ -337,7 +332,7 @@ suite('EditorGroupWatermark', () => {
 		changeContext('someUnrelatedKey');
 		changeContext('chatSetupHidden');
 
-		assert.deepStrictEqual([...container.querySelectorAll('.watermark-entry')].map((row, index) => row === before[index]), [true, true, true]);
+		assert.deepStrictEqual([...container.querySelectorAll('.watermark-entry')].map((row, index) => row === before[index]), [true, true]);
 	});
 
 	test('respects the tips setting when disabled and re-enabled', async () => {
@@ -359,7 +354,7 @@ suite('EditorGroupWatermark', () => {
 
 		assert.deepStrictEqual({ hiddenRows, labels: rows().map(row => row.label) }, {
 			hiddenRows: [],
-			labels: ['Open Chat', 'Show All Commands', 'Open Settings'],
+			labels: ['Open Chat', 'Open Settings'],
 		});
 	});
 
@@ -373,7 +368,6 @@ suite('EditorGroupWatermark', () => {
 
 		assert.deepStrictEqual(rows().map(row => row.icon), [
 			'codicon codicon-watermark-chat watermark-icon',
-			'codicon codicon-watermark-commands watermark-icon',
 			'codicon codicon-watermark-open-recent watermark-icon',
 			...(isMacintosh && !isWeb ? ['codicon codicon-watermark-open-file-folder watermark-icon', 'codicon codicon-watermark-new-file watermark-icon'] : ['codicon codicon-watermark-open-file watermark-icon', 'codicon codicon-watermark-open-folder watermark-icon']),
 		]);
@@ -390,7 +384,7 @@ suite('EditorGroupWatermark', () => {
 			keybindings.set(id, keybinding(KeyCode.KeyT));
 			render();
 
-			assert.strictEqual(rows()[2].icon, `codicon codicon-${icon} watermark-icon`);
+			assert.strictEqual(rows()[1].icon, `codicon codicon-${icon} watermark-icon`);
 		});
 	}
 });

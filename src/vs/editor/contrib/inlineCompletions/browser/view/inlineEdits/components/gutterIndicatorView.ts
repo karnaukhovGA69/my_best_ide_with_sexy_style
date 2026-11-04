@@ -8,7 +8,7 @@ import { renderIcon } from '../../../../../../../base/browser/ui/iconLabel/iconL
 import { Codicon } from '../../../../../../../base/common/codicons.js';
 import { BugIndicatingError } from '../../../../../../../base/common/errors.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../../../../base/common/lifecycle.js';
-import { IObservable, ISettableObservable, autorun, constObservable, debouncedObservable, derived, observableFromEvent, observableValue, runOnChange } from '../../../../../../../base/common/observable.js';
+import { IObservable, ISettableObservable, autorun, constObservable, debouncedObservable, derived, observableValue, runOnChange } from '../../../../../../../base/common/observable.js';
 import { IAccessibilityService } from '../../../../../../../platform/accessibility/common/accessibility.js';
 import { IHoverService } from '../../../../../../../platform/hover/browser/hover.js';
 import { IInstantiationService } from '../../../../../../../platform/instantiation/common/instantiation.js';
@@ -20,7 +20,6 @@ import { HoverWidget } from '../../../../../../../platform/hover/browser/hoverWi
 import { EditorOption, RenderLineNumbersType } from '../../../../../../common/config/editorOptions.js';
 import { LineRange } from '../../../../../../common/core/ranges/lineRange.js';
 import { OffsetRange } from '../../../../../../common/core/ranges/offsetRange.js';
-import { StickyScrollController } from '../../../../../stickyScroll/browser/stickyScrollController.js';
 import { InlineEditTabAction } from '../inlineEditsViewInterface.js';
 import { getEditorBlendedColor, INLINE_EDITS_BORDER_RADIUS, inlineEditIndicatorBackground, inlineEditIndicatorPrimaryBackground, inlineEditIndicatorPrimaryBorder, inlineEditIndicatorPrimaryForeground, inlineEditIndicatorSecondaryBackground, inlineEditIndicatorSecondaryBorder, inlineEditIndicatorSecondaryForeground, inlineEditIndicatorSuccessfulBackground, inlineEditIndicatorSuccessfulBorder, inlineEditIndicatorSuccessfulForeground } from '../theme.js';
 import { mapOutFalsy, rectToProps } from '../utils/utils.js';
@@ -120,10 +119,7 @@ export class InlineEditsGutterIndicator extends Disposable {
 
 		this._originalRangeObs = mapOutFalsy(this._data.map(d => d?.originalRange));
 
-		this._stickyScrollController = StickyScrollController.get(this._editorObs.editor);
-		this._stickyScrollHeight = this._stickyScrollController
-			? observableFromEvent(this._stickyScrollController.onDidChangeStickyScrollHeight, () => this._stickyScrollController!.stickyScrollWidgetHeight)
-			: constObservable(0);
+		this._stickyScrollHeight = constObservable(0);
 
 		this._isHoveredOverInlineEditDebounced = debouncedObservable(this._isHoveringOverInlineEdit, 100);
 
@@ -225,7 +221,6 @@ export class InlineEditsGutterIndicator extends Disposable {
 		};
 	});
 
-	private readonly _stickyScrollController;
 	private readonly _stickyScrollHeight;
 
 	private readonly _lineNumberToRender = derived(this, reader => {

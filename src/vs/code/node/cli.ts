@@ -29,6 +29,7 @@ import { cwd } from '../../base/common/process.js';
 import { addUNCHostToAllowlist } from '../../base/node/unc.js';
 import { URI } from '../../base/common/uri.js';
 import { DeferredPromise } from '../../base/common/async.js';
+import { localize } from '../../nls.js';
 
 function shouldSpawnCliProcess(argv: NativeParsedArgs): boolean {
 	return !!argv['install-source']
@@ -49,6 +50,10 @@ export async function main(argv: string[]): Promise<void> {
 	} catch (err) {
 		console.error(err.message);
 		return;
+	}
+
+	if (!product.defaultChatAgent && (args.agents || args.chat || args.agent || args['add-mcp'])) {
+		throw new Error(localize('builtinAINotAvailable', "Built-in AI commands are not available in {0}.", product.nameLong));
 	}
 
 	for (const subcommand of NATIVE_CLI_COMMANDS) {

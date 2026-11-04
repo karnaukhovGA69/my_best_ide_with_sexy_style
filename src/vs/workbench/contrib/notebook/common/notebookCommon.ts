@@ -970,7 +970,6 @@ export const NotebookSetting = {
 	textOutputLineLimit: 'notebook.output.textLineLimit',
 	LinkifyOutputFilePaths: 'notebook.output.linkifyFilePaths',
 	minimalErrorRendering: 'notebook.output.minimalErrorRendering',
-	formatOnSave: 'notebook.formatOnSave.enabled',
 	insertFinalNewline: 'notebook.insertFinalNewline',
 	defaultFormatter: 'notebook.defaultFormatter',
 	formatOnCellExecution: 'notebook.formatOnCellExecution',

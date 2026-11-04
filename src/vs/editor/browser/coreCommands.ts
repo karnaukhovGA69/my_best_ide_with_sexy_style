@@ -472,7 +472,7 @@ export namespace CoreNavigationCommands {
 		}
 	});
 
-	export const CursorColumnSelectLeft: CoreEditorCommand<BaseCommandOptions> = registerEditorCommand(new class extends ColumnSelectCommand {
+	export const CursorColumnSelectLeft: CoreEditorCommand<BaseCommandOptions> = new class extends ColumnSelectCommand {
 		constructor() {
 			super({
 				id: 'cursorColumnSelectLeft',
@@ -489,9 +489,9 @@ export namespace CoreNavigationCommands {
 		protected _getColumnSelectResult(viewModel: IViewModel, primary: CursorState, prevColumnSelectData: IColumnSelectData, args: Partial<BaseCommandOptions>): IColumnSelectResult {
 			return ColumnSelection.columnSelectLeft(viewModel.cursorConfig, viewModel, prevColumnSelectData);
 		}
-	});
+	};
 
-	export const CursorColumnSelectRight: CoreEditorCommand<BaseCommandOptions> = registerEditorCommand(new class extends ColumnSelectCommand {
+	export const CursorColumnSelectRight: CoreEditorCommand<BaseCommandOptions> = new class extends ColumnSelectCommand {
 		constructor() {
 			super({
 				id: 'cursorColumnSelectRight',
@@ -508,7 +508,7 @@ export namespace CoreNavigationCommands {
 		protected _getColumnSelectResult(viewModel: IViewModel, primary: CursorState, prevColumnSelectData: IColumnSelectData, args: Partial<BaseCommandOptions>): IColumnSelectResult {
 			return ColumnSelection.columnSelectRight(viewModel.cursorConfig, viewModel, prevColumnSelectData);
 		}
-	});
+	};
 
 	class ColumnSelectUpCommand extends ColumnSelectCommand {
 
@@ -524,7 +524,7 @@ export namespace CoreNavigationCommands {
 		}
 	}
 
-	export const CursorColumnSelectUp: CoreEditorCommand<BaseCommandOptions> = registerEditorCommand(new ColumnSelectUpCommand({
+	export const CursorColumnSelectUp: CoreEditorCommand<BaseCommandOptions> = new ColumnSelectUpCommand({
 		isPaged: false,
 		id: 'cursorColumnSelectUp',
 		precondition: undefined,
@@ -534,9 +534,9 @@ export namespace CoreNavigationCommands {
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyMod.Alt | KeyCode.UpArrow,
 			linux: { primary: 0 }
 		}
-	}));
+	});
 
-	export const CursorColumnSelectPageUp: CoreEditorCommand<BaseCommandOptions> = registerEditorCommand(new ColumnSelectUpCommand({
+	export const CursorColumnSelectPageUp: CoreEditorCommand<BaseCommandOptions> = new ColumnSelectUpCommand({
 		isPaged: true,
 		id: 'cursorColumnSelectPageUp',
 		precondition: undefined,
@@ -546,7 +546,7 @@ export namespace CoreNavigationCommands {
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyMod.Alt | KeyCode.PageUp,
 			linux: { primary: 0 }
 		}
-	}));
+	});
 
 	class ColumnSelectDownCommand extends ColumnSelectCommand {
 
@@ -562,7 +562,7 @@ export namespace CoreNavigationCommands {
 		}
 	}
 
-	export const CursorColumnSelectDown: CoreEditorCommand<BaseCommandOptions> = registerEditorCommand(new ColumnSelectDownCommand({
+	export const CursorColumnSelectDown: CoreEditorCommand<BaseCommandOptions> = new ColumnSelectDownCommand({
 		isPaged: false,
 		id: 'cursorColumnSelectDown',
 		precondition: undefined,
@@ -572,9 +572,9 @@ export namespace CoreNavigationCommands {
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyMod.Alt | KeyCode.DownArrow,
 			linux: { primary: 0 }
 		}
-	}));
+	});
 
-	export const CursorColumnSelectPageDown: CoreEditorCommand<BaseCommandOptions> = registerEditorCommand(new ColumnSelectDownCommand({
+	export const CursorColumnSelectPageDown: CoreEditorCommand<BaseCommandOptions> = new ColumnSelectDownCommand({
 		isPaged: true,
 		id: 'cursorColumnSelectPageDown',
 		precondition: undefined,
@@ -584,7 +584,7 @@ export namespace CoreNavigationCommands {
 			primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyMod.Alt | KeyCode.PageDown,
 			linux: { primary: 0 }
 		}
-	}));
+	});
 
 	export class CursorMoveImpl extends CoreEditorCommand<CursorMove_.RawArguments> {
 		constructor() {
@@ -1937,26 +1937,6 @@ export namespace CoreNavigationCommands {
 		}
 	});
 }
-
-const columnSelectionCondition = ContextKeyExpr.and(
-	EditorContextKeys.textInputFocus,
-	EditorContextKeys.columnSelection
-);
-function registerColumnSelection(id: string, keybinding: number): void {
-	KeybindingsRegistry.registerKeybindingRule({
-		id: id,
-		primary: keybinding,
-		when: columnSelectionCondition,
-		weight: CORE_WEIGHT + 1
-	});
-}
-
-registerColumnSelection(CoreNavigationCommands.CursorColumnSelectLeft.id, KeyMod.Shift | KeyCode.LeftArrow);
-registerColumnSelection(CoreNavigationCommands.CursorColumnSelectRight.id, KeyMod.Shift | KeyCode.RightArrow);
-registerColumnSelection(CoreNavigationCommands.CursorColumnSelectUp.id, KeyMod.Shift | KeyCode.UpArrow);
-registerColumnSelection(CoreNavigationCommands.CursorColumnSelectPageUp.id, KeyMod.Shift | KeyCode.PageUp);
-registerColumnSelection(CoreNavigationCommands.CursorColumnSelectDown.id, KeyMod.Shift | KeyCode.DownArrow);
-registerColumnSelection(CoreNavigationCommands.CursorColumnSelectPageDown.id, KeyMod.Shift | KeyCode.PageDown);
 
 function registerCommand<T extends Command>(command: T): T {
 	command.register();

@@ -32,7 +32,7 @@ import { ICommandService, CommandsRegistry } from '../../../../platform/commands
 import { IExtensionGalleryService } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import { EncodingMode, IEncodingSupport, ILanguageSupport, ITextFileService } from '../../../services/textfile/common/textfiles.js';
 import { SUPPORTED_ENCODINGS } from '../../../services/textfile/common/encoding.js';
-import { ConfigurationChangedEvent, EditorOption } from '../../../../editor/common/config/editorOptions.js';
+import { EditorOption } from '../../../../editor/common/config/editorOptions.js';
 import { ITextResourceConfigurationService } from '../../../../editor/common/services/textResourceConfiguration.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { deepClone } from '../../../../base/common/objects.js';
@@ -152,7 +152,6 @@ class StateChange {
 	EOL: boolean = false;
 	tabFocusMode: boolean = false;
 	inputMode: boolean = false;
-	columnSelectionMode: boolean = false;
 	metadata: boolean = false;
 
 	combine(other: StateChange) {
@@ -164,7 +163,6 @@ class StateChange {
 		this.EOL = this.EOL || other.EOL;
 		this.tabFocusMode = this.tabFocusMode || other.tabFocusMode;
 		this.inputMode = this.inputMode || other.inputMode;
-		this.columnSelectionMode = this.columnSelectionMode || other.columnSelectionMode;
 		this.metadata = this.metadata || other.metadata;
 	}
 
@@ -177,7 +175,6 @@ class StateChange {
 			|| this.EOL
 			|| this.tabFocusMode
 			|| this.inputMode
-			|| this.columnSelectionMode
 			|| this.metadata;
 	}
 }
@@ -189,7 +186,6 @@ type StateDelta = (
 	| { type: 'EOL'; EOL: string | undefined }
 	| { type: 'indentation'; indentation: string | undefined }
 	| { type: 'tabFocusMode'; tabFocusMode: boolean }
-	| { type: 'columnSelectionMode'; columnSelectionMode: boolean }
 	| { type: 'metadata'; metadata: string | undefined }
 	| { type: 'inputMode'; inputMode: 'overtype' | 'insert' }
 );
@@ -216,9 +212,6 @@ class State {
 
 	private _inputMode: 'overtype' | 'insert' | undefined;
 	get inputMode(): 'overtype' | 'insert' | undefined { return this._inputMode; }
-
-	private _columnSelectionMode: boolean | undefined;
-	get columnSelectionMode(): boolean | undefined { return this._columnSelectionMode; }
 
 	private _metadata: string | undefined;
 	get metadata(): string | undefined { return this._metadata; }
@@ -273,13 +266,6 @@ class State {
 				if (this._inputMode !== update.inputMode) {
 					this._inputMode = update.inputMode;
 					change.inputMode = true;
-				}
-				break;
-
-			case 'columnSelectionMode':
-				if (this._columnSelectionMode !== update.columnSelectionMode) {
-					this._columnSelectionMode = update.columnSelectionMode;
-					change.columnSelectionMode = true;
 				}
 				break;
 
@@ -346,7 +332,6 @@ class EditorStatus extends Disposable {
 
 	private readonly tabFocusModeElement = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
 	private readonly inputModeElement = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
-	private readonly columnSelectionModeElement = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
 	private readonly indentationElement = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
 	private readonly selectionElement = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
 	private readonly encodingElement = this._register(new MutableDisposable<IStatusbarEntryAccessor>());
@@ -473,24 +458,6 @@ class EditorStatus extends Disposable {
 			}
 		} else {
 			this.inputModeElement.clear();
-		}
-	}
-
-	private updateColumnSelectionModeElement(visible: boolean): void {
-		if (visible) {
-			if (!this.columnSelectionModeElement.value) {
-				const text = localize('columnSelectionModeEnabled', "Column Selection");
-				this.columnSelectionModeElement.value = this.statusbarService.addEntry({
-					name: localize('status.editor.columnSelectionMode', "Column Selection Mode"),
-					text,
-					ariaLabel: text,
-					tooltip: localize('disableColumnSelectionMode', "Disable Column Selection Mode"),
-					command: 'editor.action.toggleColumnSelection',
-					kind: 'prominent'
-				}, 'status.editor.columnSelectionMode', StatusbarAlignment.RIGHT, 100.8);
-			}
-		} else {
-			this.columnSelectionModeElement.clear();
 		}
 	}
 
@@ -641,7 +608,6 @@ class EditorStatus extends Disposable {
 	private doRenderNow(): void {
 		this.updateTabFocusModeElement(!!this.state.tabFocusMode);
 		this.updateInputModeElement(this.state.inputMode);
-		this.updateColumnSelectionModeElement(!!this.state.columnSelectionMode);
 		this.updateIndentationElement(this.state.indentation);
 		this.updateSelectionElement(this.state.selectionStatus);
 		this.updateEncodingElement(this.state.encoding);
@@ -680,7 +646,6 @@ class EditorStatus extends Disposable {
 		const activeCodeEditor = activeEditorPane ? getCodeEditor(activeEditorPane.getControl()) ?? undefined : undefined;
 
 		// Update all states
-		this.onColumnSelectionModeChange(activeCodeEditor);
 		this.onSelectionChange(activeCodeEditor);
 		this.onLanguageChange(activeCodeEditor, activeInput);
 		this.onEOLChange(activeCodeEditor);
@@ -704,13 +669,6 @@ class EditorStatus extends Disposable {
 
 		// Attach new listeners to active code editor
 		if (activeCodeEditor) {
-
-			// Hook Listener for Configuration changes
-			this.activeEditorListeners.add(activeCodeEditor.onDidChangeConfiguration((event: ConfigurationChangedEvent) => {
-				if (event.hasChanged(EditorOption.columnSelection)) {
-					this.onColumnSelectionModeChange(activeCodeEditor);
-				}
-			}));
 
 			// Hook Listener for Selection changes
 			this.activeEditorListeners.add(Event.defer(activeCodeEditor.onDidChangeCursorPosition)(() => {
@@ -819,16 +777,6 @@ class EditorStatus extends Disposable {
 		}
 
 		this.updateState(update);
-	}
-
-	private onColumnSelectionModeChange(editorWidget: ICodeEditor | undefined): void {
-		const info: StateDelta = { type: 'columnSelectionMode', columnSelectionMode: false };
-
-		if (editorWidget?.getOption(EditorOption.columnSelection)) {
-			info.columnSelectionMode = true;
-		}
-
-		this.updateState(info);
 	}
 
 	private onSelectionChange(editorWidget: ICodeEditor | undefined): void {

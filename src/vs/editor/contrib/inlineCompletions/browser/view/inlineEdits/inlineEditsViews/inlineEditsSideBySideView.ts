@@ -19,7 +19,6 @@ import { OffsetRange } from '../../../../../../common/core/ranges/offsetRange.js
 import { Position } from '../../../../../../common/core/position.js';
 import { Range } from '../../../../../../common/core/range.js';
 import { ITextModel } from '../../../../../../common/model.js';
-import { StickyScrollController } from '../../../../../stickyScroll/browser/stickyScrollController.js';
 import { InlineCompletionContextKeys } from '../../../controller/inlineCompletionContextKeys.js';
 import { IInlineEditsView, InlineEditClickEvent, InlineEditTabAction } from '../inlineEditsViewInterface.js';
 import { InlineEditWithChanges } from '../inlineEditWithChanges.js';
@@ -326,8 +325,7 @@ export class InlineEditsSideBySideView extends Disposable implements IInlineEdit
 				previewEditorWidth,
 			};
 		});
-		this._stickyScrollController = StickyScrollController.get(this._editorObs.editor);
-		this._stickyScrollHeight = this._stickyScrollController ? observableFromEvent(this._stickyScrollController.onDidChangeStickyScrollHeight, () => this._stickyScrollController!.stickyScrollWidgetHeight) : constObservable(0);
+		this._stickyScrollHeight = constObservable(0);
 		this._shouldOverflow = derived(this, reader => {
 			if (!ENABLE_OVERFLOW) {
 				return false;
@@ -615,7 +613,6 @@ export class InlineEditsSideBySideView extends Disposable implements IInlineEdit
 
 	private readonly _previewEditorLayoutInfo;
 
-	private _stickyScrollController;
 	private readonly _stickyScrollHeight;
 
 	private readonly _shouldOverflow;

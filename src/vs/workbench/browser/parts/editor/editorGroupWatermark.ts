@@ -48,10 +48,6 @@ const openChat: WatermarkEntry = {
 	icon: registerIcon('watermark-chat', Codicon.chatSparkle, localize('watermark.chatIcon', "Icon for opening chat in the editor watermark.")),
 	when: { native: showChatContextKey, web: showChatContextKey }
 };
-const showCommands: WatermarkEntry = {
-	text: localize('watermark.showCommands', "Show All Commands"), id: 'workbench.action.showCommands',
-	icon: registerIcon('watermark-commands', Codicon.listSelection, localize('watermark.commandsIcon', "Icon for showing all commands in the editor watermark."))
-};
 const gotoFile: WatermarkEntry = {
 	text: localize('watermark.quickAccess', "Go to File"), id: 'workbench.action.quickOpen',
 	icon: registerIcon('watermark-quick-open', Codicon.goToFile, localize('watermark.quickOpenIcon', "Icon for going to a file in the editor watermark."))
@@ -97,7 +93,6 @@ const openSettings: WatermarkEntry = {
 
 const baseEntries: WatermarkEntry[] = [
 	openChat,
-	showCommands,
 ];
 
 const emptyWindowEntries: WatermarkEntry[] = coalesce([

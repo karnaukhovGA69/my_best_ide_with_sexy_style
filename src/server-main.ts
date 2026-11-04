@@ -45,7 +45,10 @@ const shouldSpawnCli = parsedArgs.help || parsedArgs.version || extensionLookupA
 
 const nlsConfiguration = await resolveNLSConfiguration({ userLocale: 'en', osLocale: 'en', commit: product.commit, nlsMetadataHash: product.nlsMetadataHash, userDataPath: '', nlsMetadataPath: import.meta.dirname });
 
-if (parsedArgs['agent-host-ca'] !== undefined) {
+if (!product.defaultChatAgent && Object.entries(parsedArgs).some(([key, value]) => key.startsWith('agent-host-') && value !== undefined && value !== false)) {
+	console.error('Agent Host is not available in this product.');
+	process.exitCode = 1;
+} else if (parsedArgs['agent-host-ca'] !== undefined) {
 	try {
 		await bootstrapCode(nlsConfiguration);
 		const { runAgentHostCertificateCommand } = await import('./vs/platform/agentHost/node/copilot/copilotSandboxCertificateCli.js');

@@ -20,11 +20,9 @@ import { ITextModel } from '../../../../editor/common/model.js';
 import { ILanguageFeaturesService } from '../../../../editor/common/services/languageFeatures.js';
 import { ApplyCodeActionReason, applyCodeAction, getCodeActions } from '../../../../editor/contrib/codeAction/browser/codeAction.js';
 import { CodeActionKind, CodeActionTriggerSource } from '../../../../editor/contrib/codeAction/common/types.js';
-import { FormattingMode, formatDocumentRangesWithSelectedProvider, formatDocumentWithSelectedProvider } from '../../../../editor/contrib/format/browser/format.js';
 import { SnippetController2 } from '../../../../editor/contrib/snippet/browser/snippetController2.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IProgress, IProgressStep, Progress } from '../../../../platform/progress/common/progress.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
@@ -34,7 +32,6 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { IHostService } from '../../../services/host/browser/host.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { ITextFileEditorModel, ITextFileSaveParticipant, ITextFileSaveParticipantContext, ITextFileService } from '../../../services/textfile/common/textfiles.js';
-import { getModifiedRanges } from '../../format/browser/formatModified.js';
 import { CustomEditorInput } from '../../customEditor/browser/customEditorInput.js';
 import { SideBySideEditor } from '../../../browser/parts/editor/sideBySideEditor.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
@@ -259,63 +256,6 @@ export class TrimFinalNewLinesParticipant implements ITextFileSaveParticipant {
 	}
 }
 
-class FormatOnSaveParticipant implements ITextFileSaveParticipant {
-
-	constructor(
-		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@ICodeEditorService private readonly codeEditorService: ICodeEditorService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-	) {
-		// Nothing
-	}
-
-	async participate(model: ITextFileEditorModel, context: ITextFileSaveParticipantContext, progress: IProgress<IProgressStep>, token: CancellationToken): Promise<void> {
-		if (!model.textEditorModel) {
-			return;
-		}
-		if (context.reason === SaveReason.AUTO) {
-			return undefined;
-		}
-
-		const textEditorModel = model.textEditorModel;
-		const overrides = { overrideIdentifier: textEditorModel.getLanguageId(), resource: textEditorModel.uri };
-
-		const nestedProgress = new Progress<{ displayName?: string; extensionId?: ExtensionIdentifier }>(provider => {
-			progress.report({
-				message: localize(
-					{ key: 'formatting2', comment: ['[configure]({1}) is a link. Only translate `configure`. Do not change brackets and parentheses or {1}'] },
-					"Running '{0}' Formatter ([configure]({1})).",
-					provider.displayName || provider.extensionId && provider.extensionId.value || '???',
-					createCommandUri('workbench.action.openSettings', 'editor.formatOnSave').toString(),
-				)
-			});
-		});
-
-		const enabled = this.configurationService.getValue<boolean>('editor.formatOnSave', overrides);
-		if (!enabled) {
-			return undefined;
-		}
-
-		const editorOrModel = findEditor(textEditorModel, this.codeEditorService) || textEditorModel;
-		const mode = this.configurationService.getValue<'file' | 'modifications' | 'modificationsIfAvailable'>('editor.formatOnSaveMode', overrides);
-
-		if (mode === 'file') {
-			await this.instantiationService.invokeFunction(formatDocumentWithSelectedProvider, editorOrModel, FormattingMode.Silent, nestedProgress, token);
-
-		} else {
-			const ranges = await this.instantiationService.invokeFunction(getModifiedRanges, isCodeEditor(editorOrModel) ? editorOrModel.getModel() : editorOrModel);
-			if (ranges === null && mode === 'modificationsIfAvailable') {
-				// no SCM, fallback to formatting the whole file iff wanted
-				await this.instantiationService.invokeFunction(formatDocumentWithSelectedProvider, editorOrModel, FormattingMode.Silent, nestedProgress, token);
-
-			} else if (ranges) {
-				// formatted modified ranges
-				await this.instantiationService.invokeFunction(formatDocumentRangesWithSelectedProvider, editorOrModel, ranges, FormattingMode.Silent, nestedProgress, token, false);
-			}
-		}
-	}
-}
-
 class CodeActionOnSaveParticipant extends Disposable implements ITextFileSaveParticipant {
 
 	constructor(
@@ -501,7 +441,6 @@ export class SaveParticipantsContribution extends Disposable implements IWorkben
 	private registerSaveParticipants(): void {
 		this._register(this.textFileService.files.addSaveParticipant(this.instantiationService.createInstance(TrimWhitespaceParticipant)));
 		this._register(this.textFileService.files.addSaveParticipant(this.instantiationService.createInstance(CodeActionOnSaveParticipant)));
-		this._register(this.textFileService.files.addSaveParticipant(this.instantiationService.createInstance(FormatOnSaveParticipant)));
 		this._register(this.textFileService.files.addSaveParticipant(this.instantiationService.createInstance(FinalNewLineParticipant)));
 		this._register(this.textFileService.files.addSaveParticipant(this.instantiationService.createInstance(TrimFinalNewLinesParticipant)));
 	}

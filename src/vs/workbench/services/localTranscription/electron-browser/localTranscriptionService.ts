@@ -43,7 +43,7 @@ export class LocalTranscriptionService extends Disposable {
 
 	declare readonly _serviceBrand: undefined;
 
-	readonly isSupported = isOnDeviceTranscriptionSupported();
+	get isSupported(): boolean { return !!this.productService.defaultChatAgent && isOnDeviceTranscriptionSupported(); }
 
 	private readonly _onDidChangeModelStatus = this._register(new Emitter<ILocalTranscriptionModelStatus>());
 	readonly onDidChangeModelStatus = this._onDidChangeModelStatus.event;
@@ -66,6 +66,9 @@ export class LocalTranscriptionService extends Disposable {
 	}
 
 	private _getChannel(): IChannel {
+		if (!this.isSupported) {
+			throw new Error('On-device transcription is not supported in this product.');
+		}
 		if (!this._channel) {
 			this._channel = getDelayedChannel(this._createWorkerChannel(this._workerGeneration));
 		}

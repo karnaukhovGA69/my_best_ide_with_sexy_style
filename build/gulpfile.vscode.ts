@@ -23,6 +23,7 @@ import * as i18n from './lib/i18n.ts';
 import { getProductionDependencies } from './lib/dependencies.ts';
 import { config } from './lib/electron.ts';
 import { isDistributionExtensionFile } from './lib/distributionExtensions.ts';
+import { excludedRuntimeDependencies, isDistributionRuntimeFile, runtimeDependencyExclusions } from './lib/distributionRuntime.ts';
 import { createAsar } from './lib/asar.ts';
 import minimist from 'minimist';
 import { compileNonNativeExtensionsBuildTask, compileNativeExtensionsBuildTask, compileAllExtensionsBuildTask, compileExtensionMediaBuildTask, cleanExtensionsBuildTask } from './gulpfile.extensions.ts';
@@ -135,9 +136,10 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 			'vs/sessions/sessions.desktop.main.css',
 			'vs/sessions/electron-browser/sessions.html',
 			'vs/sessions/electron-browser/sessions.js'
-		]);
+		].filter(isDistributionRuntimeFile));
 
-		const src = gulp.src([out + '/**', '!' + out + '/vs/platform/agentHost/**'], { base: '.' })
+		const src = gulp.src(out + '/**', { base: '.' })
+			.pipe(filter(file => isDistributionRuntimeFile(path.relative(path.join(root, out), file.path))))
 			.pipe(rename(function (path) { path.dirname = path.dirname!.replace(new RegExp('^' + out), 'out'); }))
 			.pipe(util.setExecutableBit(['**/*.sh']));
 
@@ -167,7 +169,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 		}
 
 		const name = product.nameShort;
-		const { ['@github/copilot-sdk']: _copilotSdk, ...dependencies } = packageJson.dependencies;
+		const dependencies = Object.fromEntries(Object.entries(packageJson.dependencies).filter(([name]) => !excludedRuntimeDependencies.has(name)));
 		const packageJsonUpdates: Record<string, unknown> = { name, version, dependencies };
 
 		if (platform === 'linux') {
@@ -209,7 +211,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
 		const productionDependencies = getProductionDependencies(root);
 		const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat().concat('!**/*.mk');
 
-		const depFilterPattern = ['**', `!**/${config.version}/**`, '!**/bin/darwin-arm64-87/**', '!**/package-lock.json', '!**/yarn.lock', '!**/@github/copilot-sdk/**', '!**/@github/copilot-sdk-*/**'];
+		const depFilterPattern = ['**', `!**/${config.version}/**`, '!**/bin/darwin-arm64-87/**', '!**/package-lock.json', '!**/yarn.lock', ...runtimeDependencyExclusions];
 		if (stripSourceMapsInPackagingTasks) {
 			depFilterPattern.push('!**/*.{js,css}.map');
 		}

@@ -9,9 +9,14 @@ import { Server as UtilityProcessServer } from '../../../base/parts/ipc/node/ipc
 import { isUtilityProcess } from '../../../base/parts/sandbox/node/electronTypes.js';
 import { localTranscriptionChannelName } from '../common/localTranscription.js';
 import { LocalTranscriptionService } from './localTranscriptionService.js';
+import product from '../../product/common/product.js';
 
 if (!isUtilityProcess(process)) {
 	throw new Error('localTranscriptionMain must run in a utility process');
+}
+
+if (!product.defaultChatAgent) {
+	throw new Error('On-device transcription is not supported in this product.');
 }
 
 const server = new UtilityProcessServer();

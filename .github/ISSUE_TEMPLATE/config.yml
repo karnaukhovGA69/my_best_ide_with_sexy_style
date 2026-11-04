@@ -1,8 +1,5 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
-  - name: Question
-    url: https://stackoverflow.com/questions/tagged/visual-studio-code
-    about: Please ask and answer questions here.
-  - name: Extension Development
-    url: https://github.com/microsoft/vscode-discussions/discussions
-    about: Please use this for extension development questions and ideas.
+  - name: План Myself IDE
+    url: https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/blob/main/docs/project-plan.md
+    about: Что оставляем, удаляем и добавляем; текущие ограничения.

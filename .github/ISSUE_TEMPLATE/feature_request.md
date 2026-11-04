@@ -1,14 +1,15 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
+name: Идея для Myself IDE
+about: Предложение по функциям или интерфейсу проекта
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
-<!-- ⚠️⚠️ Do Not Delete This! feature_request_template ⚠️⚠️ -->
-<!-- Please read our Rules of Conduct: https://opensource.microsoft.com/codeofconduct/ -->
-<!-- Please search existing issues to avoid creating duplicates. -->
+<!-- Сверьте docs/project-plan.md и существующие Issues. -->
 
-<!-- Describe the feature you'd like. -->
+## Какую задачу хочется решить
+
+## Как это должно работать
+
+## Связь с планом / возможные ограничения

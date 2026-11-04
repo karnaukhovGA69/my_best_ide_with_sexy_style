@@ -1,6 +1,6 @@
 # Myself IDE
 
-An experimental Code - OSS distribution undergoing incremental cleanup. The current changes cover the first six implementation stages; the visual redesign and planned new features are not complete.
+An experimental Code - OSS distribution undergoing incremental cleanup. Seven implementation stages are integrated, including local plain-text PDF export in v0.0.7-preview. The visual redesign and other planned features are not complete. See [the product plan](project-plan.md) and [agent handoff](project-handoff.md) for the full scope.
 
 ## Distribution
 

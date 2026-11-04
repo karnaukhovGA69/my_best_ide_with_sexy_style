@@ -63,6 +63,7 @@ export class TestSharedProcessService implements ISharedProcessService {
 }
 
 export class TestNativeHostService implements INativeHostService {
+	async exportDocumentPdf(): Promise<{ status: 'cancelled' }> { return { status: 'cancelled' }; }
 
 	declare readonly _serviceBrand: undefined;
 

@@ -12,6 +12,12 @@ An experimental Code - OSS distribution undergoing incremental cleanup. The curr
 - Built-in Agent Host and Sessions launch paths, AI CLI commands, remote Agent Host access, and local transcription are blocked when the product has no default chat agent. The desktop workbench uses the unavailable transcription service. Cloud Sandbox skips GitHub session lookup and rejects network operations in this product configuration. Voice and Sessions action/contribution registrations are gated or removed; shared voice service contracts remain registered for dependency compatibility.
 - Shared AI workbench, inline-chat, MCP, service/API code and some transitive dependencies still exist. Source files and development dependencies also retain upstream language packages and AI implementations. These changes do not constitute complete source-tree erasure of AI.
 
+## Document PDF export
+
+Desktop builds provide **Export Text as PDF** in File and the title toolbar for `.txt` editors. It exports the active editor buffer, including unsaved text, to A4 with 20 mm margins, serif 12 pt text and 1.5 line spacing. A Save Dialog chooses the destination. Text is escaped, preserving line breaks, and rendered locally with the bundled Electron; no TeX or separate Chromium download is required. The output has selectable text and automatic page breaks.
+
+The `myself.documents.exportPdf` command accepts the v1 DTO for a future document-editor extension, including validated page options. The separate UI command is `myself.documents.exportActiveTextPdf`. Input is limited to 2 MiB of UTF-8 text; Markdown and HTML are printed literally. The visual document editor and page-settings UI are still separate pending work. Generic font selection does not guarantee glyph coverage for every script.
+
 ## Editor behavior
 
 - Terminal Chat no longer registers a controller, commands, accessibility views or agent-enablement listeners. Its compatible services keep no AI terminal/session mappings, output sources or automatic approval state, and cannot resolve an AI session. Ordinary terminal processes, shell integration and Tasks remain. Startup initializes task pattern/matcher registries even when no extension contributes to them, so a language-free installation can run tasks. Shared chat tools and MCP code still require cleanup.

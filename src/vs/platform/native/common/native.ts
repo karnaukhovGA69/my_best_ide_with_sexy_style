@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DocumentPdfRequestV1, DocumentPdfResultV1 } from '../../documentExport/common/documentExport.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { Event } from '../../../base/common/event.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
@@ -242,6 +243,7 @@ export interface INativeSystemWideKeybindingResult {
 }
 
 export interface ICommonNativeHostService {
+	exportDocumentPdf(request: DocumentPdfRequestV1): Promise<DocumentPdfResultV1>;
 
 	readonly _serviceBrand: undefined;
 

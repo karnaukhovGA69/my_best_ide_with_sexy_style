@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from 'fs';
+import { DocumentPdfRequestV1, DocumentPdfResultV1 } from '../../documentExport/common/documentExport.js';
 import { exec } from 'child_process';
 import { app, BrowserWindow, clipboard, contentTracing, desktopCapturer, Display, Menu, MessageBoxOptions, MessageBoxReturnValue, nativeImage, Notification, OpenDevToolsOptions, OpenDialogOptions, OpenDialogReturnValue, powerMonitor, powerSaveBlocker, SaveDialogOptions, SaveDialogReturnValue, screen, shell, systemPreferences, webContents } from 'electron';
 import { arch, cpus, freemem, loadavg, platform, release, totalmem, type } from 'os';
@@ -643,6 +644,16 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 	async showMessageBox(windowId: number | undefined, options: MessageBoxOptions & INativeHostOptions): Promise<MessageBoxReturnValue> {
 		const window = this.windowById(options?.targetWindowId, windowId);
 		return this.dialogMainService.showMessageBox(options, window?.win ?? undefined);
+	}
+
+	async exportDocumentPdf(windowId: number | undefined, request: DocumentPdfRequestV1): Promise<DocumentPdfResultV1> {
+		const owner = this.windowById(undefined, windowId)?.win;
+		if (!owner) { throw new Error('No document window is available.'); }
+		const { exportDocumentPdf } = await import('../../documentExport/electron-main/documentExport.js');
+		return exportDocumentPdf(owner, request, async name => {
+			const result = await this.dialogMainService.showSaveDialog({ title: localize('saveDocumentPdf', "Export PDF"), defaultPath: name, filters: [{ name: 'PDF', extensions: ['pdf'] }] }, owner);
+			return result.canceled ? undefined : result.filePath;
+		});
 	}
 
 	async showSaveDialog(windowId: number | undefined, options: SaveDialogOptions & INativeHostOptions): Promise<SaveDialogReturnValue> {

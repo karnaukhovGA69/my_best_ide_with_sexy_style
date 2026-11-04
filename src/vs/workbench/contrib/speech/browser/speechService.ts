@@ -57,7 +57,6 @@ export class SpeechService extends Disposable implements ISpeechService {
 	get hasSpeechProvider() { return this.providerDescriptors.size > 0 || this.providers.size > 0; }
 
 	private readonly providers = new Map<string, ISpeechProvider>();
-	private readonly voiceLiveSessionProviders = new Map<string, IVoiceLiveSessionProvider>();
 	private readonly providerDescriptors = new Map<string, ISpeechProviderDescriptor>();
 
 	private readonly hasSpeechProviderContext: IContextKey<boolean>;
@@ -80,7 +79,7 @@ export class SpeechService extends Disposable implements ISpeechService {
 	}
 
 	private handleAndRegisterSpeechExtensions(): void {
-		speechProvidersExtensionPoint.setHandler((extensions, delta) => {
+		this._register(speechProvidersExtensionPoint.setHandler((extensions, delta) => {
 			const oldHasSpeechProvider = this.hasSpeechProvider;
 
 			for (const extension of delta.removed) {
@@ -98,7 +97,7 @@ export class SpeechService extends Disposable implements ISpeechService {
 			if (oldHasSpeechProvider !== this.hasSpeechProvider) {
 				this.handleHasSpeechProviderChange();
 			}
-		});
+		}));
 	}
 
 	registerSpeechProvider(identifier: string, provider: ISpeechProvider): IDisposable {
@@ -125,27 +124,15 @@ export class SpeechService extends Disposable implements ISpeechService {
 		});
 	}
 
-	registerVoiceLiveSessionProvider(identifier: string, provider: IVoiceLiveSessionProvider): IDisposable {
-		if (this.voiceLiveSessionProviders.has(identifier)) {
-			throw new Error(`Voice live session provider with identifier ${identifier} is already registered.`);
-		}
-
-		this.voiceLiveSessionProviders.set(identifier, provider);
-		return toDisposable(() => this.voiceLiveSessionProviders.delete(identifier));
+	registerVoiceLiveSessionProvider(_identifier: string, _provider: IVoiceLiveSessionProvider): IDisposable {
+		// Keep the bridge contract without retaining disabled AI voice providers.
+		return Disposable.None;
 	}
 
-	async createVoiceLiveSession(identifier: string, extension: ExtensionIdentifier, sdp: string | undefined, token: CancellationToken): Promise<IVoiceLiveSessionResult | undefined> {
-		if (token.isCancellationRequested) {
-			return undefined;
-		}
-		await this.extensionService.activateByEvent('onSpeech');
-
-		const provider = this.voiceLiveSessionProviders.get(identifier);
-		if (token.isCancellationRequested || !provider || !ExtensionIdentifier.equals(provider.metadata.extension, extension)) {
-			return undefined;
-		}
-
-		return provider.createVoiceLiveSession(sdp, token);
+	async createVoiceLiveSession(_identifier: string, _extension: ExtensionIdentifier, _sdp: string | undefined, _token: CancellationToken): Promise<IVoiceLiveSessionResult | undefined> {
+		// Live AI voice sessions are unavailable in Myself IDE. Do not activate
+		// onSpeech extensions or forward session data to a provider.
+		return undefined;
 	}
 
 	private handleHasSpeechProviderChange(): void {

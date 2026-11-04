@@ -3,294 +3,89 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from 'assert';
-import { Barrier, timeout } from '../../../../../base/common/async.js';
-import { Event } from '../../../../../base/common/event.js';
+import assert from 'assert';
+import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { FileChangeType, FileSystemProviderErrorCode, FileType, IFileChange, IFileService, toFileSystemProviderErrorCode } from '../../../../../platform/files/common/files.js';
+import { FileService } from '../../../../../platform/files/common/fileService.js';
+import { IFileService } from '../../../../../platform/files/common/files.js';
+import { InMemoryFileSystemProvider } from '../../../../../platform/files/common/inMemoryFilesystemProvider.js';
+import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
-import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { ILoggerService, NullLogService } from '../../../../../platform/log/common/log.js';
-import { IAllowedMcpServersService } from '../../../../../platform/mcp/common/mcpManagement.js';
-import { IProductService } from '../../../../../platform/product/common/productService.js';
-import { IStorageService } from '../../../../../platform/storage/common/storage.js';
-import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
-import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
-import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
-import { TestContextService, TestLoggerService, TestProductService, TestStorageService, TestUserDataProfileService } from '../../../../test/common/workbenchTestServices.js';
-import { IMcpRegistry } from '../../common/mcpRegistryTypes.js';
+import { NullLogService } from '../../../../../platform/log/common/log.js';
+import { IWebContentExtractorService } from '../../../../../platform/webContentExtractor/common/webContentExtractor.js';
 import { McpResourceFilesystem } from '../../common/mcpResourceFilesystem.js';
-import { McpService } from '../../common/mcpService.js';
 import { IMcpService } from '../../common/mcpTypes.js';
-import { MCP } from '../../common/modelContextProtocol.js';
-import { TestMcpMessageTransport, TestMcpRegistry } from './mcpRegistryTypes.js';
 
+suite('Workbench - MCP - ResourceFilesystem disabled', () => {
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const resource = URI.parse('mcp-resource://746573742D736572766572/https/example.invalid/resource.txt');
 
-suite('Workbench - MCP - ResourceFilesystem', () => {
+	function createServices() {
+		const calls: string[] = [];
+		const files = store.add(new FileService(store.add(new NullLogService())));
+		store.add(files.onDidChangeFileSystemProviderRegistrations(e => calls.push(`provider:${e.scheme}:${e.added}`)));
+		const instantiation = store.add(new InstantiationService(new ServiceCollection(
+			[IFileService, files],
+			[IMcpService, upcastPartial<IMcpService>({ get servers(): never {
+				calls.push('mcp');
+				throw new Error('Unexpected MCP service access');
+			} })],
+			[IWebContentExtractorService, upcastPartial<IWebContentExtractorService>({ extract: async () => {
+				calls.push('extract');
+				throw new Error('Unexpected web content extraction');
+			} })],
+		), true));
+		return { files, calls, instantiation };
+	}
 
-	const ds = ensureNoDisposablesAreLeakedInTestSuite();
-
-	let transport: TestMcpMessageTransport;
-	let fs: McpResourceFilesystem;
-
-	setup(() => {
-		const storageService = ds.add(new TestStorageService());
-		const services = new ServiceCollection(
-			[IFileService, { registerProvider: () => { } }],
-			[IStorageService, storageService],
-			[ILoggerService, ds.add(new TestLoggerService())],
-			[IWorkspaceContextService, new TestContextService()],
-			[IWorkbenchEnvironmentService, {}],
-			[ITelemetryService, NullTelemetryService],
-			[IProductService, TestProductService],
-			[IAllowedMcpServersService, { _serviceBrand: undefined, onDidChangeAllowedMcpServers: Event.None, isAllowed: () => true, isServerAllowedBeforeResolution: () => true, isServerAllowed: () => true, getServerPolicyVariableValues: () => [] }],
-		);
-
-		const parentInsta1 = ds.add(new TestInstantiationService(services));
-		const registry = new TestMcpRegistry(parentInsta1);
-
-		const parentInsta2 = ds.add(parentInsta1.createChild(new ServiceCollection([IMcpRegistry, registry])));
-		const mcpService = ds.add(new McpService(parentInsta2, registry, new NullLogService(), new TestConfigurationService(), storageService, new TestUserDataProfileService()));
-		mcpService.updateCollectedServers();
-
-		const instaService = ds.add(parentInsta2.createChild(new ServiceCollection(
-			[IMcpRegistry, registry],
-			[IMcpService, mcpService],
-		)));
-
-		fs = ds.add(instaService.createInstance(McpResourceFilesystem));
-
-		transport = ds.add(new TestMcpMessageTransport());
-		registry.makeTestTransport = () => transport;
+	test('startup and disposal require no infrastructure services', () => {
+		const instantiation = store.add(new InstantiationService(new ServiceCollection(), true));
+		const contribution = store.add(instantiation.createInstance(McpResourceFilesystem));
+		contribution.dispose();
+		contribution.dispose();
 	});
 
-	test('reads a basic file', async () => {
-		transport.setResponder('resources/read', msg => {
-			const request = msg as { id: string | number; params: { uri: string } };
-			assert.strictEqual(request.params.uri, 'custom://hello/world.txt');
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [{ uri: request.params.uri, text: 'Hello World' }],
-				} satisfies MCP.ReadResourceResult
-			};
-		});
-
-		const response = await fs.readFile(URI.parse('mcp-resource://746573742D736572766572/custom/hello/world.txt'));
-		assert.strictEqual(new TextDecoder().decode(response), 'Hello World');
+	test('startup, provider activation and disposal do not register an MCP provider', async () => {
+		const { files, calls, instantiation } = createServices();
+		const contribution = store.add(instantiation.createInstance(McpResourceFilesystem));
+		await files.activateProvider(resource.scheme);
+		const hasProvider = files.hasProvider(resource);
+		contribution.dispose();
+		assert.deepStrictEqual({ hasProvider, calls, providers: [...files.listCapabilities()] }, { hasProvider: false, calls: [], providers: [] });
 	});
 
-	test('stat returns file information', async () => {
-		transport.setResponder('resources/read', msg => {
-			const request = msg as { id: string | number; params: { uri: string } };
-			assert.strictEqual(request.params.uri, 'custom://hello/world.txt');
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [{ uri: request.params.uri, text: 'Hello World' }],
-				} satisfies MCP.ReadResourceResult
-			};
+	for (const operation of ['readFile', 'readFileStream', 'stat'] as const) {
+		test(`${operation} of a saved MCP URI fails without MCP or web extraction`, async () => {
+			const { files, calls, instantiation } = createServices();
+			store.add(instantiation.createInstance(McpResourceFilesystem));
+			const outcome = await files[operation](resource).then(
+				() => 'Unexpected resource access',
+				error => error instanceof Error && error.message.includes('ENOPRO:') ? 'no provider' : String(error),
+			);
+			assert.deepStrictEqual({ outcome, calls }, { outcome: 'no provider', calls: [] });
 		});
+	}
 
-		const fileStats = await fs.stat(URI.parse('mcp-resource://746573742D736572766572/custom/hello/world.txt'));
-		assert.strictEqual(fileStats.type, FileType.File);
-		assert.strictEqual(fileStats.size, 'Hello World'.length);
-	});
-
-	test('stat returns directory information', async () => {
-		transport.setResponder('resources/read', msg => {
-			const request = msg as { id: string | number; params: { uri: string } };
-			assert.strictEqual(request.params.uri, 'custom://hello');
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [
-						{ uri: 'custom://hello/file1.txt', text: 'File 1' },
-						{ uri: 'custom://hello/file2.txt', text: 'File 2' },
-					],
-				} satisfies MCP.ReadResourceResult
-			};
+	test('ordinary file operations remain available before and after contribution disposal', async () => {
+		const { files, calls, instantiation } = createServices();
+		const memory = store.add(new InMemoryFileSystemProvider());
+		store.add(files.registerProvider('inmemory', memory));
+		calls.length = 0;
+		const contribution = store.add(instantiation.createInstance(McpResourceFilesystem));
+		const file = URI.from({ scheme: 'inmemory', path: '/notes.txt' });
+		const renamed = URI.from({ scheme: 'inmemory', path: '/renamed.txt' });
+		await files.writeFile(file, VSBuffer.fromString('Обычный текст'));
+		const before = (await files.readFile(file)).value.toString();
+		contribution.dispose();
+		await files.move(file, renamed);
+		await files.writeFile(renamed, VSBuffer.fromString('Updated text'));
+		const after = (await files.readFile(renamed)).value.toString();
+		await files.del(renamed);
+		const exists = await files.exists(renamed);
+		assert.deepStrictEqual({ before, after, exists, calls, hasProvider: files.hasProvider(file) }, {
+			before: 'Обычный текст', after: 'Updated text', exists: false, calls: [], hasProvider: true,
 		});
-
-		const dirStats = await fs.stat(URI.parse('mcp-resource://746573742D736572766572/custom/hello/'));
-		assert.strictEqual(dirStats.type, FileType.Directory);
-		// Size should be sum of all file contents in the directory
-		assert.strictEqual(dirStats.size, 'File 1'.length + 'File 2'.length);
-	});
-
-	test('stat throws FileNotFound for nonexistent resources', async () => {
-		transport.setResponder('resources/read', msg => {
-			const request = msg as { id: string | number };
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [],
-				} satisfies MCP.ReadResourceResult
-			};
-		});
-
-		await assert.rejects(
-			() => fs.stat(URI.parse('mcp-resource://746573742D736572766572/custom/nonexistent.txt')),
-			(err: Error) => toFileSystemProviderErrorCode(err) === FileSystemProviderErrorCode.FileNotFound
-		);
-	});
-
-	test('readdir returns directory contents', async () => {
-		transport.setResponder('resources/read', msg => {
-			const request = msg as { id: string | number; params: { uri: string } };
-			assert.strictEqual(request.params.uri, 'custom://hello/dir');
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [
-						{ uri: 'custom://hello/dir/file1.txt', text: 'File 1' },
-						{ uri: 'custom://hello/dir/file2.txt', text: 'File 2' },
-						{ uri: 'custom://hello/dir/subdir/file3.txt', text: 'File 3' },
-					],
-				} satisfies MCP.ReadResourceResult
-			};
-		});
-
-		const dirEntries = await fs.readdir(URI.parse('mcp-resource://746573742D736572766572/custom/hello/dir/'));
-		assert.deepStrictEqual(dirEntries, [
-			['file1.txt', FileType.File],
-			['file2.txt', FileType.File],
-			['subdir', FileType.Directory],
-		]);
-	});
-
-	test('readdir throws when reading a file as directory', async () => {
-		transport.setResponder('resources/read', msg => {
-			const request = msg as { id: string | number; params: { uri: string } };
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [{ uri: request.params.uri, text: 'This is a file' }],
-				} satisfies MCP.ReadResourceResult
-			};
-		});
-
-		await assert.rejects(
-			() => fs.readdir(URI.parse('mcp-resource://746573742D736572766572/custom/hello/file.txt')),
-			(err: Error) => toFileSystemProviderErrorCode(err) === FileSystemProviderErrorCode.FileNotADirectory
-		);
-	});
-
-	test('watch file emits change events', async () => {
-		// Set up the responder for resource reading
-		transport.setResponder('resources/read', msg => {
-			const request = msg as { id: string | number; params: { uri: string } };
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [{ uri: request.params.uri, text: 'File content' }],
-				} satisfies MCP.ReadResourceResult
-			};
-		});
-
-		const didSubscribe = new Barrier();
-
-		// Set up the responder for resource subscription
-		transport.setResponder('resources/subscribe', msg => {
-			const request = msg as { id: string | number };
-			didSubscribe.open();
-			return {
-				id: request.id,
-				jsonrpc: '2.0',
-				result: {},
-			};
-		});
-
-		const uri = URI.parse('mcp-resource://746573742D736572766572/custom/hello/file.txt');
-		const fileChanges: IFileChange[] = [];
-
-		// Create a listener for file change events
-		const disposable = fs.onDidChangeFile(events => {
-			fileChanges.push(...events);
-		});
-
-		// Start watching the file
-		const watchDisposable = fs.watch(uri, { excludes: [], recursive: false });
-
-		// Simulate a file update notification from the server
-		await didSubscribe.wait();
-		await timeout(10); // wait for listeners to attach
-
-		transport.simulateReceiveMessage({
-			jsonrpc: '2.0',
-			method: 'notifications/resources/updated',
-			params: {
-				uri: 'custom://hello/file.txt',
-			},
-		});
-		transport.simulateReceiveMessage({
-			jsonrpc: '2.0',
-			method: 'notifications/resources/updated',
-			params: {
-				uri: 'custom://hello/unrelated.txt',
-			},
-		});
-
-		// Check that we received a file change event
-		assert.strictEqual(fileChanges.length, 1);
-		assert.strictEqual(fileChanges[0].type, FileChangeType.UPDATED);
-		assert.strictEqual(fileChanges[0].resource.toString(), uri.toString());
-
-		// Clean up
-		disposable.dispose();
-		watchDisposable.dispose();
-	});
-
-	test('read blob resource', async () => {
-		const blobBase64 = 'SGVsbG8gV29ybGQgYXMgQmxvYg=='; // "Hello World as Blob" in base64
-
-		transport.setResponder('resources/read', msg => {
-			const params = (msg as { id: string | number; params: { uri: string } });
-			assert.strictEqual(params.params.uri, 'custom://hello/blob.bin');
-			return {
-				id: params.id,
-				jsonrpc: '2.0',
-				result: {
-					contents: [{ uri: params.params.uri, blob: blobBase64 }],
-				} satisfies MCP.ReadResourceResult
-			};
-		});
-
-		const response = await fs.readFile(URI.parse('mcp-resource://746573742D736572766572/custom/hello/blob.bin'));
-		assert.strictEqual(new TextDecoder().decode(response), 'Hello World as Blob');
-	});
-
-	test('throws error for write operations', async () => {
-		const uri = URI.parse('mcp-resource://746573742D736572766572/custom/hello/file.txt');
-
-		await assert.rejects(
-			async () => fs.writeFile(uri, new Uint8Array(), { create: true, overwrite: true, atomic: false, unlock: false }),
-			(err: Error) => toFileSystemProviderErrorCode(err) === FileSystemProviderErrorCode.NoPermissions
-		);
-
-		await assert.rejects(
-			async () => fs.delete(uri, { recursive: false, useTrash: false, atomic: false }),
-			(err: Error) => toFileSystemProviderErrorCode(err) === FileSystemProviderErrorCode.NoPermissions
-		);
-
-		await assert.rejects(
-			async () => fs.mkdir(uri),
-			(err: Error) => toFileSystemProviderErrorCode(err) === FileSystemProviderErrorCode.NoPermissions
-		);
-
-		await assert.rejects(
-			async () => fs.rename(uri, URI.parse('mcp-resource://746573742D736572766572/custom/hello/newfile.txt'), { overwrite: false }),
-			(err: Error) => toFileSystemProviderErrorCode(err) === FileSystemProviderErrorCode.NoPermissions
-		);
 	});
 });

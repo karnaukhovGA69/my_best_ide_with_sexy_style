@@ -14,7 +14,7 @@ An experimental Code - OSS distribution undergoing incremental cleanup. The curr
 
 ## Editor behavior
 
-- Terminal Chat no longer registers a controller, commands, accessibility views or agent-enablement listeners. Its compatible services keep no AI terminal/session mappings, output sources or automatic approval state, and cannot resolve an AI session. Ordinary terminal processes, shell integration and Tasks remain. Shared chat tools and MCP code still require cleanup.
+- Terminal Chat no longer registers a controller, commands, accessibility views or agent-enablement listeners. Its compatible services keep no AI terminal/session mappings, output sources or automatic approval state, and cannot resolve an AI session. Ordinary terminal processes, shell integration and Tasks remain. Startup initializes task pattern/matcher registries even when no extension contributes to them, so a language-free installation can run tasks. Shared chat tools and MCP code still require cleanup.
 
 - Inline Chat no longer registers its eager editor controller, notebook integration, actions, accessibility views, model-selection contribution or agent-enablement listeners. Its session service rejects creation and its resolver returns no session, preserving dependency contracts without starting local or Agent Host AI sessions. Shared implementation files and terminal/chat dependencies remain for subsequent cleanup.
 

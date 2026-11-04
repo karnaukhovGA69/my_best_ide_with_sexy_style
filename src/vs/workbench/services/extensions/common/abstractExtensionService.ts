@@ -578,7 +578,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			});
 		}
 
-		this._doHandleExtensionPoints(this._registry.getAllExtensionDescriptions(), false);
+		this._doHandleExtensionPoints(this._registry.getAllExtensionDescriptions(), false, true);
 	}
 
 	private async _handleExtensionTests(): Promise<void> {
@@ -1150,7 +1150,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		}
 	}
 
-	private _doHandleExtensionPoints(affectedExtensions: IExtensionDescription[], onlyResolverExtensionPoints: boolean): void {
+	private _doHandleExtensionPoints(affectedExtensions: IExtensionDescription[], onlyResolverExtensionPoints: boolean, initializeTaskRegistries = false): void {
 		const affectedExtensionPoints: { [extPointName: string]: boolean } = Object.create(null);
 		for (const extensionDescription of affectedExtensions) {
 			if (extensionDescription.contributes) {
@@ -1167,7 +1167,10 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		const extensionPoints = ExtensionsRegistry.getExtensionPoints();
 		perf.mark(onlyResolverExtensionPoints ? 'code/willHandleResolverExtensionPoints' : 'code/willHandleExtensionPoints');
 		for (const extensionPoint of extensionPoints) {
-			if (affectedExtensionPoints[extensionPoint.name] && (!onlyResolverExtensionPoints || extensionPoint.canHandleResolver)) {
+			// A language-free distribution can have no task matcher contributors.
+			// Deliver the initial empty lists so task readiness promises still settle.
+			const initializeEmptyTaskRegistry = initializeTaskRegistries && (extensionPoint.name === 'problemPatterns' || extensionPoint.name === 'problemMatchers');
+			if ((affectedExtensionPoints[extensionPoint.name] || initializeEmptyTaskRegistry) && (!onlyResolverExtensionPoints || extensionPoint.canHandleResolver)) {
 				perf.mark(`code/willHandleExtensionPoint/${extensionPoint.name}`);
 				AbstractExtensionService._handleExtensionPoint(extensionPoint, availableExtensions, messageHandler);
 				perf.mark(`code/didHandleExtensionPoint/${extensionPoint.name}`);

@@ -1,6 +1,6 @@
 # Myself IDE
 
-An experimental Code - OSS distribution undergoing incremental cleanup. The current changes cover the first four implementation stages; the visual redesign and planned new features are not complete.
+An experimental Code - OSS distribution undergoing incremental cleanup. The current changes cover the first five implementation stages; the visual redesign and planned new features are not complete.
 
 ## Distribution
 
@@ -13,6 +13,8 @@ An experimental Code - OSS distribution undergoing incremental cleanup. The curr
 - Shared AI workbench, inline-chat, MCP, service/API code and some transitive dependencies still exist. Source files and development dependencies also retain upstream language packages and AI implementations. These changes do not constitute complete source-tree erasure of AI.
 
 ## Editor behavior
+
+- Inline Chat no longer registers its eager editor controller, notebook integration, actions, accessibility views, model-selection contribution or agent-enablement listeners. Its session service rejects creation and its resolver returns no session, preserving dependency contracts without starting local or Agent Host AI sessions. Shared implementation files and terminal/chat dependencies remain for subsequent cleanup.
 
 - The workbench Command Palette provider, its main action and menu entries are removed. File/view quick access and the command execution API remain, so extension commands can still run through their own UI or keybindings. UI that only exposed an extension command through the palette will need another entry point.
 - User-facing multiple-cursor actions, column-selection command registrations and mouse gestures are removed. The editor's internal multi-selection/multi-edit machinery remains for operations such as rename, snippets and extension APIs.

@@ -192,12 +192,13 @@ function element<T extends HTMLElement>(id: string): T {
 	function findNext() {
 		const query = element<HTMLInputElement>('query').value;
 		if (!query) { return; }
-		const source = text.value.toLocaleLowerCase();
-		const needle = query.toLocaleLowerCase();
-		let index = source.indexOf(needle, text.selectionEnd);
-		if (index < 0) { index = source.indexOf(needle); }
-		if (index >= 0) {
-			text.focus(); text.setSelectionRange(index, index + query.length);
+		// Search the original string so Unicode case conversion cannot shift offsets.
+		const search = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'giu');
+		search.lastIndex = text.selectionEnd;
+		let match = search.exec(text.value);
+		if (!match) { search.lastIndex = 0; match = search.exec(text.value); }
+		if (match) {
+			text.focus(); text.setSelectionRange(match.index, match.index + match[0].length);
 		}
 	}
 	element<HTMLElement>('findNext').addEventListener('click', findNext);

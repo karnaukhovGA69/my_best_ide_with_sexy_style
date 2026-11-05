@@ -122,3 +122,30 @@ test('text is literal, and keyboard undo is routed to document history', async (
 		assert.equal((await messages(page)).find(m => m.type === 'action').action, 'undo');
 	} finally { await page.close(); }
 });
+
+test('find uses original Unicode offsets, literal queries and wraps to the first match', async () => {
+	const page = await open();
+	try {
+		await snapshot(page, { text: 'İ 😀 ТЕКСТ a+b [x] текст', version: 2, dirty: false, name: 'Unicode.txt' });
+		await page.locator('#text').evaluate(el => el.setSelectionRange(0, 0));
+		const selected = () => page.locator('#text').evaluate(el => ({ start: el.selectionStart, value: el.value.slice(el.selectionStart, el.selectionEnd) }));
+		await page.locator('#query').fill('текст');
+		await page.locator('#findNext').click();
+		assert.deepEqual(await selected(), { start: 5, value: 'ТЕКСТ' });
+		await page.locator('#query').focus();
+		await page.locator('#query').press('Enter');
+		assert.deepEqual(await selected(), { start: 19, value: 'текст' });
+		await page.locator('#findNext').click();
+		assert.deepEqual(await selected(), { start: 5, value: 'ТЕКСТ' });
+		for (const query of ['a+b', '[x]']) {
+			await page.locator('#query').fill(query);
+			await page.locator('#findNext').click();
+			assert.equal((await selected()).value, query);
+		}
+		const before = await selected();
+		await page.locator('#query').fill('missing');
+		await page.locator('#findNext').click();
+		assert.deepEqual(await selected(), before);
+		assert.equal((await messages(page)).some(m => m.type === 'edit'), false);
+	} finally { await page.close(); }
+});

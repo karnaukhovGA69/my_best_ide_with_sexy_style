@@ -38,8 +38,6 @@ import { IExtensionRecommendationNotificationService } from '../../../platform/e
 import { IFileService } from '../../../platform/files/common/files.js';
 import { FileService } from '../../../platform/files/common/fileService.js';
 import { DiskFileSystemProvider } from '../../../platform/files/node/diskFileSystemProvider.js';
-import { IGitHubService } from '../../../platform/github/common/githubService.js';
-import { SharedProcessGitHubService } from '../../../platform/github/electron-utility/githubService.js';
 import { SyncDescriptor } from '../../../platform/instantiation/common/descriptors.js';
 import { IInstantiationService, ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
 import { InstantiationService } from '../../../platform/instantiation/common/instantiationService.js';
@@ -152,7 +150,6 @@ import { PlaywrightChannel } from '../../../platform/browserView/node/playwright
 import { AgentNetworkFilterService } from '../../../platform/networkFilter/common/networkFilterService.js';
 import { ILocalGitService } from '../../../platform/git/common/localGitService.js';
 import { LocalGitService } from '../../../platform/git/node/localGitService.js';
-import { registerGitHubChannel } from '../../../platform/github/common/remote/ipcServer.js';
 
 class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 
@@ -360,7 +357,6 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 
 		this.server.registerChannel('telemetryAppender', new TelemetryAppenderChannel(appenders));
 		services.set(ITelemetryService, telemetryService);
-		services.set(IGitHubService, this._register(new SharedProcessGitHubService(nativeHostService, configurationService, environmentService, productService, logService, telemetryService)));
 
 		// Custom Endpoint Telemetry
 		const customEndpointTelemetryService = new CustomEndpointTelemetryService(configurationService, telemetryService, loggerService, environmentService, productService);
@@ -447,7 +443,6 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 	private initChannels(accessor: ServicesAccessor): void {
 
 		const instantiationService = accessor.get(IInstantiationService);
-		this._register(registerGitHubChannel(this.server, accessor.get(IGitHubService)));
 		this.server.registerChannel(agentHostMcpOAuthMetadataChannelName, ProxyChannel.fromService(instantiationService.createInstance(AgentHostMcpOAuthMetadataService), this._store));
 
 		// Extensions Management

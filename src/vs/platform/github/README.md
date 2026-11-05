@@ -1,4 +1,6 @@
 <!--
+
+Myself IDE: the workbench GitHub service refuses client acquisition, and the shared-process GitHub channel is no longer registered. The engine and protocol code documented below remain as source implementations; they are not an enabled built-in GitHub feature.
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the MIT License. See License.txt in the project root for license information.
 -->
@@ -60,7 +62,7 @@ Important lifetime rules:
 - Different grants and endpoints have separate private state. Releasing a client does not reset live server cooldowns.
 - Authenticated failures do not automatically fall back to anonymous access or another account.
 
-The [credential broker](../../workbench/services/github/browser/githubCredentialProvider.ts) silently resolves the exact selected grant and derives approved endpoints. Credentials stay in the broker and execution engine, not in domain-client results or ordinary request messages. IPC leases belong to a physical connection; disconnect, disposal, and cancelled acquisitions release them, including when acquisition replies arrive late.
+The former workbench credential broker has been removed in Myself IDE. The remaining protocol contracts keep credentials out of domain-client results and ordinary request messages. IPC leases belong to a physical connection; disconnect, disposal, and cancelled acquisitions release them, including when acquisition replies arrive late.
 
 Anonymous clients expose only content reads, `gist.get`, and `search.issues`. They omit authorization, cookies, and referrers, and cannot perform mutations or GraphQL operations. Internal bootstrap clients are reserved for trusted host authentication flows; checking a supplied credential does not make it an accepted host credential.
 

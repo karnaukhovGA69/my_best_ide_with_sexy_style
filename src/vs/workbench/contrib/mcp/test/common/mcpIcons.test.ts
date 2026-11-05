@@ -3,148 +3,48 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from 'assert';
+import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { NullLogger } from '../../../../../platform/log/common/log.js';
-import { McpIcons, parseAndValidateMcpIcon } from '../../common/mcpIcons.js';
-import { McpServerTransportHTTP, McpServerTransportStdio, McpServerTransportType } from '../../common/mcpTypes.js';
+import { ILogger, NullLogger } from '../../../../../platform/log/common/log.js';
+import { McpIcons, ParsedMcpIcons, parseAndValidateMcpIcon, StoredMcpIcons } from '../../common/mcpIcons.js';
+import { McpServerLaunch, McpServerTransportType } from '../../common/mcpTypes.js';
+import { MCP } from '../../common/modelContextProtocol.js';
 
-const createHttpLaunch = (url: string): McpServerTransportHTTP => ({
-	type: McpServerTransportType.HTTP,
-	uri: URI.parse(url),
-	headers: []
-});
+suite('MCP server icon implementation removed', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
 
-const createStdioLaunch = (): McpServerTransportStdio => ({
-	type: McpServerTransportType.Stdio,
-	cwd: undefined,
-	command: 'cmd',
-	args: [],
-	env: {},
-	envFile: undefined,
-	sandbox: undefined
-});
-
-suite('MCP Icons', () => {
-	suite('parseAndValidateMcpIcon', () => {
-		ensureNoDisposablesAreLeakedInTestSuite();
-
-		test('includes supported icons and sorts sizes ascending', () => {
-			const logger = new NullLogger();
-			const launch = createHttpLaunch('https://example.com');
-
-			const result = parseAndValidateMcpIcon({
-				icons: [
-					{ src: 'ftp://example.com/ignored.png', mimeType: 'image/png' },
-					{ src: 'data:image/png;base64,AAA', mimeType: 'image/png', sizes: ['64x64', '16x16'] },
-					{ src: 'https://example.com/icon.png', mimeType: 'image/png', sizes: ['128x128'] }
-				]
-			}, launch, logger);
-
-			assert.strictEqual(result.length, 2);
-			assert.strictEqual((result[0].src as URI).toString(true), 'data:image/png;base64,AAA');
-			assert.deepStrictEqual(result[0].sizes.map(s => s.width), [16, 64]);
-			assert.strictEqual(result[1].src.toString(), 'https://example.com/icon.png');
-			assert.deepStrictEqual(result[1].sizes, [{ width: 128, height: 128 }]);
-		});
-
-		test('requires http transport with matching authority for remote icons', () => {
-			const logger = new NullLogger();
-			const httpLaunch = createHttpLaunch('https://example.com');
-			const stdioLaunch = createStdioLaunch();
-
-			const icons = {
-				icons: [
-					{ src: 'https://example.com/icon.png', mimeType: 'image/png', sizes: ['64x64'] },
-					{ src: 'https://other.com/icon.png', mimeType: 'image/png', sizes: ['64x64'] }
-				]
-			};
-
-			const httpResult = parseAndValidateMcpIcon(icons, httpLaunch, logger);
-			assert.deepStrictEqual(httpResult.map(icon => icon.src.toString()), ['https://example.com/icon.png']);
-
-			const stdioResult = parseAndValidateMcpIcon(icons, stdioLaunch, logger);
-			assert.strictEqual(stdioResult.length, 0);
-		});
-
-		test('accepts file icons only for stdio transport', () => {
-			const logger = new NullLogger();
-			const stdioLaunch = createStdioLaunch();
-			const httpLaunch = createHttpLaunch('https://example.com');
-
-			const icons = {
-				icons: [
-					{ src: 'file:///tmp/icon.png', mimeType: 'image/png', sizes: ['32x32'] }
-				]
-			};
-
-			const stdioResult = parseAndValidateMcpIcon(icons, stdioLaunch, logger);
-			assert.strictEqual(stdioResult.length, 1);
-			assert.strictEqual(stdioResult[0].src.scheme, 'file');
-
-			const httpResult = parseAndValidateMcpIcon(icons, httpLaunch, logger);
-			assert.strictEqual(httpResult.length, 0);
-		});
+	test('all icon sources are excluded for HTTP and stdio servers', () => {
+		const launches: McpServerLaunch[] = [
+			{ type: McpServerTransportType.HTTP, uri: URI.parse('https://example.test'), headers: [] },
+			{ type: McpServerTransportType.Stdio, command: 'test', args: [], env: {}, envFile: undefined, sandbox: undefined, cwd: undefined },
+		];
+		const icons: MCP.Icons = { icons: ['https://example.test/icon.png', 'http://example.test/icon.png', 'file:///test/icon.png', 'data:image/png;base64,AAA'].map(src => ({ src, mimeType: 'image/png', sizes: ['32x32'] })) };
+		assert.deepStrictEqual(launches.map(launch => parseAndValidateMcpIcon(icons, launch, new NullLogger())), [[], []]);
 	});
 
-	suite('McpIcons', () => {
-		ensureNoDisposablesAreLeakedInTestSuite();
+	test('parsing does not inspect metadata, launch configuration or logger', () => {
+		const icons = new Proxy(upcastPartial<MCP.Icons>({}), { get() { throw new Error('Metadata read'); } });
+		const launch = new Proxy(upcastPartial<McpServerLaunch>({}), { get() { throw new Error('Launch read'); } });
+		const logger = new Proxy(upcastPartial<ILogger>({}), { get() { throw new Error('Logger read'); } });
+		const first = parseAndValidateMcpIcon(icons, launch, logger);
+		first.push({ src: URI.parse('https://example.test/stale.png'), theme: 2, sizes: [] });
+		assert.deepStrictEqual(parseAndValidateMcpIcon(icons, launch, logger), []);
+	});
 
-		test('getUrl returns undefined when no icons are available', () => {
-			const icons = McpIcons.fromParsed(undefined);
-			assert.strictEqual(icons.getUrl(16), undefined);
-		});
+	test('cached icons are not revived and parsed icons are not traversed', () => {
+		const stored = new Proxy<StoredMcpIcons>([], { get() { throw new Error('Cache read'); } });
+		const parsed = new Proxy<ParsedMcpIcons>([], { get() { throw new Error('Parsed icons read'); } });
+		assert.deepStrictEqual([McpIcons.fromStored(stored).getUrl(32), McpIcons.fromParsed(parsed).getUrl(32)], [undefined, undefined]);
+	});
 
-		test('getUrl prefers theme-specific icons and keeps light fallback', () => {
-			const logger = new NullLogger();
-			const launch = createHttpLaunch('https://example.com');
-			const parsed = parseAndValidateMcpIcon({
-				icons: [
-					{ src: 'https://example.com/dark.png', mimeType: 'image/png', sizes: ['16x16', '48x48'], theme: 'dark' },
-					{ src: 'https://example.com/any.png', mimeType: 'image/png', sizes: ['24x24'] },
-					{ src: 'https://example.com/light.png', mimeType: 'image/png', sizes: ['64x64'], theme: 'light' }
-				]
-			}, launch, logger);
-			const icons = McpIcons.fromParsed(parsed);
-			const result = icons.getUrl(32);
-
-			assert.ok(result);
-			assert.strictEqual(result!.dark.toString(), 'https://example.com/dark.png');
-			assert.strictEqual(result!.light?.toString(), 'https://example.com/light.png');
-		});
-
-		test('getUrl falls back to any-theme icons when no exact size exists', () => {
-			const logger = new NullLogger();
-			const launch = createHttpLaunch('https://example.com');
-			const parsed = parseAndValidateMcpIcon({
-				icons: [
-					{ src: 'https://example.com/dark.png', mimeType: 'image/png', sizes: ['16x16'], theme: 'dark' },
-					{ src: 'https://example.com/any.png', mimeType: 'image/png', sizes: ['64x64'] }
-				]
-			}, launch, logger);
-			const icons = McpIcons.fromParsed(parsed);
-			const result = icons.getUrl(60);
-
-			assert.ok(result);
-			assert.strictEqual(result!.dark.toString(), 'https://example.com/any.png');
-			assert.strictEqual(result!.light, undefined);
-		});
-
-		test('getUrl reuses light icons when dark theme assets are missing', () => {
-			const logger = new NullLogger();
-			const launch = createHttpLaunch('https://example.com');
-			const parsed = parseAndValidateMcpIcon({
-				icons: [
-					{ src: 'https://example.com/light.png', mimeType: 'image/png', sizes: ['32x32'], theme: 'light' }
-				]
-			}, launch, logger);
-			const icons = McpIcons.fromParsed(parsed);
-			const result = icons.getUrl(16);
-
-			assert.ok(result);
-			assert.strictEqual(result!.dark.toString(), 'https://example.com/light.png');
-			assert.strictEqual(result!.light?.toString(), 'https://example.com/light.png');
-		});
+	test('previously valid cached URLs never reach rendering at any size', () => {
+		const parsed: ParsedMcpIcons = [{ src: URI.parse('https://example.test/icon.png'), theme: 2, sizes: [{ width: 32, height: 32 }] }];
+		const stored: StoredMcpIcons = parsed.map(icon => ({ ...icon, src: icon.src.toJSON() }));
+		const providers = [McpIcons.fromParsed(parsed), McpIcons.fromStored(stored), McpIcons.fromParsed(undefined), McpIcons.fromStored(undefined)];
+		for (const provider of providers) {
+			assert.deepStrictEqual([0, 16, 32, 256, Infinity, NaN].map(size => provider.getUrl(size)), Array(6).fill(undefined));
+		}
 	});
 });

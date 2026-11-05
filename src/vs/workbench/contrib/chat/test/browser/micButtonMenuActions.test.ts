@@ -4,92 +4,40 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { upcastPartial } from '../../../../../base/test/common/mock.js';
+import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
-import { getDictationContextMenuActions, getVoiceModeContextMenuActions } from '../../browser/speechToText/micButtonMenuActions.js';
+import { addMicButtonContextMenuListener, getDictationContextMenuActions, getVoiceModeContextMenuActions } from '../../browser/speechToText/micButtonMenuActions.js';
 
-suite('Mic button menu actions', () => {
-
+suite('Mic button menus unavailable', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	const commandService = upcastPartial<ICommandService>({});
-	const keybindingService = upcastPartial<IKeybindingService>({});
-
-	test('groups and shortens Voice Mode actions', () => {
-		const configurationService = upcastPartial<IConfigurationService>({ getValue: () => true, updateValue: async () => { } });
-		const actions = getVoiceModeContextMenuActions(commandService, configurationService, keybindingService, 'voice.start');
-
-		assert.deepStrictEqual(actions.map(action => action.label), [
-			'Configure Keybinding',
-			'Voice Mode Button',
-			'Show Transcript',
-			'Disable',
-			'',
-			'Open Settings',
-			'Configure Instructions',
-			'Show Introduction',
-			'Select Microphone',
-		]);
+	test('offers no actions and never reads command, configuration or keybinding services', () => {
+		const unreadable = { get: () => { throw new Error('Service must not be read'); } };
+		const commands = new Proxy({} as ICommandService, unreadable);
+		const config = new Proxy({} as IConfigurationService, unreadable);
+		const keybindings = new Proxy({} as IKeybindingService, unreadable);
+		assert.deepStrictEqual(getDictationContextMenuActions(commands, config, keybindings, 'dictation.start'), []);
+		assert.deepStrictEqual(getVoiceModeContextMenuActions(commands, config, keybindings, 'voice.start'), []);
 	});
 
-	test('Voice Mode "Show Transcript" toggle reflects and flips the transcript setting', async () => {
-		const updated: [string, unknown][] = [];
-		const configurationService = upcastPartial<IConfigurationService>({
-			getValue: () => false,
-			updateValue: async (key: string, value: unknown) => { updated.push([key, value]); },
-		});
-		const actions = getVoiceModeContextMenuActions(commandService, configurationService, keybindingService, 'voice.start');
-		const toggle = actions.find(action => action.label === 'Show Transcript')!;
-
-		assert.deepStrictEqual({ checked: toggle.checked, updatedBeforeRun: updated }, { checked: false, updatedBeforeRun: [] });
-		await toggle.run();
-		assert.deepStrictEqual(updated, [['agents.voice.showTranscript', true]]);
-	});
-
-	test('Voice Mode button toggle reflects and flips the visibility setting', async () => {
-		const updated: [string, unknown][] = [];
-		const configurationService = upcastPartial<IConfigurationService>({
-			getValue: () => false,
-			updateValue: async (key: string, value: unknown) => { updated.push([key, value]); },
-		});
-		const actions = getVoiceModeContextMenuActions(commandService, configurationService, keybindingService, 'voice.start');
-		const toggle = actions.find(action => action.label === 'Voice Mode Button')!;
-
-		assert.deepStrictEqual({ checked: toggle.checked, updatedBeforeRun: updated }, { checked: false, updatedBeforeRun: [] });
-		await toggle.run();
-		assert.deepStrictEqual(updated, [['agents.voice.showButton', true]]);
-	});
-
-	test('groups and shortens dictation actions', () => {
-		const configurationService = upcastPartial<IConfigurationService>({ getValue: () => true, updateValue: async () => { } });
-		const actions = getDictationContextMenuActions(commandService, configurationService, keybindingService, 'dictation.start');
-
-		assert.deepStrictEqual(actions.map(action => action.label), [
-			'Configure Keybinding',
-			'Microphone Button',
-			'Disable',
-			'',
-			'Open Settings',
-			'Configure Instructions',
-			'Show Introduction',
-			'Select Microphone',
-		]);
-	});
-
-	test('dictation "Microphone Button" toggle reflects and flips the visibility setting', async () => {
-		const updated: [string, unknown][] = [];
-		const configurationService = upcastPartial<IConfigurationService>({
-			getValue: () => false,
-			updateValue: async (key: string, value: unknown) => { updated.push([key, value]); },
-		});
-		const actions = getDictationContextMenuActions(commandService, configurationService, keybindingService, 'dictation.start');
-		const toggle = actions.find(action => action.label === 'Microphone Button')!;
-
-		assert.strictEqual(toggle.checked, false);
-		await toggle.run();
-		assert.deepStrictEqual(updated, [['dictation.showButton', true]]);
+	test('does not intercept context menus or invoke callbacks', () => {
+		const container = document.createElement('div');
+		const button = container.appendChild(document.createElement('button'));
+		const contextMenus = new Proxy({} as IContextMenuService, { get: () => { throw new Error('Context menu service must not be read'); } });
+		const registration = addMicButtonContextMenuListener(button, () => { throw new Error('Actions must not be requested'); }, contextMenus);
+		assert.strictEqual(registration, Disposable.None);
+		let bubbled = 0;
+		container.addEventListener('contextmenu', () => bubbled++);
+		for (let i = 0; i < 2; i++) {
+			const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+			assert.strictEqual(button.dispatchEvent(event), true);
+			assert.strictEqual(event.defaultPrevented, false);
+			registration.dispose();
+		}
+		assert.strictEqual(bubbled, 2);
 	});
 });

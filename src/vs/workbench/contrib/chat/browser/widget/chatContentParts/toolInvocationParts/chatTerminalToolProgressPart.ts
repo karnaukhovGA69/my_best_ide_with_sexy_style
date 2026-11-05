@@ -64,7 +64,6 @@ import { removeAnsiEscapeCodes } from '../../../../../../../base/common/strings.
 import { PANEL_BACKGROUND } from '../../../../../../common/theme.js';
 import { editorBackground } from '../../../../../../../platform/theme/common/colorRegistry.js';
 import { asCssVariable } from '../../../../../../../platform/theme/common/colorUtils.js';
-import { CommandsRegistry } from '../../../../../../../platform/commands/common/commands.js';
 import { IEditorService } from '../../../../../../services/editor/common/editorService.js';
 import { Link } from '../../../../../../../platform/opener/browser/link.js';
 import { ChatTerminalOutputResource, IChatTerminalOutputTextModelService } from '../../../agentSessions/agentHost/chatTerminalOutputTextModelContentProvider.js';
@@ -109,20 +108,6 @@ function getTerminalFullOutputLabel(runId: string): string {
  * Remembers whether a tool invocation was last expanded so state survives virtualization re-renders.
  */
 const expandedStateByInvocation = new WeakMap<IChatToolInvocation | IChatToolInvocationSerialized, boolean>();
-
-// --- Command registrations for terminal tool progress toolbar ---
-
-CommandsRegistry.registerCommand(TerminalContribCommandId.FocusChatInstanceAction, async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
-	await progressPart?.focusTerminal();
-});
-
-CommandsRegistry.registerCommand(TerminalContribCommandId.ContinueInBackground, async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
-	progressPart?.continueInBackground();
-});
-
-CommandsRegistry.registerCommand(TerminalContribCommandId.ToggleChatTerminalOutput, async (_accessor: unknown, progressPart?: IChatTerminalToolProgressPart) => {
-	await progressPart?.toggleOutputFromAction();
-});
 
 /**
  * Options for configuring a terminal command decoration.

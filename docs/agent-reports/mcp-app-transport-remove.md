@@ -1,0 +1,11 @@
+# mcp-app-transport-remove
+
+Статус: ГОТОВО / ожидает интеграции. Владелец: MCP cleanup. Ветка: `agent/mcp-app-transport-remove`. База: `5f88b8b3d41`. Claim: `b91412515a7`. Код/тесты: `ff3abccb605a37f1d1a54cc1de5e291308cfb1d4`.
+
+Изменены `src/vs/workbench/contrib/mcp/browser/mcpToolCallUI.ts`, соответствующий `test/browser/mcpToolCallUI.test.ts` и этот отчёт. Удалены local/AHP transport implementations и неиспользуемый IMcpAppCallTransport, поиск/запуск серверов, RPC tools/resources/sampling/log, notification forwarding, HTML/base64 decoding и динамический theme/environment host context. Общий Agent Host, GitHub authentication и связанные компоненты не менялись.
+
+Оставлены IMcpAppResourceContent и совместимый Disposable-класс McpToolCallUI. uiData возвращает исходные данные без чтения полей; constructor не требует сервисов. Четыре операции явно отклоняются локализованной ошибкой MCP Apps are disabled in Myself IDE.; log игнорируется без rejection (one-way/late notifications). onNotification — Event.None; hostContext — постоянный замороженный пустой объект без наблюдения за темой или environment.
+
+Проверки: 4 новых browser tests прошли (local/agentHost paths, оба cancellation states, отсутствие чтения payload/token/renderData, inert notifications/context/log, повторный dispose). Прежние 4 теста активных transports заменены тестами нового unavailable-контракта. Два DI-теста на старом production-файле ожидаемо падают из-за themeService dependency. 33 существующих chatMcpAppModel tests прошли; они используют stub McpToolCallUI и проверяют контракт потребителя, не настоящий transport end-to-end. ESLint двух файлов, узкая TypeScript-проверка (0 diagnostics) и git diff --check прошли. Browser tests через временный esbuild/Mocha/Chromium harness; full build не запускался.
+
+Интегратору: ветка независима от других MCP tasks. Единственный production consumer — chatMcpAppModel.ts, использующий сохранённые constructor, uiData, hostContext, onNotification и методы. Сам renderer ещё создаёт webview и обрабатывает сообщения; его удаление — отдельный участок. Ошибка загрузки ресурса передаётся его существующему error path. Общие typecheck/build/package/native smoke — для пакета. Полное удаление MCP/AI не заявляется.

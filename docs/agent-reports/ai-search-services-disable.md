@@ -1,0 +1,11 @@
+# ai-search-services-disable
+
+Статус: ГОТОВО к интеграции следующего пакета. Ветка: agent/ai-search-services-disable. База: main 411cccde06e. Владелец: чат упрощения Myself IDE.
+
+Три реализации Workbench services aiSettingsSearch/aiRelatedInformation/aiEmbeddingVector заменены совместимыми отключёнными фасадами. Provider registration возвращает disposable без сохранения провайдера; isEnabled всегда false. Удалены calls providers, очередь/кэш запросов и results, таймеры, cancellation listeners, logging DI и latency reporting. Settings search не стартует, onProviderRegistered — Event.None, обе формы results сразу дают null, присланные результаты игнорируются. Explicit related-information и оба embedding overload возвращают rejected Promise с unavailable error вместо фиктивного вектора/списка. Общие service identifiers/interfaces/singleton registration/main-thread API сохранены.
+
+Девять regression tests проверяют strict DI, отключённое состояние после registration, отсутствие provider calls/events, повторный dispose registration, пустые settings results, unsolicited responses, отменённые и throwing-proxy tokens/payload. Старые пять related-information tests заменены тестами нового disabled contract; обычные symbols/settings/extension host API не менялись.
+
+Проверки: 87 browser Mocha tests passed (9 disabled-services и 78 существующих SettingsTree models/search tests), 0 page errors. Scoped TypeScript 10 файлов (6 changed/new, 3 main-thread consumers и preferencesSearch) — 0 diagnostics. ESLint 6 файлов и git diff --check прошли. Девять новых тестов со старыми тремя runtime-файлами 411cccde06e дали девять ожидаемых failures (registration/DI), без page errors. Внешний test harness сначала ссылался на несуществующий preferencesSearch.test.ts; это исправлено на реальный settingsTreeModels.test.ts, итоговый прогон успешен.
+
+Wiring не требуется. Ordinary local settings search сохранён и покрыт прежними SettingsTree tests; proposed AI-only API остаётся вызываемым, но недоступным по продуктовой политике. Это не удаление общего extension host и не запрет самостоятельного сетевого кода сторонних расширений. Полные build/package/native выполняет интегратор на следующем пакете, текущий binary snapshot не расширялся.

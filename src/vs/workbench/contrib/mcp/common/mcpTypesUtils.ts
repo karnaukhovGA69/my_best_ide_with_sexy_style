@@ -3,49 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { disposableTimeout, timeout } from '../../../../base/common/async.js';
+import { timeout } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { CancellationError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, autorunSelfDisposable, IReader } from '../../../../base/common/observable.js';
 import { ILogger } from '../../../../platform/log/common/log.js';
 import { ToolDataSource } from '../../chat/common/tools/languageModelToolsService.js';
 import { IMcpServer, IMcpServerStartOpts, IMcpService, McpConnectionState, McpServerCacheState, McpServerTransportType } from './mcpTypes.js';
 import { MCP } from './modelContextProtocol.js';
-
-
-/**
- * Waits up to `timeout` for a server passing the filter to be discovered,
- * and then starts it.
- */
-export function startServerByFilter(mcpService: IMcpService, filter: (s: IMcpServer) => boolean, timeout = 5000) {
-	return new Promise<void>((resolve, reject) => {
-		const store = new DisposableStore();
-		store.add(disposableTimeout(() => {
-			store.dispose();
-			reject(new CancellationError());
-		}, timeout));
-		const observer = autorunSelfDisposable(reader => {
-			const servers = mcpService.servers.read(reader);
-			const server = servers.find(filter);
-
-			if (server) {
-				server.start({ promptType: 'all-untrusted' }).then(state => {
-					if (state.state === McpConnectionState.Kind.Error) {
-						server.showOutput();
-					}
-				});
-
-				resolve();
-				reader.dispose();
-				store.dispose();
-			}
-		});
-		if (!store.isDisposed) {
-			store.add(observer);
-		}
-	});
-}
 
 /**
  * Starts a server (if needed) and waits for its tools to be live. Returns

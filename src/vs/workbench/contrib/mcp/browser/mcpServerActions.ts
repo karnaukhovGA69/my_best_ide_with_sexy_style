@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ActionViewItem, IActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
-import { alert } from '../../../../base/browser/ui/aria/aria.js';
 import { Action, IAction, IActionChangeEvent, Separator } from '../../../../base/common/actions.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { IMarkdownString } from '../../../../base/common/htmlContent.js';
@@ -16,7 +15,6 @@ import { Location } from '../../../../editor/common/languages.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { IAuthenticationService } from '../../../services/authentication/common/authentication.js';
 import { IAccountQuery, IAuthenticationQueryService } from '../../../services/authentication/common/authenticationQuery.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -24,22 +22,16 @@ import { errorIcon, infoIcon, manageExtensionIcon, trustIcon, warningIcon } from
 import { McpCommandIds } from '../common/mcpCommandIds.js';
 import { IMcpRegistry } from '../common/mcpRegistryTypes.js';
 import { IMcpSamplingService, IMcpServer, IMcpServerContainer, IMcpService, IMcpWorkbenchService, IWorkbenchMcpServer, McpCapability, McpConnectionState, McpServerEditorTab, McpServerInstallState } from '../common/mcpTypes.js';
-import { startServerByFilter } from '../common/mcpTypesUtils.js';
-import { ConfigurationTarget } from '../../../../platform/configuration/common/configuration.js';
-import { isWorkspaceFolder, IWorkspaceContextService, IWorkspaceFolder, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
+import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 import { IMcpWorkspaceInstallTargetService } from '../../../services/mcp/common/mcpWorkspaceInstallTargetService.js';
-import { IQuickInputService, QuickPickItem } from '../../../../platform/quickinput/common/quickInput.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
-import { Schemas } from '../../../../base/common/network.js';
-import { ILabelService } from '../../../../platform/label/common/label.js';
-import { LocalMcpServerScope, WorkspaceMcpConfigKind } from '../../../services/mcp/common/mcpWorkbenchManagementService.js';
+import { LocalMcpServerScope } from '../../../services/mcp/common/mcpWorkbenchManagementService.js';
 import { ExtensionAction } from '../../extensions/browser/extensionsActions.js';
 import { ActionWithDropdownActionViewItem, IActionWithDropdownActionViewItemOptions } from '../../../../base/browser/ui/dropdown/dropdownActionViewItem.js';
 import { IContextMenuProvider } from '../../../../base/browser/contextmenu.js';
 import Severity from '../../../../base/common/severity.js';
 import { ContributionEnablementState, isContributionDisabled, isContributionEnabled } from '../../chat/common/enablement.js';
 import { getWorkbenchMenuMotionContextMenuOptions } from '../../../browser/actions/menuMotion.js';
-import { McpConfigurationDestination } from './mcpConfigurationDestination.js';
 
 export interface IMcpServerActionChangeEvent extends IActionChangeEvent {
 	readonly hidden?: boolean;
@@ -245,232 +237,60 @@ export class DropDownExtensionActionViewItem extends ActionViewItem {
 }
 
 export class InstallAction extends McpServerAction {
-
 	static readonly CLASS = `${this.LABEL_ACTION_CLASS} prominent install`;
 	private static readonly HIDE = `${this.CLASS} hide`;
 
-	constructor(
-		private readonly open: boolean,
-		@IMcpWorkbenchService private readonly mcpWorkbenchService: IMcpWorkbenchService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
-		@IMcpService private readonly mcpService: IMcpService,
-	) {
-		super('extensions.install', localize('install', "Install"), InstallAction.CLASS, false);
+	constructor(_open: boolean) {
+		super('extensions.install', localize('install', 'Install'), InstallAction.CLASS, false);
 		this.update();
 	}
 
 	update(): void {
 		this.enabled = false;
 		this.class = InstallAction.HIDE;
-		if (!this.mcpServer?.gallery && !this.mcpServer?.installable) {
-			return;
-		}
-		if (this.mcpServer.installState !== McpServerInstallState.Uninstalled) {
-			return;
-		}
-		this.class = InstallAction.CLASS;
-		this.enabled = this.mcpWorkbenchService.canInstall(this.mcpServer) === true;
 	}
 
 	override async run(): Promise<void> {
-		if (!this.mcpServer) {
-			return;
-		}
-
-		if (this.open) {
-			this.mcpWorkbenchService.open(this.mcpServer);
-			alert(localize('mcpServerInstallation', "Installing MCP Server {0} started. An editor is now open with more details on this MCP Server", this.mcpServer.label));
-		}
-
-		type McpServerInstallClassification = {
-			owner: 'sandy081';
-			comment: 'Used to understand if the action to install the MCP server is used.';
-			name?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The gallery name of the MCP server being installed' };
-		};
-		type McpServerInstall = {
-			name?: string;
-		};
-		this.telemetryService.publicLog2<McpServerInstall, McpServerInstallClassification>('mcp:action:install', { name: this.mcpServer.gallery?.name });
-
-		const installed = await this.mcpWorkbenchService.install(this.mcpServer);
-
-		await startServerByFilter(this.mcpService, s => {
-			return s.definition.id === installed.id;
-		});
+		throw new Error(localize('mcpInstall.unavailable', 'MCP server installation is unavailable in this distribution.'));
 	}
 }
 
 export class InstallInWorkspaceAction extends McpServerAction {
-
 	static readonly CLASS = `${this.LABEL_ACTION_CLASS} prominent install`;
 	private static readonly HIDE = `${this.CLASS} hide`;
 
-	constructor(
-		private readonly open: boolean,
-		@IMcpWorkbenchService private readonly mcpWorkbenchService: IMcpWorkbenchService,
-		@IMcpWorkspaceInstallTargetService private readonly workspaceInstallTargetService: IMcpWorkspaceInstallTargetService,
-		@IQuickInputService private readonly quickInputService: IQuickInputService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
-		@IMcpService private readonly mcpService: IMcpService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
-	) {
-		super('extensions.installWorkspace', localize('installInWorkspace', "Install in Workspace"), InstallAction.CLASS, false);
+	constructor(_open: boolean) {
+		super('extensions.installWorkspace', localize('installInWorkspace', 'Install in Workspace'), InstallInWorkspaceAction.CLASS, false);
 		this.update();
 	}
 
 	update(): void {
 		this.enabled = false;
 		this.class = InstallInWorkspaceAction.HIDE;
-		if (this.workspaceInstallTargetService.getTargets().length === 0) {
-			return;
-		}
-		if (!this.mcpServer?.gallery && !this.mcpServer?.installable) {
-			return;
-		}
-		if (this.mcpServer.installState !== McpServerInstallState.Uninstalled && this.mcpServer.local?.scope === LocalMcpServerScope.Workspace) {
-			return;
-		}
-		this.class = InstallAction.CLASS;
-		this.enabled = this.mcpWorkbenchService.canInstall(this.mcpServer) === true;
 	}
 
 	override async run(): Promise<void> {
-		if (!this.mcpServer) {
-			return;
-		}
-
-		if (this.open) {
-			this.mcpWorkbenchService.open(this.mcpServer, { preserveFocus: true });
-			alert(localize('mcpServerInstallation', "Installing MCP Server {0} started. An editor is now open with more details on this MCP Server", this.mcpServer.label));
-		}
-
-		const target = await this.getConfigurationTarget();
-		if (!target) {
-			return;
-		}
-		let workspaceConfig: WorkspaceMcpConfigKind | undefined;
-		if (isWorkspaceFolder(target)) {
-			workspaceConfig = this.mcpServer.installable
-				? await this.instantiationService.createInstance(McpConfigurationDestination).selectForAdd(target, this.mcpServer.installable)
-				: WorkspaceMcpConfigKind.LegacyVscode;
-			if (workspaceConfig === undefined) {
-				return;
-			}
-		}
-
-		type McpServerInstallClassification = {
-			owner: 'sandy081';
-			comment: 'Used to understand if the action to install the MCP server is used.';
-			name?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The gallery name of the MCP server being installed' };
-		};
-		type McpServerInstall = {
-			name?: string;
-		};
-		this.telemetryService.publicLog2<McpServerInstall, McpServerInstallClassification>('mcp:action:install:workspace', { name: this.mcpServer.gallery?.name });
-
-		const installed = await this.mcpWorkbenchService.install(this.mcpServer, { target, workspaceConfig });
-		await startServerByFilter(this.mcpService, s => {
-			return s.definition.id === installed.id;
-		});
-	}
-
-	private async getConfigurationTarget(): Promise<ConfigurationTarget | IWorkspaceFolder | undefined> {
-		type OptionQuickPickItem = QuickPickItem & { target?: ConfigurationTarget | IWorkspaceFolder };
-		const options: OptionQuickPickItem[] = [];
-		const targets = this.workspaceInstallTargetService.getTargets();
-		if (targets.length === 0) {
-			return undefined;
-		}
-
-		for (const folder of targets.filter(isWorkspaceFolder)) {
-			options.push({ target: folder, label: localize('mcp.target.workspaceFolderLabel', "Workspace ({0})", folder.name), description: localize('install in workspace folder', "Workspace Folder") });
-		}
-
-		if (targets.includes(ConfigurationTarget.WORKSPACE)) {
-			if (options.length > 0) {
-				options.push({ type: 'separator' });
-			}
-			options.push({ target: ConfigurationTarget.WORKSPACE, label: localize('mcp.target.workspace', "Workspace") });
-		}
-
-		if (options.length === 1) {
-			return options[0].target;
-		}
-
-		const targetPick = await this.quickInputService.pick(options, {
-			title: localize('mcp.target.title', "Choose where to install the MCP server"),
-		});
-
-		return (targetPick as OptionQuickPickItem)?.target;
+		throw new Error(localize('mcpInstall.unavailable', 'MCP server installation is unavailable in this distribution.'));
 	}
 }
 
 export class InstallInRemoteAction extends McpServerAction {
-
 	static readonly CLASS = `${this.LABEL_ACTION_CLASS} prominent install`;
 	private static readonly HIDE = `${this.CLASS} hide`;
 
-	constructor(
-		private readonly open: boolean,
-		@IMcpWorkbenchService private readonly mcpWorkbenchService: IMcpWorkbenchService,
-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
-		@ILabelService private readonly labelService: ILabelService,
-		@IMcpService private readonly mcpService: IMcpService,
-	) {
-		super('extensions.installRemote', localize('installInRemote', "Install (Remote)"), InstallAction.CLASS, false);
-		const remoteLabel = this.labelService.getHostLabel(Schemas.vscodeRemote, this.environmentService.remoteAuthority);
-		this.label = localize('installInRemoteLabel', "Install in {0}", remoteLabel);
+	constructor(_open: boolean) {
+		super('extensions.installRemote', localize('installInRemote', 'Install (Remote)'), InstallInRemoteAction.CLASS, false);
 		this.update();
 	}
 
 	update(): void {
 		this.enabled = false;
 		this.class = InstallInRemoteAction.HIDE;
-		if (!this.environmentService.remoteAuthority) {
-			return;
-		}
-		if (!this.mcpServer?.gallery && !this.mcpServer?.installable) {
-			return;
-		}
-		if (this.mcpServer.installState !== McpServerInstallState.Uninstalled) {
-			if (this.mcpServer.local?.scope === LocalMcpServerScope.RemoteUser) {
-				return;
-			}
-			if (this.mcpWorkbenchService.local.find(mcpServer => mcpServer.name === this.mcpServer?.name && mcpServer.local?.scope === LocalMcpServerScope.RemoteUser)) {
-				return;
-			}
-		}
-		this.class = InstallAction.CLASS;
-		this.enabled = this.mcpWorkbenchService.canInstall(this.mcpServer) === true;
 	}
 
 	override async run(): Promise<void> {
-		if (!this.mcpServer) {
-			return;
-		}
-
-		if (this.open) {
-			this.mcpWorkbenchService.open(this.mcpServer);
-			alert(localize('mcpServerInstallation', "Installing MCP Server {0} started. An editor is now open with more details on this MCP Server", this.mcpServer.label));
-		}
-
-		type McpServerInstallClassification = {
-			owner: 'sandy081';
-			comment: 'Used to understand if the action to install the MCP server is used.';
-			name?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The gallery name of the MCP server being installed' };
-		};
-		type McpServerInstall = {
-			name?: string;
-		};
-		this.telemetryService.publicLog2<McpServerInstall, McpServerInstallClassification>('mcp:action:install:remote', { name: this.mcpServer.gallery?.name });
-
-		const installed = await this.mcpWorkbenchService.install(this.mcpServer, { target: ConfigurationTarget.USER_REMOTE });
-		await startServerByFilter(this.mcpService, s => {
-			return s.definition.id === installed.id;
-		});
+		throw new Error(localize('mcpInstall.unavailable', 'MCP server installation is unavailable in this distribution.'));
 	}
-
 }
 
 export class InstallingLabelAction extends McpServerAction {

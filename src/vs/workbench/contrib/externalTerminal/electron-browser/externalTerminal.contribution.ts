@@ -59,49 +59,51 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 			}
 			root = folders[folderPicks.indexOf(pick)].uri;
 		} else {
-			root = historyService.getLastActiveWorkspaceRoot();
+			root = historyService.getLastActiveWorkspaceRoot() ?? folders[0]?.uri;
 		}
 
-		// It's a local workspace, open the root
-		if (root?.scheme === Schemas.file) {
-			terminalService.openTerminal(config, root.fsPath);
-			return;
-		}
-
-		// If it's a remote workspace, open the canonical URI if it is a local folder
-		try {
-			if (root?.scheme === Schemas.vscodeRemote) {
-				const canonicalUri = await remoteAuthorityResolverService.getCanonicalURI(root);
-				if (canonicalUri.scheme === Schemas.file) {
-					terminalService.openTerminal(config, canonicalUri.fsPath);
-					return;
-				}
+		// Resolve only paths which can be opened by a terminal on this computer.
+		async function getLocalUri(resource: URI | undefined): Promise<URI | undefined> {
+			if (resource?.scheme === Schemas.file) {
+				return resource;
 			}
-		} catch { }
-
-		// Open the current file's folder if it's local or its canonical URI is local
-		// Opens current file's folder, if no folder is open in editor
-		const activeFile = historyService.getLastActiveFile(Schemas.file);
-		if (activeFile?.scheme === Schemas.file) {
-			terminalService.openTerminal(config, paths.dirname(activeFile.fsPath));
-			return;
-		}
-		try {
-			if (activeFile?.scheme === Schemas.vscodeRemote) {
-				const canonicalUri = await remoteAuthorityResolverService.getCanonicalURI(activeFile);
-				if (canonicalUri.scheme === Schemas.file) {
-					terminalService.openTerminal(config, canonicalUri.fsPath);
-					return;
-				}
+			if (resource?.scheme === Schemas.vscodeRemote) {
+				try {
+					const canonicalUri = await remoteAuthorityResolverService.getCanonicalURI(resource);
+					return canonicalUri.scheme === Schemas.file ? canonicalUri : undefined;
+				} catch { }
 			}
-		} catch { }
+			return undefined;
+		}
 
-		// Fallback to opening without a cwd which will end up using the local home path
-		terminalService.openTerminal(config, undefined);
+		const localRoot = await getLocalUri(root);
+		if (localRoot) {
+			return terminalService.openTerminal(config, localRoot.fsPath);
+		}
+
+		// Prefer the last local file, then try the canonical path of a remote file.
+		const activeFile = historyService.getLastActiveFile(Schemas.file) ?? historyService.getLastActiveFile(Schemas.vscodeRemote);
+		const localFile = await getLocalUri(activeFile);
+		if (localFile) {
+			return terminalService.openTerminal(config, paths.dirname(localFile.fsPath));
+		}
+
+		// Fallback to opening without a cwd which will end up using the local home path.
+		return terminalService.openTerminal(config, undefined);
 	}
 });
 
 MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+	command: {
+		id: OPEN_NATIVE_CONSOLE_COMMAND_ID,
+		title: nls.localize2('globalConsoleAction', "Open New External Terminal")
+	}
+});
+
+MenuRegistry.appendMenuItem(MenuId.MenubarTerminalMenu, {
+	group: '1_create',
+	order: 3,
+	when: IsSessionsWindowContext.negate(),
 	command: {
 		id: OPEN_NATIVE_CONSOLE_COMMAND_ID,
 		title: nls.localize2('globalConsoleAction', "Open New External Terminal")

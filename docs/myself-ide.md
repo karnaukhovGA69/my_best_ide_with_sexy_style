@@ -16,7 +16,7 @@ An experimental Code - OSS distribution undergoing incremental cleanup. The inte
 
 Desktop builds provide **Export Text as PDF** in File and the title toolbar for `.txt` editors. It exports the active editor buffer, including unsaved text, to A4 with 20 mm margins, serif 12 pt text and 1.5 line spacing. A Save Dialog chooses the destination. Text is escaped, preserving line breaks, and rendered locally with the bundled Electron; no TeX or separate Chromium download is required. The output has selectable text and automatic page breaks.
 
-The `myself.documents.exportPdf` command accepts the v1 DTO for a future document-editor extension, including validated page options. The separate UI command is `myself.documents.exportActiveTextPdf`. Input is limited to 2 MiB of UTF-8 text; Markdown and HTML are printed literally. The visual document editor and page-settings UI are still separate pending work. Generic font selection does not guarantee glyph coverage for every script.
+The `myself.documents.exportPdf` command accepts the v1 DTO for the bundled document-editor extension, including validated page options. The separate UI command is `myself.documents.exportActiveTextPdf`. Input is limited to 2 MiB of UTF-8 text; Markdown and HTML are printed literally. The optional document editor provides its own Export PDF button and page-settings UI; the text-editor export action is hidden in custom editors. Generic font selection does not guarantee glyph coverage for every script.
 
 ## Editor behavior
 

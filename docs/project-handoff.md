@@ -1,6 +1,6 @@
 # Передача контекста: Myself IDE
 
-Сводка на 4 ноября 2026 года для нового чата или отдельного агента. Не нужно перечитывать всю переписку. Сначала прочитай этот файл, затем AGENTS.md, своё задание и актуальный git status. Документы описывают состояние на дату записи; текущую готовность проверяй по коду и отчётам.
+Сводка на 5 ноября 2026 года для нового чата или отдельного агента. Не нужно перечитывать всю переписку. Сначала прочитай этот файл, затем AGENTS.md, своё задание и актуальный git status. Документы описывают состояние на дату записи; текущую готовность проверяй по коду и отчётам.
 
 ## Идея и границы
 
@@ -27,35 +27,29 @@
 
 ## Что реально сделано
 
-Шесть этапов очистки объединены в main; седьмой добавил PDF. Бинарный релиз [v0.0.7-preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.7-preview) собран из `99373603913f162e9d1256cc621949b8bdef03c0`. Правило пакетных сборок добавлено следующим коммитом `01293638a16`. Новые чаты стартуют от актуального main, не от старых phase-веток. На момент проверки открытых PR не было.
+Восемь этапов объединены в main. [v0.0.8-preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.8-preview) собран из `33161ca3d9ac891b1155cd74ab179110a1d67e32`; все 33 накопленные task-ветки интегрированы. Полный состав и проверки: [release-0.0.8.md](agent-reports/release-0.0.8.md). Новые чаты стартуют от актуального main. Документы после исходного коммита не требуют пересборки.
 
-- Своя product identity и пользовательский каталог. Builtin allowlist — build/lib/distributionExtensions.ts (36 компонентов при проверке). Языковые расширения/Copilot/Emmet/Grunt/Gulp/Jake не поставляются.
+- Своя product identity и пользовательский каталог. Builtin allowlist — build/lib/distributionExtensions.ts (включая myself-documents). Языковые расширения/Copilot/Emmet/Grunt/Gulp/Jake не поставляются.
 - Фильтры distributionRuntime и production entrypoints исключают Sessions/Agent Host/local transcription и ряд AI SDK. Общие AI/MCP исходники/контракты и зависимости остаются.
 - Телеметрия/IDs/эксперименты/crash upload заблокированы. Рекомендации и автообновления расширений не запускаются; ручной каталог/VSIX/update работает.
-- Inline Chat и Terminal Chat больше не регистрируют основные контроллеры/действия. Совместимые сервисы отключены; оставшиеся terminal chat tools — отдельная задача.
+- Inline Chat и Terminal Chat больше не регистрируют основные контроллеры/действия. Совместимые сервисы отключены; регистрации оставшихся terminal chat tools удалены в восьмом этапе.
 - Пользовательские действия палитры/мультикурсора/Sticky Scroll/format-on-save убраны. Snippet suggestions и Welcome отключены по умолчанию; не весь исходный код удалён.
 - Tasks исправлены для поставки без языковых расширений: пустые pattern/matcher registries инициализируются при регистрации расширений, shell task завершается.
 - Native logs: warning/error по умолчанию, 2 MiB + 4 backup на канал, ротация при записи в новый UTC-день; часть старых файлов очищается после 7 дней. Это не общий лимит всех логов/Output/расширений.
 - PDF implementation: src/vs/platform/documentExport/**, src/vs/workbench/contrib/documentExport/**. NativeHost/desktop entrypoint уже подключены. Extension DTO: myself.documents.exportPdf; команда видимой кнопки: myself.documents.exportActiveTextPdf. Контракт в document-export-contract.md.
-- PDF: текущий буфер → native Save Dialog → локальный Electron printToPDF → атомарная запись. A4/20mm/serif12pt/1.5, лимит 2 MiB UTF-8, экранирование текста, sandbox/без сети и JS, временное окно и cleanup. Markdown/HTML печатаются буквально. UI настроек страницы ещё нет.
+- PDF: текущий буфер → native Save Dialog → локальный Electron printToPDF → атомарная запись. A4/20mm/serif12pt/1.5, лимит 2 MiB UTF-8, экранирование текста, sandbox/без сети и JS, временное окно и cleanup. Markdown/HTML печатаются буквально. Опциональный documents-ui добавляет New Document/Open as Document, поиск, save/undo/redo и настройки страницы. Эти параметры живут только в текущем редакторе.
 
 ## Проверки и известные ограничения
 
-Для седьмого этапа прошли client typecheck, targeted lint, unit tests, native PDF cancel/concurrency/write failure/cleanup, визуальная и текстовая проверка PDF на 1 и 6 страниц, ручная кнопка/Save Dialog. Общий packaged smoke: Git, bash/zsh, shell Tasks exit0, completion, ручное форматирование, отсутствие format-on-save, VSIX install→update→uninstall. Пакет прошёл build-path scan, подпись, ASAR size check и ZIP audit; публичный digest/tag проверены.
+Для восьмого этапа прошли полный client typecheck, 281 автоматический тест, целевой lint, native smoke IDE и документов, native PDF cancel/concurrency/write failure/cleanup, визуальная и текстовая проверка PDF на 1 и 6 страниц. Финальный пакет проверен на Git, bash/zsh, Tasks, completion, ручной formatter и VSIX install/update/uninstall. Подпись, ASAR и ZIP privacy/CRC audit прошли; tag и digest проверены.
 
 Один обычный профиль при ручном запуске показал пустое окно. Причина не установлена; изолированный профиль успешно открыл файл и экспортировал PDF. Не объявлять это исправленным и не сбрасывать пользовательский профиль без причины. macOS ARM64 — проверенная платформа; приложение ad-hoc signed, не notarized. Другие ОС/SSH не проверены. Собственная OAuth identity GitHub ещё не настроена. Не заявлять, что весь AI физически удалён или все сторонние расширения лишены сетевых запросов.
 
 ## Текущие назначения и следующие задачи
 
-| ID | Область | Состояние на момент передачи |
-| --- | --- | --- |
-| documents-ui | extensions/myself-documents/** + свой report | ЗАНЯТО: ветка agent/documents-ui, claim 6e276b3f450; второго агента не запускать |
-| ai-terminal-cleanup | Пути из промпта 03 + свой report | Свободна; сохранить обычные терминалы и Tasks |
-| mcp-gallery-disable | MCP gallery services и IPC, перечисленные в собственном отчёте | ЗАНЯТО: ветка agent/mcp-gallery-disable, claim 583605eeb76; бывший агент mcp-audit уже делает эту очистку |
-| pdf-export | Готовые platform/workbench documentExport | Завершена; старый промпт 02 архивный |
-| integration | Общие файлы, main, сборка/релиз | Один владелец; перед переносом роли сверить отчёт |
+documents-ui, ai-terminal-cleanup/refresh, MCP gallery и остальные 28 cleanup-задач включены в 0.0.8. integration/release-0.0.8 завершена; новый пакет и владельцы ещё не назначены этим отчётом. Полные task-id и исходные HEAD — в релизном отчёте. Следующие направления: общий Chat/inline completions и остаточные AI зависимости, OAuth/catalog/backup, библиотека документации, общий лимит логов и визуальный ремастер.
 
-При подготовке сводки найдены два отдельных worktree: documents-ui и mcp-gallery-disable. Их реализации пока не включены в релиз 0.0.7; имена каталогов могут сохранять старые task-id. Основываться на ветке и отчёте, а не имени папки. Перед назначением проверить актуальные отчёты и занятые checkout/worktree. Отдельная ветка/каталог и область файлов на агента. Не делить node_modules/out/.build, не переключать ветку работающего агента. Общие wiring/allowlist/deps — интегратору. Готовый task report содержит diff scope, проверки, ограничения и коммит; agent не делает релиз самостоятельно.
+Перед назначением проверить актуальные отчёты и checkout/worktree. Один владелец на область, отдельные зависимости и build outputs; не переключать ветку работающего агента. Общие wiring/allowlist/deps — интегратору. Готовая task-ветка включает отчёт с реальными проверками и ограничениями; не запускает отдельный релиз.
 
 ## Что дать новому чату
 

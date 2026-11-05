@@ -1,6 +1,6 @@
 # release-0.0.8
 
-Статус: ЗАНЯТО / интеграция и релиз. Владелец: агент ранее mcp-cli-disable, по прямому поручению пользователя выпустить все изменения. Ветка: `integration/release-0.0.8`. База: `59f0fde52ec24314727b0d145b21729f2ab13bd6`.
+Статус: ЗАВЕРШЕНО / опубликован v0.0.8-preview. Владелец: агент ранее mcp-cli-disable, по прямому поручению пользователя выпустить все изменения. Ветка: `integration/release-0.0.8`. База: `59f0fde52ec24314727b0d145b21729f2ab13bd6`.
 
 Зарезервированы интеграция готовых task-веток, разрешение конфликтов, общие подключения/build allowlist, совместимость, пакетные проверки, main и выпуск v0.0.8-preview для macOS ARM64. Не запускать параллельную сборку/релиз этого пакета. Активные каталоги других агентов не менять. Старый terminal cleanup объединяется с его refresh; аудит включается как документация.
 
@@ -46,4 +46,18 @@
 
 Редактор документов включён в distribution allowlist; стандартные esbuild host/webview hooks обеспечивают production packaging обеих частей. Команда локальной компиляции использует корневой TypeScript через pnpm, без новых зависимостей. Исправлены обнаруженные общим typecheck остаточный импорт удалённого ChatAgentToolsContribution, его устаревший positive registration suite и неиспользуемый command ID; negative registration suite сохраняется. В throwing getter голосового теста указан never.
 
-При совмещённом browser-прогоне воспроизведены 4 unhandled Canceled из прежнего McpServer. Удалён отложенный сбор mcp/serverBoot telemetry и явно обработаны wrapper promises фонового обновления tools/prompts: ошибки по-прежнему сохраняются в observable promiseResult. После исправления 241 browser tests прошли без page errors. Также прошли 19 Node tests, 12 tests документов и 9 distribution/privacy tests. Full client typecheck прошёл после исправления несовместимостей; финальная повторная проверка фиксируется ниже. Native smoke, signing и publication ещё не выполнены.
+При совмещённом browser-прогоне воспроизведены 4 unhandled Canceled из прежнего McpServer. Удалён отложенный сбор mcp/serverBoot telemetry и явно обработаны wrapper promises фонового обновления tools/prompts: ошибки по-прежнему сохраняются в observable promiseResult. После исправления 241 browser tests прошли без page errors. Также прошли 19 Node tests, 12 tests документов и 9 distribution/privacy tests. Full client typecheck прошёл после исправления несовместимостей; финальная повторная проверка фиксируется ниже. Итоговые проверки и публикация завершены, подробности ниже.
+
+## Итог релиза
+
+Все 33 HEAD из списка выше включены в main; 31 прикладная задача, один аудит и история заменённой terminal-ветки. Новых коммитов в этих ветках на момент проверки не обнаружено. Конечный исходный коммит приложения: `33161ca3d9ac891b1155cd74ab179110a1d67e32`. [v0.0.8-preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.8-preview) опубликован для macOS ARM64. Тег указывает на собранный исходный коммит; последующие изменения документации не требуют новой сборки.
+
+Проверки: полный client typecheck; 241 browser test без page errors, 19 Node tests, 12 tests документов, 9 distribution/privacy tests (281 всего); целевой ESLint и git diff --check. Native packaged smoke подтвердил Git activation, bash/zsh, shell Task exit0, completion, ручной formatter, отсутствие format-on-save, VSIX install/update/uninstall и отсутствие удалённых AI-команд. Повторный smoke на конечном пакете прошёл.
+
+Нативные проверки документов: custom editor, WorkspaceEdit undo/redo, CRLF save/reopen, внешний change и возврат к текстовому редактору. PDF: cancel, concurrent-request rejection, ошибка записи и cleanup; PDF на 1 и 6 страниц визуально просмотрены и проверены извлечением текста. Через интерфейс проверены New Document, Save As, Open as Document, Export PDF и отмена native Save Dialog. Найденная лишняя text-editor export action в custom editor скрыта контекстом; исправление проверено в пересобранном приложении.
+
+Production package собран с BUILD_SOURCEVERSION, поскольку build/lib/git.ts не определяет HEAD через worktree .git file. Повторные сборки были нужны для правильной metadata и обнаруженного дефекта меню. Deep ad-hoc signing → ASAR refresh → outer signing → deep strict verification завершены; post-sign build-path guard и ZIP audit прошли. Проверены 6135 ZIP members/CRC, ASAR bounds/unpacked size/integrity, совпадение product commit, отсутствие известных приватных идентификаторов.
+
+Архив: Myself-IDE-v0.0.8-macOS-arm64.zip, 192448351 bytes. SHA-256: `b629b19551c26ed735d0d35fef952e074384a3c874ffb01ba1408eb9c7f1235b`. ZIP и checksum опубликованы. Публичные tag/commit/digest проверены.
+
+Ограничения: ad-hoc подпись, без Apple notarization; проверена macOS ARM64. Страницы preview приблизительные, параметры оформления живут только в редакторе, Save As нового документа может вернуть обычный текстовый редактор — повторное Open as Document доступно. Общие AI/MCP исходники и зависимости остаются; улучшение RAM/скорости и полное отсутствие сети не заявляются. Старое наблюдение пустого окна пользовательского профиля не объявляется исправленным.

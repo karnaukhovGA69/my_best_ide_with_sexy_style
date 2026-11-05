@@ -19,7 +19,8 @@ CommandsRegistry.registerCommand('myself.documents.exportPdf', (accessor, reques
 registerAction2(class ExportDocumentPdfAction extends Action2 {
 	constructor() {
 		super({ id: 'myself.documents.exportActiveTextPdf', title: localize2('exportDocumentPdf', 'Export Text as PDF'), icon: Codicon.export,
-			menu: [{ id: MenuId.EditorTitle, group: 'navigation', order: 100, when: ContextKeyExpr.equals('resourceExtname', '.txt') }, { id: MenuId.MenubarFileMenu, group: '6_export', order: 1 }] });
+			precondition: ContextKeyExpr.not('activeCustomEditorId'),
+			menu: [{ id: MenuId.EditorTitle, group: 'navigation', order: 100, when: ContextKeyExpr.and(ContextKeyExpr.equals('resourceExtname', '.txt'), ContextKeyExpr.not('activeCustomEditorId')) }, { id: MenuId.MenubarFileMenu, group: '6_export', order: 1, when: ContextKeyExpr.not('activeCustomEditorId') }] });
 	}
 
 	async run(accessor: ServicesAccessor) {

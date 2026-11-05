@@ -15,7 +15,7 @@ import { SettingsSearchFilterDropdownMenuActionViewItem } from '../../browser/se
 suite('SettingsSearchFilterDropdownMenuActionViewItem', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('groups ExP Assigned with Advanced and toggles expassigned without removing other filters', async () => {
+	test('keeps Advanced without remote experiment assignments and preserves other filters', async () => {
 		let query = '@modified @tag:experimental font';
 		let focused = 0;
 		const input = new class extends mock<SuggestEnabledInput>() {
@@ -32,20 +32,21 @@ suite('SettingsSearchFilterDropdownMenuActionViewItem', () => {
 		));
 		const actions = menu.getActions();
 		const lastGroup = actions.slice(actions.findLastIndex(action => action.id === Separator.ID) + 1).map(action => action.label);
-		const assignmentActions = actions.filter(action => action.id === 'expAssignmentSettingsSearch');
-		const initial = assignmentActions[0];
+		assert.strictEqual(actions.some(action => action.id === 'expAssignmentSettingsSearch'), false);
+		const advancedActions = actions.filter(action => action.id === 'advancedSettingsSearch');
+		const initial = advancedActions[0];
 		await initial.run();
 		const added = query;
-		const checked = menu.getActions().find(action => action.id === 'expAssignmentSettingsSearch')!;
+		const checked = menu.getActions().find(action => action.id === 'advancedSettingsSearch')!;
 		await checked.run();
 
-		assert.deepStrictEqual({ lastGroup, entries: assignmentActions.length, label: initial.label, initial: initial.checked, checked: checked.checked, added, removed: query, focused }, {
-			lastGroup: ['Advanced', 'ExP Assigned'],
+		assert.deepStrictEqual({ lastGroup, entries: advancedActions.length, label: initial.label, initial: initial.checked, checked: checked.checked, added, removed: query, focused }, {
+			lastGroup: ['Advanced'],
 			entries: 1,
-			label: 'ExP Assigned',
+			label: 'Advanced',
 			initial: false,
 			checked: true,
-			added: '@modified @tag:experimental font @tag:expassigned',
+			added: '@modified @tag:experimental font @tag:advanced',
 			removed: '@modified @tag:experimental font',
 			focused: 2,
 		});

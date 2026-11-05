@@ -5,12 +5,9 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { mock, upcastPartial } from '../../../../../../base/test/common/mock.js';
+import { upcastPartial } from '../../../../../../base/test/common/mock.js';
 import { IChatWidget } from '../../../browser/chat.js';
 import { acceptVoiceInput, combineVoiceInput } from '../../../browser/voiceClient/voiceInputUtils.js';
-import { ChatRequestQueueKind } from '../../../common/chatService/chatService.js';
-import { constObservable } from '../../../../../../base/common/observable.js';
-import { IChatModel } from '../../../common/model/chatModel.js';
 
 suite('combineVoiceInput', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -36,71 +33,29 @@ suite('combineVoiceInput', () => {
 
 });
 
-suite('acceptVoiceInput', () => {
+suite('Voice input submission unavailable', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	for (const inProgress of [false, true]) {
-		test(`preserves typed input, focus and voice-progress options and ${inProgress ? 'steers an active request' : 'sends normally when idle'}`, async () => {
-			const sent: { text: string | undefined; options: Parameters<IChatWidget['acceptInput']>[1] }[] = [];
-			const widget = new class extends mock<IChatWidget>() {
-				override readonly viewModel = new class extends mock<NonNullable<IChatWidget['viewModel']>>() {
-					override readonly model = new class extends mock<IChatModel>() {
-						override readonly requestInProgress = constObservable(inProgress);
-					}();
-				}();
-				override getInput(): string { return 'Typed draft'; }
-				override async acceptInput(text?: string, options?: Parameters<IChatWidget['acceptInput']>[1]) {
-					sent.push({ text, options });
-					return undefined;
-				}
-			}();
-			await acceptVoiceInput(widget, 'spoken request', true);
-			assert.deepStrictEqual(sent, [{
-				text: 'Typed draft spoken request',
-				options: { preserveFocus: true, isVoiceModeInput: true, ...(inProgress ? { queue: ChatRequestQueueKind.Steering } : {}) },
-			}]);
-		});
-	}
-
-	for (const hasModel of [false, true]) {
-		test(`submits normally when ${hasModel ? 'request progress' : 'the model'} is unavailable`, async () => {
-			const sent: { text: string | undefined; options: Parameters<IChatWidget['acceptInput']>[1] }[] = [];
-			const widget = new class extends mock<IChatWidget>() {
-				override readonly viewModel = upcastPartial<NonNullable<IChatWidget['viewModel']>>({
-					...(hasModel ? { model: upcastPartial<IChatModel>({}) } : {}),
-				});
-				override getInput(): string { return 'Typed draft'; }
-				override async acceptInput(text?: string, options?: Parameters<IChatWidget['acceptInput']>[1]) {
-					sent.push({ text, options });
-					return undefined;
-				}
-			}();
-			await acceptVoiceInput(widget, 'spoken request', true);
-			assert.deepStrictEqual(sent, [{
-				text: 'Typed draft spoken request',
-				options: { preserveFocus: true, isVoiceModeInput: true },
-			}]);
-		});
-	}
-
-	test('rejects input when the widget has no view model', () => {
-		const widget = new class extends mock<IChatWidget>() { }();
-		assert.strictEqual(acceptVoiceInput(widget, 'spoken request', true), false);
+	test('rejects all voice input without reading widget or model state', async () => {
+		const widget = new Proxy({} as IChatWidget, { get: () => { throw new Error('Widget must not be read'); } });
+		for (const voiceMode of [true, false]) {
+			for (const text of ['', 'spoken request']) {
+				assert.strictEqual(await acceptVoiceInput(widget, text, voiceMode), false);
+				assert.strictEqual(await acceptVoiceInput(undefined, text, voiceMode), false);
+			}
+		}
 	});
 
-	test('populates an edited request for review rather than submitting it', async () => {
-		const populated: { text: string; transient: boolean }[] = [];
-		const widget = new class extends mock<IChatWidget>() {
-			override readonly viewModel = new class extends mock<NonNullable<IChatWidget['viewModel']>>() {
-				override readonly editing = new class extends mock<NonNullable<NonNullable<IChatWidget['viewModel']>['editing']>>() { }();
-			}();
-			override readonly input = new class extends mock<IChatWidget['input']>() {
-				override setValue(text: string, transient: boolean): void { populated.push({ text, transient }); }
-			}();
-		}();
-		const accepted = await acceptVoiceInput(widget, 'replacement', false);
-		assert.deepStrictEqual({ accepted, populated, empty: acceptVoiceInput(widget, '', false), missing: acceptVoiceInput(undefined, 'spoken', false) }, {
-			accepted: false, populated: [{ text: 'replacement', transient: false }], empty: false, missing: false,
+	test('preserves typed drafts without edits, submission or queueing', async () => {
+		let draft = 'Existing typed draft';
+		let submissions = 0;
+		let reads = 0;
+		const widget = upcastPartial<IChatWidget>({
+			input: upcastPartial<IChatWidget['input']>({ setValue: text => { draft = text; } }),
+			getInput: () => { reads++; return draft; },
+			acceptInput: async () => { submissions++; return undefined; },
 		});
+		assert.strictEqual(await acceptVoiceInput(widget, 'replacement', true), false);
+		assert.deepStrictEqual({ draft, reads, submissions }, { draft: 'Existing typed draft', reads: 0, submissions: 0 });
 	});
 });

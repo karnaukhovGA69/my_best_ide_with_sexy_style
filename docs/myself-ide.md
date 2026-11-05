@@ -7,7 +7,8 @@ Source changes after 0.0.8 are tracked in [the next package report](agent-report
 ## Distribution
 
 - Product identity and user data directory are separate from VS Code and Code - OSS.
-- The public app contains no bundled programming-language extensions or Copilot extension. Git, authentication providers, Markdown (including Mermaid and math), themes, terminal, settings, and extension APIs remain.
+- The public app contains no bundled programming-language extensions or Copilot extension. Git, the common authentication API and Microsoft authentication provider, Markdown (including Mermaid and math), themes, terminal, settings, and extension APIs remain.
+- Source after 0.0.8 excludes the bundled GitHub integration and GitHub authentication extensions, including stale packaged output. Ordinary Git/git-base and URL/SSH clone remain; GitHub OAuth, publish/catalog/share helpers from these built-ins are no longer supplied. Their source directories remain for now.
 - `build/lib/distributionExtensions.ts` is the explicit built-in allowlist. It also filters stale build output; adding an upstream extension does not automatically add it to the distribution. Emmet and Grunt/Gulp/Jake integrations are excluded.
 - Open VSX supplies the extension catalog. Installing local VSIX files remains supported. The user's personal language setup is not included in the public app. `build/package-grammar-extension.ts` can package an individual standalone declarative grammar as a VSIX; executable language servers need their own build and dependency packaging.
 - Desktop and remote-server packaging use `build/lib/distributionRuntime.ts` to exclude standalone Sessions, Agent Host and local transcription output. Production bundling also excludes their entrypoints and resources. The package filters exclude Copilot SDK and its platform runtimes, `@vscode/copilot-api`, `@anthropic-ai/sdk`, and `foundry-local-sdk`. JavaScript/CSS source maps are excluded from the installed app.

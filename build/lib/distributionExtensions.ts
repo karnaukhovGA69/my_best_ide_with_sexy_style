@@ -16,8 +16,6 @@ const distributionExtensions = new Set([
 	'extension-editing',
 	'git',
 	'git-base',
-	'github',
-	'github-authentication',
 	'ipynb',
 	'log',
 	'markdown-basics',

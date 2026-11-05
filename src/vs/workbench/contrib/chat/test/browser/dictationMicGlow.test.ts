@@ -4,9 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { IObservable } from '../../../../../base/common/observable.js';
+import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
+import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { ChatSpeechToTextState } from '../../browser/speechToText/chatSpeechToTextService.js';
-import { easeDictationMicLevel, getDictationMicGlowPhase, shapeDictationMicLevel } from '../../browser/speechToText/dictationMicGlow.js';
+import { ChatSpeechToTextState, IChatSpeechToTextService } from '../../browser/speechToText/chatSpeechToTextService.js';
+import { easeDictationMicLevel, getDictationMicGlowPhase, shapeDictationMicLevel, setupDictationMicGlow } from '../../browser/speechToText/dictationMicGlow.js';
 
 suite('DictationMicGlow', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -39,5 +43,23 @@ suite('DictationMicGlow', () => {
 			[0, 0.25, 1, 1.5, -1].map(l => Number(shapeDictationMicLevel(l).toFixed(3))),
 			[0, 0.436, 1, 1, 0]
 		);
+	});
+
+	test('does not read services, subscribe to activity or touch host styles', () => {
+		const unreadable = { get: () => { throw new Error('Input must not be read'); } };
+		const service = new Proxy({} as IChatSpeechToTextService, unreadable);
+		const accessibility = new Proxy({} as IAccessibilityService, unreadable);
+		const theme = new Proxy({} as IThemeService, unreadable);
+		const active = new Proxy({} as IObservable<boolean>, unreadable);
+		const target = document.createElement('button');
+		target.className = 'existing';
+		target.style.color = 'red';
+		const original = target.outerHTML;
+		const registration = setupDictationMicGlow(target, service, accessibility, active, theme);
+		assert.strictEqual(registration, Disposable.None);
+		assert.strictEqual(target.outerHTML, original);
+		registration.dispose();
+		assert.strictEqual(target.outerHTML, original);
+		assert.strictEqual(setupDictationMicGlow(new Proxy({} as HTMLElement, unreadable), service, accessibility), Disposable.None);
 	});
 });

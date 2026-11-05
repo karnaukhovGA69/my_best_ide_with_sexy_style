@@ -91,10 +91,15 @@ class DocumentEditor implements vscode.CustomTextEditorProvider {
 					}
 					try {
 						switch (message.action) {
-							case 'save':
+							case 'save': {
 								// workspace.save handles Save As for untitled custom editors.
-								await vscode.workspace.save(document.uri);
+								const saved = await vscode.workspace.save(document.uri);
+								// A new .txt resource otherwise opens with the default text editor.
+								if (saved && saved.toString() !== document.uri.toString()) {
+									await vscode.commands.executeCommand('vscode.openWith', saved, viewType);
+								}
 								break;
+							}
 							case 'undo':
 							case 'redo':
 								await vscode.commands.executeCommand(message.action);

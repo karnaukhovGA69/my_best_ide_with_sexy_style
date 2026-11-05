@@ -7,11 +7,11 @@ const assert = require('node:assert/strict');
 const { loadWithVscode, emitter, uri, viewApi } = require('./helpers.cts');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
-async function fixture() {
+async function fixture(options = {}) {
 	const changes = emitter(), saves = emitter(), messages = emitter(), disposal = emitter();
-	const sent = [], commands = new Map(), history = [], redo = [];
+	const sent = [], commands = new Map(), history = [], redo = [], executed = [];
 	let provider, text = 'а)1\r\n\r\nб)3';
-	const document = { uri: uri('/Essay.txt'), version: 1, isDirty: false, eol: 2, getText: () => text, positionAt: offset => offset };
+	const document = { uri: options.resource ?? uri('/Essay.txt'), version: 1, isDirty: false, eol: 2, getText: () => text, positionAt: offset => offset };
 	const replace = value => { text = value; document.version++; document.isDirty = true; changes.fire({ document }); };
 	const vscode = {
 		...viewApi, EndOfLine: { CRLF: 2 }, Range: class { constructor(start, end) { this.start = start; this.end = end; } },
@@ -20,12 +20,17 @@ async function fixture() {
 		workspace: {
 			onDidChangeTextDocument: changes.event, onDidSaveTextDocument: saves.event,
 			applyEdit: async edit => { const { range, value } = edit.edit; history.push(text); replace(text.slice(0, range.start) + value + text.slice(range.end)); return true; },
-			save: async () => { document.isDirty = false; saves.fire(document); return document.uri; }
+			save: async () => {
+				const saved = 'saveResult' in options ? options.saveResult : document.uri;
+				if (saved) { document.isDirty = false; saves.fire(document); }
+				return saved;
+			}
 		},
 		commands: {
 			registerCommand: (id, action) => { commands.set(id, action); return { dispose() {} }; },
 			getCommands: async () => [],
-			executeCommand: async id => {
+			executeCommand: async (id, ...args) => {
+				executed.push([id, ...args]);
 				if (id === 'undo') { redo.push(text); replace(history.pop()); }
 				if (id === 'redo') { history.push(text); replace(redo.pop()); }
 			}
@@ -34,7 +39,7 @@ async function fixture() {
 	const extension = loadWithVscode('extension.js', vscode);
 	extension.activate({ subscriptions: [], extensionUri: uri('extension') });
 	await provider.resolveCustomTextEditor(document, { webview: { cspSource: 'https://example.invalid', asWebviewUri: u => u, postMessage: m => sent.push(m), onDidReceiveMessage: messages.event }, onDidDispose: disposal.event });
-	return { document, sent, changes, saves, disposal, text: () => text, replace, message: async message => { messages.fire(message); await tick(); }, history };
+	return { document, sent, executed, changes, saves, disposal, text: () => text, replace, message: async message => { messages.fire(message); await tick(); }, history };
 }
 
 test('provider edits the TextDocument, preserves CRLF, saves and follows host undo/redo', async () => {
@@ -64,5 +69,36 @@ test('missing backend is a clear notice, not a successful export', async () => {
 	await f.message({ type: 'action', action: 'export', version: 1, page: require('../out/document.js').defaultPage });
 	assert.match(f.sent.find(m => m.type === 'notice').text, /not available/);
 	assert.equal(f.text(), 'а)1\r\n\r\nб)3');
+	f.disposal.fire();
+});
+
+
+test('Save As opens the saved resource as a document', async () => {
+	const destination = uri('/Saved essay.txt');
+	const f = await fixture({ resource: uri('untitled:Untitled-1'), saveResult: destination });
+	f.replace('Новый документ');
+	await f.message({ type: 'action', action: 'save', version: f.document.version });
+	assert.deepEqual(f.executed, [['vscode.openWith', destination, 'myself.documents.editor']]);
+	assert.equal(f.text(), 'Новый документ');
+	assert.equal(f.sent.at(-1).type, 'actionDone');
+	f.disposal.fire();
+});
+
+test('cancelled Save As keeps the dirty document without opening another editor', async () => {
+	const f = await fixture({ resource: uri('untitled:Untitled-1'), saveResult: undefined });
+	f.replace('Unsaved draft');
+	await f.message({ type: 'action', action: 'save', version: f.document.version });
+	assert.deepEqual(f.executed, []);
+	assert.equal(f.text(), 'Unsaved draft');
+	assert.equal(f.document.isDirty, true);
+	assert.equal(f.sent.at(-1).type, 'actionDone');
+	f.disposal.fire();
+});
+
+test('saving to the same URI does not recreate the document editor', async () => {
+	const f = await fixture({ saveResult: uri('/Essay.txt') });
+	await f.message({ type: 'action', action: 'save', version: f.document.version });
+	assert.deepEqual(f.executed, []);
+	assert.equal(f.document.isDirty, false);
 	f.disposal.fire();
 });

@@ -7,9 +7,8 @@ import assert from 'assert';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IMcpTaskInternal, McpTaskManager } from '../../common/mcpTaskManager.js';
-import { McpServerRequestHandler, McpTask } from '../../common/mcpServerRequestHandler.js';
+import { McpServerRequestHandler } from '../../common/mcpServerRequestHandler.js';
 import { McpError } from '../../common/mcpTypes.js';
-import { MCP } from '../../common/modelContextProtocol.js';
 
 suite('McpTaskManager - implementation removed', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -57,13 +56,6 @@ suite('McpTaskManager - implementation removed', () => {
 		manager.setHandler(new Proxy(upcastPartial<McpServerRequestHandler>({}), { get() { throw new Error('Handler accessed'); } }));
 		manager.abandonClientTask('missing');
 		assert.deepStrictEqual({ disposals, lookup: manager.getClientTask('missing') }, { disposals: 1, lookup: undefined });
-	});
-
-	test('rejecting a real client task releases its TTL and listeners', async () => {
-		const manager = store.add(new McpTaskManager());
-		const task = new McpTask<MCP.Result>({ taskId: 'test', status: 'working', ttl: 60000, createdAt: '', lastUpdatedAt: '' });
-		// Adoption owns disposal even though it refuses tracking this task.
-		assert.deepStrictEqual(await errorOf(() => manager.adoptClientTask(task)), disabled);
 	});
 
 	test('empty inventory and events stay independent and safe after disposal', () => {

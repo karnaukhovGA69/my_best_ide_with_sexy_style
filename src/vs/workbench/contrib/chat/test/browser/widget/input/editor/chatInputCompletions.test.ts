@@ -28,7 +28,10 @@ import { withTestCodeEditor } from '../../../../../../../../editor/test/browser/
 import { CommandsRegistry } from '../../../../../../../../platform/commands/common/commands.js';
 import { createTextModel } from '../../../../../../../../editor/test/common/testTextModel.js';
 import { TestConfigurationService } from '../../../../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { NullLogService } from '../../../../../../../../platform/log/common/log.js';
+import { InstantiationService } from '../../../../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../../../../platform/instantiation/common/serviceCollection.js';
+import { ILanguageFeaturesService } from '../../../../../../../../editor/common/services/languageFeatures.js';
+import { ILogService, NullLogService } from '../../../../../../../../platform/log/common/log.js';
 import { ChatSubmitAction } from '../../../../../browser/actions/chatExecuteActions.js';
 import { IChatWidget, IChatWidgetService } from '../../../../../browser/chat.js';
 import { ChatWidget } from '../../../../../browser/widget/chatWidget.js';
@@ -42,7 +45,6 @@ import { IChatInputCompletionItem, IChatInputCompletionsParams, IChatInputComple
 import { IChatService } from '../../../../../common/chatService/chatService.js';
 import { ICustomizationHarnessService } from '../../../../../common/customizationHarnessService.js';
 import { IChatSlashCommandService, IChatSlashData } from '../../../../../common/participants/chatSlashCommands.js';
-import { IMcpService } from '../../../../../../mcp/common/mcpTypes.js';
 import { ChatRequestAgentPart, ChatRequestTextPart, chatAgentLeader, chatVariableLeader } from '../../../../../common/requestParser/chatParserTypes.js';
 import { MockChatSessionsService } from '../../../../common/mockChatSessionsService.js';
 import { MockChatWidgetService } from '../../../widget/mockChatWidget.js';
@@ -57,6 +59,33 @@ import { IAgentHostUntitledProvisionalSessionService } from '../../../../../brow
 import { IsSessionsWindowContext } from '../../../../../../../common/contextkeys.js';
 import { PromptsType } from '../../../../../common/promptSyntax/promptTypes.js';
 import { PromptsStorage } from '../../../../../common/promptSyntax/service/promptsService.js';
+
+suite('MCP chat prompt action removed', () => {
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('parameterized MCP prompt command is not registered', () => {
+		assert.strictEqual(CommandsRegistry.getCommand('workbench.action.chat.startParameterizedPrompt'), undefined);
+	});
+
+	test('slash completions initialize without MCP and register only non-MCP providers', () => {
+		const languageFeatures = new LanguageFeaturesService();
+		const services = new ServiceCollection(
+			[ILanguageFeaturesService, languageFeatures],
+			[IChatWidgetService, upcastPartial<IChatWidgetService>({})],
+			[IChatSlashCommandService, upcastPartial<IChatSlashCommandService>({})],
+			[ICustomizationHarnessService, upcastPartial<ICustomizationHarnessService>({})],
+			[IChatService, upcastPartial<IChatService>({})],
+			[IChatSessionsService, upcastPartial<IChatSessionsService>({})],
+			[ILogService, new NullLogService()],
+		);
+		const instantiation = store.add(new InstantiationService(services, true));
+		store.add(instantiation.createInstance(SlashCommandCompletions));
+		const model = store.add(createTextModel('/', null, undefined, URI.from({ scheme: Schemas.vscodeChatInput, path: '/no-mcp' })));
+		assert.deepStrictEqual(languageFeatures.completionProvider.ordered(model).map(provider => provider._debugDisplayName).sort(), [
+			'globalSlashCommands', 'globalSlashCommandsAt', 'promptSlashCommands',
+		]);
+	});
+});
 
 suite('AgentCompletions in agent-host chats', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -562,7 +591,6 @@ suite('SlashCommandCompletions fork variants', () => {
 			upcastPartial<ICustomizationHarnessService>({}),
 			upcastPartial<IChatService>({}),
 			chatSessionsService,
-			upcastPartial<IMcpService>({}),
 			new NullLogService(),
 		));
 		const model = inputModel ?? store.add(createTextModel('/fo', null, undefined, inputUri));
@@ -899,7 +927,6 @@ suite('prompt slash command matching', () => {
 			}),
 			upcastPartial<IChatService>({}),
 			new MockChatSessionsService(),
-			upcastPartial<IMcpService>({}),
 			new NullLogService(),
 		));
 		const provider = languageFeaturesService.completionProvider.ordered(model).find(provider => provider._debugDisplayName === 'promptSlashCommands');

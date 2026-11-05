@@ -26,7 +26,7 @@ suite('Myself IDE extension distribution', () => {
 		}
 
 		assert.deepStrictEqual({
-			requiredFeatures: ['git', 'git-base', 'github-authentication', 'configuration-editing', 'extension-editing', 'myself-documents', 'npm', 'markdown-basics', 'markdown-language-features', 'markdown-math', 'mermaid-markdown-features'].filter(name => !folders.includes(name)),
+			requiredFeatures: ['git', 'git-base', 'configuration-editing', 'extension-editing', 'myself-documents', 'npm', 'markdown-basics', 'markdown-language-features', 'markdown-math', 'mermaid-markdown-features'].filter(name => !folders.includes(name)),
 			missingDependencies,
 			languages: [...new Set(languages)].sort(),
 		}, {
@@ -38,7 +38,7 @@ suite('Myself IDE extension distribution', () => {
 
 	test('rejects excluded packages and unreviewed upstream additions', () => {
 		assert.deepStrictEqual([
-			'copilot', 'GitHub.copilot-chat', 'prompt-basics', 'emmet', 'grunt', 'gulp', 'jake',
+			'github', 'github-authentication', 'copilot', 'GitHub.copilot-chat', 'prompt-basics', 'emmet', 'grunt', 'gulp', 'jake',
 			'go', 'rust', 'cpp', 'fsharp', 'lua', 'json', 'json-language-features', 'yaml', 'sql',
 			'javascript', 'typescript-basics', 'typescript-language-features', 'new-upstream-extension',
 		].filter(isDistributionExtension), []);
@@ -47,13 +47,13 @@ suite('Myself IDE extension distribution', () => {
 	test('filters stale build output including shared TypeScript and Windows paths', () => {
 		assert.deepStrictEqual([
 			'git/package.json', 'git/node_modules/@vscode/fs-copyfile/package.json',
-			'markdown-math/notebook-out/index.js', 'github-authentication/dist/extension.js',
+			'markdown-math/notebook-out/index.js', 'github-authentication/dist/extension.js', 'github/dist/extension.js',
 			'copilot/dist/extension.js', 'node_modules/typescript/lib/typescript.js',
 			'go/syntaxes/go.tmLanguage.json', 'emmet/dist/node/emmetNodeMain.js',
 			'grunt\\package.json', 'markdown-basics\\package.json',
 		].filter(isDistributionExtensionFile), [
 			'git/package.json', 'git/node_modules/@vscode/fs-copyfile/package.json',
-			'markdown-math/notebook-out/index.js', 'github-authentication/dist/extension.js',
+			'markdown-math/notebook-out/index.js',
 			'markdown-basics\\package.json',
 		]);
 	});

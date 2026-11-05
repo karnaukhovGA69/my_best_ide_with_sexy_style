@@ -61,6 +61,23 @@ exports.run = async () => {
 		await waitFor(() => vscode.window.activeTextEditor?.document.uri.toString() === file.toString());
 		assert.equal(vscode.window.activeTextEditor.document.getText(), 'External change\r\nСнаружи');
 		await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+		// Save As resolves the untitled resource to a default text editor. The
+		// document's Save handler must replace it without duplicating the tab,
+		// even if another file became active while saving.
+		await vscode.window.tabGroups.close(vscode.window.tabGroups.all.flatMap(group => group.tabs));
+		await vscode.commands.executeCommand('vscode.openWith', file, 'default', { preview: false });
+		const other = vscode.Uri.file(path.join(folder, 'Other.txt'));
+		await fs.writeFile(other.fsPath, 'Keep this editor', 'utf8');
+		await vscode.commands.executeCommand('vscode.openWith', other, 'default', { preview: false });
+		await vscode.commands.executeCommand('reopenActiveEditorWith', 'myself.documents.editor', file);
+		await waitFor(() => vscode.window.tabGroups.all.flatMap(group => group.tabs).some(tab =>
+			tab.input instanceof vscode.TabInputCustom && tab.input.uri.toString() === file.toString()));
+		const tabs = vscode.window.tabGroups.all.flatMap(group => group.tabs);
+		const savedTabs = tabs.filter(tab => tab.input?.uri?.toString() === file.toString());
+		assert.equal(savedTabs.length, 1);
+		assert.equal(savedTabs[0].input.viewType, 'myself.documents.editor');
+		assert.ok(tabs.some(tab => tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === other.toString()));
+		assert.equal(await fs.readFile(file.fsPath, 'utf8'), 'External change\r\nСнаружи');
 		await progress('passed');
 		console.log('DOCUMENTS_NATIVE_PASS: new/open/custom editor, real document undo/redo, CRLF save/reopen, external change, standard text editor');
 	} finally {

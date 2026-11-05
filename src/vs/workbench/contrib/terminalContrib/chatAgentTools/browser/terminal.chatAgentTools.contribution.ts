@@ -17,7 +17,7 @@ import { ITerminalSandboxService, TerminalSandboxService } from '../common/termi
 registerSingleton(ITerminalSandboxService, TerminalSandboxService, InstantiationType.Delayed);
 
 // Preserve migration to the ordinary terminal setting independently of AI tools.
-class ShellIntegrationTimeoutMigrationContribution extends Disposable implements IWorkbenchContribution {
+export class ShellIntegrationTimeoutMigrationContribution extends Disposable implements IWorkbenchContribution {
 	static readonly ID = 'terminal.shellIntegrationTimeoutMigration';
 
 	constructor(

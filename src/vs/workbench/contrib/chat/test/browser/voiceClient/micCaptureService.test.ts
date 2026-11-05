@@ -4,77 +4,124 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import sinon from 'sinon';
 import { mainWindow } from '../../../../../../base/browser/window.js';
-import { mock } from '../../../../../../base/test/common/mock.js';
-import { NullLogService } from '../../../../../../platform/log/common/log.js';
-import { TestNotificationService } from '../../../../../../platform/notification/test/common/testNotificationService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { TestStorageService } from '../../../../../test/common/workbenchTestServices.js';
-import { MIC_CAPTURE_CHUNK_SIZE, MicCaptureService } from '../../../browser/voiceClient/micCaptureService.js';
+import { InstantiationService } from '../../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../../platform/instantiation/common/serviceCollection.js';
+import { getMediaCaptureWindow, isMicrophonePermissionDeniedError, MIC_CAPTURE_CHUNK_SIZE, MicCaptureService } from '../../../browser/voiceClient/micCaptureService.js';
 
-suite('MicCaptureService', () => {
+suite('MicCaptureService - unavailable', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	let sandbox: sinon.SinonSandbox;
+	let acquire: sinon.SinonStub;
+	let audioContext: sinon.SinonStub;
 
-	test('re-enables a warm microphone on the next press and disables it on abort', async () => {
-		const track = new class extends mock<MediaStreamTrack>() {
-			override enabled = true;
-			override muted = false;
-			override addEventListener(): void { }
-			override removeEventListener(): void { }
-			override stop(): void { }
-		}();
-		const stream = new class extends mock<MediaStream>() {
-			override getTracks(): MediaStreamTrack[] { return [track]; }
-			override getAudioTracks(): MediaStreamTrack[] { return [track]; }
-		}();
-		const targetWindow = Object.create(mainWindow) as Window & typeof globalThis;
-		Object.defineProperties(targetWindow, {
-			navigator: { value: { mediaDevices: { getUserMedia: async () => stream } } },
-			AudioContext: {
-				value: class extends mock<AudioContext>() {
-					override sampleRate = 16000;
-					override destination = new class extends mock<AudioDestinationNode>() { };
-					override audioWorklet = new class extends mock<AudioWorklet>() {
-						override async addModule(): Promise<void> { }
-					}();
-					override createMediaStreamSource(): MediaStreamAudioSourceNode {
-						return new class extends mock<MediaStreamAudioSourceNode>() {
-							override connect(): AudioNode { return this; }
-						}();
-					}
-					override createAnalyser(): AnalyserNode {
-						return new class extends mock<AnalyserNode>() { override fftSize = 256; };
-					}
-					override async close(): Promise<void> { }
-				},
-			},
-			AudioWorkletNode: {
-				value: class extends mock<AudioWorkletNode>() {
-					override port = new class extends mock<MessagePort>() {
-						override onmessage = null;
-					}();
-					override connect(): AudioNode { return this; }
-					override disconnect(): void { }
-				},
-			},
+	setup(() => {
+		sandbox = sinon.createSandbox();
+		acquire = sandbox.stub(mainWindow.navigator.mediaDevices, 'getUserMedia').rejects(new Error('Unexpected microphone access'));
+		audioContext = sandbox.stub(mainWindow, 'AudioContext').throws(new Error('Unexpected audio context'));
+	});
+	teardown(() => { sandbox.restore(); });
+
+	function unreadableWindow(): Window & typeof globalThis {
+		return new Proxy({} as Window & typeof globalThis, {
+			get: (_target, key) => { throw new Error(`Unexpected window access: ${String(key)}`); }
 		});
-		const service = store.add(new class extends MicCaptureService {
-			protected override getMediaCaptureWindow(): Window & typeof globalThis { return targetWindow; }
-		}(store.add(new TestStorageService()), new TestNotificationService(), new NullLogService()));
-		service.prepare(targetWindow);
-		await service.startCapture(targetWindow);
-		const warm = track.enabled;
-		await service.pttDown('turn-1');
-		const firstPress = track.enabled;
-		service.isMuted = true;
-		const muted = track.enabled;
-		service.isMuted = false;
+	}
+
+	function assertInactive(service: MicCaptureService): void {
+		assert.strictEqual(service.isCapturing, false);
+		assert.strictEqual(service.analyserNode, undefined);
+		assert.strictEqual(service.mediaStream, undefined);
+		assert.strictEqual(acquire.callCount, 0);
+		assert.strictEqual(audioContext.callCount, 0);
+	}
+
+	async function assertUnavailable(operation: Promise<void>): Promise<void> {
+		let failure: unknown;
+		try {
+			await operation;
+		} catch (error) {
+			failure = error;
+		}
+		assert.ok(failure instanceof Error);
+		assert.strictEqual(failure.message, 'Voice microphone capture is unavailable in Myself IDE.');
+		assert.strictEqual(isMicrophonePermissionDeniedError(failure), false);
+	}
+
+	test('constructs through strict DI without storage, notification or logging services', () => {
+		const instantiationService = store.add(new InstantiationService(new ServiceCollection(), true));
+		assertInactive(store.add(instantiationService.createInstance(MicCaptureService)));
+	});
+
+	test('refuses direct and concurrent capture without inspecting the window', async () => {
+		const service = store.add(new MicCaptureService());
+		const window = unreadableWindow();
+		service.prepare(window);
+		await Promise.all([assertUnavailable(service.startCapture(window)), assertUnavailable(service.startCapture(window))]);
+		service.stopCapture();
+		await assertUnavailable(service.startCapture(window));
+		assertInactive(service);
+	});
+
+	for (const passive of [false, true]) {
+		test(`refuses push-to-talk with passive=${passive} before and after prepare`, async () => {
+			const service = store.add(new MicCaptureService());
+			await assertUnavailable(service.pttDown('test-turn', passive));
+			service.prepare(unreadableWindow());
+			await assertUnavailable(service.pttDown('test-turn', passive));
+			service.pttUp();
+			service.abortPtt();
+			assertInactive(service);
+		});
+	}
+
+	test('never acquires a real microphone, AudioContext, worklet or diagnostic timer', async () => {
+		const clock = sandbox.useFakeTimers();
+		const worklet = sandbox.stub(mainWindow, 'AudioWorkletNode').throws(new Error('Unexpected worklet'));
+		const service = store.add(new MicCaptureService());
+		service.prepare(mainWindow);
+		await assertUnavailable(service.startCapture(mainWindow));
+		await assertUnavailable(service.pttDown('test-turn'));
+		service.pttUp();
 		service.abortPtt();
-		const aborted = track.enabled;
-		await service.pttDown('turn-2');
-		assert.deepStrictEqual({ warm, firstPress, muted, aborted, nextPress: track.enabled }, {
-			warm: false, firstPress: true, muted: false, aborted: false, nextPress: true,
-		});
+		service.stopCapture();
+		await clock.tickAsync(120_000);
+		assert.strictEqual(clock.countTimers(), 0);
+		assert.strictEqual(worklet.callCount, 0);
+		assertInactive(service);
+	});
+
+	test('mute, suppression and release never emit audio or per-press diagnostics', async () => {
+		const service = store.add(new MicCaptureService());
+		let events = 0;
+		store.add(service.onPttStart(() => events++));
+		store.add(service.onPttAudioChunk(() => events++));
+		store.add(service.onPttEnd(() => events++));
+		store.add(service.onPttDiagnostic(() => events++));
+		for (const muted of [true, false]) {
+			service.isMuted = muted;
+			service.suppressUntil(Number.MAX_SAFE_INTEGER);
+			await assertUnavailable(service.pttDown('test-turn'));
+			service.pttUp();
+			service.abortPtt();
+			service.stopCapture();
+			assertInactive(service);
+		}
+		assert.strictEqual(events, 0);
+	});
+
+	test('repeated disposal and later requests cannot enable capture', async () => {
+		const service = store.add(new MicCaptureService());
+		service.dispose();
+		service.dispose();
+		service.prepare(unreadableWindow());
+		await assertUnavailable(service.startCapture(unreadableWindow()));
+		await assertUnavailable(service.pttDown('test-turn'));
+		service.pttUp();
+		service.stopCapture();
+		assertInactive(service);
 	});
 
 	test('buffers 32 ms voice chunks at 16 kHz', () => {
@@ -87,50 +134,17 @@ suite('MicCaptureService', () => {
 		});
 	});
 
-	test('propagates capture setup failures after cleaning up acquired resources', async () => {
-		const setupError = new Error('audio source setup failed');
-		let trackStopCalls = 0;
-		const track = new class extends mock<MediaStreamTrack>() {
-			override stop(): void { trackStopCalls++; }
-		}();
-		const stream = new class extends mock<MediaStream>() {
-			override getTracks(): MediaStreamTrack[] { return [track]; }
-			override getAudioTracks(): MediaStreamTrack[] { return []; }
-		}();
-		const targetWindow = Object.create(mainWindow) as Window & typeof globalThis;
-		Object.defineProperties(targetWindow, {
-			navigator: {
-				value: {
-					mediaDevices: {
-						getUserMedia: async () => stream,
-					},
-				},
-			},
-			AudioContext: {
-				value: class {
-					close(): Promise<void> { return Promise.resolve(); }
-					createMediaStreamSource(): never { throw setupError; }
-				},
-			},
-		});
-		const service = store.add(new class extends MicCaptureService {
-			protected override getMediaCaptureWindow(targetWindow: Window & typeof globalThis): Window & typeof globalThis {
-				return targetWindow;
-			}
-		}(
-			store.add(new TestStorageService()),
-			new TestNotificationService(),
-			new NullLogService(),
-		));
-		service.prepare(targetWindow);
+	test('preserves media window selection without reading the supplied window', () => {
+		assert.strictEqual(getMediaCaptureWindow(mainWindow), mainWindow);
+		assert.strictEqual(getMediaCaptureWindow(unreadableWindow()), mainWindow);
+	});
 
-		await assert.rejects(() => service.pttDown('turn-1'), error => error === setupError);
-		assert.deepStrictEqual({
-			isCapturing: service.isCapturing,
-			trackStopCalls,
-		}, {
-			isCapturing: false,
-			trackStopCalls: 1,
-		});
+	test('distinguishes permission denial from unrelated capture failures', () => {
+		assert.strictEqual(isMicrophonePermissionDeniedError(new DOMException('Denied', 'NotAllowedError')), true);
+		const error = new Error('Denied');
+		error.name = 'NotAllowedError';
+		assert.strictEqual(isMicrophonePermissionDeniedError(error), true);
+		assert.strictEqual(isMicrophonePermissionDeniedError(new Error('Unavailable')), false);
+		assert.strictEqual(isMicrophonePermissionDeniedError(undefined), false);
 	});
 });

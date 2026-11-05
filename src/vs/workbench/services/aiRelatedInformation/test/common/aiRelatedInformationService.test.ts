@@ -4,89 +4,42 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import * as sinon from 'sinon';
-import { AiRelatedInformationService } from '../../common/aiRelatedInformationService.js';
-import { NullLogService } from '../../../../../platform/log/common/log.js';
-import { CommandInformationResult, IAiRelatedInformationProvider, RelatedInformationType, SettingInformationResult } from '../../common/aiRelatedInformation.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { AiRelatedInformationService } from '../../common/aiRelatedInformationService.js';
+import { RelatedInformationType } from '../../common/aiRelatedInformation.js';
 
-suite('AiRelatedInformationService', () => {
+suite('Disabled AI related information', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-	let service: AiRelatedInformationService;
 
-	setup(() => {
-		service = new AiRelatedInformationService(store.add(new NullLogService()));
+	function createService(): AiRelatedInformationService {
+		const instantiation = store.add(new TestInstantiationService(undefined, true));
+		return instantiation.createInstance(AiRelatedInformationService);
+	}
+
+	test('needs no logging or other services', () => {
+		assert.strictEqual(createService().isEnabled(), false);
 	});
 
-	test('should check if providers are registered', () => {
-		assert.equal(service.isEnabled(), false);
-		store.add(service.registerAiRelatedInformationProvider(RelatedInformationType.CommandInformation, { provideAiRelatedInformation: () => Promise.resolve([]) }));
-		assert.equal(service.isEnabled(), true);
+	test('never invokes providers for commands or settings', async () => {
+		const service = createService();
+		let calls = 0;
+		for (const type of [RelatedInformationType.CommandInformation, RelatedInformationType.SettingInformation]) {
+			const registration = store.add(service.registerAiRelatedInformationProvider(type, { provideAiRelatedInformation: async () => { calls++; return []; } }));
+			assert.strictEqual(service.isEnabled(), false);
+			await assert.rejects(service.getRelatedInformation('query', [type], CancellationToken.None), /unavailable/);
+			registration.dispose();
+			registration.dispose();
+		}
+		assert.strictEqual(calls, 0);
 	});
 
-	test('should register and unregister providers', () => {
-		const provider: IAiRelatedInformationProvider = { provideAiRelatedInformation: () => Promise.resolve([]) };
-		const disposable = service.registerAiRelatedInformationProvider(RelatedInformationType.CommandInformation, provider);
-		assert.strictEqual(service.isEnabled(), true);
-		disposable.dispose();
-		assert.strictEqual(service.isEnabled(), false);
-	});
-
-	test('should get related information', async () => {
-		const command = 'command';
-		const provider: IAiRelatedInformationProvider = {
-			provideAiRelatedInformation: () => Promise.resolve([{ type: RelatedInformationType.CommandInformation, command, weight: 1 }])
-		};
-		service.registerAiRelatedInformationProvider(RelatedInformationType.CommandInformation, provider);
-		const result = await service.getRelatedInformation('query', [RelatedInformationType.CommandInformation], CancellationToken.None);
-		assert.strictEqual(result.length, 1);
-		assert.strictEqual((result[0] as CommandInformationResult).command, command);
-	});
-
-	test('should get different types of related information', async () => {
-		const command = 'command';
-		const commandProvider: IAiRelatedInformationProvider = {
-			provideAiRelatedInformation: () => Promise.resolve([{ type: RelatedInformationType.CommandInformation, command, weight: 1 }])
-		};
-		service.registerAiRelatedInformationProvider(RelatedInformationType.CommandInformation, commandProvider);
-		const setting = 'setting';
-		const settingProvider: IAiRelatedInformationProvider = {
-			provideAiRelatedInformation: () => Promise.resolve([{ type: RelatedInformationType.SettingInformation, setting, weight: 1 }])
-		};
-		service.registerAiRelatedInformationProvider(RelatedInformationType.SettingInformation, settingProvider);
-		const result = await service.getRelatedInformation(
-			'query',
-			[
-				RelatedInformationType.CommandInformation,
-				RelatedInformationType.SettingInformation
-			],
-			CancellationToken.None
-		);
-		assert.strictEqual(result.length, 2);
-		assert.strictEqual((result[0] as CommandInformationResult).command, command);
-		assert.strictEqual((result[1] as SettingInformationResult).setting, setting);
-	});
-
-	test('should return empty array on timeout', async () => {
-		const clock = sinon.useFakeTimers({
-			shouldAdvanceTime: true,
-		});
-		const provider: IAiRelatedInformationProvider = {
-			provideAiRelatedInformation: () => new Promise((resolve) => {
-				setTimeout(() => {
-					resolve([{ type: RelatedInformationType.CommandInformation, command: 'command', weight: 1 }]);
-				}, AiRelatedInformationService.DEFAULT_TIMEOUT + 100);
-			})
-		};
-
-		service.registerAiRelatedInformationProvider(RelatedInformationType.CommandInformation, provider);
-
-		store.add(toDisposable(() => clock.restore()));
-		const promise = service.getRelatedInformation('query', [RelatedInformationType.CommandInformation], CancellationToken.None);
-		clock.tick(AiRelatedInformationService.DEFAULT_TIMEOUT + 200);
-		const result = await promise;
-		assert.strictEqual(result.length, 0);
+	test('does not inspect cancellation state or install a listener', async () => {
+		const service = createService();
+		const token = upcastPartial<CancellationToken>(new Proxy({}, { get: () => { throw new Error('Must not inspect token'); } }));
+		await assert.rejects(service.getRelatedInformation('query', [], token), /unavailable/);
+		await assert.rejects(service.getRelatedInformation('query', [], CancellationToken.Cancelled), /unavailable/);
 	});
 });

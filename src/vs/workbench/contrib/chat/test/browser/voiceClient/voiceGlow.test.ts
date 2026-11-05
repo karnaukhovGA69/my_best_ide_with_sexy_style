@@ -5,13 +5,14 @@
 
 import assert from 'assert';
 import { Color, HSLA } from '../../../../../../base/common/color.js';
-import { toDisposable } from '../../../../../../base/common/lifecycle.js';
+import * as sinon from 'sinon';
+import { mainWindow } from '../../../../../../base/browser/window.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { ColorScheme } from '../../../../../../platform/theme/common/theme.js';
 import { IColorTheme } from '../../../../../../platform/theme/common/themeService.js';
 import { chatDictationActiveMicGlow, chatVoiceGlowBaseColor, chatVoiceListeningGlow, chatVoiceSpeakingGlow } from '../../../common/widget/chatColors.js';
 import { resolveDictationMicAccent } from '../../../browser/speechToText/dictationMicGlow.js';
-import { computeVoiceMicGlowBoxShadow, DEFAULT_VOICE_GLOW_COLORS, GlowThemeKind, resolveVoiceGlowColors, resolveVoiceRimAccent, shouldRenderVoiceInputGlow } from '../../../browser/voiceClient/voiceGlow.js';
+import { DEFAULT_VOICE_GLOW_COLORS, GlowThemeKind, resolveVoiceGlowColors, resolveVoiceRimAccent, shouldRenderVoiceInputGlow } from '../../../browser/voiceClient/voiceGlow.js';
 import { createVoiceGlowController, createVoiceRimLight } from '../../../browser/voiceClient/voiceGlowController.js';
 
 suite('VoiceGlow', () => {
@@ -24,84 +25,6 @@ suite('VoiceGlow', () => {
 			shouldRenderVoiceInputGlow(true, false, true),
 			shouldRenderVoiceInputGlow(true, true, false),
 		], [false, true, false, false]);
-	});
-
-	test('keeps the listening rim mounted until cleared', () => {
-		const target = document.createElement('div');
-		const colors = resolveVoiceGlowColors({ getColor: () => undefined });
-		const controller = disposables.add(createVoiceGlowController(target, () => 'dark', () => colors));
-		controller.render(0.3, true);
-		const rim = target.querySelector('.voice-glow-rim-cool');
-		controller.render(0.8, true);
-		const beforeClear = {
-			sameRim: rim === target.querySelector('.voice-glow-rim-cool'),
-			active: target.classList.contains('voice-active'),
-			listening: target.classList.contains('voice-listening'),
-			warmRims: target.querySelectorAll('.voice-glow-rim-warm').length,
-			micShadow: computeVoiceMicGlowBoxShadow(0, colors),
-		};
-		controller.clear();
-		assert.deepStrictEqual({
-			...beforeClear,
-			activeAfterClear: target.classList.contains('voice-active'),
-		}, {
-			sameRim: true,
-			active: true,
-			listening: true,
-			warmRims: 0,
-			micShadow: '0 0 3px rgba(88,166,255,0.2)',
-			activeAfterClear: false,
-		});
-	});
-
-	test('clears legacy voice classes with or without an active rim', () => {
-		const snapshots = [false, true].map(active => {
-			const target = document.createElement('div');
-			target.classList.add('unrelated', 'voice-active', 'voice-listening', 'voice-processing', 'voice-speaking');
-			const controller = disposables.add(createVoiceGlowController(target));
-			if (active) {
-				controller.render(0.5, true);
-			}
-			controller.clear();
-			return { classes: target.className, accent: target.style.getPropertyValue('--voice-accent') };
-		});
-		assert.deepStrictEqual(snapshots, [
-			{ classes: 'unrelated', accent: '' },
-			{ classes: 'unrelated', accent: '' },
-		]);
-	});
-
-	test('renders in an auxiliary owner document', () => {
-		const iframe = document.createElement('iframe');
-		document.body.appendChild(iframe);
-		disposables.add(toDisposable(() => iframe.remove()));
-
-		const auxiliaryDocument = iframe.contentDocument!;
-		const target = auxiliaryDocument.createElement('div');
-		auxiliaryDocument.body.appendChild(target);
-		const createElement = auxiliaryDocument.createElement;
-		auxiliaryDocument.createElement = () => {
-			throw new Error('Not allowed to create elements in child window JavaScript context.');
-		};
-		disposables.add(toDisposable(() => auxiliaryDocument.createElement = createElement));
-
-		const controller = disposables.add(createVoiceGlowController(target));
-		controller.render(0.5, false);
-		disposables.add(createVoiceRimLight(target, Color.fromHex('#58A6FF'), 'dark'));
-
-		assert.deepStrictEqual({
-			active: target.classList.contains('voice-active'),
-			listening: target.classList.contains('voice-listening'),
-			slots: target.querySelectorAll('.voice-glow-slot').length,
-			inlineSlots: target.querySelectorAll('.voice-glow-slot-inline').length,
-			layers: target.querySelectorAll('.voice-glow-rim-corners, .voice-glow-rim-bloom').length,
-		}, {
-			active: true,
-			listening: true,
-			slots: 3,
-			inlineSlots: 1,
-			layers: 4,
-		});
 	});
 
 	test('listening and speaking share the blue accent', () => {
@@ -181,6 +104,54 @@ suite('VoiceGlow', () => {
 			const rim = resolveVoiceRimAccent(accent, 'cool', kind, background);
 			const rimColor = new Color(new HSLA(rim.hue, rim.saturation / 100, rim.lightness / 100, 1));
 			assert.ok(background.getContrastRatio(rimColor) >= 3, `${kind} rim contrast was ${background.getContrastRatio(rimColor)}`);
+		}
+	});
+
+	test('factories never read target, color or theme providers', () => {
+		const unreadable = { get: () => { throw new Error('Input must not be read'); } };
+		const target = new Proxy({} as HTMLElement, unreadable);
+		const color = new Proxy({} as Color, unreadable);
+		const controller = disposables.add(createVoiceGlowController(target, () => { throw new Error('Theme must not be requested'); }, () => { throw new Error('Colors must not be requested'); }));
+		controller.render(1, false);
+		controller.refreshTheme();
+		controller.clear();
+		const rim = disposables.add(createVoiceRimLight(target, color, 'dark', 'cool', color));
+		rim.drive(1);
+		rim.driveStatic(0.5);
+		rim.refresh(color, 'light', color);
+	});
+
+	test('render, clear, theme changes and repeated disposal preserve host without animation', async () => {
+		const sandbox = sinon.createSandbox();
+		const timers = sandbox.useFakeTimers();
+		try {
+			const frames = sandbox.spy(mainWindow, 'requestAnimationFrame');
+			const animations = sandbox.spy(Element.prototype, 'animate');
+			const target = document.createElement('div');
+			target.className = 'existing';
+			target.style.position = 'static';
+			target.innerHTML = '<input aria-label="Existing input">';
+			const original = target.outerHTML;
+			const accent = Color.fromHex('#58A6FF');
+			const controller = disposables.add(createVoiceGlowController(target));
+			const rim = disposables.add(createVoiceRimLight(target, accent, 'dark'));
+			for (const reducedMotion of [true, false]) {
+				controller.render(0.8, reducedMotion);
+				controller.refreshTheme();
+				rim.drive(0.9);
+				rim.driveStatic(0.2);
+				rim.refresh(accent, 'light');
+				controller.clear();
+				controller.dispose();
+				rim.dispose();
+				await timers.tickAsync(1000);
+				assert.strictEqual(target.outerHTML, original);
+			}
+			assert.strictEqual(frames.callCount, 0);
+			assert.strictEqual(animations.callCount, 0);
+			assert.strictEqual(timers.countTimers(), 0);
+		} finally {
+			sandbox.restore();
 		}
 	});
 });

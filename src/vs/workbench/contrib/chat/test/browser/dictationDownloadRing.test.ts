@@ -31,8 +31,7 @@ suite('Dictation progress indicators unavailable', () => {
 		assert.strictEqual(getDictationPreparingLabel(service), message);
 		assert.strictEqual(getDictationDownloadHoverMarkdown(service).value, message);
 		const content = getDictationDownloadHoverContent(service);
-		assert.ok(content && typeof content === 'object' && 'markdownNotSupportedFallback' in content);
-		assert.strictEqual(content.markdownNotSupportedFallback, message);
+		assert.deepStrictEqual(content, { markdown: getDictationDownloadHoverMarkdown(service), markdownNotSupportedFallback: message });
 		assert.strictEqual(getDictationDownloadHoverMarkdown(service).isTrusted, false);
 	});
 });

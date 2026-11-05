@@ -20,10 +20,8 @@ import { Disposable, DisposableStore, toDisposable } from '../../../../base/comm
 import { autorun, derived, derivedObservableWithCache, observableValue } from '../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { basename } from '../../../../base/common/resources.js';
-import { hasKey, isDefined } from '../../../../base/common/types.js';
+import { hasKey } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
-import { Range } from '../../../../editor/common/core/range.js';
-import { SuggestController } from '../../../../editor/contrib/suggest/browser/suggestController.js';
 import { ILocalizedString, localize, localize2 } from '../../../../nls.js';
 import { IActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
 import { MenuEntryActionViewItem } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
@@ -53,7 +51,6 @@ import { IAccountQuery, IAuthenticationQueryService } from '../../../services/au
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IRemoteUserDataProfilesService } from '../../../services/userDataProfile/common/remoteUserDataProfiles.js';
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
-import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IChatWidgetService } from '../../chat/browser/chat.js';
 import { getMcpServerDisplayLabel, IAgentHostCustomizationService } from '../../chat/browser/agentSessions/agentHost/agentHostCustomizationService.js';
 import { setAgentHostPluginEnablement } from '../../chat/browser/agentPluginActions.js';
@@ -61,24 +58,21 @@ import { AICustomizationManagementCommands, AICustomizationManagementSection, IA
 import { IAgentPluginService } from '../../chat/common/plugins/agentPluginService.js';
 import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
 import { IChatElicitationRequest, IChatToolInvocation } from '../../chat/common/chatService/chatService.js';
-import { ChatAgentLocation, ChatModeKind } from '../../chat/common/constants.js';
+import { ChatModeKind } from '../../chat/common/constants.js';
 import { ContributionEnablementState, isContributionDisabled } from '../../chat/common/enablement.js';
-import { ILanguageModelsService } from '../../chat/common/languageModels.js';
 import { ILanguageModelToolsService } from '../../chat/common/tools/languageModelToolsService.js';
-import { extensionsFilterSubMenu, IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
+import { extensionsFilterSubMenu } from '../../extensions/common/extensions.js';
 import { TEXT_FILE_EDITOR_ID } from '../../files/common/files.js';
 import { McpCommandIds } from '../common/mcpCommandIds.js';
 import { mcpWorkspaceRootConfig } from '../common/mcpConfiguration.js';
 import { McpContextKeys } from '../common/mcpContextKeys.js';
 import { IMcpCopilotGlobalConfigurationService } from '../common/mcpCopilotGlobalConfigurationService.js';
 import { IMcpRegistry } from '../common/mcpRegistryTypes.js';
-import { HasInstalledMcpServersContext, IMcpSamplingService, IMcpServer, IMcpServerStartOpts, IMcpService, IMcpWorkbenchService, InstalledMcpServersViewId, LazyCollectionState, McpCapability, McpCollectionDefinition, McpConnectionState, McpDefinitionReference, mcpOAuthClientSecretStorageKey, mcpPromptPrefix, McpServerCacheState, McpStartServerInteraction } from '../common/mcpTypes.js';
+import { HasInstalledMcpServersContext, IMcpSamplingService, IMcpServer, IMcpServerStartOpts, IMcpService, InstalledMcpServersViewId, LazyCollectionState, McpCapability, McpCollectionDefinition, McpConnectionState, McpDefinitionReference, mcpOAuthClientSecretStorageKey, McpServerCacheState, McpStartServerInteraction } from '../common/mcpTypes.js';
 import { startServerAndWaitForLiveTools } from '../common/mcpTypesUtils.js';
 import { McpAddConfigurationCommand, McpInstallFromManifestCommand } from './mcpCommandsAddConfiguration.js';
 import { McpConfigurationDestination } from './mcpConfigurationDestination.js';
-import { McpResourceQuickAccess, McpResourceQuickPick } from './mcpResourceQuickAccess.js';
 import './media/mcpServerAction.css';
-import { openPanelChatAndGetWidget } from './openPanelChatAndGetWidget.js';
 
 // acroynms do not get localized
 const category: ILocalizedString = {
@@ -1469,11 +1463,8 @@ export class McpBrowseCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor) {
-		await accessor.get(ICommandService).executeCommand(
-			AICustomizationManagementCommands.OpenMarketplace,
-			AICustomizationManagementSection.McpServers,
-		);
+	async run(_accessor: ServicesAccessor) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1499,8 +1490,8 @@ export class McpBrowsePageCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor) {
-		await accessor.get(IMcpWorkbenchService).openSearch('');
+	async run(_accessor: ServicesAccessor) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1524,11 +1515,8 @@ export class ShowInstalledMcpServersCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor) {
-		const extensionsWorkbenchService = accessor.get(IExtensionsWorkbenchService);
-		const viewsService = accessor.get(IViewsService);
-		await extensionsWorkbenchService.openSearch('');
-		await viewsService.openView(InstalledMcpServersViewId, true);
+	async run(_accessor: ServicesAccessor) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1746,12 +1734,8 @@ export class McpBrowseResourcesCommand extends Action2 {
 		});
 	}
 
-	run(accessor: ServicesAccessor, server?: IMcpServer): void {
-		if (server) {
-			accessor.get(IInstantiationService).createInstance(McpResourceQuickPick, server).pick();
-		} else {
-			accessor.get(IQuickInputService).quickAccess.show(McpResourceQuickAccess.PREFIX);
-		}
+	run(_accessor: ServicesAccessor, _server?: IMcpServer): void {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1764,38 +1748,8 @@ export class McpConfigureSamplingModels extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, server: IMcpServer): Promise<number> {
-		const quickInputService = accessor.get(IQuickInputService);
-		const lmService = accessor.get(ILanguageModelsService);
-		const mcpSampling = accessor.get(IMcpSamplingService);
-
-		const existingIds = new Set(mcpSampling.getConfig(server).allowedModels);
-		const allItems: IQuickPickItem[] = lmService.getLanguageModelIds().map(id => {
-			const model = lmService.lookupLanguageModel(id)!;
-			if (!model.isUserSelectable) {
-				return undefined;
-			}
-			return {
-				label: model.name,
-				description: model.tooltip,
-				id,
-				picked: existingIds.size ? existingIds.has(id) : model.isDefaultForLocation[ChatAgentLocation.Chat],
-			};
-		}).filter(isDefined);
-
-		allItems.sort((a, b) => (b.picked ? 1 : 0) - (a.picked ? 1 : 0) || a.label.localeCompare(b.label));
-
-		// do the quickpick selection
-		const picked = await quickInputService.pick(allItems, {
-			placeHolder: localize('mcp.configureSamplingModels.ph', 'Pick the models {0} can access via MCP sampling', server.definition.label),
-			canPickMany: true,
-		});
-
-		if (picked) {
-			await mcpSampling.updateConfig(server, c => c.allowedModels = picked.map(p => p.id!));
-		}
-
-		return picked?.length || 0;
+	async run(_accessor: ServicesAccessor, _server: IMcpServer): Promise<number> {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1809,25 +1763,8 @@ export class McpStartPromptingServerCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, server: IMcpServer): Promise<void> {
-		const widget = await openPanelChatAndGetWidget(accessor.get(IViewsService), accessor.get(IChatWidgetService));
-		if (!widget) {
-			return;
-		}
-
-		const editor = widget.inputEditor;
-		const model = editor.getModel();
-		if (!model) {
-			return;
-		}
-
-		const range = (editor.getSelection() || model.getFullModelRange()).collapseToEnd();
-		const text = mcpPromptPrefix(server.definition) + '.';
-
-		model.applyEdits([{ range, text }]);
-		editor.setSelection(Range.fromPositions(range.getEndPosition().delta(0, text.length)));
-		widget.focusInput();
-		SuggestController.get(editor)?.triggerSuggest();
+	async run(_accessor: ServicesAccessor, _server: IMcpServer): Promise<void> {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 

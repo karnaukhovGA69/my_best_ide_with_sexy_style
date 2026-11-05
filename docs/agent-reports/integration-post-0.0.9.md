@@ -11,3 +11,14 @@
 - `agent/voice-orphan-endpoint-delete` — `001095e977e1a1bed376071ab4d271700582a4b9`
 - `agent/voice-orphan-hover-styles-delete` — `e61c3579a56ca34c09673614f4cbc41365377bde`
 - `agent/voice-orphan-styles-delete` — `1626cf9ed9627e503eb9219545fdf491488011a4`
+
+Первый срез объединён без конфликтов. 75 browser tests passed, 0 page errors; поиск runtime ссылок на удалённые voice helpers/styles чистый. Полный typecheck объединяется со следующим срезом, package не запускался.
+
+Второй snapshot (ЗАНЯТО интегратором):
+- `agent/ai-edit-telemetry-runtime-disable` — `a441bacdeb2a924ab079c9c633243fa4f0f5f6b4`
+- `agent/ai-search-services-disable` — `48a0fc6440ac66b25aa6471655e6386293508e0e`
+- `agent/edit-statistics-startup-disable` — `3162e9b572d37d717611858472061dbc42edfe57`
+- `agent/editor-telemetry-forwarding-disable` — `663370182addf937e014a7cb5ef8a22d8b507e08`
+- `agent/experimentation-service-runtime-disable` — `d3892382c8621fb70af645597ffd5e2c7f0cd865`
+- `agent/external-terminal-menu` — `9e76c0f1199754155edb6b7e4c3e5213130150ec`
+- `agent/settings-search-local-only` — `88811e83e8198b150c0ac2c1776ce4dacabc4d32`

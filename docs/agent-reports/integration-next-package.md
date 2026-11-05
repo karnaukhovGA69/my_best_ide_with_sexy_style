@@ -24,3 +24,21 @@
 Второй срез объединён без конфликтов. Полный client typecheck прошёл; 134 browser tests в 12 модулях, 13 Node tests retention, 0 page errors. В тестовом harness устранено пересечение Playwright polling с запретом requestAnimationFrame в voice tests: runner теперь запускает Mocha после инициализации automation context. Это изменение внешнего harness, не продукта. Проверки документов (16) переиспользованы — исходники не менялись.
 
 Обновлены AGENTS/README/project-plan/handoff/development-plan по подтверждённому здесь решению владельца об отказе от GitHub-модуля и переносе настроек файлом. GitHub-specific source пока не менялся. Полный binary/native цикл ещё не выполнен для нового пакета; работа продолжается.
+
+Третий срез (в работе): survey-contributions-remove `1edac29d317`, ide-updater-disable `178d96e01f6`, плюс проверенные task snapshots:
+- `agent/dictation-actions-disable` — `55cd4cc6d46c85f7a6f9b5870617a7497c83cdeb`
+- `agent/dictation-onboarding-disable` — `f767a32556ab7fffce930213defe3e155da3fdb1`
+- `agent/editor-dictation-session-disable` — `61448a78c6c288aeda60e3de7d43a0925c7752b4`
+- `agent/inline-completions-runtime-disable` — `7b735c9cdcf81f98bce6ff3e2e45140f618d3ddf`
+- `agent/mcp-client-task-remove` — `9b9446e26fed03dcda305e376004648d1d541134`
+- `agent/mcp-orphan-discovery-helpers-delete` — `dcb59bc2857433a2504187cd912e5dfb427c5d77`
+- `agent/mcp-orphan-transports-delete` — `0928076a2e5894969ef57f1161f4a0c333fdf6a8`
+- `agent/mcp-server-icons-remove` — `0da2837d958439ece2695b3cd06c0484ea35469b`
+- `agent/mcp-task-manager-remove` — `fefe3d790f16478b034325cf67a1724c060c571a`
+- `agent/voice-input-affordances-disable` — `bf5758933786163ca291e4f00e65153337fbbb14`
+- `agent/voice-input-mode-disable` — `93607acb97704392307a49dac978b48fff80fba9`
+- `agent/mcp-install-wizards-remove` — `377d91ba4127f52964eac371691494a55bb82856`
+
+Состав третьего среза закрыт: дальнейшие новые задачи входят в следующий срез. До последних двух веток 198 browser tests passed, 0 page errors; дополнительные suite и общий typecheck запускаются сейчас.
+
+Третий срез проверен: 198 browser tests основного набора + 64 дополнительных (MCP install/voice input), 0 failures/page errors. Полный client typecheck прошёл. Node retention 13 tests и documents 16 tests не повторялись, их исходники неизменны. MCP connection suite baseline Canceled из task report остаётся отдельно отмеченным ограничением; он не выдаётся за чистый успешный прогон. Новые service/registration проверки успешны; общий package/native/signing ещё впереди.

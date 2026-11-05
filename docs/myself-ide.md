@@ -2,6 +2,8 @@
 
 An experimental Code - OSS distribution undergoing incremental cleanup. The integrated source includes the original seven stages and the 0.0.8 batch: a document editor and 30 terminal/MCP/voice cleanup tasks. Release validation is recorded in docs/agent-reports/release-0.0.8.md. The visual redesign and other planned features are not complete. See [the product plan](project-plan.md) and [agent handoff](project-handoff.md) for the full scope.
 
+Source changes after 0.0.8 are tracked in [the next package report](agent-reports/integration-next-package.md). They include document Save As/Unicode search fixes, removal of Welcome/walkthrough/survey startup behavior, disabled IDE updater wiring, inline-completion registration removal and further MCP/voice cleanup. These changes are not yet available in a validated binary release.
+
 ## Distribution
 
 - Product identity and user data directory are separate from VS Code and Code - OSS.
@@ -44,7 +46,7 @@ With `enableTelemetry: false`, built-in telemetry is disabled in both developmen
 
 The default diagnostic level is Warning, with Error also recorded. Debug/Trace can be enabled explicitly. Native formatted core log channels, including the core Extension Host log, use files of at most 2 MiB plus four backups: **up to 10 MiB per channel, not a global application quota**. They rotate on the first write in a new UTC day, and channel files at least seven days old are removed when that channel initializes or rolls over. There is no separate cleanup timer or background scan.
 
-Retention touches only the channel's exact current/backup filenames and rejects non-regular files. Raw Output, extension-owned channels and explicitly nonrotating channels keep their original retention behavior. Previous session directories retain the upstream cleanup policy, and the browser FileLogger does not use this native retention policy. Individual core messages and the pre-initialization queue are bounded, so exceptionally large messages or bursts can be truncated or lose older buffered entries. Arbitrary diagnostic messages are not universally scrubbed of secrets.
+Retention touches only the channel's exact current/backup filenames and rejects non-regular files. Raw Output, extension-owned channels and explicitly nonrotating channels keep their original retention behavior. In source after 0.0.8, old diagnostic session directories also have a best-effort 100 MiB budget, seven-day retention and at most nine old sessions. Current, recent (24-hour), future-dated, symlinked or incompletely scanned sessions are protected; this is not a hard quota or an atomic lock against concurrent writers. The browser FileLogger does not use this native retention policy. Individual core messages and the pre-initialization queue are bounded, so exceptionally large messages or bursts can be truncated or lose older buffered entries. Arbitrary diagnostic messages are not universally scrubbed of secrets.
 
 ## Build
 
@@ -63,7 +65,7 @@ The macOS ARM64 app is written to `../Myself-IDE-darwin-arm64/Myself IDE.app`. O
 - Complete removal of unused AI workbench, inline-chat, MCP and shared service implementations, their development dependencies and any remaining runtime dependency trees.
 - Remaining checklist removals and alternate entry points needed after removing the Command Palette.
 - An aggregate diagnostic-log quota and retention across previous sessions, with explicit ownership boundaries for third-party logs.
-- Own GitHub application registration, repository hub, and opt-in private-repository settings backup. Authentication provider code is retained, but a release-ready identity is not configured yet.
+- Local settings file export/import with preview and explicit application, without secrets or a server. Own GitHub OAuth, repository catalog and private-repository backup were cancelled by the owner on 6 November; GitHub-specific code is being removed in separately assigned tasks, while ordinary Git/SSH and the common authentication API remain.
 - Documentation library for local Markdown/PDF.
 - Terminal engine prototype and personal shell configuration.
 - Visual redesign, icon, and final branding across every platform.

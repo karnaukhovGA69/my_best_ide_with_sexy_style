@@ -2,7 +2,7 @@
 
 ## Проверенная база
 
-В main объединены восемь этапов. Последний бинарный релиз — [v0.0.8-preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.8-preview), исходный коммит `33161ca3d9ac891b1155cd74ab179110a1d67e32`. Он включает все 33 накопленные task-ветки: 31 прикладную задачу, аудит MCP и историю прежней terminal cleanup. Проверки и точные HEAD — в [release-0.0.8.md](agent-reports/release-0.0.8.md). Документационные изменения после исходного коммита не требуют пересборки.
+В main объединены восемь релизных этапов; новые исходные изменения после 0.0.8 перечислены в integration-next-package.md и ещё требуют общего binary/native цикла. Последний бинарный релиз — [v0.0.8-preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.8-preview), исходный коммит `33161ca3d9ac891b1155cd74ab179110a1d67e32`. Он включает все 33 накопленные task-ветки: 31 прикладную задачу, аудит MCP и историю прежней terminal cleanup. Проверки и точные HEAD — в [release-0.0.8.md](agent-reports/release-0.0.8.md). Документационные изменения после исходного коммита не требуют пересборки.
 
 Оригинальный VS Code и upstream не изменяем. PDF backend, documents-ui, terminal AI cleanup, 20 MCP и 9 voice задач включены в пакет. Перед новым назначением проверить актуальные отчёты и занятые worktree; старые claims завершённых веток не означают, что реализацию нужно повторить.
 

@@ -1,5 +1,11 @@
 # voice-orphan-components-delete
 
-Статус: ЗАНЯТО. Владелец: voice cleanup. Ветка: `agent/voice-orphan-components-delete`. База: `98aa2b043b141e7b4cc74d8f8d5e38da41bf68d7` (включает `77ef09b4009`, удаление widget runtime).
+Статус: ГОТОВО к интеграции. Код: `a9c31c685b6`. Владелец: voice cleanup. Ветка: `agent/voice-orphan-components-delete`. База: `98aa2b043b141e7b4cc74d8f8d5e38da41bf68d7` (включает `77ef09b4009`, удаление widget runtime).
 
 A06: физически удалить невостребованные voice widget components; sessionList оставить только как используемые SessionRowData/SessionGroupData types. До правок зарезервированы `src/vs/workbench/contrib/agentsVoice/browser/components/feedbackDialog.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/voiceBarComponent.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/onboardingComponent.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/sessionListComponent.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/headerComponent.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/transcriptComponent.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/statusRowsComponent.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/confirmationComponent.ts`, `src/vs/workbench/contrib/agentsVoice/browser/components/tokens.ts` и этот отчёт. Проверка imports в src/test/build нашла только type import sessionList из уже неактивного widget. Shared entrypoints/виджет, transcript store/history/views, GitHub/auth/Git/SSH, common API, настройки/история и чужие задачи исключены.
+
+Физически удалены 8 orphan component files (header/voice bar/onboarding/feedback/status/confirmation/transcript widget/tokens), sessionListComponent.ts сокращён до SessionRowData/SessionGroupData type contracts. Удалено 1319 строк runtime. Transcript component был только live widget DOM; transcript store/history/views и пользовательские данные не затронуты.
+
+Проверки: reference scan src/test/build не находит imports удалённых components; 4 существующих browser widget tests passed; targeted ESLint оставшегося type файла passed; semantic/syntactic TypeScript sessionList + widget + binding — 0; git diff --check passed. Новые tests для отсутствующих orphan modules не добавлялись. ESBuild/Playwright, без full/native build; зависимости неизменны.
+
+Интегратору: `a9c31c685b6` и отчёт. Обязательная база: integrated voice-widget-binding-disable `77ef09b4009`, уже в main. Wiring не нужен. Остальные shared entrypoints/auth/Git/SSH/common API/build/main не менялись.

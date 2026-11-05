@@ -3,19 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
-import { McpGatewayToolBrokerChannelName } from '../../../../platform/mcp/common/mcpGateway.js';
-import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
-import { IMcpService } from '../common/mcpTypes.js';
-import { McpGatewayToolBrokerChannel } from '../common/mcpGatewayToolBrokerChannel.js';
+import type { IWorkbenchContribution } from '../../../common/contributions.js';
 
-export class McpGatewayToolBrokerContribution implements IWorkbenchContribution {
-	constructor(
-		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
-		@IMcpService mcpService: IMcpService,
-		@ILogService logService: ILogService,
-	) {
-		remoteAgentService.getConnection()?.registerChannel(McpGatewayToolBrokerChannelName, new McpGatewayToolBrokerChannel(mcpService, logService));
-	}
-}
+/** Keeps the startup registration compatible without creating a broker or accessing MCP services. */
+export class McpGatewayToolBrokerContribution implements IWorkbenchContribution { }

@@ -1,5 +1,9 @@
 # mcp-plugin-discovery-delete
 
-Статус: ЗАНЯТО. Владелец: MCP cleanup. Ветка: `agent/mcp-plugin-discovery-delete`. База: актуальный main `b73001809cd`.
+Статус: ГОТОВО / ожидает интеграции. Владелец: MCP cleanup. Ветка: `agent/mcp-plugin-discovery-delete`. База main `b73001809cd`. Claim `46230c3b772`. Код: `af29a6ff21aa0c1c05ff8364c824712dbfc35308`.
 
-Зарезервированы src/vs/workbench/contrib/mcp/common/discovery/{pluginMcpDiscovery,mcpDiscovery}.ts, test/common/pluginMcpDiscovery.test.ts, test/browser/mcpDiscovery.test.ts, test/electron-browser/mcpDiscoveryRegistration.test.ts (test paths относительно contrib/mcp), src/vs/workbench/contrib/chat/browser/aiCustomization/mcpListWidget.ts (только перенаправление import константы) и этот отчёт. Удалить orphan plugin discovery/runtime registry и соответствующие obsolete tests, сохранить singleton registration assertions. Константу MCP_PLUGIN_COLLECTION_ID_PREFIX импортировать напрямую из существующего mcpTypes, где она определена. Другие части chat UI, GitHub/auth/Git/SSH и чужие области не менять.
+Полностью удалены common/discovery/pluginMcpDiscovery.ts, common/discovery/mcpDiscovery.ts и test/common/pluginMcpDiscovery.test.ts в contrib/mcp: plugin observers, collection conversion/registration и orphan discovery registry. Единственный production consumer plugin-модуля, chat/browser/aiCustomization/mcpListWidget.ts, импортировал только MCP_PLUGIN_COLLECTION_ID_PREFIX: импорт перенаправлен в уже подключённый mcpTypes.ts, где константа определена. Поведение widget не менялось.
+
+Из test/browser/mcpDiscovery.test.ts и test/electron-browser/mcpDiscoveryRegistration.test.ts удалены только assertions к удалённому registry; сохранены DI contract/gateway registration tests. Поиск src/extensions/build (TS/JS) не находит импортов/классов удалённых discovery-модулей. После ранее интегрированного удаления native/workspace discovery каталог common/discovery пуст.
+
+Проверки: 1 common contribution + 1 native contribution browser tests прошли; ESLint трёх изменённых файлов прошёл; узкий TypeScript с mcpListWidget root — 0 diagnostics; git diff --check прошёл. 240 строк удалено, 1 добавлена в 6 файлах. Дополнительных зависимостей сверх main нет; готовые runtime/server branches не требуются. Полные build/typecheck/package — на пакете. GitHub/auth/Git/SSH и пользовательские данные не менялись.

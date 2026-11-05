@@ -140,7 +140,7 @@ function fib(n) {
 		userActive.set(true, undefined);
 		await timeout(18 * 60 * 1000);
 
-		assert.deepStrictEqual(sentTelemetry, ([
+		assert.deepStrictEqual(normalizeIds(sentTelemetry), normalizeIds([
 			'00:01:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"8c97b7d8-9adb-4bd8-ac9f-a562704ce40e\",\"didBranchChange\":0,\"timeDelayMs\":0,\"originalCharCount\":37,\"originalLineCount\":1,\"originalDeletedLineCount\":0,\"arc\":37,\"currentLineCount\":1,\"currentDeletedLineCount\":0}',
 			'00:11:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"1eb8a394-2489-41c2-851b-6a79432fc6bc\",\"didBranchChange\":0,\"timeDelayMs\":0,\"originalCharCount\":19,\"originalLineCount\":1,\"originalDeletedLineCount\":1,\"arc\":19,\"currentLineCount\":1,\"currentDeletedLineCount\":1}',
 			'01:01:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"8c97b7d8-9adb-4bd8-ac9f-a562704ce40e\",\"didBranchChange\":0,\"timeDelayMs\":60000,\"originalCharCount\":37,\"originalLineCount\":1,\"originalDeletedLineCount\":0,\"arc\":16,\"currentLineCount\":1,\"currentDeletedLineCount\":0}',
@@ -158,6 +158,12 @@ function fib(n) {
 		disposables.dispose();
 	}));
 });
+
+// Event identifiers are intentionally no longer allocated by the AI compatibility service.
+// Compare the retained helper's timing/statistics independently of its random UUID sequence.
+function normalizeIds(events: readonly unknown[]): string[] {
+	return events.map(event => String(event).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, '<id>'));
+}
 
 function formatTime(timeMs: number): string {
 	const totalMs = Math.floor(timeMs);

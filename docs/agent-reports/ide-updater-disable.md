@@ -1,0 +1,9 @@
+# ide-updater-disable
+
+Статус: ГОТОВО к интеграции. Владелец: интегратор/documents agent. База: 98aa2b043b1 + survey-contributions-remove. Ветка: agent/ide-updater-disable.
+
+U13: отключить runtime обновления самой IDE, сохранив совместимый IUpdateService для IPC и callers. Область: src/vs/code/electron-main/app.ts, platform/update/common/disabledUpdateService.ts и test/common, workbench/contrib/update/browser/update.contribution.ts и его test/browser, при необходимости platform/update/common/update.config.contribution.ts и workbench/services/update/browser/updateService.ts. Общие entrypoints принадлежат интегратору. Сохранить ручные release notes exports при наличии consumers; extension updates/установка VSIX, Git/SSH/auth, settingsTransfer, MCP/voice и другие чужие области не входят. Проверки целевые, затем общий пакет.
+
+Заменены platform-specific main registrations на DisabledUpdateService; web service также не читает provider/host. Удалены startup contributions обновлений, post-update/outdated/titlebar UI, auto restart scheduler и windowless update dialog wiring, schema update.* и update commands. IUpdateService/IPC сохранены: фиксированное disabled состояние, Event.None, явный отказ update/download/install/restart/file operations, isLatestVersion undefined. Ручные release notes actions сохранены, обычный reload/lifecycle и Windows installer mutex не затронуты. Старые platform-specific updater implementations пока остаются в исходниках без этих подключений.
+
+Проверки: 5 browser tests passed, 0 page errors: строгий DI без зависимостей, IPC отказ и отсутствие state events, browser без reload/provider, отсутствие commands/settings, сохранение manual release notes. Целевой ESLint 7 файлов прошёл; после удаления дополнительных main scheduler/dialog imports повторный lint app.ts прошёл; git diff --check прошёл. Пакетный typecheck/main native smoke ещё впереди.

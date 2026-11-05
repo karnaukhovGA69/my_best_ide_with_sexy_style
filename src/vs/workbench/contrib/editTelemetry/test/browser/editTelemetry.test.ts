@@ -36,7 +36,7 @@ import { ITextFileService } from '../../../../services/textfile/common/textfiles
 suite('Edit Telemetry', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('reports Agent Host session mode for accepted and rejected edits', () => {
+	test('does not forward Agent Host session metadata for accepted or rejected edits', () => {
 		const instantiationService = new TestInstantiationService();
 		const sentTelemetry: { readonly eventName: string; readonly data: Record<string, unknown> | undefined }[] = [];
 		instantiationService.stub(ITelemetryService, {
@@ -63,26 +63,11 @@ suite('Edit Telemetry', () => {
 		aiEditTelemetryService.handleCodeAccepted({ ...baseData, acceptanceMethod: 'copyButton', presentation: 'codeBlock', feature: 'sideBarChat', isAgentHostSession: true, provider: 'copilotcli', sourceRequestId: 'request-origin', chatSessionId: 'agent-host-copilotcli:/session#chat' });
 		aiEditTelemetryService.handleCodeRejected({ ...baseData, rejectionMethod: 'reject', isAgentHostSession: false });
 
-		assert.deepStrictEqual(sentTelemetry.map(event => ({
-			eventName: event.eventName,
-			isAgentHostSession: event.data?.isAgentHostSession,
-			sourceRequestId: event.data?.sourceRequestId,
-			chatSessionId: event.data?.chatSessionId,
-			provider: event.data?.provider,
-		})), [
-			{ eventName: 'editTelemetry.codeSuggested', isAgentHostSession: true, sourceRequestId: undefined, chatSessionId: undefined, provider: 'unknown' },
-			{ eventName: 'editTelemetry.codeAccepted', isAgentHostSession: true, sourceRequestId: 'request-origin', chatSessionId: 'agent-host-copilotcli:/session#chat', provider: 'copilotcli' },
-			{ eventName: 'editTelemetry.codeRejected', isAgentHostSession: false, sourceRequestId: undefined, chatSessionId: undefined, provider: undefined },
-		]);
+		assert.deepStrictEqual(sentTelemetry, []);
 		const ids = { agentSessionId: 'owner', chatSessionId: 'agent-host-copilotcli:/owner#peer', sourceRequestId: 'source-turn' };
 		aiEditTelemetryService.handleCodeAccepted({ ...baseData, ...ids, acceptanceMethod: 'accept', isAgentHostSession: true });
 		aiEditTelemetryService.handleCodeRejected({ ...baseData, ...ids, rejectionMethod: 'reject', isAgentHostSession: true });
-		assert.deepStrictEqual(sentTelemetry.slice(-2).map(event => ({
-			eventName: event.eventName,
-			agentSessionId: event.data?.agentSessionId,
-			chatSessionId: event.data?.chatSessionId,
-			sourceRequestId: event.data?.sourceRequestId,
-		})), ['editTelemetry.codeAccepted', 'editTelemetry.codeRejected'].map(eventName => ({ eventName, ...ids })));
+		assert.deepStrictEqual(sentTelemetry, []);
 	});
 
 	test('1', async () => runWithFakedTimers({}, async () => {
@@ -155,11 +140,9 @@ function fib(n) {
 		userActive.set(true, undefined);
 		await timeout(18 * 60 * 1000);
 
-		assert.deepStrictEqual(sentTelemetry, ([
+		assert.deepStrictEqual(normalizeIds(sentTelemetry), normalizeIds([
 			'00:01:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"8c97b7d8-9adb-4bd8-ac9f-a562704ce40e\",\"didBranchChange\":0,\"timeDelayMs\":0,\"originalCharCount\":37,\"originalLineCount\":1,\"originalDeletedLineCount\":0,\"arc\":37,\"currentLineCount\":1,\"currentDeletedLineCount\":0}',
-			'00:01:010 editTelemetry.codeSuggested: {\"eventId\":\"evt-055ed5f5-c723-4ede-ba79-cccd7685c7ad\",\"suggestionId\":\"sgt-f645627a-cacf-477a-9164-ecd6125616a5\",\"presentation\":\"highlightedEdit\",\"feature\":\"sideBarChat\",\"languageId\":\"plaintext\",\"editCharsInserted\":37,\"editCharsDeleted\":0,\"editLinesInserted\":1,\"editLinesDeleted\":0}',
 			'00:11:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"1eb8a394-2489-41c2-851b-6a79432fc6bc\",\"didBranchChange\":0,\"timeDelayMs\":0,\"originalCharCount\":19,\"originalLineCount\":1,\"originalDeletedLineCount\":1,\"arc\":19,\"currentLineCount\":1,\"currentDeletedLineCount\":1}',
-			'00:11:010 editTelemetry.codeSuggested: {\"eventId\":\"evt-5c9c6fe7-b219-4ff8-aaa7-ab2b355b21c0\",\"suggestionId\":\"sgt-74379122-0452-4e26-9c38-9d62f1e7ae73\",\"presentation\":\"highlightedEdit\",\"feature\":\"sideBarChat\",\"languageId\":\"plaintext\",\"editCharsInserted\":19,\"editCharsDeleted\":20,\"editLinesInserted\":1,\"editLinesDeleted\":1}',
 			'01:01:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"8c97b7d8-9adb-4bd8-ac9f-a562704ce40e\",\"didBranchChange\":0,\"timeDelayMs\":60000,\"originalCharCount\":37,\"originalLineCount\":1,\"originalDeletedLineCount\":0,\"arc\":16,\"currentLineCount\":1,\"currentDeletedLineCount\":0}',
 			'01:11:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"1eb8a394-2489-41c2-851b-6a79432fc6bc\",\"didBranchChange\":0,\"timeDelayMs\":60000,\"originalCharCount\":19,\"originalLineCount\":1,\"originalDeletedLineCount\":1,\"arc\":19,\"currentLineCount\":1,\"currentDeletedLineCount\":1}',
 			'05:01:010 editTelemetry.reportEditArc: {\"sourceKeyCleaned\":\"source:Chat.applyEdits\",\"languageId\":\"plaintext\",\"uniqueEditId\":\"8c97b7d8-9adb-4bd8-ac9f-a562704ce40e\",\"didBranchChange\":0,\"timeDelayMs\":300000,\"originalCharCount\":37,\"originalLineCount\":1,\"originalDeletedLineCount\":0,\"arc\":16,\"currentLineCount\":1,\"currentDeletedLineCount\":0}',
@@ -175,6 +158,12 @@ function fib(n) {
 		disposables.dispose();
 	}));
 });
+
+// Event identifiers are intentionally no longer allocated by the AI compatibility service.
+// Compare the retained helper's timing/statistics independently of its random UUID sequence.
+function normalizeIds(events: readonly unknown[]): string[] {
+	return events.map(event => String(event).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, '<id>'));
+}
 
 function formatTime(timeMs: number): string {
 	const totalMs = Math.floor(timeMs);

@@ -73,12 +73,12 @@ test('missing backend is a clear notice, not a successful export', async () => {
 });
 
 
-test('Save As opens the saved resource as a document', async () => {
+test('Save As replaces the saved resource editor without adding another tab', async () => {
 	const destination = uri('/Saved essay.txt');
 	const f = await fixture({ resource: uri('untitled:Untitled-1'), saveResult: destination });
 	f.replace('Новый документ');
 	await f.message({ type: 'action', action: 'save', version: f.document.version });
-	assert.deepEqual(f.executed, [['vscode.openWith', destination, 'myself.documents.editor']]);
+	assert.deepEqual(f.executed, [['reopenActiveEditorWith', 'myself.documents.editor', destination]]);
 	assert.equal(f.text(), 'Новый документ');
 	assert.equal(f.sent.at(-1).type, 'actionDone');
 	f.disposal.fire();

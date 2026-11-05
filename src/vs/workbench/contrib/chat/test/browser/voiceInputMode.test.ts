@@ -4,100 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import sinon from 'sinon';
-import * as dom from '../../../../../base/browser/dom.js';
-import { EventType as TouchEventType, Gesture } from '../../../../../base/browser/touch.js';
+import * as sinon from 'sinon';
 import { Action } from '../../../../../base/common/actions.js';
-import { Emitter, Event } from '../../../../../base/common/event.js';
-import { observableValue } from '../../../../../base/common/observable.js';
-import { upcastPartial } from '../../../../../base/test/common/mock.js';
+import { autorun } from '../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
-import { TestAccessibilityService } from '../../../../../platform/accessibility/test/common/testAccessibilityService.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
-import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
-import { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
-import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
-import { NullHoverService } from '../../../../../platform/hover/test/browser/nullHoverService.js';
-import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
-import { MockContextKeyService, MockKeybindingService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
-import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
-import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
-import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
-import { AGENTS_VOICE_CONNECTED, AGENTS_VOICE_ENTITLED, AGENTS_VOICE_TOGGLE_MUTE_COMMAND_ID } from '../../../agentsVoice/common/agentsVoice.js';
-import { IMicCaptureService } from '../../browser/voiceClient/micCaptureService.js';
-import { ITtsPlaybackService } from '../../browser/voiceClient/ttsPlaybackService.js';
-import { IVoiceSessionController } from '../../browser/voiceClient/voiceSessionController.js';
-import { ChatSpeechToTextState, IChatSpeechToTextService } from '../../browser/speechToText/chatSpeechToTextService.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import { ContextKeyExpression, ContextKeyValue, IContext } from '../../../../../platform/contextkey/common/contextkey.js';
+import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
+import { AGENTS_VOICE_CONNECTED, AGENTS_VOICE_ENTITLED } from '../../../agentsVoice/common/agentsVoice.js';
 import { IVoiceInputModeService, VoiceInputModeService } from '../../browser/voiceInputMode/voiceInputMode.js';
-import { VoiceInputModeActionViewItem } from '../../browser/voiceInputMode/voiceInputModeActionViewItem.js';
+import { ChatVoiceInputModeAction, ChatVoiceInputModeToggleListenAction, IVoiceInputModePillOptions, isVoiceInputModeAvailable, registerVoiceInputModeSimulateActions, VoiceInputModeActionViewItem } from '../../browser/voiceInputMode/voiceInputModeActionViewItem.js';
 import { SegmentedVoiceInputModePillActive, SegmentedVoiceInputModePillInactive } from '../../browser/voiceInputMode/voiceInputModeContextKeys.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 
-suite('VoiceInputModeService', () => {
-
+suite('Voice input mode unavailable', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-
-	function createDictationService(configured: boolean): IChatSpeechToTextService {
-		return {
-			onDidChangeState: store.add(new Emitter<ChatSpeechToTextState>()).event,
-			get state() { return ChatSpeechToTextState.Idle; },
-			get isConfigured() { return configured; },
-		} as IChatSpeechToTextService;
-	}
-
-	function createService(options: { voiceEnabled?: boolean; voiceButtonShown?: boolean; dictationConfigured?: boolean; dictationButtonShown?: boolean } = {}) {
-		const storageService = store.add(new TestStorageService());
-		const configurationService = new TestConfigurationService();
-		configurationService.setUserConfiguration('agents.voice.enabled', options.voiceEnabled ?? false);
-		configurationService.setUserConfiguration('agents.voice.showButton', options.voiceButtonShown ?? true);
-		configurationService.setUserConfiguration('dictation.showButton', options.dictationButtonShown ?? true);
-		const contextKeyService = new MockContextKeyService();
-		ChatContextKeys.enabled.bindTo(contextKeyService).set(true);
-		AGENTS_VOICE_ENTITLED.bindTo(contextKeyService).set(true);
-		const dictationService = createDictationService(options.dictationConfigured ?? false);
-		const service = store.add(new VoiceInputModeService(storageService, configurationService, contextKeyService, dictationService));
-		return { service, contextKeyService };
-	}
-
-	test('defaults to voice and mirrors selection into the context key', () => {
-		const { service, contextKeyService } = createService();
-		assert.strictEqual(service.selectedMode.get(), 'voice');
-		assert.strictEqual(contextKeyService.getContextKeyValue('chatVoiceInputMode'), 'voice');
-
-		service.setSelectedMode('dictation');
-		assert.strictEqual(service.selectedMode.get(), 'dictation');
-		assert.strictEqual(contextKeyService.getContextKeyValue('chatVoiceInputMode'), 'dictation');
-	});
-
-	test('reflects mode availability from config and dictation service', () => {
-		const { service } = createService({ voiceEnabled: true, dictationConfigured: true });
-		assert.deepStrictEqual(
-			{ voice: service.voiceAvailable.get(), dictation: service.dictationAvailable.get() },
-			{ voice: true, dictation: true }
-		);
-
-		const { service: unavailable } = createService({ voiceEnabled: false, dictationConfigured: false });
-		assert.deepStrictEqual(
-			{ voice: unavailable.voiceAvailable.get(), dictation: unavailable.dictationAvailable.get() },
-			{ voice: false, dictation: false }
-		);
-	});
-
-	test('excludes hidden controls from mode availability', () => {
-		const { service } = createService({
-			voiceEnabled: true,
-			voiceButtonShown: false,
-			dictationConfigured: true,
-			dictationButtonShown: false,
-		});
-
-		assert.deepStrictEqual(
-			{ voice: service.voiceAvailable.get(), dictation: service.dictationAvailable.get() },
-			{ voice: false, dictation: false }
-		);
-	});
 
 	test('shows the segmented pill only when it has multiple active controls', () => {
 		const values: Record<string, ContextKeyValue> = {
@@ -125,124 +48,75 @@ suite('VoiceInputModeService', () => {
 		assert.strictEqual(matches(SegmentedVoiceInputModePillActive), true);
 		assert.strictEqual(matches(SegmentedVoiceInputModePillInactive), false);
 	});
-});
-
-suite('VoiceInputModeActionViewItem', () => {
-
-	const store = ensureNoDisposablesAreLeakedInTestSuite();
-
-	teardown(() => sinon.restore());
-
-	test('touch activates Voice power and mute exactly once and context menus configure the current action', () => {
-		const ignoredTargets = new Set<HTMLElement>();
-		sinon.stub(Gesture, 'ignoreTarget').callsFake(element => {
-			ignoredTargets.add(element);
-			return { dispose: () => ignoredTargets.delete(element) };
-		});
-		sinon.stub(Gesture, 'addTarget').callsFake(element => dom.addDisposableListener(element, 'touchend', event => {
-			const target = event.target;
-			if (target instanceof Node && [...ignoredTargets].some(ignoredTarget => ignoredTarget.contains(target))) {
-				return;
+	test('strict DI service has fixed unavailable observables and schedules no walkthroughs', async () => {
+		const sandbox = sinon.createSandbox();
+		const timers = sandbox.useFakeTimers();
+		try {
+			const instantiation = store.add(new InstantiationService(new ServiceCollection(), true));
+			const service = store.add(instantiation.createInstance(VoiceInputModeService));
+			let observations = 0;
+			store.add(autorun(reader => {
+				observations++;
+				assert.strictEqual(service.selectedMode.read(reader), 'voice');
+				assert.strictEqual(service.voiceAvailable.read(reader), false);
+				assert.strictEqual(service.dictationAvailable.read(reader), false);
+				assert.strictEqual(service.handsFree.read(reader), false);
+				assert.strictEqual(service.simulatedVoiceState.read(reader), undefined);
+				assert.strictEqual(service.simulatedHandsFree.read(reader), undefined);
+				assert.strictEqual(service.simulatedVersion.read(reader), undefined);
+				assert.strictEqual(service.simulatedHover.read(reader), false);
+			}));
+			for (const version of ['handsFree', 'keyboardHold', 'buttonHold', 'clickToggle'] as const) {
+				service.setSelectedMode('dictation');
+				service.setSimulatedVoiceState('speaking');
+				service.startVoiceStateWalkthrough(version);
+				service.stepVoiceStateWalkthrough();
+				await timers.tickAsync(30000);
+				service.clearSimulation();
 			}
-			element.dispatchEvent(new CustomEvent(TouchEventType.Tap));
-			event.preventDefault();
-		}));
+			assert.strictEqual(observations, 1);
+			assert.strictEqual(timers.countTimers(), 0);
+		} finally {
+			sandbox.restore();
+		}
+	});
 
-		const selectedMode = observableValue<'dictation' | 'voice'>('selectedMode', 'voice');
-		const voiceInputModeService = upcastPartial<IVoiceInputModeService>({
-			selectedMode,
-			voiceAvailable: observableValue('voiceAvailable', true),
-			dictationAvailable: observableValue('dictationAvailable', true),
-			handsFree: observableValue('handsFree', true),
-			simulatedVoiceState: observableValue('simulatedVoiceState', undefined),
-			simulatedHandsFree: observableValue('simulatedHandsFree', undefined),
-			simulatedVersion: observableValue('simulatedVersion', undefined),
-			simulatedHover: observableValue('simulatedHover', false),
-			setSelectedMode: mode => selectedMode.set(mode, undefined),
-		});
-		const isConnected = observableValue('isConnected', true);
-		const isMuted = observableValue('isMuted', false);
-		let voicePowerCount = 0;
-		let muteCount = 0;
-		let contextMenuActionIds: string[] = [];
-		const voiceSessionController = upcastPartial<IVoiceSessionController>({
-			isConnected,
-			isConnecting: observableValue('isConnecting', false),
-			isReconnecting: observableValue('isReconnecting', false),
-			isMuted,
-			voiceState: observableValue('voiceState', 'idle'),
-			disconnect: () => voicePowerCount++,
-			setMuted: () => muteCount++,
-		});
-		const chatSpeechToTextService = upcastPartial<IChatSpeechToTextService>({
-			onDidChangeState: Event.None,
-			onDidChangePreparingModel: Event.None,
-			onDidChangeDownloadingModel: Event.None,
-			state: ChatSpeechToTextState.Idle,
-			currentSurface: undefined,
-			isPreparingModel: false,
-			isDownloadingModel: false,
-		});
-		const action = store.add(new Action('voiceInputMode', 'Voice Input Mode'));
-		const viewItem = store.add(new VoiceInputModeActionViewItem(
-			action,
-			undefined,
-			voiceInputModeService,
-			voiceSessionController,
-			upcastPartial<ICommandService>({ executeCommand: async () => undefined }),
-			new TestConfigurationService(),
-			new MockKeybindingService() as IKeybindingService,
-			upcastPartial<IContextMenuService>({
-				showContextMenu: delegate => {
-					contextMenuActionIds = delegate.getActions!().map(action => action.id);
-				},
-			}),
-			NullHoverService as IHoverService,
-			upcastPartial<IMicCaptureService>({ analyserNode: undefined }),
-			upcastPartial<ITtsPlaybackService>({ analyserNode: undefined }),
-			chatSpeechToTextService,
-			new TestAccessibilityService() as IAccessibilityService,
-			new TestThemeService() as IThemeService,
-		));
-		const container = dom.append(document.body, dom.$('.action-item'));
-		store.add({ dispose: () => container.remove() });
-		viewItem.render(container);
-		// The fake touch events below must not reach a global `Gesture` instance that other tests may have created
-		store.add(dom.addDisposableListener(container, 'touchend', event => event.stopPropagation()));
+	test('actions are unavailable and simulation registration does not add commands', async () => {
+		const commands = Array.from(CommandsRegistry.getCommands().keys());
+		registerVoiceInputModeSimulateActions();
+		assert.deepStrictEqual(Array.from(CommandsRegistry.getCommands().keys()), commands);
+		const unreadable = { get: () => { throw new Error('Services must not be read'); } };
+		const accessor = new Proxy({} as ServicesAccessor, unreadable);
+		const context = new Proxy({} as IContext, unreadable);
+		for (const action of [new ChatVoiceInputModeAction(), new ChatVoiceInputModeToggleListenAction()]) {
+			assert.strictEqual(action.desc.precondition?.evaluate(context), false);
+			assert.strictEqual(action.desc.menu, undefined);
+			assert.strictEqual(action.desc.keybinding, undefined);
+			assert.strictEqual(action.desc.f1, false);
+			await action.run(accessor);
+		}
+		assert.strictEqual(isVoiceInputModeAvailable(new Proxy({} as IVoiceInputModeService, unreadable)), undefined);
+	});
 
-		const touch = (selector: string) => {
-			const button = container.querySelector<HTMLButtonElement>(selector)!;
-			const touchEnd = new (dom.getWindow(button).Event)('touchend', { bubbles: true, cancelable: true });
-			button.dispatchEvent(touchEnd);
-			if (!touchEnd.defaultPrevented) {
-				button.click();
-			}
-		};
-		const configureKeybindingAction = (selector: string) => {
-			container.querySelector<HTMLButtonElement>(selector)!.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
-			return contextMenuActionIds[0];
-		};
-
-		const connectedVoiceAction = configureKeybindingAction('.chat-voice-input-mode-cell.voice');
-		const listenAction = configureKeybindingAction('.chat-voice-input-mode-cell.listen');
-		const muteAction = configureKeybindingAction('.chat-voice-input-mode-cell.mute');
-		isConnected.set(false, undefined);
-		const disconnectedVoiceAction = configureKeybindingAction('.chat-voice-input-mode-cell.voice');
-		isConnected.set(true, undefined);
-
-		touch('.chat-voice-input-mode-cell.voice');
-		touch('.chat-voice-input-mode-cell.mute');
-
-		assert.deepStrictEqual(
-			{ voicePowerCount, muteCount, connectedVoiceAction, disconnectedVoiceAction, listenAction, muteAction },
-			{
-				voicePowerCount: 1,
-				muteCount: 1,
-				connectedVoiceAction: 'configureKeybinding/agentsVoice.disconnect',
-				disconnectedVoiceAction: 'configureKeybinding/agentsVoice.startVoiceInChat',
-				listenAction: 'configureKeybinding/workbench.action.chat.voiceInputMode.holdToTalk',
-				muteAction: `configureKeybinding/${AGENTS_VOICE_TOGGLE_MUTE_COMMAND_ID}`,
-			},
-		);
+	test('direct view construction preserves DOM, ignores host hooks and cannot execute the action', () => {
+		const instantiation = store.add(new InstantiationService(new ServiceCollection(), true));
+		let runs = 0;
+		const action = store.add(new Action('voice.test', 'Voice', undefined, true, async () => { runs++; }));
+		const options = new Proxy({} as IVoiceInputModePillOptions, { get: () => { throw new Error('Host options must not be read'); } });
+		const view = store.add(instantiation.createInstance(VoiceInputModeActionViewItem, action, options));
+		const container = document.createElement('div');
+		container.innerHTML = '<input aria-label="Existing input">';
+		const original = container.outerHTML;
+		view.render(container);
+		view.onClick();
+		view.focus();
+		view.blur();
+		container.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		container.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+		assert.strictEqual(view.isEnabled(), false);
+		assert.strictEqual(runs, 0);
+		assert.strictEqual(container.outerHTML, original);
+		view.dispose();
+		assert.strictEqual(container.outerHTML, original);
 	});
 });

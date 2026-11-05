@@ -1,6 +1,6 @@
 # integration-next-package
 
-Статус: ЗАНЯТО. Владелец: интегратор, по поручению пользователя работать непрерывно. GitHub-авторизацию, каталог GitHub и backup не менять.
+Статус: ЗАНЯТО. Владелец: интегратор, по поручению пользователя работать непрерывно. Решение уточнено владельцем 6 ноября: собственные GitHub OAuth/catalog/backup отменены; специфичные модули можно удалять после проверки потребителей. Общие Git/SSH/authentication API сохраняем; перенос настроек через файл занят другим агентом.
 
 Первый срез пакета (documents-save-as/unicode-find уже в main):
 - `agent/editor-playground-remove` — `4c9d2745b769597fbe8b5568b12b06a2b01c2873`
@@ -20,3 +20,7 @@
 - `agent/voice-onboarding-disable` — `9646d947f6535ca69dabf27ab6d2224a1f71bac3`
 - `agent/voice-window-picker-disable` — `dfd84fb6136381e99c7bb048d944c36ff55119d4`
 - `agent/voice-widget-binding-disable` — `2fd4c20701cb750f47f14f55eb310a206cd43616`
+
+Второй срез объединён без конфликтов. Полный client typecheck прошёл; 134 browser tests в 12 модулях, 13 Node tests retention, 0 page errors. В тестовом harness устранено пересечение Playwright polling с запретом requestAnimationFrame в voice tests: runner теперь запускает Mocha после инициализации automation context. Это изменение внешнего harness, не продукта. Проверки документов (16) переиспользованы — исходники не менялись.
+
+Обновлены AGENTS/README/project-plan/handoff/development-plan по подтверждённому здесь решению владельца об отказе от GitHub-модуля и переносе настроек файлом. GitHub-specific source пока не менялся. Полный binary/native цикл ещё не выполнен для нового пакета; работа продолжается.

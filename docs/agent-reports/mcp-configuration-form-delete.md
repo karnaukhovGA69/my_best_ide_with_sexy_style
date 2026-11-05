@@ -1,0 +1,5 @@
+# mcp-configuration-form-delete
+
+Статус: ЗАНЯТО. Владелец: MCP cleanup. Ветка: `agent/mcp-configuration-form-delete`. База main `411cccde06e`. Следующий пакет после release-0.0.9.
+
+Зарезервированы в src/vs/workbench/contrib/mcp: browser/mcpServerConfigurationForm.ts, browser/media/mcpServerConfigurationForm.css, common/mcpServerConfigurationForm.ts, test/common/mcpServerConfigurationForm.test.ts, browser/mcpServerConfigurationFormAccessibility.ts; в contrib/chat: browser/aiCustomization/embeddedMcpServerDetail.ts и test/browser/aiCustomization/embeddedMcpServerDetail.test.ts; этот отчёт. Удалить MCP configuration form, shared form helpers/styles и editable wiring; сохранить read-only detail/source inspection. Accessible contribution сохранить как unavailable registration, чтобы не менять общий entrypoint. Удалить obsolete form tests, сохранить остальные detail scenarios и добавить refusal boundary. Обычные settings/JSON editing, accessibility frameworks, GitHub/auth/Git/SSH и чужие области не менять.

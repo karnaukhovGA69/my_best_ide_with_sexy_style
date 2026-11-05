@@ -58,6 +58,15 @@ suite('Local settings file format', () => {
 		});
 	});
 
+	test('merges a BOM-prefixed local file without dropping its encoding marker or comments', () => {
+		const current = '\uFEFF{\r\n  // local settings\r\n  "editor.fontSize": 12\r\n}';
+		const result = mergeSettingsFile(current, { 'editor.fontSize': 16, 'editor.tabSize': 4 });
+		assert.deepStrictEqual(parseSettingsFile(result.content), { 'editor.fontSize': 16, 'editor.tabSize': 4 });
+		assert.ok(result.content.startsWith('\uFEFF'));
+		assert.ok(result.content.includes('// local settings'));
+		assert.strictEqual(/(?<!\r)\n/.test(result.content), false);
+	});
+
 	test('unchanged imports preserve the exact existing contents', () => {
 		const current = '{ // keep\n "editor.fontSize": 14\n}';
 		assert.deepStrictEqual(mergeSettingsFile(current, { 'editor.fontSize': 14 }), { content: current, changed: 0 });

@@ -42,3 +42,19 @@
 Состав третьего среза закрыт: дальнейшие новые задачи входят в следующий срез. До последних двух веток 198 browser tests passed, 0 page errors; дополнительные suite и общий typecheck запускаются сейчас.
 
 Третий срез проверен: 198 browser tests основного набора + 64 дополнительных (MCP install/voice input), 0 failures/page errors. Полный client typecheck прошёл. Node retention 13 tests и documents 16 tests не повторялись, их исходники неизменны. MCP connection suite baseline Canceled из task report остаётся отдельно отмеченным ограничением; он не выдаётся за чистый успешный прогон. Новые service/registration проверки успешны; общий package/native/signing ещё впереди.
+
+Четвёртый срез: GitHub links/builtins/workbench-service (`153c1b5174c`, `d61187551e5`, `4126adc2578`) и готовые snapshots:
+- `agent/dictation-indicators-disable` — `7aef48ac1065f569109b5e33654d2bd5d119bd3d`
+- `agent/mcp-orphan-prompt-picker-delete` — `168e887cd054d681dd3bcc54010068e4fba26242`
+- `agent/mcp-orphan-server-delete` — `ec83293f13e3ed21b7752200fdc7be0e6b4d8a40`
+- `agent/voice-glow-runtime-disable` — `76860d5c1a762b0b35679777fe17942237ecda32`
+- `agent/voice-input-submission-disable` — `269dfdcefd221f88090eb5db54ae4f71f77d84a0`
+- `agent/voice-orphan-components-delete` — `bb239c3f9e68c0d165887258f891b7dd1077b3fd`
+- `agent/voice-orphan-onboarding-assets-delete` — `a37b68430a2f0b769a39025e9b9299b91e22235c`
+- `agent/voice-toolbar-views-disable` — `cef2a86b0eb5c17e42fa2b868481b0d7ad823040`
+
+Четвёртый срез: 114 совместных browser tests и полный client typecheck прошли. GitHub caller/layout suites отдельно 55/55 с реальным CSS, distribution tests 3/3. Старый MCP connection Canceled больше не возникает в новом unavailable suite; старый транспорт удалён, это не исправление его handshake.
+
+Финальное подключение перед ближайшей сборкой: `agent/settings-file-portability` — `9d3f6035dab67af4afd98ac8a927bd8ef3cb87de`. Интегратор резервирует userDataProfile.contribution.ts для import, дополнительные интеграционные поправки settingsTransfer при обнаруженных ошибках и native smoke/packaging. Следующие cleanup ветки принимаются отдельным срезом после фиксации сборочного snapshot.
+
+Settings contribution подключён; 25 browser tests passed (24 агента + regression сохранения BOM/comments/CRLF в текущем файле), 0 page errors; lint wiring/test прошёл. Проверка BOM не потребовала product fix. Состав ближайшего бинарного snapshot закрыт; дальнейшие task branches остаются для следующего пакета.

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import './settingsTransfer.contribution.js';
 import { WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
 import { UserDataProfilesWorkbenchContribution } from './userDataProfile.js';
 import './userDataProfileActions.js';

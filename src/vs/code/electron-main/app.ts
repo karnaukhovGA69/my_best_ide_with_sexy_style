@@ -17,7 +17,7 @@ import { Disposable, DisposableStore, toDisposable } from '../../base/common/lif
 import { Schemas, VSCODE_AUTHORITY } from '../../base/common/network.js';
 import { join, posix } from '../../base/common/path.js';
 import { mark } from '../../base/common/performance.js';
-import { IProcessEnvironment, isLinux, isLinuxSnap, isMacintosh, isWindows, OS } from '../../base/common/platform.js';
+import { IProcessEnvironment, isLinux, isMacintosh, isWindows, OS } from '../../base/common/platform.js';
 import { assertType } from '../../base/common/types.js';
 import { URI } from '../../base/common/uri.js';
 import { generateUuid } from '../../base/common/uuid.js';
@@ -87,14 +87,8 @@ import { TelemetryAppenderClient } from '../../platform/telemetry/common/telemet
 import { ITelemetryServiceConfig, TelemetryService } from '../../platform/telemetry/common/telemetryService.js';
 import { getPiiPathsFromEnvironment, getTelemetryLevel, getUserContentPathsFromEnvironment, isInternalTelemetry, NullTelemetryService, supportsTelemetry } from '../../platform/telemetry/common/telemetryUtils.js';
 import { IUpdateService } from '../../platform/update/common/update.js';
+import { DisabledUpdateService } from '../../platform/update/common/disabledUpdateService.js';
 import { UpdateChannel } from '../../platform/update/common/updateIpc.js';
-import { NotAvailableUpdateDialog } from '../../platform/update/electron-main/notAvailableUpdateDialog.js';
-import { DarwinUpdateService } from '../../platform/update/electron-main/updateService.darwin.js';
-import { LinuxUpdateService } from '../../platform/update/electron-main/updateService.linux.js';
-import { SnapUpdateService } from '../../platform/update/electron-main/updateService.snap.js';
-import { Win32UpdateService } from '../../platform/update/electron-main/updateService.win32.js';
-import { UnattendedRestartScheduler } from '../../platform/update/electron-main/unattendedRestartScheduler.js';
-import { IUnattendedRestartReadinessProvider, UnattendedRestartChannelName } from '../../platform/lifecycle/common/unattendedRestart.js';
 import { isInnoSetupInstall } from '../../platform/update/electron-main/win32UpdateType.js';
 import { IOpenURLOptions, IURLService } from '../../platform/url/common/url.js';
 import { URLHandlerChannelClient, URLHandlerRouter } from '../../platform/url/common/urlIpc.js';
@@ -804,13 +798,6 @@ export class CodeApplication extends Disposable {
 		// Post Open Windows Tasks
 		this.afterWindowOpen(appInstantiationService);
 
-		// Restart to apply updates while the screen is locked
-		this._register(appInstantiationService.createInstance(UnattendedRestartScheduler, {
-			getWindowReadiness: window => ProxyChannel.toService<IUnattendedRestartReadinessProvider>(
-				mainProcessElectronServer.getChannel(UnattendedRestartChannelName, client => client.ctx === `window:${window.id}`)
-			).canRestartUnattended()
-		}));
-
 		const isGeneratingNodeCompileCache = process.env['VSCODE_GENERATE_NODE_COMPILE_CACHE'] === '1';
 		const shouldStartCriticalNodeProcesses = isGeneratingNodeCompileCache || process.env['VSCODE_MEASURE_NODE_COMPILE_CACHE'] === '1';
 		if (shouldStartCriticalNodeProcesses) {
@@ -1232,24 +1219,8 @@ export class CodeApplication extends Disposable {
 	private async initServices(machineId: string, sqmId: string, devDeviceId: string, sharedProcessReady: Promise<MessagePortClient>): Promise<IInstantiationService> {
 		const services = new ServiceCollection();
 
-		// Update
-		switch (process.platform) {
-			case 'win32':
-				services.set(IUpdateService, new SyncDescriptor(Win32UpdateService));
-				break;
-
-			case 'linux':
-				if (isLinuxSnap) {
-					services.set(IUpdateService, new SyncDescriptor(SnapUpdateService, [process.env['SNAP'], process.env['SNAP_REVISION']]));
-				} else {
-					services.set(IUpdateService, new SyncDescriptor(LinuxUpdateService));
-				}
-				break;
-
-			case 'darwin':
-				services.set(IUpdateService, new SyncDescriptor(DarwinUpdateService));
-				break;
-		}
+		// Updates are disabled independently of product URLs, platform or user settings.
+		services.set(IUpdateService, new SyncDescriptor(DisabledUpdateService));
 
 		// Windows
 		services.set(IWindowsMainService, new SyncDescriptor(WindowsMainService, [machineId, sqmId, devDeviceId, this.userEnv], false));
@@ -1427,9 +1398,6 @@ export class CodeApplication extends Disposable {
 		const updateService = accessor.get(IUpdateService);
 		const updateChannel = new UpdateChannel(updateService);
 		mainProcessElectronServer.registerChannel('update', updateChannel);
-
-		// Show a native "no updates available" dialog from the main process only in windowless macOS case.
-		this._register(new NotAvailableUpdateDialog(updateService, accessor.get(IDialogMainService), accessor.get(IWindowsMainService)));
 
 		// Metered Connection
 		const meteredConnectionChannel = new MeteredConnectionChannel(accessor.get(IMeteredConnectionService) as MeteredConnectionMainService);

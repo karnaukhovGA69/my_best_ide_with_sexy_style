@@ -4,40 +4,35 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
-import { toDisposable } from '../../../../../base/common/lifecycle.js';
-import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IChatSpeechToTextService } from '../../browser/speechToText/chatSpeechToTextService.js';
-import { DictationDownloadRing } from '../../browser/speechToText/dictationDownloadRing.js';
+import { DictationDownloadRing, getDictationDownloadHoverContent, getDictationDownloadHoverMarkdown, getDictationPreparingLabel } from '../../browser/speechToText/dictationDownloadRing.js';
 
-suite('DictationDownloadRing', () => {
+suite('Dictation progress indicators unavailable', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	const service = new Proxy({} as IChatSpeechToTextService, { get: () => { throw new Error('Service must not be read'); } });
 
-	test('creates its SVG elements in the main realm for an auxiliary window', () => {
-		const iframe = document.createElement('iframe');
-		document.body.appendChild(iframe);
-		store.add(toDisposable(() => iframe.remove()));
-
-		const auxiliaryDocument = iframe.contentDocument!;
+	test('construction and updates never render SVG or observe progress', () => {
 		const container = document.createElement('div');
-		auxiliaryDocument.body.appendChild(container);
-		const service = new class extends mock<IChatSpeechToTextService>() {
-			override readonly onDidChangeModelDownloadProgress = Event.None;
-			override readonly modelDownloadProgress = 0.5;
-		};
+		container.innerHTML = '<span>Existing control</span>';
+		const original = container.outerHTML;
+		const ring = store.add(new DictationDownloadRing(container, service));
+		for (let i = 0; i < 2; i++) {
+			ring.update();
+			ring.dispose();
+			assert.strictEqual(container.outerHTML, original);
+		}
+		const unreadableContainer = new Proxy({} as HTMLElement, { get: () => { throw new Error('Container must not be read'); } });
+		store.add(new DictationDownloadRing(unreadableContainer, service));
+	});
 
-		store.add(new DictationDownloadRing(container, service));
-		const ring = container.querySelector('svg');
-
-		assert.deepStrictEqual({
-			ownerDocument: ring?.ownerDocument === auxiliaryDocument,
-			mainRealmSvg: ring instanceof SVGSVGElement,
-			circles: ring?.querySelectorAll('circle').length,
-		}, {
-			ownerDocument: true,
-			mainRealmSvg: true,
-			circles: 2,
-		});
+	test('hover and label report unavailable without reading backend or progress', () => {
+		const message = 'Dictation is unavailable in Myself IDE.';
+		assert.strictEqual(getDictationPreparingLabel(service), message);
+		assert.strictEqual(getDictationDownloadHoverMarkdown(service).value, message);
+		const content = getDictationDownloadHoverContent(service);
+		assert.ok(content && typeof content === 'object' && 'markdownNotSupportedFallback' in content);
+		assert.strictEqual(content.markdownNotSupportedFallback, message);
+		assert.strictEqual(getDictationDownloadHoverMarkdown(service).isTrusted, false);
 	});
 });

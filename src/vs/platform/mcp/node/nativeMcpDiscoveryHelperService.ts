@@ -3,37 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { homedir } from 'os';
-import { IProcessEnvironment, platform } from '../../../base/common/platform.js';
-import { URI } from '../../../base/common/uri.js';
-import { getCopilotHomePath } from '../../environment/common/copilotHome.js';
-import { INativeMcpDiscoveryData, INativeMcpDiscoveryHelperService } from '../common/nativeMcpDiscoveryHelper.js';
+import type { IProcessEnvironment } from '../../../base/common/platform.js';
+import { localize } from '../../../nls.js';
+import type { INativeMcpDiscoveryData, INativeMcpDiscoveryHelperService } from '../common/nativeMcpDiscoveryHelper.js';
 
+/** Retains main/remote registration without accessing discovery roots or the shell. */
 export class NativeMcpDiscoveryHelperService implements INativeMcpDiscoveryHelperService {
 	declare readonly _serviceBrand: undefined;
 
-	constructor(
-		private readonly environment: IProcessEnvironment = process.env,
-		private readonly resolveShellEnvironment?: () => Promise<IProcessEnvironment>,
-	) { }
-
-	async load(): Promise<INativeMcpDiscoveryData> {
-		// Match the desktop Agent Host's shell overlay without changing other applications' discovery roots.
-		const copilotEnvironment = this.resolveShellEnvironment ? { ...this.environment, ...await this.resolveShellEnvironment() } : this.environment;
-		return {
-			platform,
-			homedir: URI.file(homedir()),
-			copilotHome: URI.file(getCopilotHomePath(homedir(), copilotEnvironment)),
-			winAppData: this.uriFromEnvVariable('APPDATA'),
-			xdgHome: this.uriFromEnvVariable('XDG_CONFIG_HOME'),
-		};
+	constructor(_environment?: IProcessEnvironment, _resolveShellEnvironment?: () => Promise<IProcessEnvironment>) {
+		// Accept existing desktop arguments without reading or retaining them.
+		// The remote default must not capture process.env either.
 	}
 
-	private uriFromEnvVariable(varName: string, environment = this.environment) {
-		const envVar = environment[varName];
-		if (!envVar) {
-			return undefined;
-		}
-		return URI.file(envVar);
+	async load(): Promise<INativeMcpDiscoveryData> {
+		throw new Error(localize('mcpDiscoveryUnavailable', "MCP discovery is not available in this edition of the editor."));
 	}
 }

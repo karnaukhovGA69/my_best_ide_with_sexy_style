@@ -13,7 +13,7 @@ import { Action2, MenuId } from '../../../../../platform/actions/common/actions.
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
-import { KeybindingsRegistry, KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
 import { ICodeEditor } from '../../../../browser/editorBrowser.js';
 import { EditorAction, ServicesAccessor } from '../../../../browser/editorExtensions.js';
@@ -238,12 +238,6 @@ export class AcceptInlineCompletion extends EditorAction {
 		}
 	}
 }
-KeybindingsRegistry.registerKeybindingRule({
-	id: inlineSuggestCommitId,
-	weight: 202, // greater than jump
-	primary: KeyCode.Tab,
-	when: ContextKeyExpr.and(InlineCompletionContextKeys.inInlineEditsPreviewEditor)
-});
 
 export class AcceptInlineCompletionAlternativeAction extends EditorAction {
 	constructor() {
@@ -269,12 +263,6 @@ export class AcceptInlineCompletionAlternativeAction extends EditorAction {
 		}
 	}
 }
-KeybindingsRegistry.registerKeybindingRule({
-	id: inlineSuggestCommitAlternativeActionId,
-	weight: 203,
-	primary: KeyMod.Shift | KeyCode.Tab,
-	when: ContextKeyExpr.and(InlineCompletionContextKeys.inInlineEditsPreviewEditor)
-});
 
 export class JumpToNextInlineEdit extends EditorAction {
 	constructor() {
@@ -359,14 +347,6 @@ export class ToggleInlineCompletionShowCollapsed extends EditorAction {
 		configurationService.updateValue('editor.inlineSuggest.edits.showCollapsed', !showCollapsed);
 	}
 }
-
-KeybindingsRegistry.registerKeybindingRule({
-	id: HideInlineCompletion.ID,
-	weight: -1, // very weak
-	primary: KeyCode.Escape,
-	secondary: [KeyMod.Shift | KeyCode.Escape],
-	when: ContextKeyExpr.and(InlineCompletionContextKeys.inInlineEditsPreviewEditor)
-});
 
 export class ToggleAlwaysShowInlineSuggestionToolbar extends Action2 {
 	public static ID = 'editor.action.inlineSuggest.toggleAlwaysShowToolbar';

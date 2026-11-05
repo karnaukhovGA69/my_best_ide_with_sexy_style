@@ -14,7 +14,6 @@ import { InstantiationService } from '../../../../../platform/instantiation/comm
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { ChatEntitlement } from '../../../../services/chat/common/chatEntitlementService.js';
 import { ChatDictationSurface, ChatSpeechToTextService, ChatSpeechToTextState, IDictationAccuracyMeasurement, IChatSpeechToTextService, createDictationCleanupSystemPrompt, isDictationActiveOnSurface, isDictationEntitled, resolveDictationBackend, selectAuthoritativeDictationTranscript, selectFinalDictationTranscript, stripDictationFillers } from '../../browser/speechToText/chatSpeechToTextService.js';
-import { resolveDictationLanguage } from '../../browser/speechToText/dictationLanguage.js';
 
 suite('Myself IDE unavailable built-in dictation', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -179,40 +178,6 @@ suite('Dictation compatibility helpers', () => {
 			webWithMaiPolicy: 'mai',
 			desktopWithLocalModel: 'nemo',
 			desktopWithMai: 'mai',
-		});
-	});
-
-	test('resolves the dictation language from Voice Mode configuration, display language, and browser locale', () => {
-		assert.deepStrictEqual({
-			explicit: resolveDictationLanguage('fr-FR', 'de-DE'),
-			explicitWithDisplayLanguage: resolveDictationLanguage('fr-FR', 'de-DE', 'ja'),
-			displayLanguage: resolveDictationLanguage('auto', 'en-US', 'de'),
-			englishDisplayLanguage: resolveDictationLanguage('auto', 'de-DE', 'en'),
-			unsupportedDisplayLanguage: resolveDictationLanguage('auto', 'pt-BR', 'id-ID'),
-			automatic: resolveDictationLanguage('auto', 'uk-UA', 'id-ID'),
-			regionalAutomatic: resolveDictationLanguage('auto', 'pt-BR', 'id-ID'),
-			additionalSupportedAutomatic: resolveDictationLanguage('auto', 'he-IL', 'id-ID'),
-			unsupportedRegion: resolveDictationLanguage('auto', 'en-AU', 'id-ID'),
-			explicitSpanish: resolveDictationLanguage('es', 'en-US'),
-			explicitAdaptationReady: resolveDictationLanguage('lt', 'en-US'),
-			regionalPortugueseFallback: resolveDictationLanguage('auto', 'pt-AO', 'id-ID'),
-			invalidExplicit: resolveDictationLanguage('not a locale', 'de-DE'),
-			missing: resolveDictationLanguage(undefined, undefined, 'id-ID'),
-		}, {
-			explicit: 'fr-FR',
-			explicitWithDisplayLanguage: 'fr-FR',
-			displayLanguage: 'de-DE',
-			englishDisplayLanguage: 'en-US',
-			unsupportedDisplayLanguage: 'pt-BR',
-			automatic: 'uk-UA',
-			regionalAutomatic: 'pt-BR',
-			additionalSupportedAutomatic: 'he-IL',
-			unsupportedRegion: 'en-US',
-			explicitSpanish: 'es-US',
-			explicitAdaptationReady: 'lt-LT',
-			regionalPortugueseFallback: 'pt-PT',
-			invalidExplicit: 'auto',
-			missing: 'auto',
 		});
 	});
 

@@ -39,3 +39,11 @@
 - `agent/voice-session-controller-disable` — `1ac87831161b054bb94e14f53a477dc0b2e6c94b`
 - `agent/voice-tool-dispatch-disable` — `238fa7b9d3a39792e319b6da89886856ab0ff1ec`
 - `agent/voice-transcription-transport-disable` — `4fe165a5eb60f5c189b4c2c6db644c339ffa16c2`
+
+## Интеграция перед сборкой
+
+Все 33 зафиксированных HEAD объединены с сохранением истории. Два terminal add/content conflicts разрешены версией refresh: прежняя реализация сохранена, добавлены регрессии миграции и экспорт тестируемого класса. Остальные ветки объединились автоматически.
+
+Редактор документов включён в distribution allowlist; стандартные esbuild host/webview hooks обеспечивают production packaging обеих частей. Команда локальной компиляции использует корневой TypeScript через pnpm, без новых зависимостей. Исправлены обнаруженные общим typecheck остаточный импорт удалённого ChatAgentToolsContribution, его устаревший positive registration suite и неиспользуемый command ID; negative registration suite сохраняется. В throwing getter голосового теста указан never.
+
+При совмещённом browser-прогоне воспроизведены 4 unhandled Canceled из прежнего McpServer. Удалён отложенный сбор mcp/serverBoot telemetry и явно обработаны wrapper promises фонового обновления tools/prompts: ошибки по-прежнему сохраняются в observable promiseResult. После исправления 241 browser tests прошли без page errors. Также прошли 19 Node tests, 12 tests документов и 9 distribution/privacy tests. Full client typecheck прошёл после исправления несовместимостей; финальная повторная проверка фиксируется ниже. Native smoke, signing и publication ещё не выполнены.

@@ -26,6 +26,7 @@ const distributionExtensions = new Set([
 	'merge-conflict',
 	'mermaid-markdown-features',
 	'microsoft-authentication',
+	'myself-documents',
 	'notebook-renderers',
 	'npm',
 	'references-view',

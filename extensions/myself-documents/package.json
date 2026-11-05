@@ -75,7 +75,7 @@
     }
   },
   "scripts": {
-    "compile": "tsc -p . && tsc -p webview",
+    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-documents && pnpm -C ../.. exec tsc -p extensions/myself-documents/webview",
     "test": "pnpm run compile && node --test test/*.test.cts",
     "test-webview": "node --test test/webview.test.cts"
   }

@@ -49,25 +49,6 @@ import { MCP } from './modelContextProtocol.js';
 import { McpApps } from './modelContextProtocolApps.js';
 import { UriTemplate } from '../../../../base/common/uriTemplate.js';
 
-type ServerBootData = {
-	supportsLogging: boolean;
-	supportsPrompts: boolean;
-	supportsResources: boolean;
-	toolCount: number;
-	serverName: string;
-	serverVersion: string;
-};
-type ServerBootClassification = {
-	owner: 'connor4312';
-	comment: 'Details the capabilities of the MCP server';
-	supportsLogging: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the server supports logging' };
-	supportsPrompts: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the server supports prompts' };
-	supportsResources: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the server supports resource' };
-	toolCount: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The number of tools the server advertises' };
-	serverName: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The name of the MCP server' };
-	serverVersion: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The version of the MCP server' };
-};
-
 type ElicitationTelemetryData = {
 	serverName: string;
 	serverVersion: string;
@@ -1182,7 +1163,11 @@ export class McpServer extends Disposable implements IMcpServer {
 			this._primitiveCache.store(this.definition.id, { tools: data, nonce });
 			return { data, nonce };
 		});
-		this._tools.fromServerPromise.set(new ObservablePromise(toolPromiseSafe), tx);
+		const observablePromise = new ObservablePromise(toolPromiseSafe);
+		// Errors remain available through promiseResult; these background refreshes
+		// have no consumer awaiting the wrapper promise during shutdown.
+		void observablePromise.promise.catch(() => { });
+		this._tools.fromServerPromise.set(observablePromise, tx);
 		return toolPromiseSafe;
 	}
 
@@ -1196,7 +1181,11 @@ export class McpServer extends Disposable implements IMcpServer {
 			return { data, nonce };
 		});
 
-		this._prompts.fromServerPromise.set(new ObservablePromise(promptsPromiseSafe), tx);
+		const observablePromise = new ObservablePromise(promptsPromiseSafe);
+		// Errors remain available through promiseResult; these background refreshes
+		// have no consumer awaiting the wrapper promise during shutdown.
+		void observablePromise.promise.catch(() => { });
+		this._prompts.fromServerPromise.set(observablePromise, tx);
 		return promptsPromiseSafe;
 	}
 
@@ -1248,18 +1237,7 @@ export class McpServer extends Disposable implements IMcpServer {
 		transaction(tx => {
 			this._setServerMetadata(cacheNonce, { serverInfo: handler.serverInfo, instructions: handler.serverInstructions, capabilities: handler.capabilities }, tx);
 			updatePrompts(tx);
-			const toolUpdate = updateTools(tx);
-
-			toolUpdate.then(tools => {
-				this._telemetryService.publicLog2<ServerBootData, ServerBootClassification>('mcp/serverBoot', {
-					supportsLogging: !!handler.capabilities.logging,
-					supportsPrompts: !!handler.capabilities.prompts,
-					supportsResources: !!handler.capabilities.resources,
-					toolCount: tools.data.length,
-					serverName: handler.serverInfo.name,
-					serverVersion: handler.serverInfo.version,
-				});
-			});
+			updateTools(tx);
 		});
 	}
 }

@@ -67,7 +67,7 @@ suite('Myself IDE unavailable voice live sessions', () => {
 		let providerChanges = 0;
 		store.add(service.onDidChangeHasSpeechProvider(() => providerChanges++));
 		const provider = {
-			get metadata() { throw new Error('Must not inspect disabled live provider'); },
+			get metadata(): never { throw new Error('Must not inspect disabled live provider'); },
 			async createVoiceLiveSession() { throw new Error('Must not invoke disabled live provider'); },
 		};
 		const first = store.add(service.registerVoiceLiveSessionProvider('live', provider));

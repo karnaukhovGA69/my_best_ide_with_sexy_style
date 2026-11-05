@@ -1,6 +1,6 @@
 # Myself IDE
 
-An experimental Code - OSS distribution undergoing incremental cleanup. Seven implementation stages are integrated, including local plain-text PDF export in v0.0.7-preview. The visual redesign and other planned features are not complete. See [the product plan](project-plan.md) and [agent handoff](project-handoff.md) for the full scope.
+An experimental Code - OSS distribution undergoing incremental cleanup. The integrated source includes the original seven stages and the 0.0.8 batch: a document editor and 30 terminal/MCP/voice cleanup tasks. Release validation is recorded in docs/agent-reports/release-0.0.8.md. The visual redesign and other planned features are not complete. See [the product plan](project-plan.md) and [agent handoff](project-handoff.md) for the full scope.
 
 ## Distribution
 
@@ -31,6 +31,12 @@ The `myself.documents.exportPdf` command accepts the v1 DTO for a future documen
 - The extension recommendation engine, notification service and installed-program tips scanner are no longer loaded. Recommended views and actions are removed; compatible empty services preserve extension management and IPC contracts. Manual catalog browsing, VSIX installation and manual updates remain.
 - Periodic extension update checks, automatic installation/replacement, and automatic extension restarts are removed, along with their settings and controls. Old settings and per-extension preferences cannot reactivate them. Explicit Check for Updates, Update All, individual updates, manual restarts and VSIX installation remain. Legacy internal auto-update methods return disabled values or do nothing for compatibility. Security and catalog metadata requests are retained; independently installed extensions can implement their own network behavior.
 - Welcome startup and snippet suggestions start disabled. Their remaining implementations have not all been physically removed. Snippet support needed by extensions remains available.
+
+## Integrated document and AI cleanup batch
+
+The optional `myself-documents` built-in adds New Document and Open as Document actions for plain `.txt` files. Its webview uses the host document API for edits, save and undo/redo, offers search and A4 typography/margin controls, and exports the latest buffer through the existing local PDF backend. Text remains plain UTF-8. The page preview is approximate; the exported PDF performs pagination.
+
+MCP discovery, gallery initialization, workbench inventory, extension-host MCP registration/transport, gateway/broker, resource filesystem, sampling/logging, elicitation, development mode, Copilot configuration mirroring, editor language features, context UI, migration and CLI addition paths are disabled or removed. Terminal AI tool registrations and voice transport, dictation, playback, dispatch, keyword activation and session controller paths are disabled. Compatible empty services or explicit unavailable errors remain where other code still imports their contracts. Shared AI/MCP implementations are not all removed.
 
 ## Privacy and diagnostics
 

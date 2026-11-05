@@ -69,7 +69,6 @@ function isCancelSignal(command: string): boolean {
 }
 
 const FocusTerminalByIdCommandId = 'workbench.action.terminal.chat.focusTerminalById';
-const FocusTerminalByExecutionIdCommandId = 'workbench.action.terminal.chat.focusTerminalByExecutionId';
 
 export class SendToTerminalTool extends Disposable implements IToolImpl {
 

@@ -26,7 +26,7 @@ suite('Myself IDE extension distribution', () => {
 		}
 
 		assert.deepStrictEqual({
-			requiredFeatures: ['git', 'git-base', 'github-authentication', 'configuration-editing', 'extension-editing', 'npm', 'markdown-basics', 'markdown-language-features', 'markdown-math', 'mermaid-markdown-features'].filter(name => !folders.includes(name)),
+			requiredFeatures: ['git', 'git-base', 'github-authentication', 'configuration-editing', 'extension-editing', 'myself-documents', 'npm', 'markdown-basics', 'markdown-language-features', 'markdown-math', 'mermaid-markdown-features'].filter(name => !folders.includes(name)),
 			missingDependencies,
 			languages: [...new Set(languages)].sort(),
 		}, {

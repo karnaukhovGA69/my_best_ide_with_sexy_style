@@ -4,58 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { mainWindow } from '../../../../../../base/browser/window.js';
 import { ICodeEditor } from '../../../../../../editor/browser/editorBrowser.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { mock } from '../../../../../../base/test/common/mock.js';
+import { MenuId, MenuRegistry } from '../../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../../../../../platform/commands/common/commands.js';
-import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { ContextKeyService } from '../../../../../../platform/contextkey/browser/contextKeyService.js';
-import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { IKeybindingService } from '../../../../../../platform/keybinding/common/keybinding.js';
-import { NullLogService } from '../../../../../../platform/log/common/log.js';
-import { getDictationShortcutOperation, registerChatSpeechToTextActions, runDictationShortcut, ToggleChatSpeechToTextAction } from '../../../browser/actions/chatSpeechToTextActions.js';
-import { IChatWidget, IChatWidgetService } from '../../../browser/chat.js';
-import { ChatSpeechToTextState, IChatSpeechToTextService } from '../../../browser/speechToText/chatSpeechToTextService.js';
-import { IDictationOnboardingService } from '../../../browser/speechToText/dictationOnboarding.js';
-import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
+import { IContext } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { ServicesAccessor } from '../../../../../../platform/instantiation/common/instantiation.js';
+import { KeybindingsRegistry } from '../../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { ChatSpeechToTextConfigured, ChatSpeechToTextConnectingAction, ChatSpeechToTextPreparing, ChatSpeechToTextPreparingAction, getDictationShortcutOperation, IDictationShortcutContext, registerChatSpeechToTextActions, runDictationShortcut, ToggleChatSpeechToTextAction } from '../../../browser/actions/chatSpeechToTextActions.js';
+import { ChatSpeechToTextState } from '../../../browser/speechToText/chatSpeechToTextService.js';
 
-suite('Chat Speech to Text Actions', () => {
+suite('Chat speech to text actions unavailable', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-
-	test('disables the dictation action during session preparation', () => {
-		const configuration = new TestConfigurationService();
-		store.add(configuration.onDidChangeConfigurationEmitter);
-		const contextKeyService = store.add(new ContextKeyService(configuration));
-		const preparing = ChatContextKeys.transcriptProgressActive.bindTo(contextKeyService);
-		const action = new ToggleChatSpeechToTextAction();
-		preparing.set(true);
-		const duringPreparation = contextKeyService.contextMatchesRules(action.desc.precondition);
-		preparing.set(false);
-		assert.deepStrictEqual({
-			duringPreparation,
-			afterPreparation: contextKeyService.contextMatchesRules(action.desc.precondition),
-		}, { duringPreparation: false, afterPreparation: true });
-	});
-
-	test('dictation commands do not record into the disabled preparation input', async () => {
-		store.add(registerChatSpeechToTextActions());
-		const instantiationService = store.add(new TestInstantiationService());
-		const widget = new class extends mock<IChatWidget>() {
-			override readonly isTranscriptProgressActive = true;
-		};
-		instantiationService.stub(IChatWidgetService, new class extends mock<IChatWidgetService>() {
-			override readonly lastFocusedWidget = widget;
-		});
-		instantiationService.stub(IChatSpeechToTextService, new class extends mock<IChatSpeechToTextService>() { });
-		instantiationService.stub(IKeybindingService, new class extends mock<IKeybindingService>() { });
-
-		for (const commandId of [ToggleChatSpeechToTextAction.ID, 'workbench.action.chat.holdToSpeechToText']) {
-			const command = CommandsRegistry.getCommand(commandId)!;
-			await command.handler(instantiationService);
-			await command.handler(instantiationService, { widget });
-		}
-	});
 
 	test('resolves the dictation toggle operation', () => {
 		assert.deepStrictEqual([
@@ -71,49 +31,39 @@ suite('Chat Speech to Text Actions', () => {
 		]);
 	});
 
-	test('starts dictation while first-run onboarding is shown', async () => {
-		const calls: string[] = [];
-		let state = ChatSpeechToTextState.Idle;
-		const speechService = new class extends mock<IChatSpeechToTextService>() {
-			override get state(): ChatSpeechToTextState { return state; }
-			override readonly isPreparingModel = false;
-			override readonly analyserNode = new class extends mock<AnalyserNode>() { };
-			override async switchMicrophone(_window: Window & typeof globalThis, deviceId: string): Promise<AnalyserNode | undefined> {
-				calls.push(`switchMicrophone:${deviceId}`);
-				return this.analyserNode;
-			}
-		};
-		const keybindingService = new class extends mock<IKeybindingService>() {
-			override enableKeybindingHoldMode(): Promise<void> | undefined {
-				return undefined;
-			}
-		};
-		const onboardingService = new class extends mock<IDictationOnboardingService>() {
-			override showIfNeeded(): boolean {
-				calls.push('showIfNeeded');
-				return true;
-			}
-			override refreshMicrophones(analyserNode?: AnalyserNode, switchMicrophone?: (deviceId: string) => Promise<AnalyserNode | undefined>): void {
-				calls.push(`refreshMicrophones:${analyserNode === speechService.analyserNode}`);
-				void switchMicrophone?.('mic-b');
-			}
-		};
-		const editor = new class extends mock<ICodeEditor>() {
-			override getDomNode(): HTMLElement {
-				return mainWindow.document.body;
-			}
-		};
+	test('registration adds no commands, menus or keybindings', () => {
+		const commands = Array.from(CommandsRegistry.getCommands().keys());
+		const menu = MenuRegistry.getMenuItems(MenuId.ChatExecute);
+		const palette = MenuRegistry.getMenuItems(MenuId.CommandPalette);
+		const keybindings = KeybindingsRegistry.getDefaultKeybindings();
+		const registration = store.add(registerChatSpeechToTextActions());
+		assert.strictEqual(registration.isDisposed, false);
+		assert.deepStrictEqual(Array.from(CommandsRegistry.getCommands().keys()), commands);
+		assert.deepStrictEqual(MenuRegistry.getMenuItems(MenuId.ChatExecute), menu);
+		assert.deepStrictEqual(MenuRegistry.getMenuItems(MenuId.CommandPalette), palette);
+		assert.deepStrictEqual(KeybindingsRegistry.getDefaultKeybindings(), keybindings);
+		registration.dispose();
+	});
 
-		await runDictationShortcut(
-			{ speechService, keybindingService, logService: new NullLogService(), onboardingService },
-			'test.dictation',
-			editor,
-			async () => {
-				calls.push('startDictation');
-				state = ChatSpeechToTextState.Recording;
-			},
-		);
+	test('exported actions have no menus or shortcuts and cannot be enabled by restored context', async () => {
+		const context = new Proxy({} as IContext, { get: () => { throw new Error('Context must not be read'); } });
+		const accessor = new Proxy({} as ServicesAccessor, { get: () => { throw new Error('Services must not be accessed'); } });
+		assert.strictEqual(ChatSpeechToTextConfigured.evaluate(context), false);
+		assert.strictEqual(ChatSpeechToTextPreparing.evaluate(context), false);
+		for (const action of [new ToggleChatSpeechToTextAction(), new ChatSpeechToTextPreparingAction(), new ChatSpeechToTextConnectingAction()]) {
+			assert.strictEqual(action.desc.precondition?.evaluate(context), false);
+			assert.strictEqual(action.desc.f1, false);
+			assert.strictEqual(action.desc.menu, undefined);
+			assert.strictEqual(action.desc.keybinding, undefined);
+			await action.run(accessor);
+		}
+	});
 
-		assert.deepStrictEqual(calls, ['showIfNeeded', 'startDictation', 'refreshMicrophones:true', 'switchMicrophone:mic-b']);
+	test('shortcut never accesses the editor, services, key hold mode or supplied start callback', async () => {
+		const unreadable = { get: () => { throw new Error('Input must not be read'); } };
+		const context = new Proxy({} as IDictationShortcutContext, unreadable);
+		const editor = new Proxy({} as ICodeEditor, unreadable);
+		await runDictationShortcut(context, 'dictation.start', editor, async () => { throw new Error('Dictation must not start'); });
+		await runDictationShortcut(context, 'dictation.start', editor);
 	});
 });

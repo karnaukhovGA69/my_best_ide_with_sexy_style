@@ -5,12 +5,9 @@
 
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
-import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
 import { IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
-import { bindContextKey } from '../../../../platform/observable/common/platformObservableUtils.js';
-import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { IMcpService, LazyCollectionState, McpConnectionState, McpServerCacheState } from './mcpTypes.js';
+import type { IWorkbenchContribution } from '../../../common/contributions.js';
 
 
 export namespace McpContextKeys {
@@ -29,31 +26,19 @@ export namespace McpContextKeys {
 }
 
 
+/** Preserves empty MCP UI state without instantiating or observing MCP services. */
 export class McpContextKeysController extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.mcp.contextKey';
 
 	constructor(
-		@IMcpService mcpService: IMcpService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
 		super();
 
-		const ctxServerCount = McpContextKeys.serverCount.bindTo(contextKeyService);
-		const ctxToolsCount = McpContextKeys.toolsCount.bindTo(contextKeyService);
-		const ctxHasUnknownTools = McpContextKeys.hasUnknownTools.bindTo(contextKeyService);
-
-		this._store.add(bindContextKey(McpContextKeys.hasServersWithErrors, contextKeyService, r => mcpService.servers.read(r).some(c => c.connectionState.read(r).state === McpConnectionState.Kind.Error)));
-
-		this._store.add(autorun(r => {
-			const servers = mcpService.servers.read(r);
-			const serverTools = servers.map(s => s.tools.read(r));
-			ctxServerCount.set(servers.length);
-			ctxToolsCount.set(serverTools.reduce((count, tools) => count + tools.length, 0));
-			ctxHasUnknownTools.set(mcpService.lazyCollectionState.read(r).state !== LazyCollectionState.AllKnown || servers.some(s => {
-				const toolState = s.cacheState.read(r);
-				return toolState === McpServerCacheState.Unknown || toolState === McpServerCacheState.Outdated || toolState === McpServerCacheState.RefreshingFromUnknown;
-			}));
-		}));
+		McpContextKeys.serverCount.bindTo(contextKeyService).set(0);
+		McpContextKeys.toolsCount.bindTo(contextKeyService).set(0);
+		McpContextKeys.hasUnknownTools.bindTo(contextKeyService).set(false);
+		McpContextKeys.hasServersWithErrors.bindTo(contextKeyService).set(false);
 	}
 }

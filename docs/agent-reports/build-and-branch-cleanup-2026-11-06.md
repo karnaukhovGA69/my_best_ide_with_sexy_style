@@ -97,7 +97,7 @@ Deep ad-hoc signing → ASAR metadata refresh → outer signing → deep strict 
 
 Проверенное исправление и этот отчёт готовы к включению в main. Остальные активные task worktrees и их изменения не затрагивались.
 
-Исправление и отчёт включены в main merge-коммитом 6c35fd269de. Финальная очистка удаляет ещё 14 уже слитых локальных веток; всего удалено 76. Активные worktree, неслитые task-ветки и незавершённая release-0.0.9 сохранены.
+Исправление и отчёт включены в main merge-коммитом 6c35fd269de. Финальная очистка удаляет ещё 14 уже слитых локальных веток; всего удалено 86. Активные worktree, неслитые task-ветки и незавершённая release-0.0.9 сохранены.
 - `agent/chat-pet-telemetry-remove` → `a783a0a903a9e6707fc271681d852e8ac566a75b`
 - `agent/chat-pet-widget-runtime-disable` → `9a33161c9094ebc316d09aec4e57dede14a83ab0`
 - `agent/edit-telemetry-orphan-trackers-delete` → `d51bd61e22eeec6e52659e1d147fc66ceee0e136`
@@ -112,3 +112,5 @@ Deep ad-hoc signing → ASAR metadata refresh → outer signing → deep strict 
 - `agent/survey-orphan-editor-delete` → `ad5cd2fb7888363e877a70b9f4f7e20b72389f6d`
 - `agent/voice-close-registry-delete` → `f8ed2e27669be2d7854cad5d826779eb3def900a`
 - `agent/voice-orphan-routing-delete` → `51875cd4ce41f8c0d28f2a61bc3712cfeb5d99e6`
+
+Некоторые git branch -d в builder checkout сначала отказали: новые задачи были слиты в main, но отсутствовали в frozen builder HEAD. Повторное удаление выполнено из main после повторной проверки ancestor/SHA; force-delete не использовался.

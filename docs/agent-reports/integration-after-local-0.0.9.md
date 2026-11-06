@@ -15,3 +15,8 @@
 Первый срез: 19 browser tests passed, 0 page errors; imports/class reference scan удалённого inline view и diff --check чистые. Полный client typecheck PASSED (exit 0), слот освобождён; параллельных package/typecheck перед стартом не было.
 
 Первый срез ЗАВЕРШЁН: 7 задач, 19 browser tests; перенос в main без пересборки локального 0.0.9. Проверенный ZIP остаётся на 9d93537d452.
+
+Второй срез — ЗАНЯТО интегратором: 3 heads включают 5 задач с dependencies model-picker-tryout-disable/session-picker-tryout-disable.
+- `agents-window-shortcut-tip-disable` — `36b123972f359ae75e64ca200299916016450755`
+- `session-picker-orphan-payload-delete` — `16aa072303e666342236ad99640445b31cd66ab2`
+- `chat-orphan-spotlight-delete` — `08b014dda19a167242d65bd88f89aac01bcfc942`

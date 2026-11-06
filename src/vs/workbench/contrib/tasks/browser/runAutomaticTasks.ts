@@ -63,6 +63,9 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 			return;
 		}
 		let workspaceTasks = await this._taskService.getWorkspaceTasks(TaskRunSource.FolderOpen);
+		if (this._store.isDisposed || !this._workspaceTrustManagementService.isWorkspaceTrusted()) {
+			return;
+		}
 		this._logService.trace(`RunAutomaticTasks: Found ${workspaceTasks.size} automatic tasks`);
 
 		let autoTasks = this._findAutoTasks(this._taskService, workspaceTasks);
@@ -85,6 +88,9 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 			}
 
 			workspaceTasks = await this._taskService.getWorkspaceTasks(TaskRunSource.FolderOpen);
+			if (this._store.isDisposed || !this._workspaceTrustManagementService.isWorkspaceTrusted()) {
+				return;
+			}
 			autoTasks = this._findAutoTasks(this._taskService, workspaceTasks);
 			this._logService.trace(`RunAutomaticTasks: updated taskNames=${JSON.stringify(autoTasks.taskNames)}`);
 		}

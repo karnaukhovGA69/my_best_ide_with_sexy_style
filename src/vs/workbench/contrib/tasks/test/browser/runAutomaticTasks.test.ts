@@ -30,7 +30,9 @@ suite('Automatic task trust at execution', () => {
 			? { configurations: { byIdentifier: { local: configured } } }
 			: { set: { tasks: [task] } });
 		instantiation.stub(IWorkspaceTrustManagementService, { isWorkspaceTrusted: () => state.trusted, onDidChangeTrust: Event.None });
-		instantiation.stub(IConfigurationService, { inspect: () => ({ value: 'on', userValue: 'on' }), getValue: () => 'on' });
+		instantiation.stub(IConfigurationService, {});
+		instantiation.stub(IConfigurationService, 'inspect', () => ({ value: 'on', userValue: 'on' }));
+		instantiation.stub(IConfigurationService, 'getValue', () => 'on');
 		instantiation.stub(ITaskService, {
 			isReconnected: true, hasTaskSystemInfo: true,
 			getWorkspaceTasks: () => { state.discoveries++; return discovered.p; },

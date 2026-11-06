@@ -1,6 +1,6 @@
 {
-	"nameShort": "Myself IDE",
-	"nameLong": "Myself IDE",
+	"nameShort": "Nerded Code",
+	"nameLong": "Nerded Code",
 	"applicationName": "myself-ide",
 	"dataFolderName": ".myself-ide",
 	"sharedDataFolderName": ".myself-ide-shared",
@@ -15,7 +15,7 @@
 	"serverDataFolderName": ".vscode-server-oss",
 	"tunnelApplicationName": "code-tunnel-oss",
 	"win32DirName": "Microsoft Code OSS",
-	"win32NameVersion": "Microsoft Code OSS",
+	"win32NameVersion": "Nerded Code",
 	"win32RegValueName": "CodeOSS",
 	"win32x64AppId": "{{D77B7E06-80BA-4137-BCF4-654B95CCEBC5}",
 	"win32arm64AppId": "{{D1ACE434-89C5-48D1-88D3-E2991DF85475}",

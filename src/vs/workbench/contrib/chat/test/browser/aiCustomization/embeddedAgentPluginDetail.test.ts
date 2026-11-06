@@ -4,15 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { VSBuffer, bufferToStream } from '../../../../../../base/common/buffer.js';
-import { Event } from '../../../../../../base/common/event.js';
+import { VSBuffer } from '../../../../../../base/common/buffer.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
 import { observableValue } from '../../../../../../base/common/observable.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { IRequestContext } from '../../../../../../base/parts/request/common/request.js';
 import { FileOperationError, FileOperationResult, IFileService } from '../../../../../../platform/files/common/files.js';
-import { IRequestService } from '../../../../../../platform/request/common/request.js';
 import { mock } from '../../../../../../base/test/common/mock.js';
 import { AgentPluginItemKind, IAgentPluginItem, IMarketplacePluginItem } from '../../../browser/agentPluginEditor/agentPluginItems.js';
 import { getPluginRepository, getPluginSourceUri, getPluginVersion, loadMarketplacePluginContributionEntries, loadPluginReadme, PluginReadmeRenderGuard, resolveInstalledPluginSkillLink, waitForInstalledPlugin } from '../../../browser/aiCustomization/embeddedAgentPluginDetail.js';
@@ -26,26 +23,6 @@ import { NullLogService } from '../../../../../../platform/log/common/log.js';
 import { createCustomizationMarketplaceInstallationSnapshot, emptyCustomizationMarketplaceInstallationSnapshot } from '../../../common/customizationMarketplaceInstallService.js';
 import { CustomizationMarketplaceMediaType, ICustomizationMarketplaceResource } from '../../../../../../platform/customizationMarketplace/common/customizationMarketplaceService.js';
 import { ContributionEnablementState } from '../../../common/enablement.js';
-
-class StatusRequestService extends mock<IRequestService>() {
-	override readonly onDidCompleteRequest = Event.None;
-	readonly requests: string[] = [];
-
-	constructor(
-		private readonly statusCode: number,
-		private readonly body: string,
-	) {
-		super();
-	}
-
-	override async request(options: { readonly url?: string }): Promise<IRequestContext> {
-		this.requests.push(options.url ?? '');
-		return {
-			res: { statusCode: this.statusCode, headers: {} },
-			stream: bufferToStream(VSBuffer.fromString(this.body)),
-		};
-	}
-}
 
 function createMarketplaceItem(readmeUri: URI): IMarketplacePluginItem {
 	return {
@@ -64,8 +41,6 @@ function createMarketplaceItem(readmeUri: URI): IMarketplacePluginItem {
 
 suite('embeddedAgentPluginDetail', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
-
-	const fileService = new class extends mock<IFileService>() { }();
 
 	test('invalidates overlapping renders for the same plugin', () => {
 		const guard = new PluginReadmeRenderGuard();
@@ -187,7 +162,7 @@ suite('embeddedAgentPluginDetail', () => {
 		});
 	});
 
-	test('loads contribution details from a marketplace plugin source', async () => {
+	test('reads contribution details from a local source without cloning', async () => {
 		const pluginUri = URI.from({ scheme: Schemas.inMemory, path: '/plugins/example' });
 		const testFileService = createInMemoryFileService(disposables, Schemas.inMemory);
 		const writeFile = (path: string, content: string) => testFileService.writeFile(
@@ -204,7 +179,6 @@ suite('embeddedAgentPluginDetail', () => {
 		const entries = await loadMarketplacePluginContributionEntries(
 			createMarketplaceItem(URI.parse('https://example.test/README.md')),
 			{
-				async ensurePluginSource() { return pluginUri; },
 				getPluginInstallUri() { return pluginUri; },
 			},
 			testFileService,
@@ -225,23 +199,32 @@ suite('embeddedAgentPluginDetail', () => {
 		]);
 	});
 
-	test('uses the source README URI as the Markdown base URI', async () => {
-		const requestService = new StatusRequestService(200, '[Guide](./docs/guide.md)');
-		const readme = await loadPluginReadme(
-			createMarketplaceItem(URI.parse('https://github.com/owner/repo/blob/main/plugins/example/README.md')),
-			fileService,
-			requestService,
-		);
-
-		assert.deepStrictEqual({
-			content: readme?.content,
-			baseUri: readme?.baseUri.toString(),
-			requests: requestService.requests,
-		}, {
-			content: '[Guide](./docs/guide.md)',
-			baseUri: 'https://github.com/owner/repo/blob/main/plugins/example/README.md',
-			requests: ['https://raw.githubusercontent.com/owner/repo/main/plugins/example/README.md'],
+	test('uses the local README URI as the Markdown base URI', async () => {
+		const uri = URI.file('/plugins/example/README.md');
+		const reads: string[] = [];
+		const readme = await loadPluginReadme(createMarketplaceItem(uri), {
+			readFile: async resource => { reads.push(resource.toString()); return { value: VSBuffer.fromString('[Guide](./docs/guide.md)') } as Awaited<ReturnType<IFileService['readFile']>>; },
 		});
+		assert.deepStrictEqual(reads, [uri.toString()]);
+		assert.deepStrictEqual(readme, { content: '[Guide](./docs/guide.md)', baseUri: uri });
+	});
+
+	test('skips remote README locations without reading any provider', async () => {
+		const reads: string[] = [];
+		for (const location of [
+			'https://github.com/owner/repo/blob/main/README.md',
+			'https://example.test/README.md',
+			'http://example.test/README.md',
+			'vscode-remote://ssh-remote+example/plugins/README.md',
+			'file://example.test/share/README.md',
+			'custom-provider:/README.md',
+		]) {
+			const result = await loadPluginReadme(createMarketplaceItem(URI.parse(location)), {
+				readFile: async uri => { reads.push(uri.toString()); throw new Error('Unexpected read'); },
+			});
+			assert.strictEqual(result, undefined);
+		}
+		assert.deepStrictEqual(reads, []);
 	});
 
 	test('resolves enabled installed plugin README skill links to the skill file', () => {
@@ -303,27 +286,16 @@ suite('embeddedAgentPluginDetail', () => {
 					throw new FileOperationError('Not found', FileOperationResult.FILE_NOT_FOUND);
 				},
 			},
-			new StatusRequestService(200, ''),
 		);
 
 		assert.strictEqual(readme, undefined);
 	});
 
-	test('rejects HTTP error response bodies', async () => {
-		const results: string[] = [];
-		for (const statusCode of [404, 500]) {
-			try {
-				await loadPluginReadme(
-					createMarketplaceItem(URI.parse('https://example.test/README.md')),
-					fileService,
-					new StatusRequestService(statusCode, `${statusCode}: Not Found`),
-				);
-				results.push('resolved');
-			} catch (error) {
-				results.push(error instanceof Error ? error.message : String(error));
-			}
-		}
-
-		assert.deepStrictEqual(results, ['Server returned 404', 'Server returned 500']);
+	test('preserves local read errors other than missing files', async () => {
+		const error = new Error('Permission denied');
+		await assert.rejects(loadPluginReadme(createMarketplaceItem(URI.file('/plugins/example/README.md')), {
+			readFile: async () => { throw error; },
+		}), candidate => candidate === error);
 	});
+
 });

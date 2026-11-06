@@ -16,7 +16,6 @@ import { Emitter } from '../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
-import { asTextOrError, IRequestService } from '../../../../../platform/request/common/request.js';
 import { localize } from '../../../../../nls.js';
 import { AgentPluginItemKind, IAgentPluginItem } from '../agentPluginEditor/agentPluginItems.js';
 import { getGitHubRepositorySourceUri, getGitHubRepositoryUri, getMarketplacePluginRepositoryUri, getMarketplacePluginSourceUri, IMarketplacePlugin } from '../../common/plugins/pluginMarketplaceService.js';
@@ -31,10 +30,10 @@ import { IAgentPlugin, IAgentPluginService, setAgentPluginEnablement } from '../
 import { createPolicyManagedEnablementAction, createUninstallPluginAction, getPluginPolicyEnablement, isPluginPolicyBlocked, isPluginRequiredByPolicy, removePluginWithMarketplaceOwnership } from '../agentPluginActions.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { basename, dirname, isEqual, joinPath } from '../../../../../base/common/resources.js';
+import { basename, dirname, isEqual } from '../../../../../base/common/resources.js';
 import { generateUuid } from '../../../../../base/common/uuid.js';
 import { AICustomizationManagementSection } from '../../common/aiCustomizationWorkspaceService.js';
-import { FileOperationError, FileOperationResult, IFileService } from '../../../../../platform/files/common/files.js';
+import { IFileService } from '../../../../../platform/files/common/files.js';
 import { IMarkdownRendererService, openLinkFromMarkdown } from '../../../../../platform/markdown/browser/markdownRenderer.js';
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { Action } from '../../../../../base/common/actions.js';
@@ -50,13 +49,11 @@ import { IPathService } from '../../../../services/path/common/pathService.js';
 import { AUTOMATION_BLUEPRINT_FILE_SUFFIX, parseAutomationBlueprint } from '../../common/automations/automationBlueprint.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 
+import { IPluginReadme, loadPluginReadme } from '../agentPluginEditor/pluginReadme.js';
+export { loadPluginReadme } from '../agentPluginEditor/pluginReadme.js';
+
 const $ = DOM.$;
 const INSTALL_REGISTRATION_TIMEOUT = 10_000;
-
-export interface IPluginReadme {
-	readonly content: string;
-	readonly baseUri: URI;
-}
 
 export class PluginReadmeRenderGuard {
 
@@ -69,40 +66,6 @@ export class PluginReadmeRenderGuard {
 	isCurrent(generation: number): boolean {
 		return this.generation === generation;
 	}
-}
-
-export async function loadPluginReadme(
-	item: IAgentPluginItem,
-	fileService: Pick<IFileService, 'readFile'>,
-	requestService: Pick<IRequestService, 'request'>,
-): Promise<IPluginReadme | undefined> {
-	const readmeUri = item.kind === AgentPluginItemKind.Installed
-		? joinPath(item.plugin.uri, 'README.md')
-		: item.readmeUri;
-	if (!readmeUri) {
-		return undefined;
-	}
-	if (readmeUri.scheme === Schemas.file || readmeUri.scheme === Schemas.vscodeRemote) {
-		try {
-			const content = await fileService.readFile(readmeUri);
-			return { content: content.value.toString(), baseUri: readmeUri };
-		} catch (error) {
-			if (error instanceof FileOperationError && error.fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
-				return undefined;
-			}
-			throw error;
-		}
-	}
-	if (readmeUri.scheme === Schemas.https) {
-		let fetchedUri = readmeUri;
-		const githubBlobMatch = readmeUri.toString().match(/^https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/blob\/(?<rest>.+)$/);
-		if (githubBlobMatch?.groups) {
-			fetchedUri = URI.parse(`https://raw.githubusercontent.com/${githubBlobMatch.groups['owner']}/${githubBlobMatch.groups['repo']}/${githubBlobMatch.groups['rest']}`);
-		}
-		const context = await requestService.request({ type: 'GET', url: fetchedUri.toString(), callSite: 'aiCustomizationPluginDetail.fetchReadme' }, CancellationToken.None);
-		return { content: await asTextOrError(context) ?? '', baseUri: readmeUri };
-	}
-	throw new Error(`Unsupported plugin README URI scheme: ${readmeUri.scheme}`);
 }
 
 export async function waitForInstalledPlugin(
@@ -217,7 +180,6 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 		@ICommandService private readonly commandService: ICommandService,
 		@IHoverService private readonly hoverService: IHoverService,
 		@IFileService private readonly fileService: IFileService,
-		@IRequestService private readonly requestService: IRequestService,
 		@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,
 		@IAgentPluginRepositoryService private readonly agentPluginRepositoryService: IAgentPluginRepositoryService,
 		@IPathService private readonly pathService: IPathService,
@@ -704,7 +666,7 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 		this.readmeEl.style.display = '';
 		let readme: IPluginReadme | undefined;
 		try {
-			readme = await loadPluginReadme(item, this.fileService, this.requestService);
+			readme = await loadPluginReadme(item, this.fileService);
 		} catch {
 			if (!this._store.isDisposed && this.current === item && this.readmeRenderGuard.isCurrent(renderGeneration)) {
 				const message = DOM.append(this.readmeContentEl, $('.plugin-detail-readme-message'));
@@ -731,6 +693,7 @@ export class EmbeddedAgentPluginDetail extends Disposable {
 		const markdown = new MarkdownString(readme.content, { supportHtml: false });
 		markdown.baseUri = readme.baseUri;
 		const rendered = this.renderDisposables.add(this.markdownRendererService.render(markdown, {
+			sanitizerConfig: { remoteImageIsAllowed: () => false },
 			actionHandler: (link, markdownString) => {
 				const skillUri = resolveInstalledPluginSkillLink(item, link);
 				if (skillUri) {
@@ -882,19 +845,21 @@ function getInstalledPluginContributionEntries(item: Extract<IAgentPluginItem, {
 
 export async function loadMarketplacePluginContributionEntries(
 	item: Extract<IAgentPluginItem, { kind: AgentPluginItemKind.Marketplace }>,
-	repositoryService: Pick<IAgentPluginRepositoryService, 'ensurePluginSource' | 'getPluginInstallUri'>,
+	repositoryService: Pick<IAgentPluginRepositoryService, 'getPluginInstallUri'>,
 	fileService: IFileService,
 	pathService: { userHome(): Promise<URI> | URI },
 	logService: Pick<ILogService, 'warn'>,
 	token: CancellationToken,
 ): Promise<IPluginContributionEntry[]> {
 	const marketplacePlugin = toMarketplacePlugin(item);
-	await repositoryService.ensurePluginSource(marketplacePlugin, { token });
 	if (token.isCancellationRequested) {
 		return [];
 	}
 
 	const pluginUri = repositoryService.getPluginInstallUri(marketplacePlugin);
+	if (![Schemas.file, Schemas.vscodeUserData, Schemas.inMemory].includes(pluginUri.scheme) || pluginUri.authority) {
+		return [];
+	}
 	const userHome = await pathService.userHome();
 	const [parsed, format] = await Promise.all([
 		parsePlugin(pluginUri, fileService, undefined, userHome, pluginUri),

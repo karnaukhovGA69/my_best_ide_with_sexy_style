@@ -70,3 +70,17 @@
 - `agent/welcome-ui-startup-remove` → `3a029bfd362c0512927a069187f27ae9328acbb9`
 
 Build snapshot: интеграционный срез 379a3ea0067, общий client typecheck интегратора завершился с exit 0. Зафиксирована сборка этого среза, без последующих задач. Пользователь явно запросил билд.
+
+После интеграции третьего среза удалены ещё 12 слитых локальных веток:
+- `agent/mcp-action-rendering-runtime-remove` → `436c49b9b5cb3b7fe4ab8ef668f42282772c8e5d`
+- `agent/mcp-browse-prompt-commands-remove` → `fd17f274e9fef520f137f58946bc32fdf447f255`
+- `agent/mcp-configuration-form-delete` → `9de58123a971ee920e7bd2b69651f687dad49895`
+- `agent/mcp-install-actions-runtime-remove` → `75be99455c85ff758ccd1560cf6229319f2b693f`
+- `agent/mcp-lifecycle-commands-remove` → `fc4896bf9f6404ef78d2881c89361a9a61066eb6`
+- `agent/mcp-orphan-connection-tasks-delete` → `f32b7e8956376bc786bc928c2243e91424ff8eb2`
+- `agent/mcp-plugin-discovery-delete` → `f4d8aaf1bf50a87590c1228314aaededb44f22ab`
+- `agent/mcp-registry-runtime-remove` → `32b4007ec4cc9be84190ccef2db011a2e8bbbde5`
+- `agent/mcp-request-handler-runtime-delete` → `b970a3691b51dc7cb1c3bf2f71e740301940c6d7`
+- `agent/mcp-server-controls-runtime-remove` → `4098428f5c30f38828eaba472f57035e06d64c72`
+- `agent/mcp-server-editor-runtime-remove` → `5058199e010d71634a4a24daba2a0f83a4fe386a`
+- `integration/next-package` → `411cccde06e843fac42e170ccf749f7784c7f7e3`

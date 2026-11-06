@@ -37,6 +37,7 @@ const distributionExtensions = new Set([
 	'theme-modern-icons',
 	'theme-monokai',
 	'theme-monokai-dimmed',
+	'theme-nerded-calm',
 	'theme-quietlight',
 	'theme-red',
 	'theme-seti',

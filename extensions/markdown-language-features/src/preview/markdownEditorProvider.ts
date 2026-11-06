@@ -21,6 +21,7 @@ import {
 	type MarkdownContributionProvider,
 } from '../markdownExtensions';
 import { generateUuid } from '../util/uuid';
+import { getLocalResourceCsp } from './localResourceCsp';
 import { MarkdownEditorRichLinkController } from './markdownEditorRichLinks';
 import { codeBlockEditorPresentation, markdownEditorHost, markdownEditorRenderer, mergeCodeBlockEditorPresentation, type CodeBlockEditorProviderDefinition, type MarkdownEditorConfiguration, type ResolvedCodeBlockEditor } from './markdownEditorProtocol';
 import { createMarkdownEditorRpcConnection, MarkdownEditorRpcTransport } from './markdownEditorRpc';
@@ -1183,7 +1184,7 @@ export class MarkdownEditorProvider extends Disposable implements vscode.CustomT
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="Content-Security-Policy"
-		content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; img-src ${webview.cspSource} https: data:; media-src ${webview.cspSource} https: data:; script-src 'nonce-${nonce}' ${webview.cspSource}; worker-src ${webview.cspSource} blob:; connect-src ${webview.cspSource}; frame-src 'self';" />
+		content="${getLocalResourceCsp(webview.cspSource, nonce, 'editor')}" />
 	<meta name="vscode-markdown-editor-script-nonce" content="${nonce}" />
 	<meta name="vscode-markdown-editor-message-secret" content="${messageSecret}" />
 	<meta id="vscode-markdown-editor-initial-state" content="${initialState}" />

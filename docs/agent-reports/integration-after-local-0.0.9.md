@@ -127,3 +127,7 @@
 - `appearance-style-menu` — `298b657810b036c98265752f25a689d6f2166dd5`
 - `agent-model-settings-enumeration-delete` — `ce622ea45d11469f453009fb8936c7a3ef11783e`
 - `chat-prompt-discovery-logging-disable` — `d66e83ad2597548832c6293cc59b34f41d70e7cb`
+
+Тринадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет. Первый ModernUI harness случайно включил geometry suite с empty CSS loader (81 failure из 102); harness исправляется на реальную загрузку CSS, результат не объявлен продуктовой регрессией.
+
+Тринадцатый срез ЗАВЕРШЁН: 5 implementation задач (включая отдельный modern-statusbar-split-spacing-fix), 102 core browser tests и 2 Markdown CSP browser tests passed, 0 page errors; client и Markdown extension typecheck passed, scoped lint и diff --check чистые. Диагностика старой CSS margin регрессии и исправления harness описаны в отдельном отчёте; tests не ослаблялись. Общий слот освобождён. Всего после локального 0.0.9: 46 implementation задач, 307 browser test executions. Common Markdown renderer ещё требует ограничения resources; release notes у другого владельца. Package/native не запускались, готовый ZIP неизменён.

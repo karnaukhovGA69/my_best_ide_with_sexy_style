@@ -17,3 +17,5 @@
 3. Release notes остаются у текущего владельца. После трёх исправлений нужна пакетная native проверка локального Markdown с внешними img/video/style ссылками и сохранённых локальных ресурсов; статический аудит не заменяет runtime evidence отсутствия запросов.
 
 Аудит read-only: без сетевых запросов, без запуска renderer/native smoke. Это список доказанных source-level разрешений и границ будущих проверок, не утверждение фактической утечки или полной изоляции. GitHub auth/catalog, пользовательские данные и сторонние расширения не менялись.
+
+Последующее исправление: markdown-preview-local-resources ограничивает CSP обычного preview и rich editor; 2 browser network regressions passed. Common Markdown renderer и release notes остаются отдельными областями. Packaged native smoke ещё впереди; весь аудит не объявляется закрытым исправлением одного entrypoint.

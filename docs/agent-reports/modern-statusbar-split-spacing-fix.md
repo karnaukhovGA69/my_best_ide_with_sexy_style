@@ -1,0 +1,7 @@
+# modern-statusbar-split-spacing-fix
+
+Статус: ЗАВЕРШЕНО; тринадцатый интеграционный срез. Владелец: интегратор/documents agent. Область: src/vs/workbench/contrib/modernUI/browser/media/statusBar.css, этот отчёт. При интеграции appearance-style-menu исправленный CSS-aware harness выявил существующий провал preserves status bar item margin exceptions across layout densities: наружный отступ split item в compact layout 2px вместо закреплённых тестом 5px. Baseline modernUI.contribution из 638bc19a1c8 без нового menu import воспроизводит тот же сбой. Сохранить zero margins соединённых/цветных/краевых элементов; восстановить наружный split spacing. Не менять меню/настройки/темы/профиль. Проверка — весь ModernUI browser suite с реальным CSS.
+
+Пакетная проверка: 102 core browser tests passed с CSS-aware harness, 0 page errors; 2 отдельных Markdown CSP browser regression tests passed; client typecheck и extension typecheck passed. Для CSS-only spacing fix повторный typecheck не требовался; полный browser suite повторён после правки. Native smoke настоящего меню и packaged Markdown остаётся этапом следующего бинарного пакета.
+
+Диагностика harness: empty CSS loader дал 81 failure из 102; после загрузки CSS остался 1. Baseline contribution без appearanceActions import подтвердил этот же старый сбой (94/95). Исправлены только наружные split margins; существующие тесты не ослаблялись. Итог 102/102.

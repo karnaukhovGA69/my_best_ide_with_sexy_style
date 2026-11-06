@@ -1,7 +1,9 @@
 # markdown-preview-local-resources
 
-Статус: ИСХОДНЫЕ ИЗМЕНЕНИЯ ГОТОВЫ; пакетная интеграция впереди. Владелец: интегратор/documents agent. База: main 638bc19a1c8; integration/after-local-0.0.9.
+Статус: ЗАВЕРШЕНО; тринадцатый интеграционный срез. Владелец: интегратор/documents agent. База: main 638bc19a1c8; integration/after-local-0.0.9.
 
 Область: extensions/markdown-language-features/src/preview/documentRenderer.ts, markdownEditorProvider.ts, новый localResourceCsp.ts и scripts/localResourceCsp.test.mts. Убрать HTTP(S) subresource allowances из preview/rich-editor CSP во всех прежних security modes; сохранить локальные webview resources, nonce scripts, math/Mermaid/local styles и ручные links. Release-notes/common Markdown renderer/GitHub/Git/SSH/другие claims не менять. Проверки: CSP regression tests и browser network regression, extension typecheck/lint. Полный package отдельно не запускать.
 
 Реализован общий localResourceCsp для preview/editor; старые security levels не ослабляют CSP. Local webview resources/data images и manual anchors сохранены; HTTP(S) subresources исключены. Два Chromium regression tests с собственными локальным/внешним HTTP endpoints: внешних background requests 0, local CSS/images работают, manual link открывается. ESLint 4 файлов и extension TypeScript через @typescript/native passed; первоначальные lint warnings исправлены. Обычный node_modules/typescript отсутствует, использован штатный native compiler. Node test loader сообщает MODULE_TYPELESS_PACKAGE_JSON warning, тесты passed; package.json не менялся. Native packaged smoke ещё не выполнен, это не общий запрет сетевых запросов и не исправление common Markdown renderer.
+
+Пакетная проверка: 102 core browser tests passed с CSS-aware harness, 0 page errors; 2 отдельных Markdown CSP browser regression tests passed; client typecheck и extension typecheck passed. Для CSS-only spacing fix повторный typecheck не требовался; полный browser suite повторён после правки. Native smoke настоящего меню и packaged Markdown остаётся этапом следующего бинарного пакета.

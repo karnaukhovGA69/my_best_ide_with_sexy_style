@@ -56,6 +56,15 @@
 	margin-right: 0;
 }
 
+/* Keep the outside gap of joined status items; only their shared edge is flush. */
+.modern-ui.modern-ui-compact .part.statusbar > .items-container > .statusbar-item.compact-left:not(.compact-right):not(.has-background-color):not(.first-visible-item):not(.last-visible-item) > .statusbar-item-label {
+	margin-right: 5px;
+}
+
+.modern-ui.modern-ui-compact .part.statusbar > .items-container > .statusbar-item.compact-right:not(.compact-left):not(.has-background-color):not(.first-visible-item):not(.last-visible-item) > .statusbar-item-label {
+	margin-left: 5px;
+}
+
 .modern-ui.modern-ui-compact .part.statusbar > .left-items > .statusbar-item.visible-background-color-neighbor {
 	margin-left: var(--vscode-spacing-size20);
 }

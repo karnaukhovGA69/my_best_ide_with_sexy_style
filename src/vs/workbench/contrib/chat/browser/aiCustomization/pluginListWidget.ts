@@ -47,11 +47,9 @@ import { CustomizationMarketplaceConfiguration } from '../../../../../platform/c
 import { ICustomizationMarketplaceService } from '../../../../../platform/customizationMarketplace/common/customizationMarketplaceService.js';
 import { ChatConfiguration } from '../../common/constants.js';
 import { IAICustomizationItemsModel } from './aiCustomizationItemsModel.js';
-import { UpdateAgentPluginsCommandId } from '../chat.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
-import { IAICustomizationWorkspaceService } from '../../common/aiCustomizationWorkspaceService.js';
 import { getPluginInclusionLabel } from './aiCustomizationPresentation.js';
 import { status } from '../../../../../base/browser/ui/aria/aria.js';
 import { createCustomizationCardPrimaryAction, CustomizationCardListController, focusFirstCustomizationTreeItem, getVirtualizedSectionMinimumHeight, layoutVirtualizedSectionList, layoutVirtualizedSections, setVirtualizedRowActionsTabbable, stopListRowActionKeyDownPropagation, trackCustomizationCardPrimaryActionFocus } from './customizationCardList.js';
@@ -838,7 +836,6 @@ export class PluginListWidget extends Disposable {
 		@ILabelService private readonly labelService: ILabelService,
 		@ICommandService private readonly commandService: ICommandService,
 		@ICustomizationHarnessService private readonly harnessService: ICustomizationHarnessService,
-		@IAICustomizationWorkspaceService private readonly workspaceService: IAICustomizationWorkspaceService,
 		@IAICustomizationItemsModel private readonly itemsModel: IAICustomizationItemsModel,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ICustomizationMarketplaceService private readonly customizationMarketplaceService: ICustomizationMarketplaceService,
@@ -1282,15 +1279,6 @@ export class PluginListWidget extends Disposable {
 		];
 	}
 
-	private async runUpdatePluginsAction(button: Button): Promise<void> {
-		button.enabled = false;
-		try {
-			await this.commandService.executeCommand(UpdateAgentPluginsCommandId);
-		} finally {
-			button.enabled = true;
-		}
-	}
-
 	private async runPluginAction(action: ICustomizationItemAction): Promise<void> {
 		if (action.enabled !== false) {
 			await action.run();
@@ -1560,9 +1548,6 @@ export class PluginListWidget extends Disposable {
 	private renderPluginTreeGroupActions(entry: IPluginGroupHeaderEntry, container: HTMLElement, disposables: DisposableStore): void {
 		const actions = DOM.append(container, $('.plugin-card-section-actions'));
 		if (entry.group === 'user' || entry.group === 'workspace' || isAICustomizationWorkspaceGroupKey(entry.group)) {
-			if (this.pluginMarketplaceService.installedPlugins.get().length > 0) {
-				this.renderPluginUpdateAction(actions, disposables);
-			}
 			this.renderPluginAddAction(actions, disposables);
 		} else if (entry.group === 'available') {
 			this.renderPluginAddAction(actions, disposables);
@@ -1629,29 +1614,6 @@ export class PluginListWidget extends Disposable {
 		button.icon = Codicon.add;
 		button.enabled = primary.enabled !== false;
 		disposables.add(button.onDidClick(() => this.runPluginAction(primary)));
-	}
-
-	private renderPluginUpdateAction(container: HTMLElement, disposables: DisposableStore): void {
-		const label = localize('checkForAndApplyPluginUpdates', "Check for and Apply Updates");
-		const button = disposables.add(new Button(container, {
-			...getButtonStyles({
-				buttonSecondaryBackground: undefined,
-				buttonSecondaryForeground: undefined,
-				buttonSecondaryHoverBackground: undefined,
-				buttonSecondaryBorder: undefined,
-			}),
-			secondary: true,
-			supportIcons: true,
-			title: label,
-			ariaLabel: label,
-		}));
-		button.element.classList.add('plugin-card-icon-button', 'plugin-card-ghost-button', 'plugin-update-button');
-		if (this.workspaceService.isSessionsWindow) {
-			button.icon = Codicon.refresh;
-		} else {
-			button.label = `$(${Codicon.refresh.id})`;
-		}
-		disposables.add(button.onDidClick(() => this.runUpdatePluginsAction(button)));
 	}
 
 	private renderBrowseMarketplaceAction(container: HTMLElement, disposables: DisposableStore): void {

@@ -56,3 +56,7 @@
 Шестой срез — ЗАНЯТО интегратором: model-survey-orphan-support-delete `fdf9751b5f19b2e67ced38b17d8c8870d04d3fbe` (включает widget-disable). Активная survey-orphan-config-delete пока не принимается. Сборка другого агента остаётся на собственном snapshot.
 
 Шестой срез дополнен готовой survey-orphan-config-delete `6c95c88d515b0a9b60f156224e60fec48cd01095` — ЗАНЯТО интегратором. Own updater workbench cleanup `5b546644d97` также включён.
+
+Шестой срез: полный client typecheck ЗАНЯТО интегратором. Перед запуском активных package/typecheck процессов нет. Package не запускается.
+
+Интегратор принимает готовое исправление packaging документов и отчёт сборки `aa520776d160109f1fa8ee43e8eb5a36a2912483`. ЗАНЯТО интеграцией. Исправление extension build не меняет client typecheck inputs; binary source остаётся 7e52ba804691ae05c9057b0b9815cab580efe7af.

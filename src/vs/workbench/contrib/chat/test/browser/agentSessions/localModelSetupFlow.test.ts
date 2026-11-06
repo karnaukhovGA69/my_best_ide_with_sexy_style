@@ -7,15 +7,21 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { computeLocalModelConsentScope, type ILocalModelFamilyV1, type ILocalModelStatusV1 } from '../../../../../../platform/agentHost/common/localModel.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { NullLogService } from '../../../../../../platform/log/common/log.js';
 import { LocalModelService } from '../../../../../services/agentHost/browser/localModelService.js';
-import { buildLocalModelSetUpConsent, getLocalModelSetUpAgreement, LocalModelSetupFlow } from '../../../browser/agentSessions/agentHost/localModelSetupFlow.js';
+import { buildLocalModelSetUpConsent, getLocalModelSetUpAgreement, ILocalModelFlowEvent, LocalModelSetupFlow, logLocalModelFlow } from '../../../browser/agentSessions/agentHost/localModelSetupFlow.js';
 import { createStatus, installedFamily, offeredFamily, otherFamily, ScriptedDialogService, TestLocalModelConnection } from './localModelTestUtils.js';
 
 const KEEP_WORKING = 'You can keep using Copilot while it downloads.';
 
 suite('LocalModelSetupFlow', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('does not inspect or send setup flow analytics', () => {
+		const unreadable = { get() { throw new Error('Flow analytics must not inspect data'); } };
+		logLocalModelFlow(new Proxy({} as ITelemetryService, unreadable), new Proxy({} as ILocalModelFlowEvent, unreadable));
+	});
 
 	/** The download consent of `family`'s detail page, and what agreeing to it sends. */
 	function consentOf(status: ILocalModelStatusV1, family: ILocalModelFamilyV1) {

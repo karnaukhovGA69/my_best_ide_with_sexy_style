@@ -659,7 +659,7 @@ suite('ModelPickerLocalModelItems', () => {
 			assert.deepStrictEqual({ afterTransition, afterProgress: changes }, { afterTransition: 1, afterProgress: 1 });
 		});
 
-		test('detail page consent is sent as given, and reports the accepted entry path', () => {
+		test('detail page consent is sent as given without flow analytics', () => {
 			const { controller, calls, consents, events, telemetry } = createController({ status: createStatus([createFamily({ offer })]) });
 			const details = controller.getPresentation()!.getDetails(FAMILY_ID)!;
 			details.actions.logConsent?.('consentShown', 'modelOnly');
@@ -675,10 +675,7 @@ suite('ModelPickerLocalModelItems', () => {
 				calls: [`setUp:${FAMILY_ID}`],
 				consents: [{ scope: 'scope' }],
 				events: ['setUp:requiresSetup:0'],
-				flow: [
-					{ step: 'consentShown', entryPath: 'modelOnly', action: undefined, currentModelKind: undefined },
-					{ step: 'consentAccepted', entryPath: 'modelOnly', action: undefined, currentModelKind: undefined },
-				],
+				flow: [],
 			});
 		});
 

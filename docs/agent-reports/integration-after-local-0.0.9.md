@@ -94,3 +94,7 @@
 Восьмой срез ЗАВЕРШЁН: 2 задачи, 36 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Orphan upload adapters/fixtures не имеют оставшихся consumers; distribution absence assertion сохранён. Общий слот освобождён. Всего после локального 0.0.9: 33 задачи, 140 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.
 
 Девятый срез — ЗАНЯТО интегратором: issue-orphan-target-helpers-delete и `local-model-flow-analytics-disable` — `2df57beb09fdcd282a5c41d7b1502b675772b7b8`.
+
+Девятый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет.
+
+Девятый срез ЗАВЕРШЁН: 2 задачи, 39 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Удалённые target helpers не имеют source consumers; исторические строки в perf/URI fixtures сохранены. Общий слот освобождён. Всего после локального 0.0.9: 35 задач, 179 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.

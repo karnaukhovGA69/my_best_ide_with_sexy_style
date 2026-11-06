@@ -1,13 +1,14 @@
 <!--
 
-Myself IDE: the workbench GitHub service refuses client acquisition, and the shared-process GitHub channel is no longer registered. The engine and protocol code documented below remain as source implementations; they are not an enabled built-in GitHub feature.
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the MIT License. See License.txt in the project root for license information.
 -->
 
 # GitHub service
 
-The GitHub service provides typed clients backed by shared request scheduling, rate-limit handling, credentials, caching, and cancellation. New integrations should use these clients instead of constructing their own HTTP or Octokit stack.
+Myself IDE disables the built-in workbench GitHub feature. Both desktop and browser bindings refuse client acquisition; the shared-process channel is not registered, and its unused native adapters have been removed. The portable engine, protocols, and Agent Host source binding below remain for existing consumers. This document describes their architecture, not an enabled desktop feature. Ordinary Git/SSH and the general authentication API are separate.
+
+The GitHub service provides typed clients backed by shared request scheduling, rate-limit handling, credentials, caching, and cancellation. This source architecture is retained for existing consumers; it is not a request to restore the disabled workbench integration.
 
 Consolidation is incremental. Some workbench, extension, and SDK callers still use separate networking; this service does not intercept all GitHub traffic. Git transport, GitHub MCP tool traffic, and build tooling are outside its scope.
 
@@ -17,8 +18,8 @@ Portable clients share contracts and execution policies, but engine state belong
 
 | Consumer | Execution |
 | --- | --- |
-| Desktop workbench and proposed extension API | The [workbench binding](../../workbench/services/github/electron-browser/githubService.ts) routes portable clients to the [shared-process service](electron-utility/githubService.ts). |
-| Web workbench and proposed extension API | The [browser binding](../../workbench/services/github/browser/githubService.ts) executes locally with browser fetch. |
+| Desktop workbench and proposed extension API | The [workbench binding](../../workbench/services/github/electron-browser/githubService.ts) refuses client acquisition. The former shared-process adapter has been removed. |
+| Web workbench and proposed extension API | The [browser binding](../../workbench/services/github/browser/githubService.ts) refuses client acquisition without browser fetch or sign-in. |
 | Standalone Agent Host | The [Agent Host binding](../agentHost/node/agentHostGitHubService.ts) uses host-owned credentials and networking, without requiring an attached workbench. |
 
 Legacy renderer clients can still execute locally. Independent engines and browser tabs do not share application-wide request state. Within the shared process, connections share admission and verified-account cooldowns, but private caches and credential callbacks remain connection- and grant-scoped.
@@ -32,7 +33,7 @@ The main implementation layers are:
 
 ## Authorization clients
 
-Account selection and sign-in UX belong to the caller or host binding, not the engine. The [workbench service](../../workbench/services/github/common/githubService.ts) offers:
+Account selection and sign-in UX belong to the caller or host binding, not the engine. The [workbench service](../../workbench/services/github/common/githubService.ts) retains these method signatures, which reject in the disabled workbench bindings:
 
 - `acquireAccountApiClient(authorization, signal)`: bind an explicit provider/session/account/scopes/issuer grant.
 - `acquireDefaultAccountApiClient(signal)`: use the selected default account's existing repository grant.
@@ -113,10 +114,10 @@ Request and response bodies cross IPC as buffered text; domain parsers run besid
 Bindings own their fetch implementation. There is no automatic move to another machine or executor after a failed request.
 
 - **Browser:** CORS and browser/OS proxy and certificate behavior apply. A restricted repository-read fallback can follow browser-opaque redirects; it validates the final destination but cannot guarantee that no intermediate origin was contacted.
-- **Shared process:** [createFetch](electron-utility/githubFetch.ts) uses local-machine proxy/PAC, authentication, shell environment, and certificate integration. Remote-workspace settings do not select its proxy.
+- **Shared process:** the unused GitHub-specific fetch helper and native binding have been removed. Generic networking, proxy, and certificate services are unchanged.
 - **Agent Host:** the binding reuses the host's existing network implementation.
 
-Certificate verification remains enabled by default. The shared-process helper does not turn `http.proxyStrictSSL: false` into a verification bypass and does not promise full Chromium parity for SOCKS4/4a, native NTLM, ordered PAC failover, or certificate exceptions. Identification headers follow binding-specific egress/CORS policy and are not forwarded to cross-origin download storage.
+The retained providers own their certificate and proxy policies. Identification headers follow binding-specific egress/CORS policy and are not forwarded to cross-origin download storage.
 
 Operations needing redirect status and headers, such as Actions log-URL retrieval, are unsupported through the local browser provider because browser fetch exposes opaque redirects.
 
@@ -129,7 +130,7 @@ The [`github` proposal](../../../vscode-dts/vscode.proposed.github.d.ts) exposes
 
 The extension chooses its session through `vscode.authentication.getSession('github', ...)`. Client acquisition never prompts, substitutes another account, or grants access to an extension. The initial proposal does not accept GitHub Enterprise sessions, raw credentials, or arbitrary HTTP requests. Additional domains can be exposed later as typed client properties.
 
-The [main-thread bridge](../../workbench/api/browser/mainThreadGitHub.ts) enforces extension account access, rechecks it after acquisition and before requests, and invalidates pending/active authenticated clients when the provider is removed. The [extension-host facade](../../workbench/api/common/extHostGitHub.ts) provides cancellation and disposable handles. Desktop calls reach the shared-process service; web calls use the local service, and remote extension hosts reach the same main-thread bridge through RPC. Caller attribution is `extension.<extensionId>`.
+The [main-thread bridge](../../workbench/api/browser/mainThreadGitHub.ts) enforces extension account access, rechecks it after acquisition and before requests, and invalidates pending/active authenticated clients when the provider is removed. The [extension-host facade](../../workbench/api/common/extHostGitHub.ts) provides cancellation and disposable handles. Desktop and web client acquisition reaches the unavailable workbench binding; remote extension hosts still use the same main-thread bridge through RPC. The retained bridge does not restore GitHub connectivity in this distribution. Caller attribution is `extension.<extensionId>`.
 
 Gist results contain only the ID, browser URL, and inline file content with binary/truncation flags. Configuration Editing rejects a truncated or binary first file; raw Gist downloads are not part of this proposal. Creation accepts visibility and named text files; secret gists are unlisted, not private to their creator. Errors use `GitHubError` and cancellation uses `CancellationError`; the proposal defines their public shape.
 

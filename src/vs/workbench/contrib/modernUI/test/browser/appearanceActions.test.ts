@@ -10,6 +10,7 @@ import { CommandsRegistry } from '../../../../../platform/commands/common/comman
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
+import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { LayoutDensityMenu } from '../../../../browser/actions/layoutDensityActions.js';
 import { LayoutSettings } from '../../../../services/layout/browser/layoutService.js';
 import '../../browser/appearanceActions.js';
@@ -45,6 +46,15 @@ suite('Myself IDE appearance controls', () => {
 			['workbench.colorTheme', 'Nerded Calm'], ['workbench.iconTheme', 'nerded-calm-file-icons'],
 			[LayoutSettings.MODERN_UI, false], [CALMER_STUDIO_SETTING, true],
 		]);
+	});
+
+	test('the View menu keeps the documentation library reachable without the activity rail', async () => {
+		assert.ok(MenuRegistry.getMenuItems(MenuId.MenubarViewMenu).filter(isIMenuItem).some(item => item.command.id === 'myself.documentation.showLibrary'));
+		const instantiation = store.add(new TestInstantiationService(undefined, true));
+		const opened: [string, boolean | undefined][] = [];
+		instantiation.stub(IViewsService, { openView: async (id: string, focus?: boolean) => { opened.push([id, focus]); return null; } });
+		await instantiation.invokeFunction(CommandsRegistry.getCommand('myself.documentation.showLibrary')!.handler);
+		assert.deepStrictEqual(opened, [['myself.documentation.library', true]]);
 	});
 
 	test('shows density controls only for modern layout and reuses existing commands', () => {

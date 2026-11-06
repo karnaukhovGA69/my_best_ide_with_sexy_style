@@ -37,12 +37,23 @@ suite('Calmer Studio profile preset', () => {
 			['workbench.iconTheme', 'nerded-calm-file-icons', ConfigurationTarget.USER_LOCAL],
 			['workbench.experimental.modernUI', false, ConfigurationTarget.USER_LOCAL],
 			[CALMER_STUDIO_SETTING, true, ConfigurationTarget.USER_LOCAL],
+			['editor.minimap.enabled', false, ConfigurationTarget.USER_LOCAL],
+			['breadcrumbs.enabled', false, ConfigurationTarget.USER_LOCAL],
+			['workbench.activityBar.location', 'hidden', ConfigurationTarget.USER_LOCAL],
 		]);
 		assert.strictEqual(f.configuration.getValue('editor.fontSize'), 19);
 		assert.deepStrictEqual(f.configuration.getValue('workbench.colorCustomizations'), { foreground: '#abcdef' });
 		assert.strictEqual(f.storage.getBoolean(CALMER_PRESET_MARKER, StorageScope.PROFILE), true);
 		assert.strictEqual(await initializeCalmerStudioPreset(f.configuration, f.storage, {}), false);
+		assert.strictEqual(f.writes.length, 7);
+	});
+
+	test('fresh-profile chrome defaults preserve explicit and shared view choices', async () => {
+		const f = fixture(true, { 'editor.minimap.enabled': true, 'breadcrumbs.enabled': true, 'workbench.settings.applyToAllProfiles': ['workbench.activityBar.location'] });
+		assert.strictEqual(await initializeCalmerStudioPreset(f.configuration, f.storage, {}), true);
 		assert.strictEqual(f.writes.length, 4);
+		assert.strictEqual(f.configuration.getValue('editor.minimap.enabled'), true);
+		assert.strictEqual(f.configuration.getValue('breadcrumbs.enabled'), true);
 	});
 
 	test('a completed first-run marker prevents reapplying after settings are reset', async () => {
@@ -99,7 +110,7 @@ suite('Calmer Studio profile preset', () => {
 		f.storage.store(IS_NEW_KEY, true, StorageScope.PROFILE, StorageTarget.MACHINE);
 		await gate.complete(); await switching;
 		await initialized.p;
-		assert.strictEqual(f.writes.length, 4);
+		assert.strictEqual(f.writes.length, 7);
 		assert.strictEqual(f.storage.getBoolean(CALMER_PRESET_MARKER, StorageScope.PROFILE), true);
 	});
 

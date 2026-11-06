@@ -10,6 +10,7 @@ import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../plat
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { LayoutDensityMenu } from '../../../browser/actions/layoutDensityActions.js';
 import { LayoutSettings } from '../../../services/layout/browser/layoutService.js';
 
@@ -69,4 +70,18 @@ MenuRegistry.appendMenuItem(MenuId.MenubarAppearanceMenu, {
 	group: '2_configuration',
 	order: 8,
 	when: modernContext,
+});
+
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'myself.documentation.showLibrary',
+			title: localize2('showDocumentationLibrary', "Documentation Library"),
+			menu: { id: MenuId.MenubarViewMenu, group: '3_views', order: 5 },
+		});
+	}
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		await accessor.get(IViewsService).openView('myself.documentation.library', true);
+	}
 });

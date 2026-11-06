@@ -13,13 +13,19 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../platfo
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { LayoutSettings } from '../../../services/layout/browser/layoutService.js';
 
-export const CALMER_STUDIO_SETTING = 'workbench.calmerStudio';
+export const CALMER_STUDIO_SETTING = LayoutSettings.CALMER_STUDIO;
 export const CALMER_PRESET_MARKER = 'myself.appearance.calmerPresetInitialized';
 const preset = [
 	['workbench.colorTheme', 'Nerded Calm'],
 	['workbench.iconTheme', 'nerded-calm-file-icons'],
 	[LayoutSettings.MODERN_UI, false],
 	[CALMER_STUDIO_SETTING, true],
+] as const;
+
+const newProfileDefaults = [
+	['editor.minimap.enabled', false],
+	['breadcrumbs.enabled', false],
+	['workbench.activityBar.location', 'hidden'],
 ] as const;
 
 function hasChoice(configuration: IConfigurationService, key: string): boolean {
@@ -52,6 +58,13 @@ export async function initializeCalmerStudioPreset(
 		// Recheck after each async write so a new user choice is never overwritten.
 		if (cancelled() || sharesPresetSettings(configuration) || hasChoice(configuration, key)) { return false; }
 		await configuration.updateValue(key, value, ConfigurationTarget.USER_LOCAL);
+	}
+	for (const [key, value] of newProfileDefaults) {
+		if (cancelled()) { return false; }
+		const shared = configuration.getValue<unknown>(APPLY_ALL_PROFILES_SETTING);
+		if (!hasChoice(configuration, key) && !(Array.isArray(shared) && shared.includes(key))) {
+			await configuration.updateValue(key, value, ConfigurationTarget.USER_LOCAL);
+		}
 	}
 	if (cancelled()) { return false; }
 	storage.store(CALMER_PRESET_MARKER, true, StorageScope.PROFILE, StorageTarget.MACHINE);

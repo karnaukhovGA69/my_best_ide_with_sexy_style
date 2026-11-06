@@ -1,8 +1,12 @@
-# Myself IDE
+# Nerded Code
 
 An experimental Code - OSS distribution undergoing incremental cleanup. The last recorded published release is [0.0.8-preview](agent-reports/release-0.0.8.md). A [validated local 0.0.9](agent-reports/release-0.0.9-final.md) was built from `9d93537d452`, including document Save As, PDF and settings transfer checks; its GitHub release remains unpublished. The visual redesign and other planned features are not complete. See [the product plan](project-plan.md) and [agent handoff](project-handoff.md).
 
 Further source changes are tracked in [the integration report after local 0.0.9](agent-reports/integration-after-local-0.0.9.md). They include local document resource policies, removal of Git autofetch, Appearance/text-size menus and continued AI cleanup. These changes are absent from the existing ZIP. A new packaged application still needs startup/idle network and untrusted-workspace checks with Workspace Trust enabled. Earlier smoke runs with `--disable-workspace-trust` do not prove those requirements.
+
+## Calmer Studio source integration
+
+The approved theme, colored vscode-icons, desktop application icons and scoped Calmer layout are integrated in source. Appearance offers an explicit preset; untouched new profiles receive it automatically after profile services are ready. Existing/shared settings, fonts and color overrides are preserved. Fresh profiles hide minimap, breadcrumbs and the activity rail unless explicitly configured; View exposes the documentation library directly. Classic/Modern remain available. Native visual acceptance, fresh-profile screenshots, security smoke and packaging are still outstanding; existing release archives retain their previous branding and UI.
 
 ## Distribution
 

@@ -13,7 +13,7 @@ import { CancellationToken, CancellationTokenSource } from '../../../../../base/
 import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas, matchesScheme } from '../../../../../base/common/network.js';
 import { autorun, derived } from '../../../../../base/common/observable.js';
-import { dirname, isEqual, joinPath } from '../../../../../base/common/resources.js';
+import { dirname, isEqual } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { generateUuid } from '../../../../../base/common/uuid.js';
 import { TokenizationRegistry } from '../../../../../editor/common/languages.js';
@@ -27,7 +27,6 @@ import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
-import { IRequestService, asText } from '../../../../../platform/request/common/request.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
@@ -45,6 +44,7 @@ import { AgentPluginItemKind, findInstalledPlugin, IAgentPluginItem, IInstalledP
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { EnablementStatusWidget, pluginEnablementLabels } from '../enablementStatusWidget.js';
 import { InstallPluginAction, createUninstallPluginAction, createEnablePluginDropDown, createDisablePluginDropDown, createPolicyManagedEnablementAction, getPluginPolicyEnablement, EnablementDropDownAction, EnablementDropdownActionViewItem, OrganizationRequiredUninstallActionViewItem, UninstallPluginAction } from '../agentPluginActions.js';
+import { loadPluginReadme } from './pluginReadme.js';
 import './media/agentPluginEditor.css';
 
 interface IAgentPluginEditorTemplate {
@@ -97,7 +97,6 @@ export class AgentPluginEditor extends EditorPane {
 		@IWebviewService private readonly webviewService: IWebviewService,
 		@ILanguageService private readonly languageService: ILanguageService,
 		@IFileService private readonly fileService: IFileService,
-		@IRequestService private readonly requestService: IRequestService,
 		@IAgentPluginService private readonly agentPluginService: IAgentPluginService,
 		@IPluginInstallService private readonly pluginInstallService: IPluginInstallService,
 		@IPluginMarketplaceService private readonly pluginMarketplaceService: IPluginMarketplaceService,
@@ -364,43 +363,14 @@ export class AgentPluginEditor extends EditorPane {
 	}
 
 	private async fetchReadme(item: IAgentPluginItem, token: CancellationToken): Promise<string> {
-		let readmeUri: URI | undefined;
-		if (item.kind === AgentPluginItemKind.Installed) {
-			readmeUri = joinPath(item.plugin.uri, 'README.md');
-		} else {
-			readmeUri = item.readmeUri;
-		}
-
-		if (!readmeUri) {
+		if (token.isCancellationRequested) {
 			return '';
 		}
-
-		if (readmeUri.scheme === Schemas.file || readmeUri.scheme === Schemas.vscodeRemote) {
-			try {
-				const content = await this.fileService.readFile(readmeUri);
-				return content.value.toString();
-			} catch {
-				return '';
-			}
+		try {
+			return (await loadPluginReadme(item, this.fileService))?.content ?? '';
+		} catch {
+			return '';
 		}
-
-		// For https GitHub URLs, convert blob URL to raw URL
-		if (readmeUri.scheme === Schemas.https) {
-			let rawUrl = readmeUri.toString();
-			const githubBlobMatch = rawUrl.match(/^https:\/\/github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)\/blob\/(?<rest>.+)$/);
-			if (githubBlobMatch?.groups) {
-				rawUrl = `https://raw.githubusercontent.com/${githubBlobMatch.groups['owner']}/${githubBlobMatch.groups['repo']}/${githubBlobMatch.groups['rest']}`;
-			}
-			try {
-				const context = await this.requestService.request({ type: 'GET', url: rawUrl, callSite: 'agentPluginEditor.fetchReadme' }, token);
-				const text = await asText(context);
-				return text ?? '';
-			} catch {
-				return '';
-			}
-		}
-
-		return '';
 	}
 
 	private async openDetails(item: IAgentPluginItem, template: IAgentPluginEditorTemplate, token: CancellationToken): Promise<IActiveElement | null> {
@@ -501,7 +471,7 @@ export class AgentPluginEditor extends EditorPane {
 		<html>
 			<head>
 				<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; media-src 'none'; script-src 'none'; style-src 'nonce-${nonce}';">
 				<style nonce="${nonce}">
 					${DEFAULT_MARKDOWN_STYLES}
 

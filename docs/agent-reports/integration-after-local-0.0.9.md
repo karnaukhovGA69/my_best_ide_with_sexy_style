@@ -72,3 +72,7 @@
 Шестой срез — ЗАНЯТО интегратором: native-issue-upload-rpc-delete и две готовые задачи:
 - `chat-experiment-notifications-disable` — `98db95a9eae07a1c7705174d24811fde0569db66`
 - `chat-tool-result-compression-disable` — `fa1a12c7bf791bb1cd34425c36c7322d6fa399de`
+
+Шестой срез: занят общий client typecheck slot; он покрывает src/vs/**/*.ts, включая electron-main. Других package/typecheck процессов при запуске нет.
+
+Шестой срез ЗАВЕРШЁН: 3 задачи, 10 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Native upload RPC/endpoint и удалённый experiment parser больше не имеют source references. Общий слот освобождён. Всего после локального 0.0.9: 28 задач, 94 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.

@@ -153,3 +153,9 @@ Common Markdown local media уже занят чатом упрощения; и�
 Пятнадцатый срез ЗАВЕРШЁН: 2 implementation задачи и editor-policy test alignment; 266 combined browser tests passed + 6 editor integration tests passed, 2 existing pending, 0 page errors. Полный client typecheck после production изменений passed (exit 0); последующая правка только тестовых ожиданий прошла отдельные 6 tests/lint/diff --check. Общий слот освобождён. Всего после локального 0.0.9: 52 implementation задачи, 598 successful browser test executions. Markdown document renderer/readme — отдельный остаточный путь. Package/native не запускались, готовый ZIP неизменён.
 
 ЗАНЯТО интегратором: AGENTS.md и docs/project-plan.md/development-plan.md/project-handoff.md — уточнение минимального релиза: без фоновой сети/autofetch, Remote SSH/remote server integration отложены, ручные Git/SSH сохранены. Workspace Trust/sandbox/TLS не ослаблять; native idle-network и untrusted workspace checks обязательны для следующего пакета.
+
+Шестнадцатый срез — ЗАНЯТО интегратором: markdown-document-local-media, актуализация минимального релиза и готовые задачи:
+- `chat-agent-debug-actions-disable` — `a35ed1cb8f2d18fdba23252fd50f587918942aaf`
+- `chat-editing-editor-observers-disable` — `d3e401fc62da28f7c382e079d1baa6acb79ccd2e`
+- `copilot-config-submit-handlers-disable` — `722eb27a1873a3c047868394687e730cbbfff3cc`
+- `agent-mode-picker-runtime-disable` — `94a81d3155dca33ef8cd4a9ccf38aa719badbc2d`

@@ -98,3 +98,7 @@
 Девятый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет.
 
 Девятый срез ЗАВЕРШЁН: 2 задачи, 39 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Удалённые target helpers не имеют source consumers; исторические строки в perf/URI fixtures сохранены. Общий слот освобождён. Всего после локального 0.0.9: 35 задач, 179 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.
+
+Десятый срез — ЗАНЯТО интегратором: issue-orphan-form-contracts-delete и готовые задачи:
+- `chat-goal-summary-disable` — `3e1715b2e52da9e3106374b83368954c29897bb1`
+- `chat-btw-command-disable` — `f54de6c46769bfd6b73f37c919de42e3f0bd6d97`

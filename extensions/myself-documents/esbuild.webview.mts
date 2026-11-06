@@ -8,7 +8,7 @@ import { run } from '../esbuild-webview-common.mts';
 const srcDir = path.join(import.meta.dirname, 'webview');
 
 run({
-	entryPoints: { 'editor': path.join(srcDir, 'editor.ts') },
+	entryPoints: { 'webview/editor': path.join(srcDir, 'editor.ts') },
 	srcDir,
-	outdir: path.join(import.meta.dirname, 'out', 'webview'),
+	outdir: path.join(import.meta.dirname, 'out'),
 }, process.argv);

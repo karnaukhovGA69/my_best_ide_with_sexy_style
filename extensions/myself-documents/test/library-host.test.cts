@@ -6,7 +6,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { loadWithVscode, emitter, viewApi } = require('./helpers.cts');
 const tick = () => new Promise(resolve => setImmediate(resolve));
-const uri = value => ({ path: value, scheme: 'file', authority: '', toString: () => value });
+const uri = value => ({ path: value, fsPath: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
 	const actions = new Map(), files = new Map(), reads = [], writes = [], notices = [], external = [], sent = [], dialogs = [];
 	const events = emitter(), disposed = emitter(); const state = { imports: options.imports ?? [] };
@@ -292,4 +292,53 @@ test('failed removal persistence preserves the existing copy and disposed remova
 		fail = false; f.dispose(); await f.actions.get('myself.documentation.remove')(entry);
 		assert.deepEqual(f.state.imports, [entry]); assert.ok(f.files.has('/profile/' + entry.file));
 	} finally { f.dispose(); }
+});
+
+
+test('folder import preserves internal links and rolls back a failed metadata commit', async () => {
+	const fs = require('node:fs/promises'), path = require('node:path'), os = require('node:os');
+	const folder = await fs.mkdtemp(path.join(os.tmpdir(), 'myself-library-set-'));
+	let fail = false; const f = await fixture({ beforeUpdate: () => { if (fail) { throw new Error('storage'); } } });
+	try {
+		await fs.mkdir(path.join(folder, 'chapters'));
+		await fs.writeFile(path.join(folder, 'index.md'), '# Index\n[Next](chapters/one.md#intro)');
+		await fs.writeFile(path.join(folder, 'chapters/one.md'), '# Intro');
+		f.select([uri(folder)]); await f.actions.get('myself.documentation.importFolder')();
+		assert.equal(f.state.imports.length, 2);
+		const entries = [...f.state.imports], index = entries.find(e => e.importPath === 'index.md');
+		assert.equal(entries[0].collection, entries[1].collection);
+		const groups = await f.provider.getChildren({ id: 'imported' });
+		assert.equal(groups.length, 1); assert.equal(groups[0].title, path.basename(folder));
+		assert.equal((await f.provider.getChildren(groups[0])).length, 2);
+		const reopened = await fixture({ imports: entries });
+		try {
+			for (const entry of entries) { reopened.files.set('/profile/' + entry.file, f.files.get('/profile/' + entry.file)); }
+			await reopened.actions.get('myself.documentation.open')(index.id); await reopened.message({ type: 'ready' });
+			await reopened.message({ type: 'link', href: 'chapters/one.md#intro' });
+			assert.equal(reopened.sent.at(-1).text, '# Intro');
+		} finally { reopened.dispose(); }
+		await f.actions.get('myself.documentation.open')(index.id); await f.message({ type: 'ready' });
+		await f.message({ type: 'link', href: 'chapters/one.md#intro' });
+		assert.equal(f.sent.at(-1).text, '# Intro'); assert.equal(f.sent.at(-1).fragment, 'intro'); assert.deepEqual(f.external, []);
+		const before = new Set(f.files.keys()); fail = true;
+		await f.actions.get('myself.documentation.importFolder')();
+		assert.deepEqual(f.state.imports, entries); assert.deepEqual(new Set(f.files.keys()), before);
+		assert.equal(await fs.readFile(path.join(folder, 'index.md'), 'utf8'), '# Index\n[Next](chapters/one.md#intro)');
+	} finally { f.dispose(); await fs.rm(folder, { recursive: true, force: true }); }
+});
+
+
+test('folder import rolls back copies when disposed during a write', async () => {
+	const fs = require('node:fs/promises'), path = require('node:path'), os = require('node:os');
+	const folder = await fs.mkdtemp(path.join(os.tmpdir(), 'myself-library-cancel-'));
+	let release, entered;
+	const gate = new Promise(resolve => { release = resolve; }); const writing = new Promise(resolve => { entered = resolve; });
+	const f = await fixture({ beforeWrite: () => { entered(); return gate; } });
+	try {
+		await fs.writeFile(path.join(folder, 'one.md'), '# One'); f.select([uri(folder)]);
+		const pending = f.actions.get('myself.documentation.importFolder')(); await writing;
+		f.dispose(); release(); await pending;
+		assert.deepEqual(f.state.imports, []); assert.ok(f.writes.every(file => !f.files.has(file))); assert.deepEqual(f.notices, []);
+		assert.equal(await fs.readFile(path.join(folder, 'one.md'), 'utf8'), '# One');
+	} finally { release?.(); f.dispose(); await fs.rm(folder, { recursive: true, force: true }); }
 });

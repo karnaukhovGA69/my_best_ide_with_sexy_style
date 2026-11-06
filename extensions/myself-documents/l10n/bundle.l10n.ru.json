@@ -49,5 +49,8 @@
   "The documentation action could not be completed.": "Не удалось выполнить действие с документацией.",
   "The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.": "Не удалось прочитать документ. Поддерживаются текст и HTML в UTF-8, не более 16 МиБ.",
   "The local documentation catalog could not be loaded.": "Не удалось загрузить каталог локальной документации.",
-  "This link is not included in the local library.": "Эта страница отсутствует в локальной библиотеке."
+  "This link is not included in the local library.": "Эта страница отсутствует в локальной библиотеке.",
+  "Add Documentation Folder": "Добавить папку документации",
+  "No HTML, Markdown or text documents were found in this folder.": "В папке не найдены документы HTML, Markdown или текстовые файлы.",
+  "The folder could not be added. Use UTF-8 HTML, Markdown or text files up to 16 MiB each, 64 MiB and 5000 documents in total.": "Не удалось добавить папку. Используйте HTML, Markdown или текст в UTF-8: до 16 МиБ на файл, до 64 МиБ и 5000 документов всего."
 }

@@ -32,3 +32,7 @@
 - `agent/mcp-plugin-discovery-delete` — `f4d8aaf1bf50a87590c1228314aaededb44f22ab`
 - `agent/mcp-server-editor-runtime-remove` — `5058199e010d71634a4a24daba2a0f83a4fe386a`
 - `agent/mcp-configuration-form-delete` — `9de58123a971ee920e7bd2b69651f687dad49895`
+
+Третий срез ЗАВЕРШЁН: шесть MCP heads (11 задач с dependencies) объединены без конфликтов. 112 browser tests passed, 0 page errors; полный client typecheck passed; git diff --check и source/import scan удалённых модулей чистые. Исходный коммит третьего среза: `379a3ea006742d50bcb2ef7806608fe1ff61e99c`. Все три среза: 26 implementation tasks, 318 browser tests в целевых наборах. Это исходная интеграция, не опубликованный бинарник.
+
+Передача сборки: по новому прямому поручению пользователя package/build/sign/privacy/native и очистку слитых веток выполняет `build-and-branch-cleanup-2026-11-06` в worktree myself-mcp-audit. После попадания этого отчёта в main агент может зафиксировать main SHA и начать общий цикл; данный интегратор параллельный package не запускает. Старый неподтверждённый release-0.0.9 snapshot/бинарник сохраняется, не объявляется опубликованным или окончательно проверенным. `inline-rename-tracking-disable`, `voice-orphan-routing-delete` и активный `edit-telemetry-orphan-trackers-delete` не входят в переданный третий snapshot; принимать отдельным срезом, не менять уже выбранные builder inputs.

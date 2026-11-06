@@ -1,6 +1,6 @@
 # release-0.0.9-final
 
-Статус: ЗАНЯТО. Владелец: интегратор/documents agent. Ветка: integration/release-0.0.9-final. База: main 8a9f66bc9af после семи срезов integration-post-0.0.9.
+Статус: ЛОКАЛЬНАЯ СБОРКА ГОТОВА; GitHub release не опубликован. Владелец: интегратор/documents agent. Ветка: integration/release-0.0.9-final. База: main 8a9f66bc9af после семи срезов integration-post-0.0.9.
 
 Область: один общий macOS ARM64 package/native/sign/privacy/ZIP/release цикл всех накопленных изменений main до этой базы. Полный client typecheck седьмого среза прошёл; исходные inputs после него не менялись. Новая сборка обоснована четырьмя срезами, отсутствующими в локальном build 7e52ba80469. Не расширять snapshot готовыми задачами, появившимися позднее. Не запускать параллельные package/typecheck. GitHub authorization/связанные task branches исключены.
 
@@ -11,3 +11,11 @@
 Native packaged smoke на 9d93537d452 прошёл: Git activation, bash/zsh, shell Task exit 0, method suggestions, ручной formatter (0 calls on save), manual VSIX 0.0.1 → 0.0.2 → uninstall. Проверено отсутствие удалённых update/survey/chat-tip/inline команд. Documents native API suite passed: new/open/custom editor, undo/redo, CRLF save/reopen, external change и targeted Save As single-tab replacement с сохранением другой вкладки. Это API regression, не полный native Save Dialog UI сценарий.
 
 Ещё не завершены для этого snapshot: PDF/native UI проверки, финальный ASAR/ZIP audit и публикация. Старые PDF/settings UI результаты не выдаются за новые. Package повторно не запускать без реального source fix.
+
+Финальная QA завершена на новом snapshot. Через native UI выполнены ввод/сохранение документа, Save As без дублирования вкладки, экспорт PDF и подтверждение сохранения. API snapshot и прочитанный файл подтвердили одну custom вкладку и точный текст. PDF backend на Electron той же версии прошёл cancel/concurrent rejection/write failure/cleanup; A4 на 1 и 6 страницах, текст извлечён и страницы визуально проверены. Отдельный одностраничный PDF получен видимой кнопкой из упакованного приложения.
+
+Settings UI: JSONC с BOM/комментариями открыт нативным диалогом, preview сообщил 2 изменения и 2 исключённых ключа. До Apply параметры оставались исходными; после Apply fontSize=18, wordWrap=on. Обратный экспорт через Preferences сохранил ровно эти два ключа. Тестовый профиль изолирован, пользовательские настройки не менялись. В CUA встречались stale AX/ScreenCaptureKit ошибки; повторное наблюдение и изменение размера окна позволили завершить сценарии, это не объявляется дефектом продукта.
+
+Архив `Myself-IDE-v0.0.9-macOS-arm64.zip`: 190064891 байт, SHA-256 `c0e72d6bb67a184ac1a0779fdfbbc51d51ba4f66e6992a19e8377608d2adbf85`. CRC всех 6044 ZIP members passed; product commit совпадает с 9d93537d452. ASAR: 4484 packed bounds/size и 32 unpacked size checks passed; integrity records отсутствуют (0), не заявляется проверка несуществующих хешей. Runtime JS/CSS maps отсутствуют; 18 third-party declaration maps присутствуют и прошли общий scan запрещённых build paths. Первый audit слишком широко запрещал все .map, затем был приведён к фактическому packaging contract, исключающему JS/CSS maps; содержимое подписанного пакета не менялось.
+
+Публикация: gh release list завершился требованием gh auth login (exit 4). Авторизация не изменялась по указанию пользователя, GitHub release/tag не создавались. Локальные ZIP, SHA256SUMS и release notes готовы. Git push использует уже настроенный доступ и не меняет GitHub authorization. Оставшаяся публикация — внешняя зависимость; разработка независимых задач может продолжаться.

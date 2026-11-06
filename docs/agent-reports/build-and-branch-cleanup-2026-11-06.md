@@ -68,3 +68,5 @@
 - `agent/voice-window-picker-disable` → `dfd84fb6136381e99c7bb048d944c36ff55119d4`
 - `agent/walkthrough-progress-disable` → `c440fbac58c918b01755bf2979a8e16ec3d806bd`
 - `agent/welcome-ui-startup-remove` → `3a029bfd362c0512927a069187f27ae9328acbb9`
+
+Build snapshot: интеграционный срез 379a3ea0067, общий client typecheck интегратора завершился с exit 0. Зафиксирована сборка этого среза, без последующих задач. Пользователь явно запросил билд.

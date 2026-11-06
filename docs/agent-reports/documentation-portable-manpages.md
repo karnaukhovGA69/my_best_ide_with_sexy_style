@@ -1,0 +1,3 @@
+# documentation-portable-manpages
+
+Статус: ЗАНЯТО. Владелец: интегратор/documents agent. Область: extensions/myself-documents/scripts/prepare-documentation.py и новый offline conversion helper; documentation/linux/* и catalog.json (только Linux entries); test/library.test.cts; этот отчёт. VSCE listFiles выявил два отсутствующих пути (_exit.3/nan.3): case-insensitive extraction/output слили пары _Exit/_exit и NAN/nan. Исправить переносимое отображение source/output filenames и man links, регенерировать Linux offline из уже поставляемого оригинального архива, сохранить оригинальные title/source/id и licenses. Добавить exact-case и casefold-uniqueness validation каталога. Не запускать network download script/полную сборку, не менять другие книги или runtime reader.

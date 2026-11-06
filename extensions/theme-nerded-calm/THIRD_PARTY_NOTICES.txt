@@ -1,0 +1,23 @@
+vscode-icons 13.0.0
+Copyright (c) 2016 Roberto Huertas and the vscode-icons contributors.
+https://github.com/vscode-icons/vscode-icons/tree/v13.0.0
+Contributors: https://github.com/vscode-icons/vscode-icons/graphs/contributors
+
+Upstream distinguishes the MIT-licensed source code from the CC BY-SA 4.0
+icon artwork. Branded icons retain their respective copyright licenses.
+See LICENSE.txt and licenses/ for the license texts. Upstream license notice:
+https://github.com/vscode-icons/vscode-icons/blob/v13.0.0/README.md#license
+
+All 1,664 SVG assets from the release are included. The file associations,
+language associations, light variants and folder states are retained. The
+manifest's relative icon paths were rebased for this package. Language
+extension fallback icons are disabled so that this theme uses local assets.
+
+Empty script/link elements were removed from eight SVG files (affinity,
+alchemy, electron, gimp, nushell, polyglot, vvvvvv and xaml). No artwork was
+recolored, redrawn or replaced. fileicons/provenance.json records original
+and bundled SHA-256 hashes, archive identity and all modified filenames.
+
+Only declarative resources are bundled. The upstream extension's executable
+code, project detection, commands, configuration and update behavior are
+not included.

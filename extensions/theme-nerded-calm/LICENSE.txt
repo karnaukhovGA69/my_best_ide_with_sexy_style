@@ -1,0 +1,15 @@
+The Calmer Studio theme, extension metadata and tests are licensed under the
+MIT License (see licenses/Calmer-Studio-MIT.txt).
+
+The vscode-icons manifest is copyright (c) 2016 Roberto Huertas and licensed
+under the MIT License; see licenses/vscode-icons-MIT.txt.
+
+The artwork in fileicons/assets is credited to Roberto Huertas and the
+vscode-icons contributors, and is distributed under Creative Commons
+Attribution-ShareAlike 4.0 International (CC BY-SA 4.0), except branded icons,
+which remain subject to their respective copyright licenses, as stated by
+upstream. This package does not claim ownership of those brands or imply
+their endorsement. See licenses/CC-BY-SA-4.0.txt and THIRD_PARTY_NOTICES.txt.
+
+Source: https://github.com/vscode-icons/vscode-icons/tree/v13.0.0
+License: https://creativecommons.org/licenses/by-sa/4.0/

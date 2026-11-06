@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
@@ -189,23 +191,17 @@ suite('DefaultModelContribution', () => {
 		);
 	});
 
-	test('utility model settings exclude Copilot vendor models', () => {
-		const service = new TestLanguageModelsService();
-		store.add({ dispose: () => service.dispose() });
-		service.addVendor({ vendor: 'copilot', displayName: 'Copilot', isDefault: true, configuration: undefined, managementCommand: undefined, when: undefined });
-		service.addVendor({ vendor: 'anthropic', displayName: 'Anthropic', isDefault: false, configuration: undefined, managementCommand: undefined, when: undefined });
-		service.addModel(makeMetadata({ id: 'gpt-4o-mini', name: 'GPT 4o mini', vendor: 'copilot' }));
-		service.addModel(makeMetadata({ id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5', vendor: 'anthropic' }));
-
-		store.add(new UtilityModelContribution(service as unknown as ILanguageModelsService, new NullLogService()));
-		store.add(new UtilitySmallModelContribution(service as unknown as ILanguageModelsService, new NullLogService()));
+	test('utility model settings retain only static defaults without resolving providers', () => {
+		const instantiation = store.add(new InstantiationService(new ServiceCollection(), true));
+		store.add(instantiation.createInstance(UtilityModelContribution));
+		store.add(instantiation.createInstance(UtilitySmallModelContribution));
 
 		assert.deepStrictEqual({
 			utility: { ids: UtilityModelContribution.modelIds, labels: UtilityModelContribution.modelLabels },
 			utilitySmall: { ids: UtilitySmallModelContribution.modelIds, labels: UtilitySmallModelContribution.modelLabels },
 		}, {
-			utility: { ids: ['', 'anthropic/claude-haiku-4.5'], labels: ['Default', 'Claude Haiku 4.5 (Anthropic)'] },
-			utilitySmall: { ids: ['', 'anthropic/claude-haiku-4.5'], labels: ['Default', 'Claude Haiku 4.5 (Anthropic)'] },
+			utility: { ids: [''], labels: ['Default'] },
+			utilitySmall: { ids: [''], labels: ['Default'] },
 		});
 	});
 });

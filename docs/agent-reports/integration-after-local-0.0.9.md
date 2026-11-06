@@ -220,3 +220,8 @@ Common Markdown local media уже занят чатом упрощения; и�
 Двадцать четвёртый срез расширен: chat-repo-metadata-autocapture-disable (734ad3470b97cfb0c19b4bad4f532f6d6f3122c1). 28 startup/task/transfer trust tests passed. Общий client typecheck slot ЗАНЯТ; других full build/typecheck процессов нет. Прямой literal setWorkspaceTrust(true), оставшийся в production, относится к ручной кнопке Trust; это узкий source check, не полный аудит всех trust paths.
 
 Двадцать четвёртый срез ЗАВЕРШЁН: 3 implementation задачи, 29 startup/task/transfer/repo browser tests passed, 0 page errors; полный client typecheck, consumers search и diff --check passed. Общий слот освобождён. Всего после локального 0.0.9: 86 implementation задач, 1089 успешных browser tests в финальных проверках срезов. AI transfer больше не выдаёт workspace trust и не меняет transfer markers; автоматический сбор repo metadata отключён, ручные export/diff функции и данные сохранены. Package/native не запускались.
+
+Двадцать пятый срез — ЗАНЯТО интегратором:
+- `local-documentation-library` — `3dff58fa47ff8ddd8f42e28f7074bae9dd3c7e66`
+- `ai-client-toolsets-disable` — `24c57c9729c80f2df935c6d625297925bfa0f0a6`
+Локальная библиотека — feature integration по поручению владельца; без полного package. Проверить scoped extension tests/types и source inventory, не запускать maintainer download script.

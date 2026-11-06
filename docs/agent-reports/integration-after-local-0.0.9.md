@@ -114,3 +114,5 @@
 Одиннадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет. Project plan также исправляет устаревшие статусы documents/settings/release и отделяет проверенный ZIP от последующих source задач.
 
 Одиннадцатый срез ЗАВЕРШЁН: 1 implementation task и обновление общих правил/планов; 4 browser tests passed, 0 page errors, полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 39 implementation задач, 193 целевых browser tests. GitHub login/account/catalog/root-clone-open отложены по последнему решению владельца, extension не подключается к ближайшему пакету. Package/native не запускались, готовый ZIP неизменён.
+
+Двенадцатый срез — ЗАНЯТО интегратором: `chat-thinking-title-generation-disable` — `d2333c8ba039880aa9a2d23ea13521784bfcc81f`. appearance-style-menu уже закреплён за чатом упрощения; дубликат UI implementation не создавать.

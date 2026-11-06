@@ -22,3 +22,5 @@
 - `agent/experimentation-service-runtime-disable` — `d3892382c8621fb70af645597ffd5e2c7f0cd865`
 - `agent/external-terminal-menu` — `9e76c0f1199754155edb6b7e4c3e5213130150ec`
 - `agent/settings-search-local-only` — `88811e83e8198b150c0ac2c1776ce4dacabc4d32`
+
+Второй срез объединён без конфликтов; 131 browser tests passed, 0 page errors. Общий client typecheck для обоих срезов прошёл. Итого проверены 15 task snapshots (forwarding также входит как dependency AI-edit telemetry), 206 browser tests. Пакет передаётся в main без новой binary сборки; native external-terminal smoke остаётся проверкой следующего общего package. Release 0.0.9 остаётся отдельной незавершённой задачей.

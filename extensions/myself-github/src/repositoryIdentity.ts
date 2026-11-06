@@ -10,15 +10,16 @@ export interface RepositoryIdentity {
 	readonly name: string;
 }
 
-function validSegment(value: string): boolean {
-	return /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(value)
+function validSegment(value: string, repository: boolean): boolean {
+	return (repository ? /^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$/ : /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/).test(value)
+		&& !['.', '..', '.git'].includes(value.toLowerCase())
 		&& value.length <= 100
 		&& !value.endsWith('.')
 		&& !/^(con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i.test(value);
 }
 
 export function validateRepository(identity: RepositoryIdentity): void {
-	if (!validSegment(identity.owner) || !validSegment(identity.name)) {
+	if (!validSegment(identity.owner, false) || !validSegment(identity.name, true)) {
 		throw new Error('Invalid repository identity');
 	}
 }

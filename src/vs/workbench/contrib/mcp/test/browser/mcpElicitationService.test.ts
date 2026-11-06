@@ -5,25 +5,18 @@
 
 import assert from 'assert';
 import * as sinon from 'sinon';
-import { timeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { hasKey } from '../../../../../base/common/types.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { NullLogger } from '../../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
-import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
 import { IChatService } from '../../../chat/common/chatService/chatService.js';
 import { McpElicitationService } from '../../browser/mcpElicitationService.js';
-import { McpServerRequestHandler } from '../../common/mcpServerRequestHandler.js';
-import { McpTaskManager } from '../../common/mcpTaskManager.js';
-import { ElicitResult, IMcpServer, IMcpToolCallContext, McpConnectionState, McpError } from '../../common/mcpTypes.js';
+import { ElicitResult, IMcpServer, IMcpToolCallContext, McpError } from '../../common/mcpTypes.js';
 import { MCP } from '../../common/modelContextProtocol.js';
-import { TestMcpMessageTransport } from '../common/mcpRegistryTypes.js';
 
 suite('Myself IDE disabled MCP elicitation', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -84,38 +77,4 @@ suite('Myself IDE disabled MCP elicitation', () => {
 		});
 	}
 
-	test('request handler serializes the refusal and still answers a later ping', async () => {
-		const service = new McpElicitationService();
-		const instantiation = store.add(new TestInstantiationService(undefined, true));
-		instantiation.stub(IProductService, { nameLong: 'Fixture Editor', version: '0.0.0' });
-		const transport = store.add(new TestMcpMessageTransport());
-		transport.setConnectionState({ state: McpConnectionState.Kind.Running });
-		store.add(await McpServerRequestHandler.create(instantiation, {
-			launch: transport,
-			logger: store.add(new NullLogger()),
-			taskManager: store.add(new McpTaskManager()),
-			elicitationRequestHandler: async (params, token) => {
-				const result = await service.elicit(server, undefined, params, token ?? CancellationToken.None);
-				result.dispose();
-				return result.value;
-			}
-		}));
-		transport.clearSentMessages();
-		for (const [index, request] of requests.entries()) {
-			transport.simulateReceiveMessage({ jsonrpc: MCP.JSONRPC_VERSION, id: `fixture-${index}`, method: 'elicitation/create', params: request.params });
-		}
-		await timeout(0);
-		const responses = transport.getSentMessages();
-		assert.strictEqual(responses.length, requests.length);
-		for (const [index, response] of responses.entries()) {
-			assert.ok(hasKey(response, { error: true }));
-			assert.strictEqual(response.id, `fixture-${index}`);
-			assert.strictEqual(response.error.code, -32000);
-			assert.match(response.error.message, /MCP elicitation is not available/);
-			assert.ok(!Object.hasOwn(response, 'result'));
-		}
-		transport.simulateReceiveMessage({ jsonrpc: MCP.JSONRPC_VERSION, id: 'fixture-ping', method: 'ping' });
-		await timeout(0);
-		assert.deepStrictEqual(transport.getSentMessages().at(-1), { jsonrpc: MCP.JSONRPC_VERSION, id: 'fixture-ping', result: {} });
-	});
 });

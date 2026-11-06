@@ -194,3 +194,7 @@ Common Markdown local media уже занят чатом упрощения; и�
 Двадцатый срез расширен: ai-prompt-customization-url-handlers-disable (321d8bffa48357110e3612507f5803df6fad59a8). UNC regression использует URI.revive (он не валидирует components), обычный URI.parse уже отвергает double-slash path. Повторный общий typecheck после нового merge и интеграционной проверки loader.
 
 Двадцатый срез ЗАВЕРШЁН: 3 implementation задачи и уточнение network-path проверки local README loader. 54 offline integration + 11 plugin details + 2 AI URL tests passed, 0 page errors. Client typecheck прошёл до расширения пакета и повторно после нового URL-handler merge/loader уточнения; lint/diff --check прошли. URI.parse уже блокирует double-slash path, отдельная regression покрывает URI.revive без валидации и encoded backslashes. Общий слот освобождён. Всего после локального 0.0.9: 74 implementation задачи, 993 успешных browser tests в финальных проверках срезов. Package/native не запускались; библиотека документации остаётся у другого владельца.
+
+Двадцать первый срез — ЗАНЯТО интегратором: ide-update-titlebar-orphan-delete и готовые задачи:
+- `chat-active-harness-sync-disable` — `580936016e3bd1641b843567031162535df73ec4`
+- `chat-window-notifier-disable` — `1ff64c06c104e20f0467650e6a22b191f24ac952`

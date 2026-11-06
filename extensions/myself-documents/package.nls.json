@@ -7,5 +7,6 @@
   "library.title": "Documentation",
   "library.search": "Search Local Documentation",
   "library.import": "Add Local Document",
-  "library.remove": "Remove from Library"
+  "library.remove": "Remove from Library",
+  "library.importFolder": "Add Documentation Folder"
 }

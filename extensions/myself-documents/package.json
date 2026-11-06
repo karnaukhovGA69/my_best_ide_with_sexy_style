@@ -53,6 +53,12 @@
         "title": "%library.remove%",
         "category": "Documentation",
         "icon": "$(trash)"
+      },
+      {
+        "command": "myself.documentation.importFolder",
+        "title": "%library.importFolder%",
+        "category": "Documentation",
+        "icon": "$(new-folder)"
       }
     ],
     "customEditors": [
@@ -102,6 +108,11 @@
           "command": "myself.documentation.import",
           "when": "view == myself.documentation.library",
           "group": "navigation@1"
+        },
+        {
+          "command": "myself.documentation.importFolder",
+          "when": "view == myself.documentation.library",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [

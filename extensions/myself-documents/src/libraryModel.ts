@@ -12,6 +12,9 @@ export interface LibraryEntry {
 	source: string;
 	format: 'html' | 'markdown' | 'text';
 	selector?: string;
+	collection?: string;
+	collectionTitle?: string;
+	importPath?: string;
 }
 
 export interface LibraryGroup { id: string; title: string; version: string; license: string }
@@ -52,6 +55,13 @@ export function findLocalLink(current: LibraryEntry, href: string, entries: read
 	try {
 		if (href.startsWith('#')) {
 			return { entry: current, fragment: decodeURIComponent(href.slice(1)) };
+		}
+		if (current.group === 'imported' && current.collection && current.importPath) {
+			if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//') || href.includes('\\')) { return undefined; }
+			const local = new URL(href, 'https://library.invalid/' + current.importPath.split('/').map(encodeURIComponent).join('/'));
+			const file = decodeURIComponent(local.pathname.slice(1));
+			const entry = entries.find(entry => entry.group === 'imported' && entry.collection === current.collection && entry.importPath === file);
+			return entry ? { entry, fragment: decodeURIComponent(local.hash.slice(1)) } : undefined;
 		}
 		const local = new URL(href, 'https://library.invalid/' + current.file);
 		const file = decodeURIComponent(local.pathname.slice(1));

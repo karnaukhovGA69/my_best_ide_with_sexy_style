@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import * as vscode from 'vscode';
 import { isRecord } from './document';
 import { findLocalLink, LibraryEntry, LibraryGroup, maxDocumentBytes, parseCatalog, safeRelativeFile } from './libraryModel';
+import { readDocumentationFolder } from './libraryImport';
 import { libraryHtml } from './libraryView';
 
 type LibraryNode = LibraryGroup | LibraryEntry;
@@ -26,6 +27,7 @@ export function registerLibrary(context: vscode.ExtensionContext): void {
 		vscode.commands.registerCommand('myself.documentation.open', (id: string) => library.open(id)),
 		vscode.commands.registerCommand('myself.documentation.search', () => library.search()),
 		vscode.commands.registerCommand('myself.documentation.import', () => mutate(() => library.importFile())),
+		vscode.commands.registerCommand('myself.documentation.importFolder', () => mutate(() => library.importFolder())),
 		vscode.commands.registerCommand('myself.documentation.remove', (entry: LibraryEntry) => mutate(() => library.remove(entry))),
 	);
 }
@@ -61,6 +63,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			const imported = this.context.globalState.get<LibraryEntry[]>('documentation.imports', []);
 			this.imports = Array.isArray(imported) ? imported.filter(entry => entry?.group === 'imported' && typeof entry.file === 'string' && safeRelativeFile(entry.file)
 				&& /^imports\/[a-f0-9-]+\.(html|md|txt)$/.test(entry.file) && typeof entry.id === 'string' && typeof entry.title === 'string'
+				&& (entry.collection === undefined || (typeof entry.collection === 'string' && /^[a-f0-9-]+$/.test(entry.collection) && typeof entry.importPath === 'string' && safeRelativeFile(entry.importPath)))
 				&& (entry.format === 'html' || entry.format === 'markdown' || entry.format === 'text')) : [];
 		} catch {
 			if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The local documentation catalog could not be loaded.')); }
@@ -73,7 +76,16 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		if (!node) {
 			return [...this.groups, { id: 'imported', title: vscode.l10n.t('My Documents'), version: '', license: '' }];
 		}
-		return isEntry(node) ? [] : node.id === 'imported' ? this.imports : this.entries.filter(entry => entry.group === node.id);
+		if (isEntry(node)) { return []; }
+		if (node.id === 'imported') {
+			const sets = new Map<string, LibraryGroup>();
+			for (const entry of this.imports) {
+				if (entry.collection) { sets.set(entry.collection, { id: 'imported-' + entry.collection, title: typeof entry.collectionTitle === 'string' ? entry.collectionTitle : vscode.l10n.t('Documentation'), version: '', license: '' }); }
+			}
+			return [...this.imports.filter(entry => !entry.collection), ...sets.values()];
+		}
+		if (node.id.startsWith('imported-')) { return this.imports.filter(entry => entry.collection === node.id.slice('imported-'.length)); }
+		return this.entries.filter(entry => entry.group === node.id);
 	}
 
 	getTreeItem(node: LibraryNode): vscode.TreeItem {
@@ -207,6 +219,42 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 				if (target) { await vscode.workspace.fs.delete(target).then(undefined, () => undefined); }
 				if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The document could not be added. Choose a local UTF-8 file up to 16 MiB.')); }
 			}
+		}
+	}
+
+
+	async importFolder(): Promise<void> {
+		await this.loaded;
+		if (this.disposed) { return; }
+		const selection = await vscode.window.showOpenDialog({ canSelectFiles: false, canSelectFolders: true, canSelectMany: false, openLabel: vscode.l10n.t('Add Documentation Folder') });
+		if (this.disposed || !selection?.length) { return; }
+		const folder = selection[0];
+		if (folder.scheme !== 'file' || folder.authority) { return; }
+		const copies: vscode.Uri[] = [];
+		try {
+			const documents = await readDocumentationFolder(folder.fsPath, () => this.disposed);
+			if (!documents.length) { void vscode.window.showInformationMessage(vscode.l10n.t('No HTML, Markdown or text documents were found in this folder.')); return; }
+			const collection = randomUUID();
+			const collectionTitle = folder.path.split('/').filter(Boolean).pop() || vscode.l10n.t('Documentation');
+			const entries: LibraryEntry[] = [];
+			await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(this.context.globalStorageUri, 'imports'));
+			for (const document of documents) {
+				if (this.disposed) { throw new Error('Cancelled'); }
+				const id = randomUUID();
+				const format = /\.html?$/i.test(document.relative) ? 'html' : /\.md$/i.test(document.relative) ? 'markdown' : 'text';
+				const file = `imports/${id}.${format === 'html' ? 'html' : format === 'markdown' ? 'md' : 'txt'}`;
+				const target = vscode.Uri.joinPath(this.context.globalStorageUri, file); copies.push(target);
+				await vscode.workspace.fs.writeFile(target, document.bytes);
+				entries.push({ id, group: 'imported', title: document.relative, file, source: '', format, collection, collectionTitle, importPath: document.relative });
+			}
+			if (this.disposed) { throw new Error('Cancelled'); }
+			const imported = [...this.imports, ...entries];
+			await this.context.globalState.update('documentation.imports', imported);
+			this.imports = imported;
+			if (!this.disposed) { this.changes.fire(); }
+		} catch {
+			await Promise.all(copies.map(copy => vscode.workspace.fs.delete(copy).then(undefined, () => undefined)));
+			if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The folder could not be added. Use UTF-8 HTML, Markdown or text files up to 16 MiB each, 64 MiB and 5000 documents in total.')); }
 		}
 	}
 

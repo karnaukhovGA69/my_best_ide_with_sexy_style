@@ -7,5 +7,6 @@
   "library.title": "Документация",
   "library.search": "Поиск локальной документации",
   "library.import": "Добавить локальный документ",
-  "library.remove": "Удалить из библиотеки"
+  "library.remove": "Удалить из библиотеки",
+  "library.importFolder": "Добавить папку документации"
 }

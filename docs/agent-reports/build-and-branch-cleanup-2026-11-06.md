@@ -96,3 +96,19 @@ Deep ad-hoc signing → ASAR metadata refresh → outer signing → deep strict 
 Артефакт: `Myself-IDE-2026-11-06-macOS-arm64.zip`. SHA-256: `9341b41e02f7c6f5f3390d1bd22d80670cfac7fee84873a591d3c63647cc8c89`. Локальная проверенная сборка, без GitHub release/push, без Apple notarization. Старый release-0.0.9 бинарник сохранён. Новые четвёртый/пятый срезы интегратора не входят в зафиксированный build snapshot.
 
 Проверенное исправление и этот отчёт готовы к включению в main. Остальные активные task worktrees и их изменения не затрагивались.
+
+Исправление и отчёт включены в main merge-коммитом 6c35fd269de. Финальная очистка удаляет ещё 14 уже слитых локальных веток; всего удалено 76. Активные worktree, неслитые task-ветки и незавершённая release-0.0.9 сохранены.
+- `agent/chat-pet-telemetry-remove` → `a783a0a903a9e6707fc271681d852e8ac566a75b`
+- `agent/chat-pet-widget-runtime-disable` → `9a33161c9094ebc316d09aec4e57dede14a83ab0`
+- `agent/edit-telemetry-orphan-trackers-delete` → `d51bd61e22eeec6e52659e1d147fc66ceee0e136`
+- `agent/editor-playground-orphan-delete` → `7bfe091ed5b07e84c94ea00711771d4d8eba5450`
+- `agent/harness-switch-survey-disable` → `aa307c01d1ac895caddab4fa254c99d53e07bc0f`
+- `agent/ide-updater-orphan-delete` → `68f2343956a67623f26db1e505969b00914b2123`
+- `agent/inline-hover-orphan-delete` → `8c2e0d885a1763f932e30a4f09735dde5dceef49`
+- `agent/inline-rename-tracking-disable` → `97645a419a4c851110eed8048c3c5e1e25d11b81`
+- `agent/mcp-continuous-run-handoff-2026-11-06` → `5bdc010bc71bdda68d084c68a38df359deb59439`
+- `agent/model-feedback-survey-disable` → `a057e02a3db5731dc56b70b34d0e8f477056f176`
+- `agent/model-feedback-survey-ui-disable` → `518276a87e2dbd5b5b4efab690faa89796513efc`
+- `agent/survey-orphan-editor-delete` → `ad5cd2fb7888363e877a70b9f4f7e20b72389f6d`
+- `agent/voice-close-registry-delete` → `f8ed2e27669be2d7854cad5d826779eb3def900a`
+- `agent/voice-orphan-routing-delete` → `51875cd4ce41f8c0d28f2a61bc3712cfeb5d99e6`

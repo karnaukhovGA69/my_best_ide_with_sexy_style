@@ -80,3 +80,5 @@
 Седьмой срез — ЗАНЯТО интегратором:
 - `terminal-orphan-output-compression-delete` — `eb15ba3e5d8f8ae2fa88c13277ce06e82424f7fe`
 - `agent-prompt-cache-notification-disable` — `ae9f6741743c7fab5db3b9836f2c409ebd08abca`
+
+Седьмой срез расширен до общего typecheck: ЗАНЯТО интегратором `terminal-orphan-compression-parser-delete` — `097535ae571fdc8bf7cfbafb38c132e6ae3d1228`. Готовая зависимость terminal-orphan-output-compression-delete уже объединена.

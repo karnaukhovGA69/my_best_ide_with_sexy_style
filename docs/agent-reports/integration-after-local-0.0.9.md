@@ -76,3 +76,7 @@
 Шестой срез: занят общий client typecheck slot; он покрывает src/vs/**/*.ts, включая electron-main. Других package/typecheck процессов при запуске нет.
 
 Шестой срез ЗАВЕРШЁН: 3 задачи, 10 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Native upload RPC/endpoint и удалённый experiment parser больше не имеют source references. Общий слот освобождён. Всего после локального 0.0.9: 28 задач, 94 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.
+
+Седьмой срез — ЗАНЯТО интегратором:
+- `terminal-orphan-output-compression-delete` — `eb15ba3e5d8f8ae2fa88c13277ce06e82424f7fe`
+- `agent-prompt-cache-notification-disable` — `ae9f6741743c7fab5db3b9836f2c409ebd08abca`

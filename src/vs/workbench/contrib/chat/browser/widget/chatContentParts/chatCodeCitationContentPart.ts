@@ -7,17 +7,11 @@ import * as dom from '../../../../../../base/browser/dom.js';
 import { Button } from '../../../../../../base/browser/ui/button/button.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
 import { localize } from '../../../../../../nls.js';
-import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { ChatTreeItem } from '../../chat.js';
 import { IChatContentPart, IChatContentPartRenderContext } from './chatContentParts.js';
 import { getCodeCitationsMessage } from '../../../common/model/chatModel.js';
 import { IChatCodeCitations, IChatRendererContent } from '../../../common/model/chatViewModel.js';
 import { IEditorService } from '../../../../../services/editor/common/editorService.js';
-
-type ChatCodeCitationOpenedClassification = {
-	owner: 'roblourens';
-	comment: 'Indicates when a user opens chat code citations';
-};
 
 export class ChatCodeCitationContentPart extends Disposable implements IChatContentPart {
 	public readonly domNode: HTMLElement;
@@ -25,8 +19,7 @@ export class ChatCodeCitationContentPart extends Disposable implements IChatCont
 	constructor(
 		citations: IChatCodeCitations,
 		context: IChatContentPartRenderContext,
-		@IEditorService private readonly editorService: IEditorService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService
+		@IEditorService private readonly editorService: IEditorService
 	) {
 		super();
 
@@ -50,7 +43,6 @@ export class ChatCodeCitationContentPart extends Disposable implements IChatCont
 		this._register(button.onDidClick(() => {
 			const citationText = `# Code Citations\n\n` + citations.citations.map(c => `## License: ${c.license}\n${c.value.toString()}\n\n\`\`\`\n${c.snippet}\n\`\`\`\n\n`).join('\n');
 			this.editorService.openEditor({ resource: undefined, contents: citationText, languageId: 'markdown' });
-			this.telemetryService.publicLog2<{}, ChatCodeCitationOpenedClassification>('openedChatCodeCitations');
 		}));
 		this.domNode = elements.root;
 	}

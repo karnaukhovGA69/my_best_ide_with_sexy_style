@@ -12,6 +12,8 @@ import { URI } from '../../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../../base/test/common/utils.js';
 import { IConfigurationService } from '../../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { ITelemetryService } from '../../../../../../../platform/telemetry/common/telemetry.js';
+import { NullTelemetryServiceShape } from '../../../../../../../platform/telemetry/common/telemetryUtils.js';
 import { workbenchInstantiationService } from '../../../../../../test/browser/workbenchTestServices.js';
 import { ChatTodoListWidget } from '../../../../browser/widget/chatContentParts/chatTodoListWidget.js';
 import { IChatTodo, IChatTodoListService } from '../../../../common/tools/chatTodoListService.js';
@@ -22,6 +24,7 @@ suite('ChatTodoListWidget Accessibility', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	let widget: ChatTodoListWidget;
+	let clearedTodos: IChatTodo[] | undefined;
 
 	const sampleTodos: IChatTodo[] = [
 		{ id: 1, title: 'First task', status: 'not-started' },
@@ -30,12 +33,13 @@ suite('ChatTodoListWidget Accessibility', () => {
 	];
 
 	setup(() => {
+		clearedTodos = undefined;
 		// Mock the todo list service
 		const mockTodoListService: IChatTodoListService = {
 			_serviceBrand: undefined,
 			onDidUpdateTodos: Event.None,
 			getTodos: (sessionResource: URI) => sampleTodos,
-			setTodos: (sessionResource: URI, todos: IChatTodo[]) => { },
+			setTodos: (sessionResource: URI, todos: IChatTodo[]) => { clearedTodos = todos; },
 			migrateTodos: (oldSessionResource: URI, newSessionResource: URI) => { }
 		};
 
@@ -45,6 +49,9 @@ suite('ChatTodoListWidget Accessibility', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IChatTodoListService, mockTodoListService);
 		instantiationService.stub(IConfigurationService, mockConfigurationService);
+		instantiationService.stub(ITelemetryService, new class extends NullTelemetryServiceShape {
+			override publicLog2(): void { throw new Error('Todo interactions must not emit telemetry'); }
+		}());
 		widget = store.add(instantiationService.createInstance(ChatTodoListWidget));
 		mainWindow.document.body.appendChild(widget.domNode);
 	});
@@ -53,6 +60,18 @@ suite('ChatTodoListWidget Accessibility', () => {
 		if (widget.domNode.parentNode) {
 			widget.domNode.parentNode.removeChild(widget.domNode);
 		}
+	});
+
+	test('expands, collapses, and clears todos without telemetry', () => {
+		widget.render(testSessionUri);
+		const expandButton = widget.domNode.querySelector<HTMLElement>('.todo-list-expand .monaco-button')!;
+		expandButton.click();
+		assert.strictEqual(expandButton.getAttribute('aria-expanded'), 'true');
+		expandButton.click();
+		assert.strictEqual(expandButton.getAttribute('aria-expanded'), 'false');
+		widget.domNode.querySelector<HTMLElement>('.todo-clear-button-container .monaco-button')!.click();
+		assert.deepStrictEqual(clearedTodos, []);
+		assert.strictEqual(widget.domNode.style.display, 'none');
 	});
 
 	test('creates proper semantic list structure', () => {

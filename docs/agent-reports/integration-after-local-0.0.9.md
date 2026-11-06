@@ -214,3 +214,5 @@ Common Markdown local media уже занят чатом упрощения; и�
 Двадцать третий срез — ЗАНЯТО интегратором: welcome-orphan-editor-delete и ai-prompt-language-contribution-disable (f704a13b1c28ba5196e58ef3501111c1890a62bb). Source scan удалённых Welcome exports/import paths не нашёл consumers. Общий client typecheck slot ЗАНЯТ; других full build/typecheck процессов нет.
 
 Двадцать третий срез ЗАВЕРШЁН: 2 implementation задачи, 35 CSS-aware browser tests passed, 0 page errors; полный client typecheck, source consumers search и diff --check passed. Общий слот освобождён. Всего после локального 0.0.9: 83 implementation задачи, 1060 успешных browser tests в финальных проверках срезов. Старый Welcome editor удалён физически, startup README/terminal и общая accessibility сохранены; AI prompt provider contribution инертен, обычный IntelliSense не менялся. Package/native не запускались.
+
+Двадцать четвёртый срез — ЗАНЯТО интегратором: welcome-orphan-index-list-delete и chat-transfer-auto-trust-disable (dd7f3da4de7dc740922236212fef3e1f2909a1aa). Repo metadata auto-capture находится у своего владельца.

@@ -8,7 +8,6 @@ import { DisposableStore, IDisposable, MutableDisposable, toDisposable } from '.
 import { autorun, IReader, observableValue } from '../../../../../base/common/observable.js';
 import { hasKey } from '../../../../../base/common/types.js';
 import { createDecorator } from '../../../../../platform/instantiation/common/instantiation.js';
-import { VoiceCloseKind } from './voiceCloseCodes.js';
 import { IChatToolInvocation, type ChatVoiceProgressStage } from '../chatService/chatService.js';
 import { IChatModel } from '../model/chatModel.js';
 
@@ -562,7 +561,7 @@ export interface IVoiceTurnAutoEnded {
 export interface IVoiceFatalDisconnect {
 	readonly code: number;
 	readonly reason: string;
-	readonly kind?: VoiceCloseKind;
+	readonly kind?: 'fatal' | 'expected' | 'transient';
 	readonly clientSide?: boolean;
 }
 

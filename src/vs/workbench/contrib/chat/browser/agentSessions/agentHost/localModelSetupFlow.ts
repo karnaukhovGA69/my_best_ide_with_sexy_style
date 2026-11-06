@@ -54,31 +54,8 @@ export interface ILocalModelFlowEvent {
 	readonly currentModelKind?: LocalModelCurrentModelKind;
 }
 
-type LocalModelFlowTelemetryEvent = {
-	step: LocalModelFlowStep;
-	entryPath: LocalModelEntryPath | undefined;
-	action: LocalModelReadyOfferAction | undefined;
-	currentModelKind: LocalModelCurrentModelKind | undefined;
-};
-
-type LocalModelFlowClassification = {
-	step: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The on-device model flow step: consentShown, consentAccepted, consentCancelled, readyOfferShown or readyOfferAction.' };
-	entryPath: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'For consent steps, what setup acquires: modelOnly (download the model) or none (use its files already on this device).' };
-	action: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'For readyOfferAction, the action chosen: useWithAuto, newAutoChat, switchDirect, useAuto or notNow.' };
-	currentModelKind: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'For ready-offer steps, the kind of model the chat had selected: auto, server or other.' };
-	owner: 'lramos15';
-	comment: 'Tracks the on-device model setup flow: consent outcomes and engagement with the ready offer.';
-};
-
-/** Logs one `localModel.flow` event. */
-export function logLocalModelFlow(telemetryService: ITelemetryService, event: ILocalModelFlowEvent): void {
-	telemetryService.publicLog2<LocalModelFlowTelemetryEvent, LocalModelFlowClassification>('localModel.flow', {
-		step: event.step,
-		entryPath: event.entryPath,
-		action: event.action,
-		currentModelKind: event.currentModelKind,
-	});
-}
+/** Compatibility hook; local model flow analytics are disabled. */
+export function logLocalModelFlow(_telemetryService: ITelemetryService, _event: ILocalModelFlowEvent): void { }
 
 // #endregion
 

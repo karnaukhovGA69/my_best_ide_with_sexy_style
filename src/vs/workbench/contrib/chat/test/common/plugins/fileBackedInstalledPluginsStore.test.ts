@@ -133,6 +133,43 @@ suite('FileBackedInstalledPluginsStore', () => {
 		));
 	}
 
+	test('does not start watching or write when disposed during initialization', async () => {
+		const reading = new DeferredPromise<void>();
+		const resumeRead = new DeferredPromise<void>();
+		const fileService = new class extends TestFileService {
+			override async exists(resource: URI): Promise<boolean> {
+				void reading.complete();
+				await resumeRead.p;
+				return super.exists(resource);
+			}
+		};
+		const home = URI.file('/test/agent-plugins');
+		const pluginsStore = createPluginsStore(home, fileService);
+		await reading.p;
+		pluginsStore.set([{ pluginUri: URI.joinPath(home, 'plugin'), marketplace: 'org/repo' }], undefined);
+		pluginsStore.dispose();
+		await resumeRead.complete();
+		await timeout(0);
+		assert.strictEqual(fileService.watching.isSettled, false);
+		assert.strictEqual(fileService.getFile(URI.joinPath(home, 'installed.json')), undefined);
+	});
+
+	test('cancels a pending write on disposal and ignores later mutations', async () => {
+		await runWithFakedTimers({}, async () => {
+			const home = URI.file('/test/agent-plugins');
+			const fileService = new TestFileService();
+			const pluginsStore = createPluginsStore(home, fileService);
+			await fileService.watching.p;
+			const entry = { pluginUri: URI.joinPath(home, 'plugin'), marketplace: 'org/repo' };
+			pluginsStore.set([entry], undefined);
+			pluginsStore.dispose();
+			pluginsStore.set([], undefined);
+			await timeout(200);
+			assert.deepStrictEqual(pluginsStore.get(), [entry]);
+			assert.strictEqual(fileService.getFile(URI.joinPath(home, 'installed.json')), undefined);
+		});
+	});
+
 	test('migrates legacy storage to installed.json and removes legacy keys', async () => {
 		const storageService = store.add(new InMemoryStorageService());
 		const fileService = new TestFileService();

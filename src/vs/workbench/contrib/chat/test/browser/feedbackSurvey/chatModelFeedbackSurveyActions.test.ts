@@ -4,13 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { InstantiationService } from '../../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../../platform/instantiation/common/serviceCollection.js';
+import { CommandsRegistry } from '../../../../../../platform/commands/common/commands.js';
+import { MenuId, MenuRegistry, isIMenuItem } from '../../../../../../platform/actions/common/actions.js';
 import { IAction } from '../../../../../../base/common/actions.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { ChatModelFeedbackSurveyActionId, focusChatModelFeedbackSurveyAction, IFeedbackSurveyToolBar } from '../../../browser/actions/chatModelFeedbackSurveyActions.js';
+import { ChatModelFeedbackSurveyActionRendering, registerChatModelFeedbackSurveyActions, ChatModelFeedbackSurveyActionId, focusChatModelFeedbackSurveyAction, IFeedbackSurveyToolBar } from '../../../browser/actions/chatModelFeedbackSurveyActions.js';
 
 suite('ChatModelFeedbackSurveyActions', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function createToolBar(actionIds: readonly string[]): IFeedbackSurveyToolBar & { focused: number | undefined } {
 		return {
@@ -37,4 +41,16 @@ suite('ChatModelFeedbackSurveyActions', () => {
 
 		assert.strictEqual(toolbar.focused, undefined);
 	});
+	test('does not register commands or feedback menu entries', () => {
+		registerChatModelFeedbackSurveyActions();
+		registerChatModelFeedbackSurveyActions();
+		assert.strictEqual(CommandsRegistry.getCommand(ChatModelFeedbackSurveyActionId), undefined);
+		assert.strictEqual(MenuRegistry.getMenuItems(MenuId.ChatMessageFooter).some(item => isIMenuItem(item) && item.command.id === ChatModelFeedbackSurveyActionId), false);
+	});
+
+	test('does not require action rendering or instantiation services', () => {
+		const instantiation = store.add(new InstantiationService(new ServiceCollection(), true));
+		store.add(instantiation.createInstance(ChatModelFeedbackSurveyActionRendering));
+	});
+
 });

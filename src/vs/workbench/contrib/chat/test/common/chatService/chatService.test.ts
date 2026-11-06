@@ -3959,7 +3959,7 @@ suite('ChatService', () => {
 		})), [{ sessionType: 'remote-agent-host', provider: 'codex-openai', isAgentHostSession: true, requestIndex: 0, sessionTypeSelectionReason: 'computedDefault', isVirtualWorkspace: true, settingDefaultToCopilotHarness: true, settingPreferCopilotHarness: true, settingLocalAgentEnabled: false, settingCopilotHarnessIntroductionMode: 'afterRequest', hasRequestId: true }, { sessionType: 'remote-agent-host', provider: 'codex-openai', isAgentHostSession: true, requestIndex: 1, sessionTypeSelectionReason: 'computedDefault', isVirtualWorkspace: true, settingDefaultToCopilotHarness: true, settingPreferCopilotHarness: true, settingLocalAgentEnabled: false, settingCopilotHarnessIntroductionMode: 'afterRequest', hasRequestId: true }]);
 	});
 
-	test('user action telemetry distinguishes agent host sessions from local sessions', () => {
+	test('user action telemetry is disabled for agent host and local sessions', () => {
 		const telemetryEvents: { readonly name: string; readonly isAgentHostSession: boolean }[] = [];
 		class TestTelemetryService extends NullTelemetryServiceShape {
 			override publicLog2<E extends ClassifiedEvent<OmitMetadata<T>> = never, T extends IGDPRProperty = never>(name?: string, data?: StrictPropertyCheck<T, E>): void {
@@ -4003,12 +4003,7 @@ suite('ChatService', () => {
 		telemetry.notifyUserAction({ ...action, sessionResource: URI.from({ scheme: SessionType.AgentHostCopilot, path: '/session' }) });
 		telemetry.notifyUserAction({ ...action, sessionResource: URI.from({ scheme: SessionType.Local, path: '/session' }) });
 
-		assert.deepStrictEqual(telemetryEvents, [
-			{ name: 'chatEditSession', isAgentHostSession: true },
-			{ name: 'chatEditSession', isAgentHostSession: false },
-			{ name: 'chatEditHunk', isAgentHostSession: true },
-			{ name: 'chatEditHunk', isAgentHostSession: false },
-		]);
+		assert.deepStrictEqual(telemetryEvents, []);
 	});
 
 	test('native peer side chats invoke their own participant rather than the default extension participant', async () => {

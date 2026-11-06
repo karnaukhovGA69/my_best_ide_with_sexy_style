@@ -1,5 +1,15 @@
 # issue-reporter-registrations-remove
 
-Статус: ЗАНЯТО. Владелец: чат упрощения Myself IDE. Ветка: agent/issue-reporter-registrations-remove. База: main f9f821d47f6.
+Статус: ГОТОВО к интеграции. Владелец: чат упрощения Myself IDE. Ветка: agent/issue-reporter-registrations-remove. База: main f9f821d47f6.
 
 Область: contrib/issue/{browser,electron-browser,common}/issue.contribution.ts и новый test/electron-browser/issueDistribution.test.ts. Убрать startup UI/editor/forms/capture/upload services, settings, help/quick access/performance actions и keybinding side-effect imports. Сохранить unavailable IWorkbenchIssueService binding, два compatibility command ID и _issues.getSystemStatus с реальным IProcessService passthrough. Root entrypoints/build, общие auth/Git/SSH, nativeHost и чужие задачи не менять.
+
+Зависимость: готовая agent/issue-reporter-service-disable (9dbcd1c32cf) ещё не вошла в локальный main; её история объединена только в этот task worktree. Включать вместе: новые registrations требуют unavailable service без form dependencies.
+
+Расширение области до удаления: browser/issueQuickAccess.ts и browser/issueTroubleshoot.ts. После снятия imports из contributions поиск src/build/test/extensions не обнаружил потребителей. Удаляется только Issue Reporter-specific quick picker и его troubleshooting workflow; общий extension bisect, CLI status и diagnostic services сохраняются. Сохранённое состояние профиля не очищать.
+
+Результат: native/browser contributions теперь подключают только unavailable issue service, compatibility commands и диагностический _issues.getSystemStatus. Удалены регистрации формы, screenshot/recording/upload services, editor pane, Issue Reporter settings, restored contributions, performance action, quick access, capture keybinding и troubleshooting side-effect imports. Common contribution сохраняет vscode.openIssueReporter/workbench.action.openIssueReporter и преобразование старых аргументов, без меню/feedback config listeners. Физически удалены 532 строки двух orphan UI файлов. Общий extension bisect и диагностика не изменены.
+
+Проверки: 3 новых isolated browser-harness tests passed, 0 page errors: отсутствие settings/services/menu/keybindings, реальное делегирование CLI status, explicit unavailable result двух command IDs. Scoped TypeScript 4 изменённых файлов: 0 diagnostics; ESLint всех 4 TS passed; diff --check passed. Поиск импортов удалённых двух файлов в src/build/test/extensions пустой. Проверки выполнялись после включения зависимости service-disable; первая typecheck выявила её отсутствие в main, после merge только в task worktree исправлено. Удаляемые orphan файлы не участвовали в успешном test bundle, повторная сборка не требовалась.
+
+Интеграция: ветка включает agent/issue-reporter-service-disable (9dbcd1c32cf), принимать вместе. Root wiring не требуется; native/web entrypoints уже импортируют эти contribution файлы. Полный typecheck, native --status и smoke приложения проверяются пакетно. Browser-only _issues.getSystemStatus сохраняет прежний unsupported ответ; его runtime отдельно в этом harness не запускался. Оставшиеся реализации forms/editor/recording и nativeHost upload RPC ещё существуют; полное удаление Issue Reporter исходников не заявляется.

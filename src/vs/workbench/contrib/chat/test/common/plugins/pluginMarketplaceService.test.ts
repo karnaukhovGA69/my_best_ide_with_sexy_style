@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import * as sinon from 'sinon';
-import { DeferredPromise, installFakeRunWhenIdle, timeout } from '../../../../../../base/common/async.js';
+import { installFakeRunWhenIdle, timeout } from '../../../../../../base/common/async.js';
 import { bufferToStream, VSBuffer } from '../../../../../../base/common/buffer.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
@@ -1124,266 +1124,25 @@ suite('PluginMarketplaceService - installed plugins lifecycle', () => {
 		assert.strictEqual(installed[0].plugin.name, 'my-plugin');
 	});
 
-	test('periodic update checking pauses while metered and resumes when unmetered', async () => {
-		let runIdle: ((idle: IdleDeadline) => void) | undefined;
-		store.add(installFakeRunWhenIdle((_target, runner) => {
-			runIdle = runner;
-			return Disposable.None;
-		}));
-		const meteredConnectionService = store.add(new TestMeteredConnectionService(true));
-		let fetchCount = 0;
-		const service = createService({
-			meteredConnectionService,
-			pluginRepositoryService: {
-				fetchRepository: async () => {
-					fetchCount++;
-					return false;
-				},
-			},
-		});
-		service.addInstalledPlugin(
-			URI.file('/agent-plugins/github.com/microsoft/plugins/my-plugin'),
-			makePlugin('my-plugin', 'my-plugin'),
-		);
-
-		assert.ok(runIdle);
-		runIdle({ didTimeout: false, timeRemaining: () => 50 });
-		await timeout(0);
-		assert.strictEqual(fetchCount, 0);
-
-		meteredConnectionService.setIsConnectionMetered(false);
-		await timeout(0);
-		await timeout(0);
-		assert.strictEqual(fetchCount, 1);
-	});
-
-	test('defers an overdue check until queued updates are acknowledged', async () => {
-		const updateCheckInterval = 24 * 60 * 60 * 1000;
-		const clock = sinon.useFakeTimers({ now: updateCheckInterval + 1 });
+	test('does not schedule or fetch background updates after idle, policy, or connection changes', async () => {
+		const clock = sinon.useFakeTimers();
 		store.add(toDisposable(() => clock.restore()));
-		let runIdle: ((idle: IdleDeadline) => void) | undefined;
-		store.add(installFakeRunWhenIdle((_target, runner) => {
-			runIdle = runner;
-			return Disposable.None;
-		}));
-		const meteredConnectionService = store.add(new TestMeteredConnectionService(false));
-		let fetchCount = 0;
-		const service = createService({
-			meteredConnectionService,
-			pluginRepositoryService: {
-				fetchRepository: async () => ++fetchCount === 1,
-			},
-		});
-		service.addInstalledPlugin(
-			URI.file('/agent-plugins/github.com/microsoft/plugins/my-plugin'),
-			makePlugin('my-plugin', 'my-plugin'),
-		);
-
-		assert.ok(runIdle);
-		runIdle({ didTimeout: false, timeRemaining: () => 50 });
-		await clock.tickAsync(0);
-		assert.deepStrictEqual({
-			fetchCount,
-			marketplacesWithUpdates: [...service.marketplacesWithUpdates.get()],
-		}, {
-			fetchCount: 1,
-			marketplacesWithUpdates: [marketplaceRef.canonicalId],
-		});
-
-		meteredConnectionService.setIsConnectionMetered(true);
-		await clock.tickAsync(updateCheckInterval);
-		meteredConnectionService.setIsConnectionMetered(false);
-		await clock.tickAsync(0);
-		assert.strictEqual(fetchCount, 1);
-
-		service.clearUpdatesAvailable(new Set([marketplaceRef.canonicalId]));
-		await clock.tickAsync(0);
-		assert.strictEqual(fetchCount, 2);
-	});
-
-	test('unmetering before startup idle does not start an update check', async () => {
-		let runIdle: ((idle: IdleDeadline) => void) | undefined;
-		store.add(installFakeRunWhenIdle((_target, runner) => {
-			runIdle = runner;
-			return Disposable.None;
-		}));
+		let idleScheduled = 0;
+		store.add(installFakeRunWhenIdle(() => { idleScheduled++; return Disposable.None; }));
 		const meteredConnectionService = store.add(new TestMeteredConnectionService(true));
+		const managedSettingsService = store.add(new TestManagedSettingsService());
 		let fetchCount = 0;
 		const service = createService({
 			meteredConnectionService,
-			pluginRepositoryService: {
-				fetchRepository: async () => {
-					fetchCount++;
-					return false;
-				},
-			},
-		});
-		service.addInstalledPlugin(
-			URI.file('/agent-plugins/github.com/microsoft/plugins/my-plugin'),
-			makePlugin('my-plugin', 'my-plugin'),
-		);
-
-		meteredConnectionService.setIsConnectionMetered(false);
-		await timeout(0);
-		await timeout(0);
-		assert.strictEqual(fetchCount, 0);
-
-		assert.ok(runIdle);
-		runIdle({ didTimeout: false, timeRemaining: () => 50 });
-		await timeout(0);
-		await timeout(0);
-		assert.strictEqual(fetchCount, 1);
-	});
-
-	test('cancelling a scheduled update check does not cause an unhandled rejection', async () => {
-		let runIdle: ((idle: IdleDeadline) => void) | undefined;
-		store.add(installFakeRunWhenIdle((_target, runner) => {
-			runIdle = runner;
-			return Disposable.None;
-		}));
-		const meteredConnectionService = store.add(new TestMeteredConnectionService(false));
-		createService({ meteredConnectionService });
-		const unhandledRejections: unknown[] = [];
-		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
-		const onBrowserUnhandledRejection = (event: PromiseRejectionEvent) => onUnhandledRejection(event.reason);
-		if (isWeb) {
-			globalThis.addEventListener('unhandledrejection', onBrowserUnhandledRejection);
-		} else {
-			process.on('unhandledRejection', onUnhandledRejection);
-		}
-
-		try {
-			assert.ok(runIdle);
-			runIdle({ didTimeout: false, timeRemaining: () => 50 });
-			meteredConnectionService.setIsConnectionMetered(true);
-			await timeout(0);
-
-			assert.deepStrictEqual(unhandledRejections, []);
-		} finally {
-			if (isWeb) {
-				globalThis.removeEventListener('unhandledrejection', onBrowserUnhandledRejection);
-			} else {
-				process.off('unhandledRejection', onUnhandledRejection);
-			}
-		}
-	});
-
-	test('unmetering while a check is in flight does not start a concurrent check', async () => {
-		let runIdle: ((idle: IdleDeadline) => void) | undefined;
-		store.add(installFakeRunWhenIdle((_target, runner) => {
-			runIdle = runner;
-			return Disposable.None;
-		}));
-		const meteredConnectionService = store.add(new TestMeteredConnectionService(false));
-		const firstFetch = new DeferredPromise<boolean>();
-		let activeFetches = 0;
-		let maxActiveFetches = 0;
-		let fetchCount = 0;
-		const service = createService({
-			meteredConnectionService,
-			pluginRepositoryService: {
-				fetchRepository: async () => {
-					fetchCount++;
-					activeFetches++;
-					maxActiveFetches = Math.max(maxActiveFetches, activeFetches);
-					try {
-						return fetchCount === 1 ? await firstFetch.p : false;
-					} finally {
-						activeFetches--;
-					}
-				},
-			},
-		});
-		service.addInstalledPlugin(
-			URI.file('/agent-plugins/github.com/microsoft/plugins/my-plugin'),
-			makePlugin('my-plugin', 'my-plugin'),
-		);
-
-		assert.ok(runIdle);
-		runIdle({ didTimeout: false, timeRemaining: () => 50 });
-		await timeout(0);
-		meteredConnectionService.setIsConnectionMetered(true);
-		meteredConnectionService.setIsConnectionMetered(false);
-		await timeout(0);
-
-		assert.deepStrictEqual({ fetchCount, maxActiveFetches }, { fetchCount: 1, maxActiveFetches: 1 });
-
-		firstFetch.complete(false);
-		await timeout(0);
-		await timeout(0);
-
-		assert.deepStrictEqual({ fetchCount, maxActiveFetches }, { fetchCount: 1, maxActiveFetches: 1 });
-	});
-
-	test('managed allowlist changes during a check queue one rerun without overlapping fetches', async () => {
-		let runIdle: ((idle: IdleDeadline) => void) | undefined;
-		store.add(installFakeRunWhenIdle((_target, runner) => {
-			runIdle = runner;
-			return Disposable.None;
-		}));
-		const skippedRef = parseMarketplaceReference('microsoft/skipped')!;
-		const deferredRef = parseMarketplaceReference('microsoft/deferred')!;
-		const configurationService = new TestConfigurationService({
-			[ChatConfiguration.PluginMarketplaces]: [skippedRef.canonicalId, deferredRef.canonicalId],
-			[ChatConfiguration.PluginsEnabled]: true,
-		});
-		const managedSettingsService = store.add(new TestManagedSettingsService([{ source: 'github', repo: 'microsoft/deferred' }]));
-		const firstFetch = new DeferredPromise<boolean>();
-		const thirdFetch = new DeferredPromise<void>();
-		const fetched: string[] = [];
-		let activeFetches = 0;
-		let maxActiveFetches = 0;
-		const service = createService({
-			configurationService,
 			managedSettingsService,
-			pluginRepositoryService: {
-				fetchRepository: async reference => {
-					fetched.push(reference.canonicalId);
-					activeFetches++;
-					maxActiveFetches = Math.max(maxActiveFetches, activeFetches);
-					if (fetched.length === 3) {
-						thirdFetch.complete();
-					}
-					try {
-						return fetched.length === 1 ? await firstFetch.p : false;
-					} finally {
-						activeFetches--;
-					}
-				},
-			},
+			pluginRepositoryService: { fetchRepository: async () => { fetchCount++; return true; } },
 		});
-		service.addInstalledPlugin(
-			URI.file('/agent-plugins/github.com/microsoft/skipped/plugin'),
-			makePlugin('skipped', 'plugin', skippedRef),
-		);
-		service.addInstalledPlugin(
-			URI.file('/agent-plugins/github.com/microsoft/deferred/plugin'),
-			makePlugin('deferred', 'plugin', deferredRef),
-		);
-
-		assert.ok(runIdle);
-		runIdle({ didTimeout: false, timeRemaining: () => 50 });
-		await timeout(0);
-		assert.deepStrictEqual(fetched, [deferredRef.canonicalId]);
-
-		managedSettingsService.setAllowlist([
-			{ source: 'github', repo: 'microsoft/skipped' },
-			{ source: 'github', repo: 'microsoft/deferred' },
-		]);
-		await timeout(0);
-		assert.deepStrictEqual({ fetched, maxActiveFetches }, { fetched: [deferredRef.canonicalId], maxActiveFetches: 1 });
-
-		firstFetch.complete(false);
-		// The queued rerun fetches the newly allowed marketplace, then the deferred one again.
-		await thirdFetch.p;
-
-		assert.deepStrictEqual({
-			fetched,
-			maxActiveFetches,
-		}, {
-			fetched: [deferredRef.canonicalId, skippedRef.canonicalId, deferredRef.canonicalId],
-			maxActiveFetches: 1,
-		});
+		service.addInstalledPlugin(URI.file('/agent-plugins/example/plugin'), makePlugin('plugin', 'plugin'));
+		meteredConnectionService.setIsConnectionMetered(false);
+		managedSettingsService.setAllowlist([]);
+		service.clearUpdatesAvailable();
+		await clock.tickAsync(2 * 24 * 60 * 60 * 1000);
+		assert.deepStrictEqual({ idleScheduled, fetchCount, updates: [...service.marketplacesWithUpdates.get()] }, { idleScheduled: 0, fetchCount: 0, updates: [] });
 	});
 
 	test('removeInstalledPlugin removes plugin from installedPlugins and metadata', () => {

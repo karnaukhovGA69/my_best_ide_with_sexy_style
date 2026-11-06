@@ -92,3 +92,5 @@
 Восьмой срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет.
 
 Восьмой срез ЗАВЕРШЁН: 2 задачи, 36 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Orphan upload adapters/fixtures не имеют оставшихся consumers; distribution absence assertion сохранён. Общий слот освобождён. Всего после локального 0.0.9: 33 задачи, 140 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.
+
+Девятый срез — ЗАНЯТО интегратором: issue-orphan-target-helpers-delete и `local-model-flow-analytics-disable` — `2df57beb09fdcd282a5c41d7b1502b675772b7b8`.

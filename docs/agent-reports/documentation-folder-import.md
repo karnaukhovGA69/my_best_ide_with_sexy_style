@@ -1,0 +1,3 @@
+# documentation-folder-import
+
+Статус: ЗАНЯТО. Владелец: интегратор/documents agent. База: 19853c1b246. Область: extensions/myself-documents/src/library{,Model,Import}.ts, test/library*.test.cts, package.json/package.nls*.json/l10n/*; этот отчёт; README/status/планы только состояние folder import. Реализовать явный импорт локальной папки HTML/Markdown/TXT как набора, внутренние относительные ссылки только внутри набора, сохранение копий и metadata одним commit, rollback ошибок. Ограничить обход/объём, пропускать symlinks и исключить выход за корень; не читать произвольные файлы по ссылкам. Существующие импорты сохранить. Без сетевых downloads, PDF и пересечения с theme/icons/layout. Scoped tests/types/lint и inventory; full app package не запускать.

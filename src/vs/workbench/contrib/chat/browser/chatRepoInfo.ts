@@ -7,19 +7,11 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { relativePath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { linesDiffComputers } from '../../../../editor/common/diff/linesDiffComputers.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { IFileService, FileOperationError, FileOperationResult } from '../../../../platform/files/common/files.js';
 import { detectEncodingFromBuffer } from '../../../services/textfile/common/encoding.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
-import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { IChatEntitlementService } from '../../../services/chat/common/chatEntitlementService.js';
 import { ISCMService, ISCMResource } from '../../scm/common/scm.js';
-import { IChatService } from '../common/chatService/chatService.js';
-import { ChatConfiguration } from '../common/constants.js';
-import { IChatModel, IExportableRepoData, IExportableRepoDiff } from '../common/model/chatModel.js';
-import * as nls from '../../../../nls.js';
+import { IExportableRepoData, IExportableRepoDiff } from '../common/model/chatModel.js';
 
 const MAX_CHANGES = 100;
 const MAX_DIFFS_SIZE_BYTES = 900 * 1024;
@@ -373,81 +365,6 @@ function computeDiffHunks(
 }
 
 /**
- * Captures lightweight repository metadata (branch, commit, remote) from SCM providers.
- * No file I/O or diff computation - reads only from already-loaded SCM observables.
- * Used on chat message submission to record the point-in-time commit state.
- */
-export function captureRepoMetadata(scmService: ISCMService): IExportableRepoData | undefined {
-	const repositories = [...scmService.repositories];
-	if (repositories.length === 0) {
-		return undefined;
-	}
-
-	const repository = repositories[0];
-	const rootUri = repository.provider.rootUri;
-	if (!rootUri) {
-		return undefined;
-	}
-
-	let localBranch: string | undefined;
-	let localHeadCommit: string | undefined;
-	let remoteTrackingBranch: string | undefined;
-	let remoteHeadCommit: string | undefined;
-	let remoteBaseBranch: string | undefined;
-
-	const historyProvider = repository.provider.historyProvider?.get();
-	if (historyProvider) {
-		const historyItemRef = historyProvider.historyItemRef.get();
-		localBranch = historyItemRef?.name;
-		localHeadCommit = historyItemRef?.revision;
-
-		const historyItemRemoteRef = historyProvider.historyItemRemoteRef.get();
-		if (historyItemRemoteRef) {
-			remoteTrackingBranch = historyItemRemoteRef.name;
-			remoteHeadCommit = historyItemRemoteRef.revision;
-		}
-
-		const historyItemBaseRef = historyProvider.historyItemBaseRef.get();
-		if (historyItemBaseRef) {
-			remoteBaseBranch = historyItemBaseRef.name;
-		}
-	}
-
-	// Determine workspace type and sync status without file I/O.
-	// Cannot determine remoteUrl/remoteVendor or detect plain-folder here (requires reading .git/config).
-	// The full captureRepoInfo at export time will produce accurate classification.
-	let workspaceType: IExportableRepoData['workspaceType'];
-	let syncStatus: IExportableRepoData['syncStatus'];
-
-	if (remoteTrackingBranch || remoteHeadCommit || remoteBaseBranch) {
-		workspaceType = 'remote-git';
-
-		if (!remoteTrackingBranch) {
-			syncStatus = 'unpublished';
-		} else if (localHeadCommit && remoteHeadCommit && localHeadCommit === remoteHeadCommit) {
-			syncStatus = 'synced';
-		} else {
-			syncStatus = 'unpushed';
-		}
-	} else {
-		// No remote refs available; conservatively classify as local-git
-		workspaceType = 'local-git';
-		syncStatus = 'local-only';
-	}
-
-	return {
-		workspaceType,
-		syncStatus,
-		localBranch,
-		remoteTrackingBranch,
-		remoteBaseBranch,
-		localHeadCommit,
-		remoteHeadCommit,
-		diffsStatus: 'notCaptured',
-	};
-}
-
-/**
  * Captures full repository state including working tree diffs.
  * Performs file I/O and diff computation - should only be called on explicit user action (e.g., export).
  */
@@ -638,95 +555,7 @@ export async function captureRepoInfo(scmService: ISCMService, fileService: IFil
 	};
 }
 
-/**
- * Captures lightweight repository metadata for chat sessions on first message.
- * Only reads from already-loaded SCM provider observables, no file I/O.
- * Full diff capture is deferred to export time (see chatExportZip.ts).
- */
+/** Compatibility contribution; AI requests do not capture repository metadata. */
 export class ChatRepoInfoContribution extends Disposable implements IWorkbenchContribution {
-
 	static readonly ID = 'workbench.contrib.chatRepoInfo';
-
-	private _configurationRegistered = false;
-
-	constructor(
-		@IChatService private readonly chatService: IChatService,
-		@IChatEntitlementService private readonly chatEntitlementService: IChatEntitlementService,
-		@ISCMService private readonly scmService: ISCMService,
-		@ILogService private readonly logService: ILogService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
-	) {
-		super();
-		this.registerConfigurationIfInternal();
-		this._register(this.chatEntitlementService.onDidChangeEntitlement(() => {
-			this.registerConfigurationIfInternal();
-		}));
-
-		this._register(this.chatService.onDidSubmitRequest(({ chatSessionResource }) => {
-			const model = this.chatService.getSession(chatSessionResource);
-			if (!model) {
-				return;
-			}
-			this.captureAndSetRepoMetadata(model);
-		}));
-	}
-
-	private registerConfigurationIfInternal(): void {
-		if (this._configurationRegistered) {
-			return;
-		}
-
-		if (!this.chatEntitlementService.isInternal) {
-			return;
-		}
-
-		const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
-		registry.registerConfiguration({
-			id: 'chatRepoInfo',
-			title: nls.localize('chatRepoInfoConfigurationTitle', "Chat Repository Info"),
-			type: 'object',
-			properties: {
-				[ChatConfiguration.RepoInfoEnabled]: {
-					type: 'boolean',
-					description: nls.localize('chat.repoInfo.enabled', "Controls whether lightweight repository metadata (branch, commit, remotes) is captured when a chat request is submitted for internal diagnostics."),
-					default: false,
-				}
-			}
-		});
-
-		this._configurationRegistered = true;
-		this.logService.debug('[ChatRepoInfo] Configuration registered for internal user');
-	}
-
-	/**
-	 * Captures lightweight metadata (branch, commit, remote refs) on first message.
-	 * Synchronous, no file I/O. Reads only from SCM provider observables.
-	 */
-	private captureAndSetRepoMetadata(model: IChatModel): void {
-		if (!this.chatEntitlementService.isInternal) {
-			return;
-		}
-
-		if (!this.configurationService.getValue<boolean>(ChatConfiguration.RepoInfoEnabled)) {
-			return;
-		}
-
-		if (model.repoData) {
-			return;
-		}
-
-		try {
-			const metadata = captureRepoMetadata(this.scmService);
-			if (metadata) {
-				model.setRepoData(metadata);
-				if (!metadata.localHeadCommit) {
-					this.logService.warn('[ChatRepoInfo] Captured repo metadata without commit hash - git history may not be ready');
-				}
-			} else {
-				this.logService.debug('[ChatRepoInfo] No SCM repository available for chat session');
-			}
-		} catch (error) {
-			this.logService.warn('[ChatRepoInfo] Failed to capture repo metadata:', error);
-		}
-	}
 }

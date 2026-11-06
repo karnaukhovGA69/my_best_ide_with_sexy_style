@@ -131,3 +131,11 @@
 Тринадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет. Первый ModernUI harness случайно включил geometry suite с empty CSS loader (81 failure из 102); harness исправляется на реальную загрузку CSS, результат не объявлен продуктовой регрессией.
 
 Тринадцатый срез ЗАВЕРШЁН: 5 implementation задач (включая отдельный modern-statusbar-split-spacing-fix), 102 core browser tests и 2 Markdown CSP browser tests passed, 0 page errors; client и Markdown extension typecheck passed, scoped lint и diff --check чистые. Диагностика старой CSS margin регрессии и исправления harness описаны в отдельном отчёте; tests не ослаблялись. Общий слот освобождён. Всего после локального 0.0.9: 46 implementation задач, 307 browser test executions. Common Markdown renderer ещё требует ограничения resources; release notes у другого владельца. Package/native не запускались, готовый ZIP неизменён.
+
+Четырнадцатый срез — ЗАНЯТО интегратором:
+- `text-size-menus` — `73d0e0d02b9bb2834db666cf36f4ef9f5638d978`
+- `chat-session-option-slash-disable` — `93a9905b29963f1ec5171d221af42bdfafc8045d`
+- `chat-collapsible-analytics-disable` — `a02618e1415fda5fbdb403223af99ef46c341f3c`
+- `chat-todo-citation-analytics-disable` — `65a2ce1b638bb0014fea88ab24636f13fd85c1df`
+
+Common Markdown local media уже занят чатом упрощения; интегратор не меняет этот scope.

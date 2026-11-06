@@ -1,0 +1,7 @@
+# github-repository-catalog
+
+Статус: ЗАНЯТО. Владелец: чат упрощения Myself IDE. Ветка: agent/github-repository-catalog. База: main 9be3b2c89dc. Новое поручение владельца передано координирующим чатом 01a1a827-3022-7ff2-9970-43a31c3c7ab1: вернуть GitHub login + private repository catalog, без backup/AI/telemetry/issue uploads; прежний запрет auth/catalog отменён.
+
+Зарезервированная область: новый extensions/myself-github/** (manifest, локализация, src, tests, compile config) и этот отчёт. В этой же задаче владелец auth, repository catalog UI, выбор одного root, проверка remote и root/owner/repo, clone/cancel/open; другим агентам не реализовывать дубликаты. Не изменять старый GitHub provider/portable engine, root manifests/allowlist/build/product или releaseNotesEditor. Интегратору потребуется только wiring новой extension в сборку после проверки.
+
+Сеть только по действию пользователя для login/catalog/clone. Секреты только SecretStorage, без токенов в URI/args/logs/settings; собственный OAuth Device Flow требует Client ID приложения с включённым device flow (запрошен владельцу; secret не требуется). Сохранять Git/SSH/remote/workspaces/containers и обычную сеть процессов. Catalog перечисляет доступные приватные и публичные repositories, локальные копии ищет только внутри выбранного root. Не перезаписывать конфликты/посторонние каталоги, проверить traversal/symlink escape и remote, отмена/неуспешный clone не открывает проект. Отдельная панель каталога с видимым входом/выбором root/обновлением.

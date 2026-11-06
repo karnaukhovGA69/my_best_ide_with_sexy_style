@@ -159,3 +159,5 @@ Common Markdown local media уже занят чатом упрощения; и�
 - `chat-editing-editor-observers-disable` — `d3e401fc62da28f7c382e079d1baa6acb79ccd2e`
 - `copilot-config-submit-handlers-disable` — `722eb27a1873a3c047868394687e730cbbfff3cc`
 - `agent-mode-picker-runtime-disable` — `94a81d3155dca33ef8cd4a9ccf38aa719badbc2d`
+
+Шестнадцатый срез расширен: release-notes-local-only — 42e11ba941a; общий client typecheck slot ЗАНЯТ интегратором, других процессов проверки/сборки нет.

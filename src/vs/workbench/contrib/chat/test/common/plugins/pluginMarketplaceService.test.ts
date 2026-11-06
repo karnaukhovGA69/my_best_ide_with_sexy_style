@@ -1307,17 +1307,17 @@ suite('PluginMarketplaceService - hydration after restart', () => {
 		};
 	}
 
-	function storeMarketplaceCache(storageService: InMemoryStorageService, marketplaceReference: IMarketplaceReference, plugin: IMarketplacePlugin, key = 'chat.plugins.marketplaces.githubCache.v2'): void {
+	function storeMarketplaceCache(storageService: InMemoryStorageService, marketplaceReference: IMarketplaceReference, plugin: IMarketplacePlugin, key = 'chat.plugins.marketplaces.githubCache.v2', expiresAt = Date.now() + 60_000): void {
 		storageService.store(key, JSON.stringify({
 			[marketplaceReference.canonicalId]: {
 				plugins: [plugin],
-				expiresAt: Date.now() + 60_000,
+				expiresAt,
 				referenceRawValue: marketplaceReference.rawValue,
 			},
 		}), StorageScope.APPLICATION, StorageTarget.MACHINE);
 	}
 
-	function createPersistedService(fileService: TestFileService, storageService: IStorageService, cacheRoot: URI = CACHE_ROOT): PluginMarketplaceService {
+	function createPersistedService(fileService: TestFileService, storageService: IStorageService, cacheRoot: URI = CACHE_ROOT, networkCalls: string[] = []): PluginMarketplaceService {
 		const instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(IConfigurationService, new TestConfigurationService({
 			[ChatConfiguration.PluginMarketplaces]: ['github/awesome-copilot#marketplace'],
@@ -1325,9 +1325,12 @@ suite('PluginMarketplaceService - hydration after restart', () => {
 		}));
 		instantiationService.stub(IEnvironmentService, { cacheHome: URI.file('/cache') });
 		instantiationService.stub(IFileService, fileService as unknown as IFileService);
-		instantiationService.stub(IAgentPluginRepositoryService, createPluginRepositoryStub(cacheRoot));
+		instantiationService.stub(IAgentPluginRepositoryService, {
+			...createPluginRepositoryStub(cacheRoot),
+			ensureRepository: async () => { networkCalls.push('clone'); throw new Error('Unexpected clone during hydration'); },
+		});
 		instantiationService.stub(ILogService, new NullLogService());
-		instantiationService.stub(IRequestService, {});
+		instantiationService.stub(IRequestService, { request: async () => { networkCalls.push('http'); throw new Error('Unexpected HTTP during hydration'); } });
 		instantiationService.stub(IStorageService, storageService);
 		instantiationService.stub(IWorkspacePluginSettingsService, {
 			extraMarketplaces: observableValue('test.extraMarketplaces', []),
@@ -1389,6 +1392,53 @@ suite('PluginMarketplaceService - hydration after restart', () => {
 		const service = store.add(instantiationService.createInstance(PluginMarketplaceService));
 		const plugins = await service.fetchMarketplacePlugins(CancellationToken.None);
 		assert.deepStrictEqual({ requests, plugins: plugins.map(plugin => plugin.name) }, { requests: 1, plugins: ['safe'] });
+	});
+
+	for (const source of ['fresh cache', 'expired cache', 'local repository']) {
+		test(`hydrates installed metadata from ${source} without network access`, async () => {
+			const storageService = store.add(new InMemoryStorageService());
+			const fileService = new TestFileService();
+			const reference = parseMarketplaceReference('owner/catalog')!;
+			const plugin = makeAzurePlugin(reference);
+			const pluginUri = createPluginRepositoryStub().getPluginInstallUri(plugin);
+			if (source === 'local repository') {
+				fileService.setFile(URI.joinPath(CACHE_ROOT, ...reference.cacheSegments, '.github/plugin/marketplace.json'), JSON.stringify({
+					plugins: [{ name: plugin.name, source: { source: 'github', repo: 'microsoft/azure-skills', path: '.github/plugins/azure-skills' } }],
+				}));
+			} else {
+				storeMarketplaceCache(storageService, reference, plugin, 'chat.plugins.marketplaces.githubCache.v2', Date.now() + (source === 'expired cache' ? -60_000 : 60_000));
+			}
+			fileService.setFile(URI.joinPath(CACHE_ROOT, 'installed.json'), JSON.stringify({
+				version: 1, installed: [{ pluginUri: pluginUri.toString(), marketplace: reference.rawValue, name: plugin.name }],
+			}));
+			const networkCalls: string[] = [];
+			const service = createPersistedService(fileService, storageService, CACHE_ROOT, networkCalls);
+			await waitForState(service.installedPlugins, plugins => plugins.length === 1);
+			assert.deepStrictEqual(networkCalls, []);
+			const descriptor = service.installedPlugins.get()[0].plugin.sourceDescriptor;
+			assert.strictEqual(descriptor.kind, PluginSourceKind.GitHub);
+			assert.strictEqual(descriptor.repo, 'microsoft/azure-skills');
+			assert.strictEqual(descriptor.path, '.github/plugins/azure-skills');
+		});
+	}
+
+	test('explicit marketplace fetch still expires stale metadata used for hydration', async () => {
+		const storageService = store.add(new InMemoryStorageService());
+		const fileService = new TestFileService();
+		const reference = parseMarketplaceReference('github/awesome-copilot#marketplace')!;
+		const plugin = makeAzurePlugin(reference);
+		storeMarketplaceCache(storageService, reference, plugin, 'chat.plugins.marketplaces.githubCache.v2', Date.now() - 60_000);
+		fileService.setFile(URI.joinPath(CACHE_ROOT, 'installed.json'), JSON.stringify({
+			version: 1, installed: [{ pluginUri: createPluginRepositoryStub().getPluginInstallUri(plugin).toString(), marketplace: reference.rawValue, name: plugin.name }],
+		}));
+		const networkCalls: string[] = [];
+		const service = createPersistedService(fileService, storageService, CACHE_ROOT, networkCalls);
+		await waitForState(service.installedPlugins, plugins => plugins.length === 1);
+		assert.strictEqual(networkCalls.length, 0);
+		const fetched = await service.fetchMarketplacePlugins(CancellationToken.None);
+		assert.ok(networkCalls.includes('http'), 'explicit fetch must refresh an expired catalog');
+		assert.deepStrictEqual(fetched, [], 'failed refresh must not return the stale catalog');
+		assert.strictEqual(service.installedPlugins.get()[0].plugin.name, plugin.name);
 	});
 
 	test('hydrates a github-sourced plugin from installed.json name and marketplace cache after restart', async () => {
@@ -1487,6 +1537,7 @@ suite('PluginMarketplaceService - hydration after restart', () => {
 			}],
 		}));
 
+		const networkCalls: string[] = [];
 		const instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(IConfigurationService, new TestConfigurationService({
 			[ChatConfiguration.PluginsEnabled]: true,
@@ -1495,11 +1546,11 @@ suite('PluginMarketplaceService - hydration after restart', () => {
 		instantiationService.stub(IFileService, fileService as unknown as IFileService);
 		instantiationService.stub(IAgentPluginRepositoryService, {
 			...createPluginRepositoryStub(),
-			ensureRepository: async () => marketplaceUri,
+			ensureRepository: async () => { networkCalls.push('clone'); return marketplaceUri; },
 		} as unknown as IAgentPluginRepositoryService);
 		instantiationService.stub(ILogService, new NullLogService());
 		instantiationService.stub(IRequestService, {
-			request: async () => ({ res: { headers: {}, statusCode: 404 }, stream: bufferToStream(VSBuffer.fromString('')) }),
+			request: async () => { networkCalls.push('http'); return { res: { headers: {}, statusCode: 404 }, stream: bufferToStream(VSBuffer.fromString('')) }; },
 		} as Partial<IRequestService> as IRequestService);
 		instantiationService.stub(IStorageService, storageService);
 		instantiationService.stub(IWorkspacePluginSettingsService, {
@@ -1518,6 +1569,7 @@ suite('PluginMarketplaceService - hydration after restart', () => {
 		const service = store.add(instantiationService.createInstance(PluginMarketplaceService));
 		await waitForState(service.installedPlugins, plugins => plugins.length === 1);
 
+		assert.deepStrictEqual(networkCalls, []);
 		assert.strictEqual(service.installedPlugins.get().length, 1, 'single-plugin repo should survive a restart');
 		assert.strictEqual(service.installedPlugins.get()[0].plugin.name, 'vscode-corpus');
 	});

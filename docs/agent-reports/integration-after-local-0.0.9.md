@@ -143,3 +143,7 @@ Common Markdown local media уже занят чатом упрощения; и�
 Четырнадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет.
 
 Четырнадцатый срез ЗАВЕРШЁН: 4 implementation задачи, 19 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Command IDs меню размера текста сверены с существующими editor/terminal font zoom registrations; новый движок масштабирования не добавлялся. Общий слот освобождён. Всего после локального 0.0.9: 50 implementation задач, 326 browser test executions. Native menus и runtime нового пакета ещё не проверялись; package не запускался, готовый ZIP неизменён.
+
+Пятнадцатый срез — ЗАНЯТО интегратором:
+- `common-markdown-local-media` — `acc4d8238025593500b76cd7df231f80abcb8ca6`
+- `chat-input-notification-analytics-disable` — `51bc4b7de4c4917aa97492af5e88570c0581e27d`

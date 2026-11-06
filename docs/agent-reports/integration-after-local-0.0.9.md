@@ -86,3 +86,5 @@
 Седьмой срез: занят общий client typecheck slot на три задачи; других package/typecheck процессов при запуске нет.
 
 Седьмой срез ЗАВЕРШЁН: 3 задачи, 10 browser tests passed (сохранённые output helpers, pass-through service, inert cache notification), 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Аудит относительных ссылок src/build/test/extensions: 6 удалённых файлов, 0 оставшихся ссылок. Общий слот освобождён. Всего после локального 0.0.9: 31 задача, 104 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.
+
+Восьмой срез — ЗАНЯТО интегратором: issue-upload-orphan-adapters-delete и `local-model-ready-offer-disable` — `57ef3277ecf8689b0a7cc051a1657ffa65946649`. Auth/catalog и release-notes-local-only остаются у своих владельцев.

@@ -12,7 +12,7 @@ import { memoize } from '../../../../../base/common/decorators.js';
 import { IFilesConfiguration, ExplorerFolderContext, FilesExplorerFocusedContext, ExplorerFocusedContext, ExplorerRootContext, ExplorerResourceReadonlyContext, ExplorerResourceCut, ExplorerResourceMoveableToTrash, ExplorerCompressedFocusContext, ExplorerCompressedFirstFocusContext, ExplorerCompressedLastFocusContext, ExplorerResourceAvailableEditorIdsContext, VIEW_ID, ExplorerResourceWritableContext, ViewHasSomeCollapsibleRootItemContext, FoldersViewVisibleContext, ExplorerResourceParentReadOnlyContext, ExplorerFindProviderActive } from '../../common/files.js';
 import { FileCopiedContext, NEW_FILE_COMMAND_ID, NEW_FOLDER_COMMAND_ID } from '../fileActions.js';
 import * as DOM from '../../../../../base/browser/dom.js';
-import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
+import { CalmerStudioMetrics, isCalmerStudio, LayoutSettings, IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { isUntitledWorkspace, IWorkspace, IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
@@ -525,7 +525,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 		const getFileNestingSettings = (item?: ExplorerItem) => this.configurationService.getValue<IFilesConfiguration>({ resource: item?.root.resource }).explorer.fileNesting;
 
-		this.tree = this.instantiationService.createInstance(WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>, 'FileExplorer', container, new ExplorerDelegate(), new ExplorerCompressionDelegate(), [this.renderer],
+		this.tree = this.instantiationService.createInstance(WorkbenchCompressibleAsyncDataTree<ExplorerItem | ExplorerItem[], ExplorerItem, FuzzyScore>, 'FileExplorer', container, new ExplorerDelegate(() => this.fileRowHeight), new ExplorerCompressionDelegate(), [this.renderer],
 			this.instantiationService.createInstance(ExplorerDataSource, this.filter, this.findProvider), {
 			compressionEnabled: isCompressionEnabled(),
 			accessibilityProvider: this.renderer,
@@ -573,7 +573,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 				}
 				return false;
 			},
-			paddingBottom: ExplorerDelegate.ITEM_HEIGHT,
+			paddingBottom: this.fileRowHeight,
 			overrideStyles: this.getLocationBasedColors().listOverrideStyles,
 			findProvider: this.findProvider,
 		});
@@ -659,7 +659,23 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 	// React on events
 
+	private get fileRowHeight(): number {
+		return isCalmerStudio(this.configurationService) ? CalmerStudioMetrics.fileRowHeight : ExplorerDelegate.ITEM_HEIGHT;
+	}
+
 	private onConfigurationUpdated(event: IConfigurationChangeEvent | undefined): void {
+		if (event && this.tree?.getInput() && (event.affectsConfiguration(LayoutSettings.CALMER_STUDIO) || event.affectsConfiguration(LayoutSettings.MODERN_UI))) {
+			const height = this.fileRowHeight;
+			this.tree.updateOptions({ paddingBottom: height });
+			const nodes = [...this.tree.getNode().children];
+			while (nodes.length) {
+				const node = nodes.pop()!;
+				if (node.element instanceof ExplorerItem) {
+					this.tree.updateElementHeight(node.element, height);
+				}
+				nodes.push(...node.children);
+			}
+		}
 		if (!event || event.affectsConfiguration('explorer.autoReveal')) {
 			const configuration = this.configurationService.getValue<IFilesConfiguration>();
 			this._autoReveal = configuration?.explorer?.autoReveal;

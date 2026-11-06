@@ -76,8 +76,10 @@ export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
 
 	static readonly ITEM_HEIGHT = 22;
 
+	constructor(private readonly rowHeight: () => number = () => ExplorerDelegate.ITEM_HEIGHT) { }
+
 	getHeight(element: ExplorerItem): number {
-		return ExplorerDelegate.ITEM_HEIGHT;
+		return this.rowHeight();
 	}
 
 	getTemplateId(element: ExplorerItem): string {

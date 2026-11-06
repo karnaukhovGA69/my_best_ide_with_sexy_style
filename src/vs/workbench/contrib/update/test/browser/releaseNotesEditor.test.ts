@@ -235,7 +235,7 @@ suite('Release notes editor Try This integration', () => {
 	test('browser enforces CSP against external images, video, styles and connections', async () => {
 		await manager.show('1.100.0', true);
 		const document = new mainWindow.DOMParser().parseFromString(html[0], 'text/html');
-		const frame = $('iframe');
+		const frame = $<HTMLIFrameElement>('iframe');
 		store.add(toDisposable(() => frame.remove()));
 		const loaded = new DeferredPromise<void>();
 		store.add(addDisposableListener(frame, 'load', () => loaded.complete()));

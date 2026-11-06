@@ -161,3 +161,5 @@ Common Markdown local media уже занят чатом упрощения; и�
 - `agent-mode-picker-runtime-disable` — `94a81d3155dca33ef8cd4a9ccf38aa719badbc2d`
 
 Шестнадцатый срез расширен: release-notes-local-only — 42e11ba941a; общий client typecheck slot ЗАНЯТ интегратором, других процессов проверки/сборки нет.
+
+Шестнадцатый срез: 13 tests passed; client typecheck выявил HTMLElement вместо HTMLIFrameElement в новом releaseNotesEditor.test.ts. Интегратор занимает точечное исправление этого теста. Дополнительно ЗАНЯТО объединение готовых extension-documents-local-only (3b594989646) и git-autofetch-disable (69de6a095a4); повторная пакетная проверка после этих изменений.

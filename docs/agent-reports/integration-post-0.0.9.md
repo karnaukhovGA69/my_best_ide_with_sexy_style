@@ -62,3 +62,5 @@
 Интегратор принимает готовое исправление packaging документов и отчёт сборки `aa520776d160109f1fa8ee43e8eb5a36a2912483`. ЗАНЯТО интеграцией. Исправление extension build не меняет client typecheck inputs; binary source остаётся 7e52ba804691ae05c9057b0b9815cab580efe7af.
 
 Шестой срез ЗАВЕРШЁН: 4 cleanup задачи и исправление packaging документов объединены без конфликтов. 27 browser tests, 1 packaging regression test, полный client typecheck и diff --check passed. Relative-import scan удалённых файлов чистый. Итого шесть срезов: 44 implementation tasks (включая packaging fix), 403 целевых browser tests и 1 packaging test; повторные прогоны не суммируются. Локальный binary 7e52ba804691ae05c9057b0b9815cab580efe7af подтверждён отчётом владельца сборки, это не новый опубликованный релиз и не бинарник всех шести срезов.
+
+Седьмой срез — ЗАНЯТО интегратором: готовый chat-tip-runtime-delete `ea554fcf17bde67182a31a6c4eac32b2e2ec74f9`. chat-tip-ui-delete пока активен и не принимается. GitHub-specific tasks исключены.

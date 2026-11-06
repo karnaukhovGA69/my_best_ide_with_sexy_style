@@ -1,0 +1,88 @@
+<div id="calm-directions" class="viz-carousel" aria-label="Варианты минимального редактора" data-previous-label="Назад" data-next-label="Далее">
+  <section data-variant="Calmer Studio" aria-label="Calmer Studio"><div class="product studio" aria-label="Calmer Studio"></div></section>
+  <section data-variant="Graphite" aria-label="Graphite" hidden><div class="product graphite" aria-label="Graphite"></div></section>
+  <section data-variant="Focus" aria-label="Focus" hidden><div class="product focus" aria-label="Focus"></div></section>
+</div>
+<style>
+#calm-directions .product{--bg:#101010;--shell:#151515;--edge:#282828;--fg:#e6e2dd;--muted:#a39ca9;--accent:#c9b7f3;--kw:#e8b4d9;--fn:#b9ddfc;--str:#d8c7f1;--row:30px;background:var(--bg);color:var(--fg);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:570px;border:1px solid var(--edge);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;position:relative;color-scheme:dark}
+#calm-directions .product *{box-sizing:border-box}
+#calm-directions .product button{font:inherit;color:inherit;background:transparent;border:0;border-radius:5px;padding:6px 9px;display:inline-flex;align-items:center;gap:7px;text-align:left}
+#calm-directions .product button:hover{background:#ffffff0c}
+#calm-directions .product button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+#calm-directions .product button[aria-pressed=true]{background:#ffffff0c;color:var(--fg)}
+#calm-directions .top{height:48px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 18px;background:var(--shell)}
+#calm-directions .dots{display:flex;gap:7px;margin-right:10px}
+#calm-directions .dots i{display:block;width:10px;height:10px;border-radius:50%;background:#6b666a}
+#calm-directions .spacer{flex:1}
+#calm-directions .remote{color:var(--muted);white-space:nowrap}
+#calm-directions .layout{flex:1;display:flex;min-height:0}
+#calm-directions .side{width:202px;flex-shrink:0;padding:15px 12px;background:var(--shell);display:flex;flex-direction:column;gap:3px}
+#calm-directions .side .section-label{padding:12px 9px 6px;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+#calm-directions .side button{min-height:var(--row);width:100%}
+#calm-directions .side .nested{padding-left:27px}
+#calm-directions .side .selected{background:#ffffff0c}
+#calm-directions .main{flex:1;min-width:0;display:flex;flex-direction:column}
+#calm-directions .tabs{display:flex;gap:6px;padding:8px 16px;min-height:43px;border-bottom:1px solid var(--edge)}
+#calm-directions .tabs button{color:var(--muted)}
+#calm-directions .code{padding:24px 22px;flex:1;min-height:0;font:14px/1.85 ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto}
+#calm-directions .line{display:flex;white-space:pre}
+#calm-directions .ln{color:#77717e;width:38px;flex-shrink:0;user-select:none}
+#calm-directions .kw{color:var(--kw)}
+#calm-directions .fn{color:var(--fn)}
+#calm-directions .str{color:var(--str)}
+#calm-directions .comment{color:var(--muted)}
+#calm-directions .terminal{height:136px;flex-shrink:0;border-top:1px solid var(--edge);padding:10px 22px;background:var(--bg)}
+#calm-directions .terminal[hidden],#calm-directions .side[hidden]{display:none}
+#calm-directions .term-head{display:flex;gap:20px;align-items:center;color:var(--muted);margin-bottom:9px;font-size:12px}
+#calm-directions .term-content{font:13px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace}
+#calm-directions .prompt{color:var(--accent)}
+#calm-directions .bottom{display:flex;align-items:center;gap:12px;height:32px;padding:0 15px;color:var(--muted);background:var(--shell);font-size:11px}
+#calm-directions .bottom button{padding:2px 6px;font-size:11px}
+#calm-directions .graphite{--bg:#191919;--shell:#141414;--edge:#2a2a2a;--fg:#e3e3e3;--muted:#a0a0a0;--accent:#b9c7da;--kw:#c8b8d9;--fn:#b8cddc;--str:#cbc2d8}
+#calm-directions .graphite .side{width:224px}
+#calm-directions .graphite .tabs{border-bottom:0;padding-top:16px;color:var(--muted)}
+#calm-directions .graphite .code{padding-top:13px}
+#calm-directions .focus{--bg:#1b1918;--shell:#1b1918;--edge:#35302d;--fg:#e6ded7;--muted:#aaa09a;--accent:#d4b9a0;--kw:#d4b3c5;--fn:#bac9d8;--str:#d4c2d6}
+#calm-directions .focus .top{border-bottom:1px solid var(--edge)}
+#calm-directions .focus .code{padding:34px max(24px,calc((100% - 650px)/2));font-size:15px}
+#calm-directions .focus .terminal{padding-left:max(24px,calc((100% - 650px)/2));height:140px}
+#calm-directions .focus .bottom{background:var(--bg)}
+#calm-directions .sheet{position:absolute;top:50px;left:14px;padding:12px;width:235px;background:var(--shell);border:1px solid var(--edge);border-radius:8px;box-shadow:0 12px 32px #0008;z-index:2}
+#calm-directions .sheet[hidden]{display:none}
+#calm-directions .sheet button{display:block;width:100%}
+#calm-directions svg{width:15px;height:15px;flex-shrink:0}
+@media(max-width:620px){#calm-directions .product{height:660px}#calm-directions .side,#calm-directions .graphite .side{width:148px;padding:9px 5px}#calm-directions .top{padding:0 9px;gap:4px}#calm-directions .dots{display:none}#calm-directions .remote{font-size:11px}#calm-directions .code{padding:18px 10px;font-size:12px}#calm-directions .ln{width:25px}#calm-directions .bottom .detail{display:none}#calm-directions .tabs{padding:6px}#calm-directions .terminal{padding:10px;font-size:12px}}
+@media(max-width:420px){#calm-directions .side,#calm-directions .graphite .side{width:116px;font-size:11px}#calm-directions .side .nested{padding-left:16px}#calm-directions .remote{display:none}#calm-directions .top{font-size:12px}#calm-directions .focus .code{padding-left:14px;font-size:12px}}
+</style>
+<script>
+(()=>{
+const root=document.getElementById('calm-directions');
+const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
+const source=[
+'<span class="comment">// Keep the workspace simple.</span>',
+'<span class="kw">package</span> main','',
+'<span class="kw">func</span> <span class="fn">main</span>() {',
+'    project := <span class="str">"fieldnotes"</span>',
+'    host := <span class="str">"dev-server"</span>','',
+'    session := <span class="fn">connect</span>(host)',
+'    <span class="kw">defer</span> session.<span class="fn">Close</span>()','',
+'    session.<span class="fn">Open</span>(project)','}'
+];
+root.querySelectorAll('.product').forEach((app,index)=>{
+const focus=index===2,graphite=index===1;
+app.innerHTML=`<header class="top"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><button class="workspace cursor-interaction" aria-expanded="false">${icon('folder')} fieldnotes ${icon('chevron-down')}</button>${focus?'<button class="current cursor-interaction">main.go</button>':''}<span class="spacer"></span><span class="remote">SSH · dev-server</span><button class="toggle-files cursor-interaction" aria-label="Показать или скрыть файлы">${icon('panel-left')}</button></header><div class="layout"><aside class="side" ${focus?'hidden':''}>${graphite?'<div class="section-label">Открыто</div><button class="selected file cursor-interaction" data-file="main.go">main.go <span class="spacer"></span>●</button><button class="file cursor-interaction" data-file="config.go">config.go</button><div class="section-label">Проект</div>':'<button class="find cursor-interaction">'+icon('search')+' Найти файл</button><div class="section-label">Файлы</div>'}<button class="cursor-interaction">${icon('chevron-down')} src</button><button class="nested file selected cursor-interaction" data-file="main.go">main.go</button><button class="nested file cursor-interaction" data-file="config.go">config.go</button><button class="file cursor-interaction" data-file="go.mod">go.mod</button><button class="file cursor-interaction" data-file="README.md">README.md</button><span class="spacer"></span><button class="git cursor-interaction">${icon('git-branch')} main <span class="spacer"></span>2</button></aside><main class="main">${focus?'':graphite?'<div class="tabs file-heading">src / main.go</div>':'<div class="tabs"><button class="file cursor-interaction" data-file="main.go" aria-pressed="true">main.go ·</button><button class="file cursor-interaction" data-file="config.go" aria-pressed="false">config.go</button></div>'}<div class="code" aria-label="Пример кода Go">${source.map((s,i)=>'<div class="line"><span class="ln">'+(i+1)+'</span><span>'+s+'</span></div>').join('')}</div><section class="terminal" aria-label="Терминал"><div class="term-head"><span>Терминал</span><span>zsh · dev-server</span><span class="spacer"></span><button class="close-terminal cursor-interaction" aria-label="Скрыть терминал">${icon('minus')}</button></div><div class="term-content"><span class="prompt">fieldnotes ›</span> go test ./...<br><span class="comment">ok &nbsp; fieldnotes &nbsp; 0.024s</span><br><span class="prompt">fieldnotes ›</span> ▏</div></section></main></div><footer class="bottom"><button class="toggle-terminal cursor-interaction">${icon('terminal')} Терминал</button>${focus?'<button class="git cursor-interaction">main · 2 изменения</button>':''}<span class="spacer"></span><span class="detail">Go · UTF-8</span><span>Сохранено</span></footer><div class="sheet" hidden></div>`;
+const sheet=app.querySelector('.sheet');
+function showSheet(kind){sheet.hidden=false;sheet.innerHTML=kind==='git'?'<span>Изменения · main</span><button class="cursor-interaction">M &nbsp; src/main.go</button><button class="cursor-interaction">M &nbsp; src/config.go</button>':'<span>Рабочая папка</span><button class="cursor-interaction">fieldnotes · SSH</button><button class="cursor-interaction">website · локально</button>';sheet.querySelectorAll('button').forEach(b=>b.onclick=()=>{sheet.hidden=true;app.querySelector('.workspace').setAttribute('aria-expanded','false')})}
+app.querySelector('.workspace').onclick=()=>{if(!sheet.hidden){sheet.hidden=true}else showSheet('workspace');app.querySelector('.workspace').setAttribute('aria-expanded',String(!sheet.hidden))};
+app.querySelector('.git').onclick=()=>showSheet('git');
+app.querySelector('.toggle-files').onclick=()=>{const s=app.querySelector('.side');s.hidden=!s.hidden};
+app.querySelector('.close-terminal').onclick=()=>app.querySelector('.terminal').hidden=true;
+app.querySelector('.toggle-terminal').onclick=()=>{const t=app.querySelector('.terminal');t.hidden=!t.hidden};
+const find=app.querySelector('.find');if(find)find.onclick=()=>{showSheet('git');sheet.innerHTML='<span>Быстрый переход</span><button class="cursor-interaction">src/main.go</button><button class="cursor-interaction">src/config.go</button>';sheet.querySelectorAll('button').forEach(b=>b.onclick=()=>sheet.hidden=true)};
+app.querySelectorAll('.file').forEach(b=>b.onclick=()=>{app.querySelectorAll('.file').forEach(x=>{x.setAttribute('aria-pressed',String(x.dataset.file===b.dataset.file));x.classList.toggle('selected',x.dataset.file===b.dataset.file)});const h=app.querySelector('.file-heading');if(h)h.textContent='src / '+b.dataset.file;app.querySelector('.code').innerHTML=(b.dataset.file==='main.go'?source:b.dataset.file==='config.go'?['<span class="kw">package</span> main','','<span class="kw">const</span> host = <span class="str">"dev-server"</span>']:b.dataset.file==='go.mod'?['module fieldnotes','','go 1.24']:['<span class="comment"># Fieldnotes</span>','','A small workspace.']).map((s,i)=>'<div class="line"><span class="ln">'+(i+1)+'</span><span>'+s+'</span></div>').join('')});
+const state={accent:index===0?'#c9b7f3':index===1?'#b9c7da':'#d4b9a0',rows:30};
+if(globalThis.Tweak){const t=new Tweak({container:app,onChange:()=>{app.style.setProperty('--accent',state.accent);app.style.setProperty('--row',state.rows+'px')}});t.addColorPicker(state,'accent',{label:'Акцент'});t.addSlider(state,'rows',{label:'Высота строки файлов',min:26,max:38,unit:'px'})}
+});
+if(globalThis.lucide)lucide.createIcons({attrs:{width:15,height:15}});
+})();
+</script>

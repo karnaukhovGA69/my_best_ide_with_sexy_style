@@ -1,0 +1,123 @@
+<div id="calmer-depth" class="viz-carousel" aria-label="Варианты минимального редактора" data-previous-label="Назад" data-next-label="Далее">
+  <section data-variant="Calmer Studio · Оригинал" aria-label="Calmer Studio · Оригинал"><div class="product studio" aria-label="Calmer Studio · Оригинал"></div></section>
+  <section data-variant="Мягкие слои" aria-label="Мягкие слои" hidden><div class="product refined layers" aria-label="Мягкие слои"></div></section>
+  <section data-variant="Приподнятый" aria-label="Приподнятый" hidden><div class="product refined raised" aria-label="Приподнятый"></div></section>
+  <section data-variant="Утопленный" aria-label="Утопленный" hidden><div class="product refined inset" aria-label="Утопленный"></div></section>
+  <section data-variant="Тёплая глубина" aria-label="Тёплая глубина" hidden><div class="product refined warm" aria-label="Тёплая глубина"></div></section>
+</div>
+<style>
+#calmer-depth .product{--bg:#101010;--shell:#151515;--edge:#282828;--fg:#e6e2dd;--muted:#a39ca9;--accent:#c9b7f3;--kw:#e8b4d9;--fn:#b9ddfc;--str:#d8c7f1;--row:30px;background:var(--bg);color:var(--fg);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:570px;border:1px solid var(--edge);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;position:relative;color-scheme:dark}
+#calmer-depth .product *{box-sizing:border-box}
+#calmer-depth .product button{font:inherit;color:inherit;background:transparent;border:0;border-radius:5px;padding:6px 9px;display:inline-flex;align-items:center;gap:7px;text-align:left}
+#calmer-depth .product button:hover{background:#ffffff0c}
+#calmer-depth .product button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+#calmer-depth .product button[aria-pressed=true]{background:#ffffff0c;color:var(--fg)}
+#calmer-depth .top{height:48px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 18px;background:var(--shell)}
+#calmer-depth .dots{display:flex;gap:7px;margin-right:10px}
+#calmer-depth .dots i{display:block;width:10px;height:10px;border-radius:50%;background:#6b666a}
+#calmer-depth .spacer{flex:1}
+#calmer-depth .remote{color:var(--muted);white-space:nowrap}
+#calmer-depth .layout{flex:1;display:flex;min-height:0}
+#calmer-depth .side{width:202px;flex-shrink:0;padding:15px 12px;background:var(--shell);display:flex;flex-direction:column;gap:3px}
+#calmer-depth .side .section-label{padding:12px 9px 6px;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+#calmer-depth .side button{min-height:var(--row);width:100%}
+#calmer-depth .side .nested{padding-left:27px}
+#calmer-depth .side .selected{background:#ffffff0c}
+#calmer-depth .main{flex:1;min-width:0;display:flex;flex-direction:column}
+#calmer-depth .tabs{display:flex;gap:6px;padding:8px 16px;min-height:43px;border-bottom:1px solid var(--edge)}
+#calmer-depth .tabs button{color:var(--muted)}
+#calmer-depth .code{padding:24px 22px;flex:1;min-height:0;font:14px/1.85 ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto}
+#calmer-depth .line{display:flex;white-space:pre}
+#calmer-depth .ln{color:#77717e;width:38px;flex-shrink:0;user-select:none}
+#calmer-depth .kw{color:var(--kw)}
+#calmer-depth .fn{color:var(--fn)}
+#calmer-depth .str{color:var(--str)}
+#calmer-depth .comment{color:var(--muted)}
+#calmer-depth .terminal{height:136px;flex-shrink:0;border-top:1px solid var(--edge);padding:10px 22px;background:var(--bg)}
+#calmer-depth .terminal[hidden],#calmer-depth .side[hidden]{display:none}
+#calmer-depth .term-head{display:flex;gap:20px;align-items:center;color:var(--muted);margin-bottom:9px;font-size:12px}
+#calmer-depth .term-content{font:13px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace}
+#calmer-depth .prompt{color:var(--accent)}
+#calmer-depth .bottom{display:flex;align-items:center;gap:12px;height:32px;padding:0 15px;color:var(--muted);background:var(--shell);font-size:11px}
+#calmer-depth .bottom button{padding:2px 6px;font-size:11px}
+#calmer-depth .graphite{--bg:#191919;--shell:#141414;--edge:#2a2a2a;--fg:#e3e3e3;--muted:#a0a0a0;--accent:#b9c7da;--kw:#c8b8d9;--fn:#b8cddc;--str:#cbc2d8}
+#calmer-depth .graphite .side{width:224px}
+#calmer-depth .graphite .tabs{border-bottom:0;padding-top:16px;color:var(--muted)}
+#calmer-depth .graphite .code{padding-top:13px}
+#calmer-depth .focus{--bg:#1b1918;--shell:#1b1918;--edge:#35302d;--fg:#e6ded7;--muted:#aaa09a;--accent:#d4b9a0;--kw:#d4b3c5;--fn:#bac9d8;--str:#d4c2d6}
+#calmer-depth .focus .top{border-bottom:1px solid var(--edge)}
+#calmer-depth .focus .code{padding:34px max(24px,calc((100% - 650px)/2));font-size:15px}
+#calmer-depth .focus .terminal{padding-left:max(24px,calc((100% - 650px)/2));height:140px}
+#calmer-depth .focus .bottom{background:var(--bg)}
+#calmer-depth .sheet{position:absolute;top:50px;left:14px;padding:12px;width:235px;background:var(--shell);border:1px solid var(--edge);border-radius:8px;box-shadow:0 12px 32px #0008;z-index:2}
+#calmer-depth .sheet[hidden]{display:none}
+#calmer-depth .sheet button{display:block;width:100%}
+#calmer-depth svg{width:15px;height:15px;flex-shrink:0}
+#calmer-depth .refined{--bg:#181818;--shell:#111111;--edge:#ffffff0d;--radius:6px;--gap:8px;--menu:#242424;--hover:#ffffff09;--selected:#ffffff0d;--motion:140ms;background:var(--shell)}
+#calmer-depth .refined button{transition:background-color var(--motion) ease,color var(--motion) ease,box-shadow var(--motion) ease}
+#calmer-depth .refined button:hover{background:var(--hover)}
+#calmer-depth .refined .side .selected{background:var(--selected);box-shadow:inset 0 1px 0 #ffffff04}
+#calmer-depth .refined .side .section-label{text-transform:none;letter-spacing:0;font-size:12px}
+#calmer-depth .refined .layout{background:var(--shell);padding-right:var(--gap);padding-top:2px;padding-bottom:var(--gap)}
+#calmer-depth .refined .main{background:var(--bg);border-radius:var(--radius);overflow:hidden;border:1px solid var(--edge)}
+#calmer-depth .refined .tabs{background:transparent;padding:6px 12px 0;gap:3px;border-bottom:0;min-height:43px;align-items:stretch}
+#calmer-depth .refined .tabs button{padding:7px 13px;border-radius:4px 4px 0 0;background:transparent}
+#calmer-depth .refined .tabs button[aria-pressed=true]{background:var(--bg);color:var(--fg);box-shadow:inset 0 1px 0 #ffffff08}
+#calmer-depth .refined .code{padding-top:24px;scrollbar-width:thin;scrollbar-color:#49434a transparent}
+#calmer-depth .refined .terminal{background:var(--bg);border-top:1px solid var(--edge)}
+#calmer-depth .refined .sheet{background:var(--menu);border:1px solid #ffffff12;box-shadow:0 16px 40px #0008,0 2px 6px #0004;border-radius:6px}
+#calmer-depth .refined .sheet:not([hidden]){animation:calm-menu-in var(--motion) ease-out}
+#calmer-depth .refined .bottom{height:32px;flex-shrink:0}
+#calmer-depth .layers{--bg:#181818;--shell:#121212;--gap:4px;--radius:4px}
+#calmer-depth .layers .main{border-color:transparent}
+#calmer-depth .layers .tabs{background:#151515}
+#calmer-depth .raised{--bg:#191919;--shell:#101010;--gap:8px;--radius:6px}
+#calmer-depth .raised .main{border-color:#ffffff0d;box-shadow:0 5px 15px #0005,0 1px 3px #0003}
+#calmer-depth .raised .tabs{background:#151515}
+#calmer-depth .inset{--bg:#101010;--shell:#1b1b1b;--gap:8px;--radius:5px;--selected:#ffffff0b}
+#calmer-depth .inset .main{border-color:#080808;box-shadow:0 1px 0 #ffffff09,inset 0 2px 9px #0006}
+#calmer-depth .inset .tabs{background:#151515}
+#calmer-depth .inset .code{box-shadow:inset 0 5px 9px -7px #000b}
+#calmer-depth .warm{--bg:#1e1b19;--shell:#131210;--edge:#ffffff0c;--menu:#292521;--gap:10px;--radius:8px;--muted:#aaa09a;--selected:#ffffff0b}
+#calmer-depth .warm .main{box-shadow:0 6px 20px #0006,0 1px 3px #0004}
+#calmer-depth .warm .tabs{background:#191714}
+#calmer-depth .warm .terminal{background:#1b1917}
+@keyframes calm-menu-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#calmer-depth .refined button{transition:none}#calmer-depth .refined .sheet:not([hidden]){animation:none}}
+@media(max-width:620px){#calmer-depth .refined .layout{padding-right:4px}#calmer-depth .refined .tabs{padding-left:4px;padding-right:4px}#calmer-depth .refined .tabs button{padding-left:8px;padding-right:8px}#calmer-depth .refined .term-head{gap:6px}}
+@media(max-width:620px){#calmer-depth .product{height:660px}#calmer-depth .side,#calmer-depth .graphite .side{width:148px;padding:9px 5px}#calmer-depth .top{padding:0 9px;gap:4px}#calmer-depth .dots{display:none}#calmer-depth .remote{font-size:11px}#calmer-depth .code{padding:18px 10px;font-size:12px}#calmer-depth .ln{width:25px}#calmer-depth .bottom .detail{display:none}#calmer-depth .tabs{padding:6px}#calmer-depth .terminal{padding:10px;font-size:12px}}
+@media(max-width:420px){#calmer-depth .side,#calmer-depth .graphite .side{width:116px;font-size:11px}#calmer-depth .side .nested{padding-left:16px}#calmer-depth .remote{display:none}#calmer-depth .top{font-size:12px}#calmer-depth .focus .code{padding-left:14px;font-size:12px}}
+</style>
+<script>
+(()=>{
+const root=document.getElementById('calmer-depth');
+const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
+const source=[
+'<span class="comment">// Keep the workspace simple.</span>',
+'<span class="kw">package</span> main','',
+'<span class="kw">func</span> <span class="fn">main</span>() {',
+'    project := <span class="str">"fieldnotes"</span>',
+'    host := <span class="str">"dev-server"</span>','',
+'    session := <span class="fn">connect</span>(host)',
+'    <span class="kw">defer</span> session.<span class="fn">Close</span>()','',
+'    session.<span class="fn">Open</span>(project)','}'
+];
+root.querySelectorAll('.product').forEach((app,index)=>{
+const focus=false,graphite=false;
+app.innerHTML=`<header class="top"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><button class="workspace cursor-interaction" aria-expanded="false">${icon('folder')} fieldnotes ${icon('chevron-down')}</button>${focus?'<button class="current cursor-interaction">main.go</button>':''}<span class="spacer"></span><span class="remote">SSH · dev-server</span><button class="toggle-files cursor-interaction" aria-label="Показать или скрыть файлы">${icon('panel-left')}</button></header><div class="layout"><aside class="side" ${focus?'hidden':''}>${graphite?'<div class="section-label">Открыто</div><button class="selected file cursor-interaction" data-file="main.go">main.go <span class="spacer"></span>●</button><button class="file cursor-interaction" data-file="config.go">config.go</button><div class="section-label">Проект</div>':'<button class="find cursor-interaction">'+icon('search')+' Найти файл</button><div class="section-label">Файлы</div>'}<button class="cursor-interaction">${icon('chevron-down')} src</button><button class="nested file selected cursor-interaction" data-file="main.go">main.go</button><button class="nested file cursor-interaction" data-file="config.go">config.go</button><button class="file cursor-interaction" data-file="go.mod">go.mod</button><button class="file cursor-interaction" data-file="README.md">README.md</button><span class="spacer"></span><button class="git cursor-interaction">${icon('git-branch')} main <span class="spacer"></span>2</button></aside><main class="main">${focus?'':graphite?'<div class="tabs file-heading">src / main.go</div>':'<div class="tabs"><button class="file cursor-interaction" data-file="main.go" aria-pressed="true">main.go ·</button><button class="file cursor-interaction" data-file="config.go" aria-pressed="false">config.go</button></div>'}<div class="code" aria-label="Пример кода Go">${source.map((s,i)=>'<div class="line"><span class="ln">'+(i+1)+'</span><span>'+s+'</span></div>').join('')}</div><section class="terminal" aria-label="Терминал"><div class="term-head"><span>Терминал</span><span>zsh · dev-server</span><span class="spacer"></span><button class="close-terminal cursor-interaction" aria-label="Скрыть терминал">${icon('minus')}</button></div><div class="term-content"><span class="prompt">fieldnotes ›</span> go test ./...<br><span class="comment">ok &nbsp; fieldnotes &nbsp; 0.024s</span><br><span class="prompt">fieldnotes ›</span> ▏</div></section></main></div><footer class="bottom"><button class="toggle-terminal cursor-interaction">${icon('terminal')} Терминал</button>${focus?'<button class="git cursor-interaction">main · 2 изменения</button>':''}<span class="spacer"></span><span class="detail">Go · UTF-8</span><span>Сохранено</span></footer><div class="sheet" hidden></div>`;
+const sheet=app.querySelector('.sheet');
+function showSheet(kind){sheet.hidden=false;sheet.innerHTML=kind==='git'?'<span>Изменения · main</span><button class="cursor-interaction">M &nbsp; src/main.go</button><button class="cursor-interaction">M &nbsp; src/config.go</button>':'<span>Рабочая папка</span><button class="cursor-interaction">fieldnotes · SSH</button><button class="cursor-interaction">website · локально</button>';sheet.querySelectorAll('button').forEach(b=>b.onclick=()=>{sheet.hidden=true;app.querySelector('.workspace').setAttribute('aria-expanded','false')})}
+app.querySelector('.workspace').onclick=()=>{if(!sheet.hidden){sheet.hidden=true}else showSheet('workspace');app.querySelector('.workspace').setAttribute('aria-expanded',String(!sheet.hidden))};
+app.querySelector('.git').onclick=()=>showSheet('git');
+app.querySelector('.toggle-files').onclick=()=>{const s=app.querySelector('.side');s.hidden=!s.hidden};
+app.querySelector('.close-terminal').onclick=()=>app.querySelector('.terminal').hidden=true;
+app.querySelector('.toggle-terminal').onclick=()=>{const t=app.querySelector('.terminal');t.hidden=!t.hidden};
+const find=app.querySelector('.find');if(find)find.onclick=()=>{showSheet('git');sheet.innerHTML='<span>Быстрый переход</span><button class="cursor-interaction">src/main.go</button><button class="cursor-interaction">src/config.go</button>';sheet.querySelectorAll('button').forEach(b=>b.onclick=()=>sheet.hidden=true)};
+app.querySelectorAll('.file').forEach(b=>b.onclick=()=>{app.querySelectorAll('.file').forEach(x=>{x.setAttribute('aria-pressed',String(x.dataset.file===b.dataset.file));x.classList.toggle('selected',x.dataset.file===b.dataset.file)});const h=app.querySelector('.file-heading');if(h)h.textContent='src / '+b.dataset.file;app.querySelector('.code').innerHTML=(b.dataset.file==='main.go'?source:b.dataset.file==='config.go'?['<span class="kw">package</span> main','','<span class="kw">const</span> host = <span class="str">"dev-server"</span>']:b.dataset.file==='go.mod'?['module fieldnotes','','go 1.24']:['<span class="comment"># Fieldnotes</span>','','A small workspace.']).map((s,i)=>'<div class="line"><span class="ln">'+(i+1)+'</span><span>'+s+'</span></div>').join('')});
+const computed=getComputedStyle(app);
+const state={accent:'#c9b7f3',rows:30,radius:parseInt(computed.getPropertyValue('--radius'))||0,gap:parseInt(computed.getPropertyValue('--gap'))||0,motion:true};
+if(globalThis.Tweak&&index>0){const t=new Tweak({container:app,onChange:()=>{app.style.setProperty('--accent',state.accent);app.style.setProperty('--row',state.rows+'px');app.style.setProperty('--radius',state.radius+'px');app.style.setProperty('--gap',state.gap+'px');app.style.setProperty('--motion',state.motion?'140ms':'0ms')}});t.addSlider(state,'radius',{label:'Радиус рабочей области',min:0,max:10,unit:'px'});t.addSlider(state,'gap',{label:'Отступ от оболочки',min:0,max:14,unit:'px'});t.addSlider(state,'rows',{label:'Высота строк файлов',min:26,max:38,unit:'px'});t.addToggle(state,'motion',{label:'Плавность состояний'});t.addColorPicker(state,'accent',{label:'Акцент'})}
+});
+if(globalThis.lucide)lucide.createIcons({attrs:{width:15,height:15}});
+})();
+</script>

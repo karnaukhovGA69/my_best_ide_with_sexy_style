@@ -36,10 +36,12 @@ suite('Editor Markdown images', () => {
 		return result;
 	}
 
-	test('allows all images by default', () => {
+	test('blocks external images by default while keeping inline images and links', () => {
 		const sources = renderImageSources(undefined);
-		assert.strictEqual(sources.remote, 'https://attacker.example/collect?leak=1');
-		assert.strictEqual(sources.allowed, 'https://img.shields.io/badge.svg');
+		assert.strictEqual(sources.remote, null);
+		assert.strictEqual(sources.allowed, null);
+		assert.strictEqual(sources.inline, 'data:image/png;base64,iVBORw0KGgo=');
+		assert.strictEqual(sources.link, 'https://example.com/docs');
 	});
 
 	test('blocks remote images when no origin is allowed, keeps data images and links', () => {
@@ -50,10 +52,16 @@ suite('Editor Markdown images', () => {
 		assert.strictEqual(sources.link, 'https://example.com/docs');
 	});
 
-	test('allows images from the allowed origins only', () => {
+	test('an origin allowlist cannot enable external subresources', () => {
 		const sources = renderImageSources({ allowedOrigins: ['https://img.shields.io/ignored-path'] });
 		assert.strictEqual(sources.remote, null);
-		assert.strictEqual(sources.allowed, 'https://img.shields.io/badge.svg');
+		assert.strictEqual(sources.allowed, null);
+		assert.strictEqual(sources.inline, 'data:image/png;base64,iVBORw0KGgo=');
+		assert.strictEqual(sources.link, 'https://example.com/docs');
+	});
+
+	test('allow-all options cannot bypass the local media policy', () => {
+		assert.deepStrictEqual(renderImageSources({ allowedOrigins: true }), renderImageSources(undefined));
 	});
 
 	test('validates and normalizes allowed origins', () => {
@@ -77,12 +85,12 @@ suite('Editor Markdown images', () => {
 		return result;
 	}
 
-	test('checks the origin the browser requests, not a decoded form of it', () => {
+	test('blocks encoded external destinations and allowlisted external posters', () => {
 		const value = [
 			'<img src="https://trusted.example%2F@attacker.example/x.png">',
 			'<video poster="https://trusted.example%2F@attacker.example/poster.png"></video>',
 			'<img src="https://trusted.example/ok.png">',
 		].join('\n');
-		assert.deepStrictEqual(renderHtmlMediaSources(value, ['https://trusted.example']), [null, null, 'https://trusted.example/ok.png']);
+		assert.deepStrictEqual(renderHtmlMediaSources(value, ['https://trusted.example']), [null, null, null]);
 	});
 });

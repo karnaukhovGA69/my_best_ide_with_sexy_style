@@ -1,0 +1,5 @@
+# editor-markdown-local-policy-tests
+
+Статус: ЗАВЕРШЕНО; пятнадцатый интеграционный срез. Владелец: интегратор/documents agent. База: d92644b26c2 плюс common-markdown-local-media. Область: src/vs/editor/test/browser/editorMarkdownSanitizer.test.ts и этот отчёт. Дополнительная интеграционная проверка выявила 3 старых ожидания разрешения HTTP(S) через default/allowedOrigins; они противоречат принятому local-only контракту. Проверить невозможность расширить policy настройкой, сохранить data images/manual anchors и normalization assertions. Production код и пользовательские настройки не менять.
+
+Результат: 6 editor Markdown integration tests passed, 0 page errors; lint и diff --check passed. Сохранены нормализация origins, data images и ручные ссылки, добавлено явное allow-all сравнение. Три прежних сетевых ожидания заменены требованиями принятой local-only policy, production не ослаблялся. Полный client typecheck выполнен после production изменений, до финальных тестовых строк/assertions; новые imports/types не добавлены.

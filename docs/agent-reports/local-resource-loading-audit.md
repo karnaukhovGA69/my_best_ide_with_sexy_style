@@ -19,3 +19,5 @@
 Аудит read-only: без сетевых запросов, без запуска renderer/native smoke. Это список доказанных source-level разрешений и границ будущих проверок, не утверждение фактической утечки или полной изоляции. GitHub auth/catalog, пользовательские данные и сторонние расширения не менялись.
 
 Последующее исправление: markdown-preview-local-resources ограничивает CSP обычного preview и rich editor; 2 browser network regressions passed. Common Markdown renderer и release notes остаются отдельными областями. Packaged native smoke ещё впереди; весь аудит не объявляется закрытым исправлением одного entrypoint.
+
+Последующее исправление common-markdown-local-media интегрировано: общий renderer всегда проверяет media destinations, mapped/base URI, UNC/srcset/poster, даже при allow-all options. 266 combined renderer/sanitizer/notification tests passed, 2 existing pending; отдельно 6 editor-policy integration tests passed. Остаточный независимый путь: workbench/contrib/markdown/browser/markdownDocumentRenderer.ts с собственным sanitizer для extension README/gettingStarted; он ещё требует проверки. Release notes у своего владельца, native пакет ещё не проверен.

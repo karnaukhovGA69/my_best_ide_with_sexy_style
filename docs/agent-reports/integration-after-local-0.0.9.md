@@ -147,3 +147,7 @@ Common Markdown local media уже занят чатом упрощения; и�
 Пятнадцатый срез — ЗАНЯТО интегратором:
 - `common-markdown-local-media` — `acc4d8238025593500b76cd7df231f80abcb8ca6`
 - `chat-input-notification-analytics-disable` — `51bc4b7de4c4917aa97492af5e88570c0581e27d`
+
+Пятнадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет. Общий CSS-aware Markdown/domSanitize/notification suite: 266 passed, 2 existing pending, 0 failures.
+
+Пятнадцатый срез ЗАВЕРШЁН: 2 implementation задачи и editor-policy test alignment; 266 combined browser tests passed + 6 editor integration tests passed, 2 existing pending, 0 page errors. Полный client typecheck после production изменений passed (exit 0); последующая правка только тестовых ожиданий прошла отдельные 6 tests/lint/diff --check. Общий слот освобождён. Всего после локального 0.0.9: 52 implementation задачи, 598 successful browser test executions. Markdown document renderer/readme — отдельный остаточный путь. Package/native не запускались, готовый ZIP неизменён.

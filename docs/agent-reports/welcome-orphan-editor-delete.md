@@ -1,0 +1,3 @@
+# welcome-orphan-editor-delete
+
+Статус: ЗАНЯТО. Владелец: интегратор/documents agent. База: main 15520b78a5d. Область: welcomeGettingStarted/browser/gettingStarted.ts, gettingStartedAccessibleView.ts, gettingStartedDetailsRenderer.ts и test/browser/gettingStartedMarkdownRenderer.test.ts; этот отчёт. Удалить не зарегистрированный Welcome editor/serializer, private accessibility view и renderer, которые образуют замкнутую группу без production importers. Сохранить gettingStartedInput/CSS/services/list/content: у них другие consumers. Не менять startup README/terminal/Workspace Trust, общую accessibility/Markdown инфраструктуру, модели и историю пользователя. Проверки source import/consumer scan, существующие startup/Welcome tests и пакетная типизация.

@@ -7,7 +7,7 @@ import assert from 'assert';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { getAvailableCustomizationMarketplaceInstallTelemetryContext, getCustomizationMarketplaceInstallTelemetryContext, runCustomizationMarketplaceInstallWithTelemetry } from '../../common/customizationMarketplaceInstallTelemetry.js';
-import { TestDataTelemetryService } from '../../../../../platform/telemetry/test/common/testTelemetryService.js';
+import type { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 
 suite('Customization marketplace install telemetry', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -44,60 +44,20 @@ suite('Customization marketplace install telemetry', () => {
 		]);
 	});
 
-	test('reports success, error, and cancellation across both surfaces without error content', async () => {
-		const telemetryService = new TestDataTelemetryService();
-		await runCustomizationMarketplaceInstallWithTelemetry(
-			telemetryService,
-			{ surface: 'marketplace', customizationType: 'skill', installKind: 'skill', origin: 'curatedSection' },
-			async () => { },
-		);
-		await assert.rejects(runCustomizationMarketplaceInstallWithTelemetry(
-			telemetryService,
-			{ surface: 'available', customizationType: 'plugin', installKind: 'configuredPlugin', origin: 'search' },
-			async () => { throw new Error('private installation error'); },
-		), /private installation error/);
-		const cancellation = store.add(new CancellationTokenSource());
-		cancellation.cancel();
-		await assert.rejects(runCustomizationMarketplaceInstallWithTelemetry(
-			telemetryService,
-			{ surface: 'marketplace', customizationType: 'mcpServer', installKind: 'mcpGallery', origin: 'browseFallback' },
-			async () => { throw new Error('private cancellation error'); },
-			cancellation.token,
-		), /private cancellation error/);
-
-		assert.deepStrictEqual(telemetryService.events.map(event => ({
-			...event,
-			data: { ...event.data, durationMs: typeof event.data.durationMs === 'number' },
-		})), [{
-			name: 'chatCustomizationMarketplace.install',
-			data: {
-				surface: 'marketplace',
-				customizationType: 'skill',
-				installKind: 'skill',
-				origin: 'curatedSection',
-				outcome: 'success',
-				durationMs: true,
-			},
-		}, {
-			name: 'chatCustomizationMarketplace.install',
-			data: {
-				surface: 'available',
-				customizationType: 'plugin',
-				installKind: 'configuredPlugin',
-				origin: 'search',
-				outcome: 'error',
-				durationMs: true,
-			},
-		}, {
-			name: 'chatCustomizationMarketplace.install',
-			data: {
-				surface: 'marketplace',
-				customizationType: 'mcpServer',
-				installKind: 'mcpGallery',
-				origin: 'browseFallback',
-				outcome: 'cancelled',
-				durationMs: true,
-			},
-		}]);
+	test('preserves success and original errors without accessing telemetry', async () => {
+		const telemetry = new Proxy({} as ITelemetryService, { get: () => { throw new Error('Telemetry must not be read'); } });
+		const context = getAvailableCustomizationMarketplaceInstallTelemetryContext('plugin');
+		let calls = 0;
+		await runCustomizationMarketplaceInstallWithTelemetry(telemetry, context, async () => { calls++; });
+		assert.strictEqual(calls, 1);
+		const token = store.add(new CancellationTokenSource());
+		token.cancel();
+		const original = new Error('operation failure');
+		let caught: unknown;
+		try {
+			await runCustomizationMarketplaceInstallWithTelemetry(telemetry, context, async () => { calls++; throw original; }, token.token);
+		} catch (error) { caught = error; }
+		assert.strictEqual(caught, original);
+		assert.strictEqual(calls, 2);
 	});
 });

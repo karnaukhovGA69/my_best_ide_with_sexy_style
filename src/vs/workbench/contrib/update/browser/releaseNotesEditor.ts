@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { $, getWindow } from '../../../../base/browser/dom.js';
 import { safeSetInnerHtml, sanitizeHtml } from '../../../../base/browser/domSanitize.js';
 import { allowedMarkdownHtmlAttributes, allowedMarkdownHtmlTags } from '../../../../base/browser/markdownRenderer.js';
@@ -12,7 +11,7 @@ import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
-import { escapeMarkdownSyntaxTokens } from '../../../../base/common/htmlContent.js';
+import { escapeDoubleQuotes, escapeMarkdownSyntaxTokens } from '../../../../base/common/htmlContent.js';
 import { KeybindingParser } from '../../../../base/common/keybindingParser.js';
 import * as marked from '../../../../base/common/marked/marked.js';
 import { escape } from '../../../../base/common/strings.js';
@@ -27,7 +26,6 @@ import { IEnvironmentService } from '../../../../platform/environment/common/env
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
-import { asTextOrError, IRequestService } from '../../../../platform/request/common/request.js';
 import { DEFAULT_MARKDOWN_STYLES, renderMarkdownDocument } from '../../markdown/browser/markdownDocumentRenderer.js';
 import { WebviewInput } from '../../webviewPanel/browser/webviewEditorInput.js';
 import { IWebviewWorkbenchService } from '../../webviewPanel/browser/webviewWorkbenchService.js';
@@ -63,7 +61,6 @@ interface IReleaseNotesTokenization {
 
 export class ReleaseNotesManager extends Disposable {
 	private readonly _simpleSettingRenderer: SimpleSettingRenderer;
-	private readonly _releaseNotesCache = new Map<string, Promise<string>>();
 
 	private _currentReleaseNotes: WebviewInput | undefined = undefined;
 	private readonly _currentDocument = this._register(new MutableDisposable<ReleaseNotesTryouts>());
@@ -78,7 +75,6 @@ export class ReleaseNotesManager extends Disposable {
 		@IKeybindingService private readonly _keybindingService: IKeybindingService,
 		@ILanguageService private readonly _languageService: ILanguageService,
 		@IOpenerService private readonly _openerService: IOpenerService,
-		@IRequestService private readonly _requestService: IRequestService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
 		@IEditorService private readonly _editorService: IEditorService,
 		@IEditorGroupsService private readonly _editorGroupService: IEditorGroupsService,
@@ -126,21 +122,16 @@ export class ReleaseNotesManager extends Disposable {
 		});
 	}
 
-	private async getBase(useCurrentFile: boolean) {
-		if (useCurrentFile) {
-			const currentFileUri = this._codeEditorService.getActiveCodeEditor()?.getModel()?.uri;
-			if (currentFileUri) {
-				return dirname(currentFileUri);
-			}
-		}
-		return URI.parse('https://code.visualstudio.com/raw');
-	}
-
 	public async show(version: string, useCurrentFile: boolean): Promise<boolean> {
 		const request = ++this._showRequest;
 		this._pendingDocument.clear();
-		const releaseNoteText = await this.loadReleaseNotes(version, useCurrentFile);
-		const base = await this.getBase(useCurrentFile);
+		// Capture the model once so text and resource permissions always describe the same file.
+		const model = useCurrentFile ? this._codeEditorService.getActiveCodeEditor()?.getModel() : undefined;
+		if (useCurrentFile && (!model || model.uri.scheme !== Schemas.file || model.uri.authority)) {
+			throw new Error(nls.localize('releaseNotes.localFileRequired', "Open a local Markdown file before viewing it as release notes."));
+		}
+		const base = model ? dirname(model.uri) : undefined;
+		const releaseNoteText = this.patchKeybindings(model ? model.getValue() : nls.localize('releaseNotes.localOnly', "# Local Release Notes\n\nRelease notes are not downloaded automatically. Download a Markdown file yourself, open it in the editor, then choose Help > Open Current File as Release Notes. Place its images and videos in the same folder or a subfolder. External resources are blocked."));
 		if (request !== this._showRequest || this._store.isDisposed) {
 			return false;
 		}
@@ -175,10 +166,10 @@ export class ReleaseNotesManager extends Disposable {
 					options: {
 						tryRestoreScrollPosition: true,
 						enableFindWidget: true,
-						disableServiceWorker: useCurrentFile ? false : true,
+						disableServiceWorker: false,
 					},
 					contentOptions: {
-						localResourceRoots: useCurrentFile ? [base] : [],
+						localResourceRoots: base ? [base] : [],
 						allowScripts: true
 					},
 					extension: undefined
@@ -244,6 +235,8 @@ export class ReleaseNotesManager extends Disposable {
 		this._codeBlocks = codeBlocks;
 		tryouts.attach(input.webview, () => this._currentReleaseNotes === input
 			&& this._editorService.activeEditor === input && getWindow(input.webview.container).document.hasFocus());
+		// Replace permissions when reusing the panel for a file in another directory.
+		input.webview.contentOptions = { localResourceRoots: base ? [base] : [], allowScripts: true };
 		input.webview.setHtml(html);
 		if (reuseWebview) {
 			this._webviewWorkbenchService.revealWebview(input, activeEditorPane ? activeEditorPane.group : this._editorGroupService.activeGroup, false);
@@ -251,101 +244,54 @@ export class ReleaseNotesManager extends Disposable {
 		return true;
 	}
 
-	private async loadReleaseNotes(version: string, useCurrentFile: boolean): Promise<string> {
-		const match = /^(\d+\.\d+)\./.exec(version);
-		if (!match) {
-			throw new Error('not found');
-		}
-
-		const versionLabel = match[1].replace(/\./g, '_');
-		const baseUrl = 'https://code.visualstudio.com/raw';
-		const url = `${baseUrl}/v${versionLabel}.md`;
+	private patchKeybindings(text: string): string {
 		const unassigned = nls.localize('unassigned', "unassigned");
 
 		const escapeMdHtml = (text: string): string => {
 			return escape(text).replace(/\\/g, '\\\\');
 		};
 
-		const patchKeybindings = (text: string): string => {
-			const kb = (match: string, kb: string) => {
-				const keybinding = this._keybindingService.lookupKeybinding(kb);
+		const kb = (match: string, kb: string) => {
+			const keybinding = this._keybindingService.lookupKeybinding(kb);
 
-				if (!keybinding) {
-					return kb;
-				}
-
-				return keybinding.getLabel() || kb;
-			};
-
-			const kbstyle = (match: string, kb: string) => {
-				const keybinding = KeybindingParser.parseKeybinding(kb);
-
-				if (!keybinding) {
-					return unassigned;
-				}
-
-				const resolvedKeybindings = this._keybindingService.resolveKeybinding(keybinding);
-
-				if (resolvedKeybindings.length === 0) {
-					return unassigned;
-				}
-
-				return resolvedKeybindings[0].getLabel() || unassigned;
-			};
-
-			const kbCode = (match: string, binding: string) => {
-				const resolved = kb(match, binding);
-				return resolved ? `<code title="${binding}">${escapeMdHtml(resolved)}</code>` : resolved;
-			};
-
-			const kbstyleCode = (match: string, binding: string) => {
-				const resolved = kbstyle(match, binding);
-				return resolved ? `<code title="${binding}">${escapeMdHtml(resolved)}</code>` : resolved;
-			};
-
-			return text
-				.replace(/`kb\(([a-z.\d\-]+)\)`/gi, kbCode)
-				.replace(/`kbstyle\(([^\)]+)\)`/gi, kbstyleCode)
-				.replace(/kb\(([a-z.\d\-]+)\)/gi, (match, binding) => escapeMarkdownSyntaxTokens(kb(match, binding)))
-				.replace(/kbstyle\(([^\)]+)\)/gi, (match, binding) => escapeMarkdownSyntaxTokens(kbstyle(match, binding)));
-		};
-
-		const fetchReleaseNotes = async () => {
-			let text;
-			try {
-				if (useCurrentFile) {
-					const file = this._codeEditorService.getActiveCodeEditor()?.getModel()?.getValue();
-					text = file ? file.substring(file.indexOf('#')) : undefined;
-				} else {
-					text = await asTextOrError(await this._requestService.request({ url, callSite: 'releaseNotesEditor.fetchReleaseNotes' }, CancellationToken.None));
-				}
-			} catch {
-				throw new Error('Failed to fetch release notes');
+			if (!keybinding) {
+				return kb;
 			}
 
-			if (!text || (!/^#\s/.test(text) && !useCurrentFile)) { // release notes always starts with `#` followed by whitespace, except when using the current file
-				throw new Error('Invalid release notes');
-			}
-
-			return patchKeybindings(text);
+			return keybinding.getLabel() || kb;
 		};
 
-		// Don't cache the current file
-		if (useCurrentFile) {
-			return fetchReleaseNotes();
-		}
-		if (!this._releaseNotesCache.has(version)) {
-			this._releaseNotesCache.set(version, (async () => {
-				try {
-					return await fetchReleaseNotes();
-				} catch (err) {
-					this._releaseNotesCache.delete(version);
-					throw err;
-				}
-			})());
-		}
+		const kbstyle = (match: string, kb: string) => {
+			const keybinding = KeybindingParser.parseKeybinding(kb);
 
-		return this._releaseNotesCache.get(version)!;
+			if (!keybinding) {
+				return unassigned;
+			}
+
+			const resolvedKeybindings = this._keybindingService.resolveKeybinding(keybinding);
+
+			if (resolvedKeybindings.length === 0) {
+				return unassigned;
+			}
+
+			return resolvedKeybindings[0].getLabel() || unassigned;
+		};
+
+		const kbCode = (match: string, binding: string) => {
+			const resolved = kb(match, binding);
+			return resolved ? `<code title="${binding}">${escapeMdHtml(resolved)}</code>` : resolved;
+		};
+
+		const kbstyleCode = (match: string, binding: string) => {
+			const resolved = kbstyle(match, binding);
+			return resolved ? `<code title="${binding}">${escapeMdHtml(resolved)}</code>` : resolved;
+		};
+
+		return text
+			.replace(/`kb\(([a-z.\d\-]+)\)`/gi, kbCode)
+			.replace(/`kbstyle\(([^\)]+)\)`/gi, kbstyleCode)
+			.replace(/kb\(([a-z.\d\-]+)\)/gi, (match, binding) => escapeMarkdownSyntaxTokens(kb(match, binding)))
+			.replace(/kbstyle\(([^\)]+)\)/gi, (match, binding) => escapeMarkdownSyntaxTokens(kbstyle(match, binding)));
 	}
 
 	private async onDidClickLink(uri: URI) {
@@ -368,8 +314,12 @@ export class ReleaseNotesManager extends Disposable {
 		return uri;
 	}
 
-	private async renderBody(fileContent: { text: string; base: URI }, tryouts: ReleaseNotesTryouts, codeBlocks: IReleaseNotesCodeBlock[]) {
+	private async renderBody(fileContent: { text: string; base: URI | undefined }, tryouts: ReleaseNotesTryouts, codeBlocks: IReleaseNotesCodeBlock[]) {
 		const nonce = generateUuid();
+		const resourceBase = fileContent.base ? asWebviewUri(fileContent.base) : undefined;
+		// Exact local-file resource origin, intercepted by the webview service worker.
+		// Do not allow arbitrary HTTPS or remote file providers here.
+		const resourceSource = resourceBase ? `${resourceBase.scheme}://${resourceBase.authority}` : '\'none\'';
 
 		const processedContent = await renderReleaseNotesMarkdown(fileContent.text, this._extensionService, this._languageService, this._simpleSettingRenderer, this._productService.quality, tryouts, codeBlocks);
 
@@ -380,9 +330,9 @@ export class ReleaseNotesManager extends Disposable {
 		return `<!DOCTYPE html>
 		<html>
 			<head>
-				<base href="${asWebviewUri(fileContent.base).toString(true)}/" >
 				<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; style-src 'nonce-${nonce}' https://code.visualstudio.com; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri ${resourceSource}; form-action 'none'; img-src ${resourceBase ? resourceSource + ' ' : ''}data:; media-src ${resourceSource}; style-src 'nonce-${nonce}'${resourceBase ? ' ' + resourceSource : ''}; script-src 'nonce-${nonce}';">
+				${resourceBase ? `<base href="${escapeDoubleQuotes(escape(resourceBase.toString(true)))}/">` : ''}
 				<style nonce="${nonce}">
 					${DEFAULT_MARKDOWN_STYLES}
 
@@ -881,6 +831,7 @@ export async function renderReleaseNotesMarkdown(
 	);
 
 	const sanitizerConfig = {
+		allowedMediaProtocols: { override: [Schemas.data] },
 		allowRelativeMediaPaths: true,
 		allowedLinkProtocols: {
 			override: [Schemas.http, Schemas.https, Schemas.command, Schemas.codeSetting]

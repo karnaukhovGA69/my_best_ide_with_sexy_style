@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { Extensions, IConfigurationRegistry } from '../../../../../platform/configuration/common/configurationRegistry.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
@@ -22,6 +23,7 @@ suite('Removed IDE update registrations', () => {
 			assert.strictEqual(CommandsRegistry.getCommand(id), undefined, id);
 		}
 		assert.ok(CommandsRegistry.getCommand('developer.showCurrentFileAsReleaseNotes'));
+		assert.ok(MenuRegistry.getMenuItems(MenuId.MenubarHelpMenu).some(item => isIMenuItem(item) && item.command.id === 'developer.showCurrentFileAsReleaseNotes'));
 	});
 
 	test('does not expose settings for unavailable update behavior', () => {

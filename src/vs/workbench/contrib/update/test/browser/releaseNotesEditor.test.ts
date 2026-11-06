@@ -47,7 +47,7 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { AccessibilityVerbositySettingId } from '../../../accessibility/browser/accessibilityConfiguration.js';
 import { createOnboardingTryoutUri, IOnboardingTryoutService, OnboardingTryoutAvailability, OnboardingTryoutResult, RUN_ONBOARDING_TRYOUT_COMMAND_ID } from '../../../onboarding/common/onboardingTryout.js';
-import { IOverlayWebview, WebviewMessageReceivedEvent } from '../../../webview/browser/webview.js';
+import { IOverlayWebview, WebviewContentOptions, WebviewMessageReceivedEvent } from '../../../webview/browser/webview.js';
 import { WebviewInput } from '../../../webviewPanel/browser/webviewEditorInput.js';
 import { IWebviewWorkbenchService } from '../../../webviewPanel/browser/webviewWorkbenchService.js';
 import { ReleaseNotesAccessibilityHelp } from '../../browser/releaseNotesAccessibilityHelp.js';
@@ -57,6 +57,8 @@ suite('Release notes editor Try This integration', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const uri = createOnboardingTryoutUri('sample');
 	let markdown: string;
+	let modelUri: URI;
+	let modelAvailable: boolean;
 	let html: string[];
 	let messages: object[];
 	let changes: Emitter<void>;
@@ -75,6 +77,8 @@ suite('Release notes editor Try This integration', () => {
 
 	setup(() => {
 		markdown = `# Release Notes\n[Try](${uri})`;
+		modelUri = URI.file('/release-notes/release-notes.md');
+		modelAvailable = true;
 		html = [];
 		messages = [];
 		focused = true;
@@ -90,6 +94,7 @@ suite('Release notes editor Try This integration', () => {
 		instantiationService.stub(ILogService, new NullLogService());
 		const webview = new class extends mock<IOverlayWebview>() {
 			override readonly container = $('div');
+			override contentOptions: WebviewContentOptions = {};
 			override readonly onMessage = onMessage.event;
 			override readonly onDidDispose = onDispose.event;
 			override readonly onDidClickLink = onClick.event;
@@ -112,10 +117,10 @@ suite('Release notes editor Try This integration', () => {
 		instantiationService.stub(IEditorService, { get activeEditor() { return activeEditor; } });
 		instantiationService.stub(IEditorGroupsService, { activeGroup: new class extends mock<IEditorGroup>() { } });
 		instantiationService.stub(ICodeEditorService, {
-			getActiveCodeEditor: () => new class extends mock<ICodeEditor>() {
+			getActiveCodeEditor: () => !modelAvailable ? null : new class extends mock<ICodeEditor>() {
 				override getModel(): ITextModel {
 					return new class extends mock<ITextModel>() {
-						override readonly uri = URI.file('release-notes.md');
+						override readonly uri = modelUri;
 						override getValue() { return markdown; }
 					};
 				}
@@ -154,7 +159,7 @@ suite('Release notes editor Try This integration', () => {
 		}
 		await timeout(0);
 		assert.deepStrictEqual({
-			csp: html[0].includes('default-src \'none\'; img-src https: data:; media-src https:; style-src \'nonce-'),
+			csp: html[0].includes('default-src \'none\'; base-uri https://file+.vscode-resource.vscode-cdn.net; form-action \'none\'; img-src https://file+.vscode-resource.vscode-cdn.net data:; media-src https://file+.vscode-resource.vscode-cdn.net; style-src \'nonce-'),
 			scripts: (html[0].match(/<script /g) ?? []).length,
 			untrustedScript: html[0].includes('untrustedScript()'),
 			options: open.getCalls().map(call => call.args[1]),
@@ -162,6 +167,102 @@ suite('Release notes editor Try This integration', () => {
 			csp: true, scripts: 2, untrustedScript: false,
 			options: Array(3).fill({ allowCommands: ['workbench.action.openSettings', 'summarize.release.notes', RUN_ONBOARDING_TRYOUT_COMMAND_ID] }),
 		});
+	});
+
+	test('shows local import instructions without a request service or a remote base', async () => {
+		await manager.show('local-build', false);
+		assert.deepStrictEqual({
+			instructions: html[0].includes('Release notes are not downloaded automatically.'),
+			base: html[0].includes('<base '),
+			roots: input.webview.contentOptions.localResourceRoots,
+			opened: open.callCount,
+		}, { instructions: true, base: false, roots: [], opened: 0 });
+	});
+
+	test('rejects absent, remote, unsaved and network-share documents', async () => {
+		modelAvailable = false;
+		await assert.rejects(manager.show('1.100.0', true), /Open a local Markdown file/);
+		modelAvailable = true;
+		for (const uri of ['https://example.com/notes.md', 'vscode-remote://ssh-remote+server/notes.md', 'untitled:notes.md', 'file://server/share/notes.md']) {
+			modelUri = URI.parse(uri);
+			await assert.rejects(manager.show('1.100.0', true), /Open a local Markdown file/);
+		}
+		assert.deepStrictEqual({ html, opened: open.callCount }, { html: [], opened: 0 });
+	});
+
+	test('preserves local text and relative media and replaces resource roots on reuse', async () => {
+		markdown = 'Introduction before a heading.\n\n# Notes\n\n![Local](./images/test.png)\n\n<video src="./videos/test.mp4" controls></video>';
+		await manager.show('local-build', true);
+		assert.deepStrictEqual({
+			intro: html[0].includes('Introduction before a heading.'),
+			image: html[0].includes('src="./images/test.png"'),
+			video: html[0].includes('src="./videos/test.mp4"'),
+			roots: input.webview.contentOptions.localResourceRoots?.map(uri => uri.path),
+		}, { intro: true, image: true, video: true, roots: ['/release-notes'] });
+		modelUri = URI.file('/another-folder/notes.md');
+		await manager.show('local-build', true);
+		assert.deepStrictEqual(input.webview.contentOptions.localResourceRoots?.map(uri => uri.path), ['/another-folder']);
+		await manager.show('local-build', false);
+		assert.deepStrictEqual(input.webview.contentOptions.localResourceRoots, []);
+	});
+
+	test('captures the document and escapes its base before asynchronous rendering', async () => {
+		modelUri = URI.file('/notes/"quoted"/notes.md');
+		const ready = new DeferredPromise<boolean>();
+		whenExtensionsRegistered = () => ready.p;
+		const rendering = manager.show('local-build', true);
+		modelUri = URI.file('/other/notes.md');
+		await ready.complete(true);
+		await rendering;
+		const document = new mainWindow.DOMParser().parseFromString(html[0], 'text/html');
+		assert.deepStrictEqual({
+			base: document.querySelector('base')?.getAttribute('href'),
+			attributes: document.querySelector('base')?.attributes.length,
+			roots: input.webview.contentOptions.localResourceRoots?.map(uri => uri.path),
+		}, { base: 'https://file+.vscode-resource.vscode-cdn.net/notes/"quoted"/', attributes: 1, roots: ['/notes/"quoted"'] });
+	});
+
+	test('strips absolute remote media before preparing interactive release notes', async () => {
+		markdown += '\n\n![Remote](https://example.invalid/pre-render.png)\n\n<img src="//example.invalid/pre-render-relative.png">\n\n<video src="https://example.invalid/pre-render.mp4" poster="https://example.invalid/poster.png"></video>';
+		await manager.show('1.100.0', true);
+		await timeout(0);
+		assert.deepStrictEqual({
+			interactive: html[0].includes('release-notes-tryout-link'),
+			absoluteRemoteMedia: html[0].includes('https://example.invalid/'),
+		}, { interactive: true, absoluteRemoteMedia: false });
+	});
+
+	test('browser enforces CSP against external images, video, styles and connections', async () => {
+		await manager.show('1.100.0', true);
+		const document = new mainWindow.DOMParser().parseFromString(html[0], 'text/html');
+		const frame = $('iframe');
+		store.add(toDisposable(() => frame.remove()));
+		const loaded = new DeferredPromise<void>();
+		store.add(addDisposableListener(frame, 'load', () => loaded.complete()));
+		frame.srcdoc = `<!doctype html><head>${document.querySelector('meta[http-equiv="Content-Security-Policy"]')!.outerHTML}</head><body></body>`;
+		mainWindow.document.body.appendChild(frame);
+		await loaded.p;
+		const blocked = new Set<string>();
+		const violations = new DeferredPromise<void>();
+		const child = frame.contentDocument!;
+		store.add(addDisposableListener(child, 'securitypolicyviolation', (event: SecurityPolicyViolationEvent) => {
+			blocked.add(event.effectiveDirective);
+			if (blocked.size === 4) {
+				violations.complete();
+			}
+		}));
+		const image = child.createElement('img');
+		image.src = 'https://example.invalid/release-notes.png';
+		const video = child.createElement('video');
+		video.src = 'https://example.invalid/release-notes.mp4';
+		video.preload = 'auto';
+		const style = child.createElement('link');
+		style.rel = 'stylesheet';
+		style.href = 'https://example.invalid/release-notes.css';
+		child.body.append(image, video, style);
+		await frame.contentWindow!.fetch('https://example.invalid/release-notes.json').catch(() => undefined);
+		await violations.p;
+		assert.deepStrictEqual([...blocked].sort(), ['connect-src', 'img-src', 'media-src', 'style-src-elem']);
 	});
 
 	test('fenced code and code links remain independent of the webview inline-code tint', async () => {

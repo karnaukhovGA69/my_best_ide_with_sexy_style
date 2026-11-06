@@ -1,0 +1,3 @@
+# nerded-approved-app-icon
+
+Статус: ЗАНЯТО. Владелец: интегратор. База: 9d20e5acad9. Область: resources/darwin/code.icns, resources/linux/code.png, resources/win32/code.ico/code_70x70.png/code_150x150.png; scripts/generate-nerded-icons.py; этот отчёт. Подготовить штатные desktop icon resources из docs/design/nerded-code-icon-approved.png (SHA256 4be9c1467b4c5cc54d8c09cc6c4b528d7efacbf7a19e7854c10fbb9bd77f066b): только технический resize, без crop/перекраски/прозрачности. Исходник неизменен, product IDs/профиль не менять. Проверить containers/dimensions/provenance и визуально ресурс; native app icon smoke остаётся на общем пакете. Не изменять тему/vscode-icons/layout/remote server.

@@ -106,3 +106,7 @@
 Десятый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет.
 
 Десятый срез ЗАВЕРШЁН: 3 задачи, 10 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), lint изменённого common issue contract и diff --check чистые. Удалённые form/attachment contracts не имеют source consumers. Общий слот освобождён. Всего после локального 0.0.9: 38 задач, 189 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.
+
+ЗАНЯТО интегратором: AGENTS.md, docs/project-plan.md, docs/development-plan.md, docs/project-handoff.md — актуализировать последнее решение владельца об откладывании GitHub login/account/catalog/root-clone-open до пользовательского тестирования редактора. Не подключать extensions/myself-github в ближайший релиз, сохранить task-ветку.
+
+Одиннадцатый срез — ЗАНЯТО интегратором: актуализация релизного приоритета и `chat-utility-model-requests-disable` — `5585ee7a989027b8e023a9ec09dff243f35a71ce`. GitHub auth/catalog исключены.

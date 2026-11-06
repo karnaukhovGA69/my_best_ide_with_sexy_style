@@ -19,7 +19,7 @@ export async function loadPluginReadme(item: IAgentPluginItem, fileService: Pick
 	const readmeUri = item.kind === AgentPluginItemKind.Installed
 		? joinPath(item.plugin.uri, 'README.md')
 		: item.readmeUri;
-	if (!readmeUri || readmeUri.authority || (readmeUri.scheme !== Schemas.file && readmeUri.scheme !== Schemas.vscodeUserData)) {
+	if (!readmeUri || readmeUri.authority || /^[\\/]{2}/.test(readmeUri.path) || (readmeUri.scheme !== Schemas.file && readmeUri.scheme !== Schemas.vscodeUserData)) {
 		return undefined;
 	}
 	try {

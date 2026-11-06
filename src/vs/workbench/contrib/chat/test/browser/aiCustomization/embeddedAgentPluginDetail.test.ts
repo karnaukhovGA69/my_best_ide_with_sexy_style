@@ -217,9 +217,13 @@ suite('embeddedAgentPluginDetail', () => {
 			'http://example.test/README.md',
 			'vscode-remote://ssh-remote+example/plugins/README.md',
 			'file://example.test/share/README.md',
+			'file:%5c%5cexample.test/share/README.md',
 			'custom-provider:/README.md',
-		]) {
-			const result = await loadPluginReadme(createMarketplaceItem(URI.parse(location)), {
+		].map(location => URI.parse(location)).concat([
+			URI.revive({ scheme: Schemas.file, path: '//example.test/share/README.md' }),
+			URI.revive({ scheme: Schemas.file, path: String.raw`\\example.test\share\README.md` }),
+		])) {
+			const result = await loadPluginReadme(createMarketplaceItem(location), {
 				readFile: async uri => { reads.push(uri.toString()); throw new Error('Unexpected read'); },
 			});
 			assert.strictEqual(result, undefined);

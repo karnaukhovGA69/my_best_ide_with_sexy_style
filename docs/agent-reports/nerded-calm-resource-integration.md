@@ -1,0 +1,3 @@
+# nerded-calm-resource-integration
+
+Статус: ЗАНЯТО. Владелец: интегратор. База: 9d20e5acad9. Включить готовую agent/nerded-calm-theme-icons db06b6c37386d4b942e80e0306bb850875571876 и добавить extension в desktop distribution allowlist. Собственная область: build/lib/distributionExtensions.ts и build/lib/test/distributionExtensions.test.ts; этот отчёт. Повторить resource/browser tests, реальный VSCE inventory manifest/icons/licenses. Настройки текущих профилей, defaults/preset, layout и visible product name остаются отдельным integration scope; не объявлять визуальный ремастер завершённым. Full package не запускать на одной resource задаче.

@@ -64,3 +64,7 @@
 Пятый срез расширен до проверки: ЗАНЯТО интегратором — issue-reporter-orphan-ui-delete с зависимостями service-disable/registrations-remove и github-issue-upload-disable. Это удаление Issue Reporter/upload, без изменения auth/catalog/root-clone.
 - `issue-reporter-orphan-ui-delete` — `b7aa12e15e48fad691c02a3a3c5f5133937ae813`
 - `github-issue-upload-disable` — `e5ff2f223cb78c3f061e21c2e36be96fdc7a131f`
+
+Пятый срез: занят общий client typecheck slot на шесть задач с зависимостями; других package/typecheck процессов при старте нет.
+
+Пятый срез ЗАВЕРШЁН: 6 задач с зависимостями, 41 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Аудит относительных ссылок src/build/test/extensions: 36 удалённых файлов, 0 оставшихся ссылок. Общий слот освобождён. Всего после локального 0.0.9: 25 задач, 84 целевых browser tests. Package/native не запускались; сохранение CLI status проверено service passthrough тестом, native smoke остаётся частью следующей пакетной сборки. Готовый ZIP неизменён.

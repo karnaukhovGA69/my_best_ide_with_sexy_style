@@ -225,3 +225,9 @@ Common Markdown local media уже занят чатом упрощения; и�
 - `local-documentation-library` — `3dff58fa47ff8ddd8f42e28f7074bae9dd3c7e66`
 - `ai-client-toolsets-disable` — `24c57c9729c80f2df935c6d625297925bfa0f0a6`
 Локальная библиотека — feature integration по поручению владельца; без полного package. Проверить scoped extension tests/types и source inventory, не запускать maintainer download script.
+
+Двадцать пятый срез расширен: ai-user-toolsets-autoload-disable (166cdd6ec13), готовая независимая задача. Общий client typecheck slot ЗАНЯТ; других full typecheck/package процессов нет.
+
+Интегратор резервирует README.md и docs/myself-ide.md: обновить статус включаемой локальной библиотеки и ограничения первой версии, отдельно от старого ZIP.
+
+Двадцать пятый срез ЗАВЕРШЁН: 4 implementation задачи — локальная библиотека, переносимые Linux manpage paths и отключение client/user AI tool sets. 29 extension tests + 11 core browser tests passed, 0 failures/page errors; full client typecheck и diff --check passed. VSCE inventory подтвердил все 4306 записей и licenses. Ancestry библиотеки 5ff43034a12 включён. Общий слот освобождён. Всего после локального 0.0.9: 90 implementation задач, 1100 core/source browser tests в финальных проверках срезов; 29 extension tests учитываются отдельно. README/status обновлены; новый reader ещё не проверен в native приложении и отсутствует в старом ZIP. Полный package не запускался по поручению владельца.

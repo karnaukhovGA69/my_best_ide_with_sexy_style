@@ -10698,7 +10698,7 @@
       "id": "linux/_Exit.3.html",
       "group": "linux",
       "title": "_Exit(3)",
-      "file": "linux/_Exit.3.html",
+      "file": "linux/_Exit-d875626a9a23.3.html",
       "source": "https://man7.org/linux/man-pages/man3/_Exit.3.html",
       "format": "html",
       "sha256": "2a88def0f22c978d327101a2ad90ea377bdab8b12c7403a6efbb9af6bc2f3faf"
@@ -10707,7 +10707,7 @@
       "id": "linux/_exit.3.html",
       "group": "linux",
       "title": "_exit(3)",
-      "file": "linux/_exit.3.html",
+      "file": "linux/_exit-f2416e2ba0bb.3.html",
       "source": "https://man7.org/linux/man-pages/man3/_exit.3.html",
       "format": "html",
       "sha256": "2a88def0f22c978d327101a2ad90ea377bdab8b12c7403a6efbb9af6bc2f3faf"
@@ -10953,7 +10953,7 @@
       "file": "linux/address_families.7.html",
       "source": "https://man7.org/linux/man-pages/man7/address_families.7.html",
       "format": "html",
-      "sha256": "a0a563cbf3d782a69c5355893289f4e6e762d000e0f97ad6c528e4d2ba92cc1f"
+      "sha256": "ff51739664e77773ad9a37cc333ba7234462e5cbb275ae76b0df753c752cfc47"
     },
     {
       "id": "linux/addseverity.3.html",
@@ -10980,7 +10980,7 @@
       "file": "linux/adjtimex.2.html",
       "source": "https://man7.org/linux/man-pages/man2/adjtimex.2.html",
       "format": "html",
-      "sha256": "e6562c46c858748ae7cead007cef727a8cafed92c2b4990fbb7b44529884f4b2"
+      "sha256": "268bc371e3f61ce298d676e481f02969617c83d00449e5ac6e78bee3969155b3"
     },
     {
       "id": "linux/afs_syscall.2.html",
@@ -11097,7 +11097,7 @@
       "file": "linux/aligned_alloc.3.html",
       "source": "https://man7.org/linux/man-pages/man3/aligned_alloc.3.html",
       "format": "html",
-      "sha256": "d405961cad14d602fdd11cea185d4a65183599f916fc3a03e5c6ef642b944f43"
+      "sha256": "51f207bd23923eb97d1773fd3bca9a5d4c9897d0385aefd7529585bc9bd2af8b"
     },
     {
       "id": "linux/alloc_hugepages.2.html",
@@ -12942,7 +12942,7 @@
       "file": "linux/clock_adjtime.2.html",
       "source": "https://man7.org/linux/man-pages/man2/clock_adjtime.2.html",
       "format": "html",
-      "sha256": "e6562c46c858748ae7cead007cef727a8cafed92c2b4990fbb7b44529884f4b2"
+      "sha256": "268bc371e3f61ce298d676e481f02969617c83d00449e5ac6e78bee3969155b3"
     },
     {
       "id": "linux/clock_getcpuclockid.3.html",
@@ -13275,7 +13275,7 @@
       "file": "linux/console_codes.4.html",
       "source": "https://man7.org/linux/man-pages/man4/console_codes.4.html",
       "format": "html",
-      "sha256": "4758a0857460449a65f9997cbfb14e4c9e226e828dc490530d149588b36bbcb9"
+      "sha256": "fa804900154021990d070d014c8a6f9f64373890e68d0b1c92d649a56d587f85"
     },
     {
       "id": "linux/console_ioctl.4.html",
@@ -15894,7 +15894,7 @@
       "file": "linux/feature_test_macros.7.html",
       "source": "https://man7.org/linux/man-pages/man7/feature_test_macros.7.html",
       "format": "html",
-      "sha256": "030701c887a15874b8591123f3a8d64859d26ed6638cebd694809829dda671f9"
+      "sha256": "60996d42370a434822306e1b1398d974327a09af647df4c5270e71491c3de8fd"
     },
     {
       "id": "linux/feclearexcept.3.html",
@@ -18234,7 +18234,7 @@
       "file": "linux/getnameinfo.3.html",
       "source": "https://man7.org/linux/man-pages/man3/getnameinfo.3.html",
       "format": "html",
-      "sha256": "655e3a7d6cc739ce9c87cd5fff65635c45a7480e44e46407e2adbd42c498ea9e"
+      "sha256": "2df6a32718de210b485d046e7cf37b533c0dc5c4e166de4b29681f8c290c34c3"
     },
     {
       "id": "linux/getnetbyaddr.3.html",
@@ -22401,7 +22401,7 @@
       "file": "linux/KEYCTL_DH_COMPUTE.2const.html",
       "source": "https://man7.org/linux/man-pages/man2const/KEYCTL_DH_COMPUTE.2const.html",
       "format": "html",
-      "sha256": "40b57cb40ce504a2bab5e5c751ad312719de7672361034f37c6e333de96b38ef"
+      "sha256": "b94e9635407276e153277c8f931dc38d9d4cee4f1d3c278afd1f12784da7c9fc"
     },
     {
       "id": "linux/KEYCTL_GET_KEYRING_ID.2const.html",
@@ -22698,7 +22698,7 @@
       "file": "linux/landlock_create_ruleset.2.html",
       "source": "https://man7.org/linux/man-pages/man2/landlock_create_ruleset.2.html",
       "format": "html",
-      "sha256": "fe1a52a4cabeebcdf2e659279c36146491d8290f408b4347ae1133cd4c49defd"
+      "sha256": "f47160ca0714d8314cbf782d138f47c125bc1107b1db847d4b98dab974b22b52"
     },
     {
       "id": "linux/landlock_restrict_self.2.html",
@@ -23094,7 +23094,7 @@
       "file": "linux/lirc.4.html",
       "source": "https://man7.org/linux/man-pages/man4/lirc.4.html",
       "format": "html",
-      "sha256": "82488f98afd1258eb12d4871dae54be1226b5b9f9851729f5de93ea289cf594f"
+      "sha256": "a1033b6b463ff1bd7f71d695d2df1abc54f2386f97c7ab0add045b1f6ede35d9"
     },
     {
       "id": "linux/list.3.html",
@@ -24336,7 +24336,7 @@
       "file": "linux/memusage.1.html",
       "source": "https://man7.org/linux/man-pages/man1/memusage.1.html",
       "format": "html",
-      "sha256": "1cd69b94d96774fb0d1e06ce9b693355582b1543c2743d57a7448919b883db4c"
+      "sha256": "f8575af7273b7d164198d79f54d63cfc175fdcf5240573a7adbc64d5f78d2729"
     },
     {
       "id": "linux/memusagestat.1.html",
@@ -24345,7 +24345,7 @@
       "file": "linux/memusagestat.1.html",
       "source": "https://man7.org/linux/man-pages/man1/memusagestat.1.html",
       "format": "html",
-      "sha256": "9582792ddc7d9d7967ae6c0897df80e3023f54ef7a279e68b5076afc6c1a46a9"
+      "sha256": "a57ed20b109663c63c598a9dc07787fd6a951f69023a45d88132c60b2adcb8e7"
     },
     {
       "id": "linux/migrate_pages.2.html",
@@ -24957,7 +24957,7 @@
       "file": "linux/mtrace.1.html",
       "source": "https://man7.org/linux/man-pages/man1/mtrace.1.html",
       "format": "html",
-      "sha256": "16ed89e0163d287bbd6226df5b6817a4bc941755602adada0432e7e254d9f769"
+      "sha256": "8370bff977dface384d5a15a7b376b22929b6a3ced5a7776be26884c543a5f10"
     },
     {
       "id": "linux/mtrace.3.html",
@@ -25026,16 +25026,16 @@
       "id": "linux/NAN.3.html",
       "group": "linux",
       "title": "NAN(3)",
-      "file": "linux/NAN.3.html",
+      "file": "linux/NAN-3f2aa5482503.3.html",
       "source": "https://man7.org/linux/man-pages/man3/NAN.3.html",
       "format": "html",
-      "sha256": "ad1e25e53bb2df202fa2f6d86e3fb27566972aa9f94d4ba0e64e64c8e0f28c1d"
+      "sha256": "bb8b4f5a6bf74a0a1fb0b36dbc3e8b7d3b14dc6a3f7e15986b5d172d2e765499"
     },
     {
       "id": "linux/nan.3.html",
       "group": "linux",
       "title": "nan(3)",
-      "file": "linux/nan.3.html",
+      "file": "linux/nan-52ed01698e03.3.html",
       "source": "https://man7.org/linux/man-pages/man3/nan.3.html",
       "format": "html",
       "sha256": "ad1e25e53bb2df202fa2f6d86e3fb27566972aa9f94d4ba0e64e64c8e0f28c1d"
@@ -25443,7 +25443,7 @@
       "file": "linux/ntp_adjtime.3.html",
       "source": "https://man7.org/linux/man-pages/man3/ntp_adjtime.3.html",
       "format": "html",
-      "sha256": "e6562c46c858748ae7cead007cef727a8cafed92c2b4990fbb7b44529884f4b2"
+      "sha256": "268bc371e3f61ce298d676e481f02969617c83d00449e5ac6e78bee3969155b3"
     },
     {
       "id": "linux/ntp_gettime.3.html",
@@ -25992,7 +25992,7 @@
       "file": "linux/pathname.7.html",
       "source": "https://man7.org/linux/man-pages/man7/pathname.7.html",
       "format": "html",
-      "sha256": "d0d3f8556514fafeb26cfc4dd0138fde310f6fc5c0b6400d7a6042ee7fdcf299"
+      "sha256": "ae6169fd221f932d00825e539e1cdb37f7600cfd2703f777e01ef7bc29c9632d"
     },
     {
       "id": "linux/pause.2.html",
@@ -33111,7 +33111,7 @@
       "file": "linux/sk98lin.4.html",
       "source": "https://man7.org/linux/man-pages/man4/sk98lin.4.html",
       "format": "html",
-      "sha256": "acbc917057e027b2380a5f5920ea9983b0db0a48725a72b301c39e056d070d52"
+      "sha256": "96ac34e674006f6140ba7175c0cf871cad6f76d0f635829693b072e6d01d18fd"
     },
     {
       "id": "linux/slabinfo.5.html",
@@ -33543,7 +33543,7 @@
       "file": "linux/sscanf.3.html",
       "source": "https://man7.org/linux/man-pages/man3/sscanf.3.html",
       "format": "html",
-      "sha256": "d4144a2859d047690a820cdc748f13da2b606652b130a35c825787dd65042945"
+      "sha256": "faf80d9d712a52af687a4dae754619ac450f71c0d2c2f3dae35dadd80bae10fb"
     },
     {
       "id": "linux/ssetmask.2.html",
@@ -33723,7 +33723,7 @@
       "file": "linux/standards.7.html",
       "source": "https://man7.org/linux/man-pages/man7/standards.7.html",
       "format": "html",
-      "sha256": "a528b09b78d315deae6be5bb0e408f636ed79ee5e559600fa9fdbc789bab3e9d"
+      "sha256": "9279e01f0945b1361b0e5f646751827ea1668905484818f172ca3ed789db3495"
     },
     {
       "id": "linux/stat.2.html",
@@ -36963,7 +36963,7 @@
       "file": "linux/unicode.7.html",
       "source": "https://man7.org/linux/man-pages/man7/unicode.7.html",
       "format": "html",
-      "sha256": "314d8d954badad6a913342820016cd0d6c2481a71116d4b5b19aab5f14f394bf"
+      "sha256": "4c61dce2c668d4b0d0233e50ef8166e91e3a562dda6b4e701018ad9e9135d742"
     },
     {
       "id": "linux/unimplemented.2.html",
@@ -37386,7 +37386,7 @@
       "file": "linux/vdso.7.html",
       "source": "https://man7.org/linux/man-pages/man7/vdso.7.html",
       "format": "html",
-      "sha256": "e3e985fcbafe01b04d35cf13ce62ef3fe92bc4d16b3699f21a7fa4561142fec1"
+      "sha256": "3712895f935096944ba5a68083eaf5949558e61c929d0378345de0c2c2e6dfe5"
     },
     {
       "id": "linux/verr.3.html",
@@ -37449,7 +37449,7 @@
       "file": "linux/vfork.2.html",
       "source": "https://man7.org/linux/man-pages/man2/vfork.2.html",
       "format": "html",
-      "sha256": "22a7111337eb9d98cd20cfc5e076950db6b2254bf498ef761e03a7c9b6a44927"
+      "sha256": "5724a04e700685b79e4276bc0491aee6f55e9731d5972cf02ebb3001369e3b05"
     },
     {
       "id": "linux/vfprintf.3.html",
@@ -37593,7 +37593,7 @@
       "file": "linux/vsscanf.3.html",
       "source": "https://man7.org/linux/man-pages/man3/vsscanf.3.html",
       "format": "html",
-      "sha256": "d4144a2859d047690a820cdc748f13da2b606652b130a35c825787dd65042945"
+      "sha256": "faf80d9d712a52af687a4dae754619ac450f71c0d2c2f3dae35dadd80bae10fb"
     },
     {
       "id": "linux/vswprintf.3.html",
@@ -38790,7 +38790,7 @@
       "file": "linux/zic.8.html",
       "source": "https://man7.org/linux/man-pages/man8/zic.8.html",
       "format": "html",
-      "sha256": "710aa9872b568745ff530fdaa2309cf83aff8130d217e270f85d3768e73d5d7a"
+      "sha256": "e5f99e1b8f873dec18815c52581c68cf27dbc4e00d0dbf10a1d7d418a6f2bb77"
     }
   ]
 }

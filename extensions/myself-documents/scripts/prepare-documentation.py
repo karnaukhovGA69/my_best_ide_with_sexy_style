@@ -44,7 +44,6 @@ def download(item):
 checksums = dict(concurrent.futures.ThreadPoolExecutor(5).map(download, SOURCES.items()))
 print('Downloads ready', flush=True)
 # Artifact conversion is completed below; downloaded originals are never executed.
-import tempfile
 import shutil
 
 entries = []
@@ -98,27 +97,8 @@ with tarfile.open(CACHE/'postgresql') as archive:
   save(file,data);add('postgresql',title,file,'https://www.postgresql.org/docs/18/'+name)
 print('PostgreSQL pages:',sum(e['group']=='postgresql' for e in entries),flush=True)
 
-with tempfile.TemporaryDirectory(prefix='myself-man-pages-') as temporary:
- base=Path(temporary)
- pages=[]
- with tarfile.open(CACHE/'linux') as archive:
-  prefix='man-pages-6.20/man/'
-  for member in archive.getmembers():
-   if not member.isfile() or not member.name.startswith(prefix): continue
-   name=member.name[len(prefix):]
-   if not re.fullmatch(r'man[1-8][a-z]*/[^/]+\.[1-8][a-z]*',name): continue
-   target=base/name;target.parent.mkdir(parents=True,exist_ok=True)
-   target.write_bytes(archive.extractfile(member).read());pages.append(target)
- def convert(target):
-  result=subprocess.run(['mandoc','-Thtml','-O','fragment,man=%N.%S.html',str(target)],cwd=base,capture_output=True,timeout=15)
-  if not result.stdout or result.returncode > 3: raise ValueError('Unable to render '+target.name)
-  return target,result.stdout
- for target,data in concurrent.futures.ThreadPoolExecutor(4).map(convert,pages):
-  name,section=target.name.rsplit('.',1)
-  file='linux/'+target.name.replace(':','_')+'.html'
-  data=re.sub(rb'href="([^"]+\.html(?:#[^"]*)?)"', lambda match: b'href="'+match.group(1).replace(b':',b'_')+b'"', data)
-  save(file,data)
-  add('linux',name+'('+section+')',file,'https://man7.org/linux/man-pages/man'+section+'/'+target.name+'.html')
+from documentation_manpages import render_manpages
+entries.extend(render_manpages(CACHE/'linux', ROOT/'linux'))
 print('Linux pages:',sum(e['group']=='linux' for e in entries),flush=True)
 # Preserve the exact original source archive and all per-page copyright/license notices.
 save('licenses/linux-man-pages-6.20.tar.gz',(CACHE/'linux').read_bytes())

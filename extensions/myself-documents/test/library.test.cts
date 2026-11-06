@@ -12,9 +12,12 @@ const root = path.join(__dirname, '..', 'documentation');
 
 test('documentation snapshot has five complete catalogs, intact readable files and license notices', () => {
 	const catalog = parseCatalog(fs.readFileSync(path.join(root, 'catalog.json'), 'utf8'));
+	const foldedPaths = catalog.entries.map(entry => entry.file.toLowerCase());
+	assert.equal(new Set(foldedPaths).size, foldedPaths.length, 'portable filenames must not differ only by case');
 	assert.deepEqual(catalog.groups.map(group => group.id), ['go', 'rust', 'postgresql', 'bash', 'linux']);
 	for (const group of catalog.groups) { assert.ok(catalog.entries.some(entry => entry.group === group.id)); }
 	for (const entry of catalog.entries) {
+		assert.ok(fs.readdirSync(path.dirname(path.join(root, entry.file))).includes(path.basename(entry.file)), 'exact filename case: ' + entry.file);
 		const bytes = fs.readFileSync(path.join(root, entry.file));
 		assert.ok(bytes.length > 0 && bytes.length <= maxDocumentBytes, entry.file);
 		assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), entry.sha256, entry.file);
@@ -43,5 +46,20 @@ test('offline navigation resolves relative and original links but never arbitrar
 	assert.deepEqual(findLocalLink(first, '#intro', [first]), { entry: first, fragment: 'intro' });
 	for (const href of ['file:///etc/passwd', 'command:workbench.action.terminal.new', 'javascript:alert(1)', 'https://elsewhere.invalid/docs/page.html', '../../secret']) {
 		assert.equal(findLocalLink(first, href, [first, second]), undefined);
+	}
+});
+
+test('case-distinct Linux manpages retain distinct original content and offline links', () => {
+	const catalog = parseCatalog(fs.readFileSync(path.join(root, 'catalog.json'), 'utf8'));
+	const page = name => catalog.entries.find(entry => entry.id === 'linux/' + name + '.3.html');
+	const macro = page('NAN'), functionPage = page('nan');
+	const macroHtml = fs.readFileSync(path.join(root, macro.file), 'utf8');
+	const functionHtml = fs.readFileSync(path.join(root, functionPage.file), 'utf8');
+	assert.notEqual(macroHtml, functionHtml);
+	assert.match(macroHtml, /INFINITY/);
+	assert.match(functionHtml, /nanf/);
+	assert.deepEqual(findLocalLink(macro, functionPage.source, catalog.entries), { entry: functionPage, fragment: '' });
+	for (const name of ['_Exit', '_exit']) {
+		assert.match(fs.readFileSync(path.join(root, page(name).file), 'utf8'), /SYNOPSIS/);
 	}
 });

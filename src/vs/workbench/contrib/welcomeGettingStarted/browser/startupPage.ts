@@ -10,6 +10,7 @@ import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ILifecycleService, LifecyclePhase, StartupKind } from '../../../services/lifecycle/common/lifecycle.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -44,6 +45,7 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@INotificationService private readonly notificationService: INotificationService,
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
+		@IWorkspaceTrustManagementService private readonly workspaceTrustService: IWorkspaceTrustManagementService,
 	) {
 		super();
 
@@ -71,7 +73,10 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 					await this.openReadme();
 
 				} else if (startupEditorSetting.value === 'terminal') {
-					await this.commandService.executeCommand(TerminalCommandId.CreateTerminalEditor);
+					await this.workspaceTrustService.workspaceTrustInitialized;
+					if (this.workspaceTrustService.isWorkspaceTrusted() && (!this.editorService.activeEditor || this.layoutService.openedDefaultEditors)) {
+						await this.commandService.executeCommand(TerminalCommandId.CreateTerminalEditor);
+					}
 				}
 			}
 		}

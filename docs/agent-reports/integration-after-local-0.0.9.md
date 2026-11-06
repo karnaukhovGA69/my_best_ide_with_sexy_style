@@ -122,3 +122,8 @@
 Двенадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет. Local-resource-loading-audit завершён как read-only исследование; запрет внешних Markdown resources ещё требует реализации.
 
 Двенадцатый срез ЗАВЕРШЁН: 2 implementation tasks и read-only local-resource-loading-audit; 10 browser tests passed, 0 page errors, полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 41 implementation задача, 203 целевых browser tests. Старый thinking-title cache читается без записи/удаления; обычный DefaultModelContribution сохранён. Аудит Markdown выявил оставшиеся external-resource разрешения, исправления ещё не выполнены. Package/native не запускались, готовый ZIP неизменён.
+
+Тринадцатый срез — ЗАНЯТО интегратором: markdown-preview-local-resources и готовые задачи:
+- `appearance-style-menu` — `298b657810b036c98265752f25a689d6f2166dd5`
+- `agent-model-settings-enumeration-delete` — `ce622ea45d11469f453009fb8936c7a3ef11783e`
+- `chat-prompt-discovery-logging-disable` — `d66e83ad2597548832c6293cc59b34f41d70e7cb`

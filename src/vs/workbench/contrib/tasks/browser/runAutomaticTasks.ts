@@ -59,7 +59,7 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 			this._logService.trace('RunAutomaticTasks: Awaiting task system info.');
 			await Event.toPromise(Event.filter(this._taskService.onDidChangeTaskSystemInfo, () => this._taskService.hasTaskSystemInfo), this._store);
 		}
-		if (this._store.isDisposed) {
+		if (this._store.isDisposed || !this._workspaceTrustManagementService.isWorkspaceTrusted()) {
 			return;
 		}
 		let workspaceTasks = await this._taskService.getWorkspaceTasks(TaskRunSource.FolderOpen);
@@ -96,11 +96,11 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 		tasks.forEach(task => {
 			if (task instanceof Promise) {
 				task.then(promiseResult => {
-					if (promiseResult) {
+					if (promiseResult && !this._store.isDisposed && this._workspaceTrustManagementService.isWorkspaceTrusted()) {
 						taskService.run(promiseResult);
 					}
 				});
-			} else {
+			} else if (!this._store.isDisposed && this._workspaceTrustManagementService.isWorkspaceTrusted()) {
 				taskService.run(task);
 			}
 		});
@@ -162,7 +162,7 @@ export class RunAutomaticTasks extends Disposable implements IWorkbenchContribut
 	}
 
 	private async _runWithPermission(taskService: ITaskService, configurationService: IConfigurationService, storageService: IStorageService, notificationService: INotificationService, openerService: IOpenerService, tasks: (Task | Promise<Task | undefined>)[], taskNames: string[], locations: Map<string, URI>) {
-		if (taskNames.length === 0) {
+		if (taskNames.length === 0 || this._store.isDisposed || !this._workspaceTrustManagementService.isWorkspaceTrusted()) {
 			return;
 		}
 		if (configurationService.getValue(ALLOW_AUTOMATIC_TASKS) === 'on') {

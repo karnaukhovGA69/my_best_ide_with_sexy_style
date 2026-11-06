@@ -5,6 +5,7 @@
 
 import { RunOnceScheduler, Sequencer, ThrottledDelayer } from '../../../../../base/common/async.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
+import { isCancellationError } from '../../../../../base/common/errors.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { revive } from '../../../../../base/common/marshalling.js';
 import { IObservable, ITransaction, observableValue } from '../../../../../base/common/observable.js';
@@ -114,6 +115,9 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 	}
 
 	set(newValue: readonly IStoredInstalledPlugin[], tx: ITransaction | undefined): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this._hasPendingChanges = true;
 		this._installed.set(newValue, tx);
 		if (this._initialized) {
@@ -124,6 +128,9 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 	private async _initialize(): Promise<void> {
 		try {
 			const entries = await this._readAndMigrateFromFile();
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!this._hasPendingChanges) {
 				if (entries !== undefined) {
 					this._installed.set(entries, undefined);
@@ -134,6 +141,10 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 			}
 		} catch (error) {
 			this._logService.error('[FileBackedInstalledPluginsStore] Initialization failed', error);
+		}
+
+		if (this._store.isDisposed) {
+			return;
 		}
 
 		this._initialized = true;
@@ -147,7 +158,7 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 
 	private async _readAndMigrateFromFile(): Promise<readonly IStoredInstalledPlugin[] | undefined> {
 		let read = await this._readFromFile();
-		if (read?.needsMigration) {
+		if (read?.needsMigration && !this._store.isDisposed) {
 			const result = await this._writeToFile(read.entries, { mtime: read.content.mtime, etag: read.content.etag });
 			if (result !== 'success') {
 				read = await this._readFromFile();
@@ -212,10 +223,20 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 	}
 
 	private _scheduleWrite(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		void this._writeDelayer.trigger(() => this._fileOperationQueue.queue(async () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._hasPendingChanges = false;
 			await this._writeToFile();
-		}));
+		})).catch(error => {
+			if (!isCancellationError(error)) {
+				this._logService.error('[FileBackedInstalledPluginsStore] Scheduled write failed', error);
+			}
+		});
 	}
 
 	private async _writeToFile(plugins: readonly IStoredInstalledPlugin[] = this.get(), options?: IWriteFileOptions): Promise<'success' | 'conflict' | 'error'> {
@@ -268,12 +289,12 @@ export class FileBackedInstalledPluginsStore extends Disposable {
 	}
 
 	private async _onFileChanged(): Promise<void> {
-		if (this._hasPendingChanges) {
+		if (this._store.isDisposed || this._hasPendingChanges) {
 			return;
 		}
 
 		const entries = await this._readAndMigrateFromFile();
-		if (entries !== undefined && !this._hasPendingChanges) {
+		if (!this._store.isDisposed && entries !== undefined && !this._hasPendingChanges) {
 			this._installed.set(entries, undefined);
 		}
 	}

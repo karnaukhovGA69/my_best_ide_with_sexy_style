@@ -10,7 +10,7 @@
 
 Native packaged smoke на 9d93537d452 прошёл: Git activation, bash/zsh, shell Task exit 0, method suggestions, ручной formatter (0 calls on save), manual VSIX 0.0.1 → 0.0.2 → uninstall. Проверено отсутствие удалённых update/survey/chat-tip/inline команд. Documents native API suite passed: new/open/custom editor, undo/redo, CRLF save/reopen, external change и targeted Save As single-tab replacement с сохранением другой вкладки. Это API regression, не полный native Save Dialog UI сценарий.
 
-Ещё не завершены для этого snapshot: PDF/native UI проверки, финальный ASAR/ZIP audit и публикация. Старые PDF/settings UI результаты не выдаются за новые. Package повторно не запускать без реального source fix.
+PDF/native UI и ASAR/ZIP проверки завершены ниже; осталась только GitHub publication. Старые PDF/settings UI результаты не выдаются за новые. Package повторно не запускать без реального source fix.
 
 Финальная QA завершена на новом snapshot. Через native UI выполнены ввод/сохранение документа, Save As без дублирования вкладки, экспорт PDF и подтверждение сохранения. API snapshot и прочитанный файл подтвердили одну custom вкладку и точный текст. PDF backend на Electron той же версии прошёл cancel/concurrent rejection/write failure/cleanup; A4 на 1 и 6 страницах, текст извлечён и страницы визуально проверены. Отдельный одностраничный PDF получен видимой кнопкой из упакованного приложения.
 

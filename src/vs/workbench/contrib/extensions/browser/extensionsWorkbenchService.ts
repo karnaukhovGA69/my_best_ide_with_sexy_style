@@ -48,7 +48,7 @@ import { IFileService } from '../../../../platform/files/common/files.js';
 import { IExtensionManifest, ExtensionType, IExtension as IPlatformExtension, TargetPlatform, ExtensionIdentifier, IExtensionIdentifier, IExtensionDescription, isApplicationScopedExtension } from '../../../../platform/extensions/common/extensions.js';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
-import { FileAccess } from '../../../../base/common/network.js';
+import { FileAccess, Schemas } from '../../../../base/common/network.js';
 import { IIgnoredExtensionsManagementService } from '../../../../platform/userDataSync/common/ignoredExtensions.js';
 import { IUserDataAutoSyncService, IUserDataSyncEnablementService, SyncResource } from '../../../../platform/userDataSync/common/userDataSync.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -91,6 +91,14 @@ type ExtensionsLoadClassification = {
 	readonly count: { classification: 'PublicNonPersonalData'; purpose: 'FeatureInsight'; comment: 'The number of extensions that are installed.' };
 };
 
+function isLocalExtensionDocument(uri: URI | undefined): uri is URI {
+	return !!uri && (
+		(uri.scheme === Schemas.file && !uri.authority && !/^[\\/]{2}/.test(uri.path))
+		|| uri.scheme === Schemas.vscodeRemote
+		|| uri.scheme === Schemas.vscodeUserData
+	);
+}
+
 export class Extension implements IExtension {
 
 	public enablementState: EnablementState = EnablementState.EnabledGlobally;
@@ -107,7 +115,6 @@ export class Extension implements IExtension {
 		private _gallery: IGalleryExtension | undefined,
 		private readonly resourceExtensionInfo: { resourceExtension: IResourceExtension; isWorkspaceScoped: boolean } | undefined,
 		@IExtensionGalleryService private readonly galleryService: IExtensionGalleryService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@ILogService private readonly logService: ILogService,
 		@IFileService private readonly fileService: IFileService,
 		@IProductService private readonly productService: IProductService
@@ -445,79 +452,54 @@ export class Extension implements IExtension {
 	}
 
 	hasReadme(): boolean {
-		if (this.local && this.local.readmeUrl) {
-			return true;
-		}
-
-		if (this.gallery && this.gallery.assets.readme) {
-			return true;
-		}
-
-		if (this.resourceExtension?.readmeUri) {
-			return true;
-		}
-
-		return this.type === ExtensionType.System;
+		return isLocalExtensionDocument(this.local?.readmeUrl)
+			|| isLocalExtensionDocument(this.resourceExtension?.readmeUri)
+			|| this.type === ExtensionType.System;
 	}
 
 	async getReadme(token: CancellationToken): Promise<string> {
-		const local = this.getLocal();
-		if (local?.readmeUrl) {
-			const content = await this.fileService.readFile(local.readmeUrl);
+		if (token.isCancellationRequested) {
+			throw new CancellationError();
+		}
+		// Documentation belongs to the installed version, even if gallery metadata is newer.
+		const resource = this.local?.readmeUrl ?? this.resourceExtension?.readmeUri;
+		if (isLocalExtensionDocument(resource)) {
+			const content = await this.fileService.readFile(resource);
 			return content.value.toString();
 		}
 
-		if (this.gallery) {
-			if (this.gallery.assets.readme) {
-				return this.galleryService.getReadme(this.gallery, token);
-			}
-			this.telemetryService.publicLog('extensions:NotFoundReadMe', this.telemetryData);
-		}
-
 		if (this.type === ExtensionType.System) {
-			return Promise.resolve(`# ${this.displayName || this.name}
+			return `# ${this.displayName || this.name}
 **Notice:** This extension is bundled with Visual Studio Code. It can be disabled but not uninstalled.
 ## Features
 ${this.description}
-`);
+`;
 		}
 
-		if (this.resourceExtension?.readmeUri) {
-			const content = await this.fileService.readFile(this.resourceExtension?.readmeUri);
-			return content.value.toString();
-		}
-
-		return Promise.reject(new Error('not available'));
+		throw new Error('not available');
 	}
 
 	hasChangelog(): boolean {
-		if (this.local && this.local.changelogUrl) {
-			return true;
-		}
-
-		if (this.gallery && this.gallery.assets.changelog) {
-			return true;
-		}
-
-		return this.type === ExtensionType.System;
+		return isLocalExtensionDocument(this.local?.changelogUrl)
+			|| isLocalExtensionDocument(this.resourceExtension?.changelogUri)
+			|| this.type === ExtensionType.System;
 	}
 
 	async getChangelog(token: CancellationToken): Promise<string> {
-		const local = this.getLocal();
-		if (local?.changelogUrl) {
-			const content = await this.fileService.readFile(local.changelogUrl);
+		if (token.isCancellationRequested) {
+			throw new CancellationError();
+		}
+		const resource = this.local?.changelogUrl ?? this.resourceExtension?.changelogUri;
+		if (isLocalExtensionDocument(resource)) {
+			const content = await this.fileService.readFile(resource);
 			return content.value.toString();
 		}
 
-		if (this.gallery?.assets.changelog) {
-			return this.galleryService.getChangelog(this.gallery, token);
-		}
-
 		if (this.type === ExtensionType.System) {
-			return Promise.resolve(`Please check the [VS Code Release Notes](command:${ShowCurrentReleaseNotesActionId}) for changes to the built-in extensions.`);
+			return `Please check the [VS Code Release Notes](command:${ShowCurrentReleaseNotesActionId}) for changes to the built-in extensions.`;
 		}
 
-		return Promise.reject(new Error('not available'));
+		throw new Error('not available');
 	}
 
 	get categories(): readonly string[] {

@@ -110,62 +110,6 @@ export interface ISettingSearchResult {
 	score: number;
 }
 
-export const IIssueFormService = createDecorator<IIssueFormService>('issueFormService');
-
-export interface IIssueReporterFileAttachment {
-	readonly filePath: string;
-	readonly name: string;
-	readonly mimeType: string;
-	readonly thumbnailDataUrl?: string;
-	readonly durationMs?: number;
-}
-
-export interface IIssueReporterScreenshot {
-	readonly dataUrl: string;
-	readonly annotatedDataUrl?: string;
-}
-
-export interface IIssueReporterAttachmentUpload {
-	readonly destination: string;
-	readonly state: 'pending' | 'uploading' | 'done';
-}
-
-export type IssueReporterAttachment<TScreenshot extends IIssueReporterScreenshot = IIssueReporterScreenshot> = {
-	readonly id: string;
-	upload?: IIssueReporterAttachmentUpload;
-} & (
-		| { readonly kind: 'screenshot'; readonly screenshot: TScreenshot }
-		| { readonly kind: 'file'; readonly file: IIssueReporterFileAttachment }
-	);
-
-/** The new reporter's attachment and upload feedback contract. */
-export interface IIssueSubmissionHost {
-	getAttachments(): readonly IssueReporterAttachment[];
-	setUploading(uploading: boolean): void;
-	setAttachmentUploadState(attachment: IssueReporterAttachment, upload: IIssueReporterAttachmentUpload): void;
-	setAttachmentUploadError(message: string | undefined, details?: string): void;
-}
-
-export interface IIssueFormService {
-	readonly _serviceBrand: undefined;
-
-	// Used by the issue reporter
-	openReporter(data: IssueReporterData): Promise<void>;
-	reloadWithExtensionsDisabled(): Promise<void>;
-	showConfirmCloseDialog(): Promise<void>;
-	showClipboardDialog(): Promise<boolean>;
-	sendReporterMenu(extensionId: string): Promise<IssueReporterData | undefined>;
-	closeReporter(): Promise<void>;
-	submitIssue(host: IIssueSubmissionHost, data: IssueReporterData, title: string, body: string, signal?: AbortSignal): Promise<boolean>;
-	searchGitHubIssues(repo: string, title: string, signal: AbortSignal): Promise<readonly ISimilarIssue[]>;
-}
-
-export interface ISimilarIssue {
-	readonly html_url: string;
-	readonly title: string;
-	readonly state?: string;
-}
-
 export const IWorkbenchIssueService = createDecorator<IWorkbenchIssueService>('workbenchIssueService');
 
 export interface IWorkbenchIssueService {

@@ -39,6 +39,7 @@ suite('Myself IDE extension distribution', () => {
 	test('rejects excluded packages and unreviewed upstream additions', () => {
 		assert.deepStrictEqual([
 			'github', 'github-authentication', 'copilot', 'GitHub.copilot-chat', 'prompt-basics', 'emmet', 'grunt', 'gulp', 'jake',
+			'tunnel-forwarding', 'myself-github', 'remote-ssh', 'remote-server',
 			'go', 'rust', 'cpp', 'fsharp', 'lua', 'json', 'json-language-features', 'yaml', 'sql',
 			'javascript', 'typescript-basics', 'typescript-language-features', 'new-upstream-extension',
 		].filter(isDistributionExtension), []);
@@ -49,6 +50,7 @@ suite('Myself IDE extension distribution', () => {
 			'git/package.json', 'git/node_modules/@vscode/fs-copyfile/package.json',
 			'markdown-math/notebook-out/index.js', 'github-authentication/dist/extension.js', 'github/dist/extension.js',
 			'copilot/dist/extension.js', 'node_modules/typescript/lib/typescript.js',
+			'tunnel-forwarding/out/extension.js', 'tunnel-forwarding\\package.json',
 			'go/syntaxes/go.tmLanguage.json', 'emmet/dist/node/emmetNodeMain.js',
 			'grunt\\package.json', 'markdown-basics\\package.json',
 		].filter(isDistributionExtensionFile), [

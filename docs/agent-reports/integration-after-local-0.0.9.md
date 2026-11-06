@@ -165,3 +165,10 @@ Common Markdown local media уже занят чатом упрощения; и�
 Шестнадцатый срез: 13 tests passed; client typecheck выявил HTMLElement вместо HTMLIFrameElement в новом releaseNotesEditor.test.ts. Интегратор занимает точечное исправление этого теста. Дополнительно ЗАНЯТО объединение готовых extension-documents-local-only (3b594989646) и git-autofetch-disable (69de6a095a4); повторная пакетная проверка после этих изменений.
 
 Шестнадцатый срез ЗАВЕРШЁН: 8 implementation задач, 13 целевых + 54 offline integration browser tests passed (0 page errors/remote requests). Первый client typecheck обнаружил ошибочный тип iframe в новом CSP-тесте; исправлен generic DOM helper, повторный полный client typecheck и Git extension typecheck passed. Scoped lint/diff --check passed. Первый offline harness не обслуживал webview shell fixture: добавлена выдача исходного HTML, после чего все 54 tests прошли без изменения ожиданий. Общий слот освобождён. Всего после локального 0.0.9: 60 implementation задач, 665 successful browser test executions. Git autofetch удалён, release notes и extension descriptions загружаются локально. Package/native не запускались, старый ZIP неизменён; idle-network/Workspace Trust проверки нового пакета ещё обязательны.
+
+Семнадцатый срез — ЗАНЯТО интегратором: minimal-remote-extension-exclusion и готовые задачи:
+- `agent-plugin-marketplace-views-disable` — `607296ead8e6097ea000b1711a6bc5b5e0c1d3e8`
+- `agent-plugin-update-actions-disable` — `eacb83008a5e749ace70e6a4435fd1b8b87213dc`
+- `agent-plugin-url-handler-disable` — `c3a86e02dd9fdb5f62891e1785cf649f944385b8`
+- `agent-debug-live-capture-disable` — `a4c94b60da6e8b6c58ee69293e43efefcfc070b0`
+- `agent-debug-sidecar-writers-delete` — `284c9c01bcfe15851684f768ae1d0f258f7cf190`

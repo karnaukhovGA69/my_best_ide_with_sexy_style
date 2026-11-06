@@ -43,7 +43,6 @@ const distributionExtensions = new Set([
 	'theme-solarized-dark',
 	'theme-solarized-light',
 	'theme-tomorrow-night-blue',
-	'tunnel-forwarding',
 ]);
 
 /** Whether an extension folder belongs in the public distribution. */

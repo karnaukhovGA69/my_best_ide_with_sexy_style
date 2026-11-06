@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { CancellationError } from '../../../../../base/common/errors.js';
-import { isDisposable } from '../../../../../base/common/lifecycle.js';
 import { constObservable, observableValue } from '../../../../../base/common/observable.js';
 import { extUri } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -21,7 +21,7 @@ import { ContextKeyValue } from '../../../../../platform/contextkey/common/conte
 import { FileOperationError, FileOperationResult, IFileService, IFileStatWithMetadata } from '../../../../../platform/files/common/files.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
-import { IAllowedMcpServersService, IGalleryMcpServer, IInstallableMcpServer } from '../../../../../platform/mcp/common/mcpManagement.js';
+import { IAllowedMcpServersService, IInstallableMcpServer } from '../../../../../platform/mcp/common/mcpManagement.js';
 import { IMcpResourceScannerService } from '../../../../../platform/mcp/common/mcpResourceScannerService.js';
 import { IMcpServerConfiguration, McpServerType, McpServerVariableType } from '../../../../../platform/mcp/common/mcpPlatformTypes.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
@@ -48,12 +48,11 @@ import { SessionType } from '../../../chat/common/chatSessionsService.js';
 import { TEXT_FILE_EDITOR_ID } from '../../../files/common/files.js';
 import { AddConfigurationAction, OpenRemoteUserMcpResourceCommand, OpenUserMcpResourceCommand, OpenWorkspaceFolderMcpResourceCommand } from '../../browser/mcpCommands.js';
 import { McpConfigurationDestination } from '../../browser/mcpConfigurationDestination.js';
-import { getContextMenuActions, InstallAction, InstallInRemoteAction, InstallInWorkspaceAction, ShowServerJsonConfigurationAction } from '../../browser/mcpServerActions.js';
+import { InstallAction, InstallInRemoteAction, InstallInWorkspaceAction, ShowServerJsonConfigurationAction } from '../../browser/mcpServerActions.js';
 import { mcpWorkspaceRootConfig } from '../../common/mcpConfiguration.js';
 import { IMcpCopilotGlobalConfigurationService } from '../../common/mcpCopilotGlobalConfigurationService.js';
 import { IMcpRegistry } from '../../common/mcpRegistryTypes.js';
-import { IMcpServer, IMcpService, IMcpWorkbenchService, IWorkbenchMcpServer, McpCollectionDefinition, McpConnectionState, McpServerDefinition, McpServerInstallState } from '../../common/mcpTypes.js';
-import { startServerByFilter } from '../../common/mcpTypesUtils.js';
+import { IMcpServer, IMcpService, IMcpWorkbenchService, IWorkbenchMcpServer, McpCollectionDefinition, McpConnectionState, McpServerDefinition } from '../../common/mcpTypes.js';
 
 class TestQuickInputService extends mock<IQuickInputService>() {
 	readonly selections: (string | undefined)[] = [];
@@ -502,111 +501,20 @@ suite('MCP configuration entry points', () => {
 		});
 	});
 
-	for (const gallery of [false, true]) {
-		for (const enabled of [false, true]) {
-			test(`Install in Workspace: gallery=${gallery}, enabled=${enabled}`, async () => {
-				const fixture = setup(enabled, [legacyFile]);
-				if (!gallery && enabled) {
-					fixture.quickInput.selections.push(rootFile);
+	for (const Action of [InstallAction, InstallInWorkspaceAction, InstallInRemoteAction]) {
+		test(`${Action.name} stays disabled and rejects without services or server metadata`, async () => {
+			const instantiation = store.add(new InstantiationService(new ServiceCollection(), true));
+			const server = new Proxy(upcastPartial<IWorkbenchMcpServer>({}), { get() { throw new Error('MCP server metadata accessed'); } });
+			for (const open of [false, true]) {
+				const action = store.add(instantiation.createInstance(Action, open));
+				for (const input of [null, server]) {
+					action.mcpServer = input;
+					action.update();
+					assert.deepStrictEqual({ enabled: action.enabled, hidden: action.hidden }, { enabled: false, hidden: true });
+					const message = await action.run().then(() => 'unexpected success', error => error.message);
+					assert.strictEqual(message, 'MCP server installation is unavailable in this distribution.');
 				}
-				const action = store.add(fixture.instantiation.createInstance(InstallInWorkspaceAction, false));
-				action.mcpServer = upcastPartial<IWorkbenchMcpServer>({
-					name: installable.name,
-					gallery: gallery ? upcastPartial<IGalleryMcpServer>({ name: installable.name }) : undefined,
-					installable: gallery ? undefined : installable,
-					installState: McpServerInstallState.Uninstalled,
-				});
-				await action.run();
-				const file = !gallery && enabled ? rootFile : legacyFile;
-				assert.deepStrictEqual({
-					kind: fixture.installs[0].options?.workspaceConfig,
-					pickers: fixture.quickInput.pickLabels,
-					started: fixture.started,
-				}, {
-					kind: !gallery && enabled ? WorkspaceMcpConfigKind.Root : WorkspaceMcpConfigKind.LegacyVscode,
-					pickers: !gallery && enabled ? [[rootFile, legacyFile]] : [],
-					started: [`installed:${fixture.folder.toResource(file).path}`],
-				});
-			});
-		}
-	}
-
-	test('raw URL workspace install can cancel the configuration-file picker', async () => {
-		const fixture = setup(true, [legacyFile]);
-		fixture.quickInput.selections.push(undefined);
-		const action = store.add(fixture.instantiation.createInstance(InstallInWorkspaceAction, false));
-		action.mcpServer = upcastPartial<IWorkbenchMcpServer>({ name: installable.name, installable, installState: McpServerInstallState.Uninstalled });
-		await action.run();
-		assert.deepStrictEqual({ installs: fixture.installs, started: fixture.started }, { installs: [], started: [] });
-	});
-
-	test('gallery workspace install keeps folder and aggregate scope selection', async () => {
-		const fixture = setup(true, [legacyFile], true);
-		fixture.quickInput.selections.push('Workspace');
-		const action = store.add(fixture.instantiation.createInstance(InstallInWorkspaceAction, false));
-		action.mcpServer = upcastPartial<IWorkbenchMcpServer>({ name: installable.name, gallery: upcastPartial<IGalleryMcpServer>({ name: installable.name }), installState: McpServerInstallState.Uninstalled });
-		await action.run();
-		assert.deepStrictEqual({
-			pickers: fixture.quickInput.pickLabels,
-			options: fixture.installs[0].options,
-		}, {
-			pickers: [[`Workspace (${fixture.folder.name})`, `Workspace (${fixture.secondFolder.name})`, 'Workspace']],
-			options: { target: ConfigurationTarget.WORKSPACE, workspaceConfig: undefined },
-		});
-	});
-
-	for (const gallery of [false, true]) {
-		for (const folderCount of [0, 1, 2]) {
-			test(`Install in Workspace respects folder-only targets: gallery=${gallery}, folders=${folderCount}`, async () => {
-				const fixture = setup(true, [], true);
-				fixture.workspace.folders = fixture.workspace.folders.slice(0, folderCount);
-				fixture.instantiation.stub(IMcpWorkspaceInstallTargetService, { getTargets: () => fixture.workspace.folders });
-				if (folderCount > 1) {
-					fixture.quickInput.selections.push(`Workspace (${fixture.folder.name})`);
-				}
-				const action = store.add(fixture.instantiation.createInstance(InstallInWorkspaceAction, false));
-				const mcpServer = upcastPartial<IWorkbenchMcpServer>({
-					name: installable.name,
-					gallery: gallery ? upcastPartial<IGalleryMcpServer>({ name: installable.name }) : undefined,
-					installable: gallery ? undefined : installable,
-					installState: McpServerInstallState.Uninstalled,
-				});
-				action.mcpServer = mcpServer;
-				const menuActions = getContextMenuActions(mcpServer, false, fixture.instantiation).flat();
-				for (const action of menuActions) {
-					if (isDisposable(action)) {
-						store.add(action);
-					}
-				}
-				await action.run();
-				assert.deepStrictEqual({
-					enabled: action.enabled,
-					menuActionIds: menuActions.map(action => action.id),
-					pickers: fixture.quickInput.pickLabels,
-					options: fixture.installs.map(install => install.options),
-					started: fixture.started,
-				}, {
-					enabled: folderCount > 0,
-					menuActionIds: folderCount > 0 ? [action.id] : [],
-					pickers: folderCount > 1 ? [[`Workspace (${fixture.folder.name})`, `Workspace (${fixture.secondFolder.name})`]] : [],
-					options: folderCount > 0 ? [{ target: fixture.folder, workspaceConfig: gallery ? WorkspaceMcpConfigKind.LegacyVscode : WorkspaceMcpConfigKind.Root }] : [],
-					started: folderCount > 0 ? [`installed:${fixture.folder.toResource(gallery ? legacyFile : rootFile).path}`] : [],
-				});
-			});
-		}
-	}
-
-	for (const remote of [false, true]) {
-		test(`${remote ? 'remote' : 'global'} install starts the exact installed ID`, async () => {
-			const fixture = setup(true);
-			if (remote) {
-				fixture.instantiation.stub(IWorkbenchEnvironmentService, { remoteAuthority: 'test-remote' });
-				fixture.instantiation.stub(ILabelService, { getHostLabel: () => 'Remote' });
 			}
-			const action = store.add(remote ? fixture.instantiation.createInstance(InstallInRemoteAction, false) : fixture.instantiation.createInstance(InstallAction, false));
-			action.mcpServer = upcastPartial<IWorkbenchMcpServer>({ name: installable.name, installable, installState: McpServerInstallState.Uninstalled });
-			await action.run();
-			assert.deepStrictEqual(fixture.started, [`installed:/${remote ? 'remote' : 'user'}/mcp.json`]);
 		});
 	}
 
@@ -621,22 +529,4 @@ suite('MCP configuration entry points', () => {
 		assert.deepStrictEqual(fixture.opened.map(uri => uri.path), [fixture.folder.toResource(rootFile).path]);
 	});
 
-	test('startup waits for the installed ID instead of starting an existing same-name server', async () => {
-		const fixture = setup(true);
-		const legacy = fixture.runtimeServer('legacy-id', fixture.folder.toResource(legacyFile));
-		const root = fixture.runtimeServer('root-id', fixture.folder.toResource(rootFile));
-		fixture.servers.set([legacy], undefined);
-		const waiting = startServerByFilter(fixture.instantiation.get(IMcpService), server => server.definition.id === 'root-id');
-		const beforeDiscovery = [...fixture.started];
-		fixture.servers.set([legacy, root], undefined);
-		await waiting;
-		assert.deepStrictEqual({ beforeDiscovery, afterDiscovery: fixture.started }, { beforeDiscovery: [], afterDiscovery: ['root-id'] });
-	});
-
-	test('startup timeout disposes the discovery observer', async () => {
-		const fixture = setup(true);
-		await assert.rejects(startServerByFilter(fixture.instantiation.get(IMcpService), () => true, 0), CancellationError);
-		fixture.servers.set([fixture.runtimeServer('late-id', fixture.folder.toResource(rootFile))], undefined);
-		assert.deepStrictEqual(fixture.started, []);
-	});
 });

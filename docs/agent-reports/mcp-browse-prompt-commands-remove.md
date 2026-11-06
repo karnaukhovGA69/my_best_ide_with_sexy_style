@@ -1,0 +1,9 @@
+# mcp-browse-prompt-commands-remove
+
+Статус: ГОТОВО / ожидает интеграции. Владелец: MCP cleanup. Ветка: `agent/mcp-browse-prompt-commands-remove`. База main `411cccde06e`. Claim `d231bee8e4d`. Код/тесты: `227c4981eb77f666bef7f567ffbafdf1214cd3dc`. Следующий пакет после release-0.0.9.
+
+В browser/mcpCommands.ts удалены run implementations только McpBrowseCommand, McpBrowsePageCommand, ShowInstalledMcpServersCommand, McpBrowseResourcesCommand, McpConfigureSamplingModels, McpStartPromptingServerCommand. Их Action2 ID/metadata/signatures сохранены, вызов явно throws/rejects unavailable без services/server access. Удалены marketplace/view routing, resource quick access/picker invocation, language-model picker/settings mutation и chat prompt insertion. Неиспользуемый browser/openPanelChatAndGetWidget.ts полностью удалён; поиск src/extensions/build TS/JS не находит ссылок.
+
+В test/browser/mcpCommands.test.ts сохранён findLocalMcpServer scenario, три прежних routing tests заменены шестью boundary tests (с undefined и trap server, synchronous/async refusal, trap ServicesAccessor). 7 command tests + 57 соседних configuration entry point tests прошли; lint обоих TS прошёл; узкий TypeScript — 0 diagnostics; git diff --check прошёл. Все 6 новых tests на baseline ожидаемо падают: старый код читает service accessor. Helper временно восстановлен только для baseline и удалён в finally. Diff: 165 строк удалено, 31 добавлена.
+
+OAuth, stored-input, manual configuration/file creation, server lifecycle/options и остальные команды не менялись. GitHub/auth/Git/SSH и общие language/model/quickpick services не редактировались. Ветка независима от прочих cleanup branches. Общие registrations пока остаются; полное удаление MCP/AI не заявляется. Полные typecheck/build/package/native smoke — на следующем пакете.

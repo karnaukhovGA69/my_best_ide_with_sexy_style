@@ -3,35 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, disposableWindowInterval, EventType } from '../../../../base/browser/dom.js';
-import { renderMarkdown } from '../../../../base/browser/markdownRenderer.js';
-import { IManagedHoverTooltipHTMLElement } from '../../../../base/browser/ui/hover/hover.js';
-import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
-import { mainWindow } from '../../../../base/browser/window.js';
-import { findLast } from '../../../../base/common/arraysFind.js';
 import { assertNever } from '../../../../base/common/assert.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { groupBy } from '../../../../base/common/collections.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
-import { Event } from '../../../../base/common/event.js';
-import { createMarkdownCommandLink, MarkdownString } from '../../../../base/common/htmlContent.js';
-import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
-import { autorun, derived, derivedObservableWithCache, observableValue } from '../../../../base/common/observable.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { basename } from '../../../../base/common/resources.js';
-import { hasKey, isDefined } from '../../../../base/common/types.js';
+import { hasKey } from '../../../../base/common/types.js';
 import { URI } from '../../../../base/common/uri.js';
-import { Range } from '../../../../editor/common/core/range.js';
-import { SuggestController } from '../../../../editor/contrib/suggest/browser/suggestController.js';
 import { ILocalizedString, localize, localize2 } from '../../../../nls.js';
-import { IActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
-import { MenuEntryActionViewItem } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
-import { Action2, MenuId, MenuItemAction, MenuRegistry } from '../../../../platform/actions/common/actions.js';
+import { Action2, MenuId, MenuRegistry } from '../../../../platform/actions/common/actions.js';
 import { getCustomizationScopeEnablement } from '../../../../platform/agentHost/common/customizationEnablement.js';
 import { CustomizationEnablementKind, McpServerStatus } from '../../../../platform/agentHost/common/state/protocol/state.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { ConfigurationTarget, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { ConfigurationTarget } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -39,11 +25,9 @@ import { ILabelService } from '../../../../platform/label/common/label.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { mcpAutoStartConfig, McpAutoStartValue } from '../../../../platform/mcp/common/mcpManagement.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { observableConfigValue } from '../../../../platform/observable/common/platformObservableUtils.js';
-import { IQuickInputButton, IQuickInputService, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
+import { IQuickInputService, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
 import { ISecretStorageService } from '../../../../platform/secrets/common/secrets.js';
 import { StorageScope } from '../../../../platform/storage/common/storage.js';
-import { defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IWorkspaceContextService, IWorkspaceFolder } from '../../../../platform/workspace/common/workspace.js';
 import { PICK_WORKSPACE_FOLDER_COMMAND_ID } from '../../../browser/actions/workspaceCommands.js';
 import { ActiveEditorContext, RemoteNameContext, ResourceContextKey, WorkbenchStateContext, WorkspaceFolderCountContext } from '../../../common/contextkeys.js';
@@ -53,7 +37,6 @@ import { IAccountQuery, IAuthenticationQueryService } from '../../../services/au
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IRemoteUserDataProfilesService } from '../../../services/userDataProfile/common/remoteUserDataProfiles.js';
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
-import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IChatWidgetService } from '../../chat/browser/chat.js';
 import { getMcpServerDisplayLabel, IAgentHostCustomizationService } from '../../chat/browser/agentSessions/agentHost/agentHostCustomizationService.js';
 import { setAgentHostPluginEnablement } from '../../chat/browser/agentPluginActions.js';
@@ -61,24 +44,19 @@ import { AICustomizationManagementCommands, AICustomizationManagementSection, IA
 import { IAgentPluginService } from '../../chat/common/plugins/agentPluginService.js';
 import { ChatContextKeys } from '../../chat/common/actions/chatContextKeys.js';
 import { IChatElicitationRequest, IChatToolInvocation } from '../../chat/common/chatService/chatService.js';
-import { ChatAgentLocation, ChatModeKind } from '../../chat/common/constants.js';
+import { ChatModeKind } from '../../chat/common/constants.js';
 import { ContributionEnablementState, isContributionDisabled } from '../../chat/common/enablement.js';
-import { ILanguageModelsService } from '../../chat/common/languageModels.js';
 import { ILanguageModelToolsService } from '../../chat/common/tools/languageModelToolsService.js';
-import { extensionsFilterSubMenu, IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
+import { extensionsFilterSubMenu } from '../../extensions/common/extensions.js';
 import { TEXT_FILE_EDITOR_ID } from '../../files/common/files.js';
 import { McpCommandIds } from '../common/mcpCommandIds.js';
 import { mcpWorkspaceRootConfig } from '../common/mcpConfiguration.js';
 import { McpContextKeys } from '../common/mcpContextKeys.js';
 import { IMcpCopilotGlobalConfigurationService } from '../common/mcpCopilotGlobalConfigurationService.js';
 import { IMcpRegistry } from '../common/mcpRegistryTypes.js';
-import { HasInstalledMcpServersContext, IMcpSamplingService, IMcpServer, IMcpServerStartOpts, IMcpService, IMcpWorkbenchService, InstalledMcpServersViewId, LazyCollectionState, McpCapability, McpCollectionDefinition, McpConnectionState, McpDefinitionReference, mcpOAuthClientSecretStorageKey, mcpPromptPrefix, McpServerCacheState, McpStartServerInteraction } from '../common/mcpTypes.js';
-import { startServerAndWaitForLiveTools } from '../common/mcpTypesUtils.js';
+import { HasInstalledMcpServersContext, IMcpSamplingService, IMcpServer, IMcpServerStartOpts, IMcpService, InstalledMcpServersViewId, McpCapability, McpConnectionState, McpDefinitionReference, mcpOAuthClientSecretStorageKey } from '../common/mcpTypes.js';
 import { McpAddConfigurationCommand, McpInstallFromManifestCommand } from './mcpCommandsAddConfiguration.js';
 import { McpConfigurationDestination } from './mcpConfigurationDestination.js';
-import { McpResourceQuickAccess, McpResourceQuickPick } from './mcpResourceQuickAccess.js';
-import './media/mcpServerAction.css';
-import { openPanelChatAndGetWidget } from './openPanelChatAndGetWidget.js';
 
 // acroynms do not get localized
 const category: ILocalizedString = {
@@ -112,202 +90,8 @@ export class ListMcpServerCommand extends Action2 {
 		});
 	}
 
-	override async run(accessor: ServicesAccessor) {
-		const services: IListMcpServerServices = {
-			chatWidgetService: accessor.get(IChatWidgetService),
-			agentHostCustomizations: accessor.get(IAgentHostCustomizationService),
-			mcpService: accessor.get(IMcpService),
-			commandService: accessor.get(ICommandService),
-			quickInput: accessor.get(IQuickInputService),
-			notificationService: accessor.get(INotificationService),
-			logService: accessor.get(ILogService),
-		};
-		return this._runWithMode(services, undefined);
-	}
-
-	private async _runWithMode(services: IListMcpServerServices, initialMode: 'local' | { agentHostSession: URI } | undefined): Promise<void> {
-		let mode = initialMode;
-		if (mode === undefined) {
-			const sessionResource = services.chatWidgetService.lastFocusedWidget?.viewModel?.sessionResource;
-			const hasAgentHostMcp = sessionResource && services.agentHostCustomizations.getMcpServers(sessionResource).length > 0;
-			mode = hasAgentHostMcp ? { agentHostSession: sessionResource! } : 'local';
-		}
-
-		if (mode === 'local') {
-			await this._runLocal(services);
-			return;
-		}
-
-		const nextMode = await this._runAgentHost(services, mode.agentHostSession);
-		if (nextMode === 'local') {
-			await this._runWithMode(services, 'local');
-		}
-	}
-
-	private async _runLocal(services: IListMcpServerServices): Promise<void> {
-		const { mcpService, commandService, quickInput } = services;
-
-		type ItemType = { id: string } & IQuickPickItem;
-
-		const store = new DisposableStore();
-		const pick = quickInput.createQuickPick<ItemType>({ useSeparators: true });
-		pick.placeholder = localize('mcp.selectServer', 'Select an MCP Server');
-
-		mcpService.activateCollections();
-
-		store.add(pick);
-
-		store.add(autorun(reader => {
-			const servers = groupBy(mcpService.servers.read(reader).slice().sort((a, b) => a.collection.order - b.collection.order), s => s.collection.id);
-			const firstRun = pick.items.length === 0;
-			const previousActiveId = pick.activeItems[0]?.id;
-
-			pick.items = [
-				{ id: '$add', label: localize('mcp.addServer', 'Add Server'), description: localize('mcp.addServer.description', 'Add a new server configuration'), alwaysShow: true, iconClass: ThemeIcon.asClassName(Codicon.add) },
-				...Object.values(servers).filter(s => s!.length).flatMap((servers): (ItemType | IQuickPickSeparator)[] => [
-					{ type: 'separator', label: servers![0].collection.label, id: servers![0].collection.id },
-					...servers!.map(server => {
-						const disabled = isContributionDisabled(server.enablement.read(reader));
-						return {
-							id: server.definition.id,
-							label: server.definition.label,
-							description: disabled
-								? localize('mcp.disabled', 'Disabled')
-								: McpConnectionState.toString(server.connectionState.read(reader)),
-						};
-					}),
-				]),
-			];
-
-			// Preserve the previously selected item if it still exists, otherwise select the first server on first run
-			if (previousActiveId) {
-				const previousItem = pick.items.find((item): item is ItemType => !('type' in item) && item.id === previousActiveId);
-				if (previousItem) {
-					pick.activeItems = [previousItem];
-					return;
-				}
-			}
-
-			if (firstRun && pick.items.length > 3) {
-				pick.activeItems = pick.items.slice(2, 3) as ItemType[]; // select the first server by default
-			}
-		}));
-
-
-		const picked = await new Promise<ItemType | undefined>(resolve => {
-			store.add(pick.onDidAccept(() => {
-				resolve(pick.activeItems[0]);
-			}));
-			store.add(pick.onDidHide(() => {
-				resolve(undefined);
-			}));
-			pick.show();
-		});
-
-		store.dispose();
-
-		if (!picked) {
-			// no-op
-		} else if (picked.id === '$add') {
-			commandService.executeCommand(McpCommandIds.AddConfiguration);
-		} else {
-			commandService.executeCommand(McpCommandIds.ServerOptions, picked.id);
-		}
-	}
-
-	private async _runAgentHost(services: IListMcpServerServices, agentHostSession: URI): Promise<'local' | undefined> {
-		const { agentHostCustomizations, commandService, quickInput } = services;
-
-		const BACK_ID = '$back';
-		type ItemType = { id: string; server?: IAgentHostMcpServer } & IQuickPickItem;
-
-		const store = new DisposableStore();
-		const pick = quickInput.createQuickPick<ItemType>({ useSeparators: true });
-		pick.placeholder = localize('mcp.selectAgentHostServer', 'Select an MCP Server for this session');
-
-		store.add(pick);
-
-		const refresh = () => {
-			const firstRun = pick.items.length === 0;
-			const previousActiveId = pick.activeItems[0]?.id;
-			const servers = agentHostCustomizations.getMcpServers(agentHostSession);
-
-			pick.items = [
-				...(servers.length === 0 ? [{
-					id: '$empty',
-					label: localize('mcp.agentHost.noServers', 'No MCP servers'),
-					description: localize('mcp.agentHost.noServers.description', 'This session does not expose any MCP servers'),
-					alwaysShow: true,
-				} satisfies ItemType] : servers.map((server): ItemType => ({
-					id: server.id,
-					server,
-					label: getMcpServerDisplayLabel(server),
-					description: server.enabled
-						? mcpServerStatusToLabel(server.status)
-						: localize('mcp.disabled', 'Disabled'),
-					buttons: getAgentHostMcpServerButtons(server),
-				}))),
-				{ type: 'separator' } satisfies IQuickPickSeparator,
-				{
-					id: BACK_ID,
-					label: localize('mcp.agentHost.showLocal', 'Show locally configured servers...'),
-					iconClass: ThemeIcon.asClassName(Codicon.arrowLeft),
-					alwaysShow: true,
-				} satisfies ItemType,
-			];
-
-			// Preserve the previously selected item if it still exists, otherwise select the first server on first run
-			if (previousActiveId) {
-				const previousItem = pick.items.find((item): item is ItemType => !('type' in item) && item.id === previousActiveId);
-				if (previousItem) {
-					pick.activeItems = [previousItem];
-					return;
-				}
-			}
-
-			if (firstRun && servers.length > 0) {
-				pick.activeItems = [pick.items[0] as ItemType];
-			}
-		};
-
-		refresh();
-		store.add(agentHostCustomizations.onDidChangeCustomizations(() => refresh()));
-		store.add(pick.onDidTriggerItemButton(async event => {
-			if (!isAgentHostMcpServerButton(event.button) || !event.item.server) {
-				return;
-			}
-
-			pick.busy = true;
-			try {
-				await runAgentHostMcpServerLifecycleAction(event.item.server, event.button.action, services);
-				refresh();
-			} finally {
-				pick.busy = false;
-			}
-		}));
-
-		const picked = await new Promise<ItemType | undefined>(resolve => {
-			store.add(pick.onDidAccept(() => {
-				resolve(pick.activeItems[0]);
-			}));
-			store.add(pick.onDidHide(() => {
-				resolve(undefined);
-			}));
-			pick.show();
-		});
-
-		store.dispose();
-
-		if (!picked || picked.id === '$empty') {
-			return undefined;
-		}
-
-		if (picked.id === BACK_ID) {
-			return 'local';
-		}
-
-		await commandService.executeCommand(McpCommandIds.AgentHostServerOptions, agentHostSession, picked.id);
-		return undefined;
+	override async run(_accessor: ServicesAccessor) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -323,36 +107,6 @@ interface IListMcpServerServices {
 
 type AgentHostMcpServerLifecycleAction = 'start' | 'stop';
 type IAgentHostMcpServer = ReturnType<IAgentHostCustomizationService['getMcpServers']>[number];
-
-interface IAgentHostMcpServerButton extends IQuickInputButton {
-	readonly action: AgentHostMcpServerLifecycleAction;
-}
-
-function isAgentHostMcpServerButton(button: IQuickInputButton): button is IAgentHostMcpServerButton {
-	return 'action' in button && (button.action === 'start' || button.action === 'stop');
-}
-
-const startAgentHostMcpServerButton: IAgentHostMcpServerButton = {
-	iconClass: ThemeIcon.asClassName(Codicon.play),
-	tooltip: localize('mcp.start', 'Start Server'),
-	action: 'start',
-};
-
-const stopAgentHostMcpServerButton: IAgentHostMcpServerButton = {
-	iconClass: ThemeIcon.asClassName(Codicon.debugStop),
-	tooltip: localize('mcp.stop', 'Stop Server'),
-	action: 'stop',
-};
-
-function getAgentHostMcpServerButtons(server: IAgentHostMcpServer): IAgentHostMcpServerButton[] {
-	if (canStartAgentHostMcpServer(server)) {
-		return [startAgentHostMcpServerButton];
-	}
-	if (canStopAgentHostMcpServer(server)) {
-		return [stopAgentHostMcpServerButton];
-	}
-	return [];
-}
 
 function canStartAgentHostMcpServer(server: IAgentHostMcpServer): boolean {
 	return server.enabled && (server.status === McpServerStatus.Stopped || server.status === McpServerStatus.Error);
@@ -854,253 +608,8 @@ export class McpServerOptionsCommand extends Action2 {
 	}
 }
 
-export class MCPServerActionRendering extends Disposable implements IWorkbenchContribution {
-	constructor(
-		@IActionViewItemService actionViewItemService: IActionViewItemService,
-		@IMcpService mcpService: IMcpService,
-		@IInstantiationService instaService: IInstantiationService,
-		@ICommandService commandService: ICommandService,
-		@IConfigurationService configurationService: IConfigurationService,
-	) {
-		super();
-
-		const hoverIsOpen = observableValue(this, false);
-		const config = observableConfigValue(mcpAutoStartConfig, McpAutoStartValue.NewAndOutdated, configurationService);
-
-		const enum DisplayedState {
-			None,
-			NewTools,
-			Error,
-			Refreshing,
-		}
-
-		type DisplayedStateT = {
-			state: DisplayedState;
-			servers: (IMcpServer | McpCollectionDefinition)[];
-		};
-
-		function isServer(s: IMcpServer | McpCollectionDefinition): s is IMcpServer {
-			return typeof (s as IMcpServer).start === 'function';
-		}
-
-		const displayedStateCurrent = derived((reader): DisplayedStateT => {
-			const servers = mcpService.servers.read(reader);
-			const serversPerState: (IMcpServer | McpCollectionDefinition)[][] = [];
-			for (const server of servers) {
-				let thisState = DisplayedState.None;
-				switch (server.cacheState.read(reader)) {
-					case McpServerCacheState.Unknown:
-					case McpServerCacheState.Outdated:
-						thisState = server.connectionState.read(reader).state === McpConnectionState.Kind.Error ? DisplayedState.Error : DisplayedState.NewTools;
-						break;
-					case McpServerCacheState.RefreshingFromUnknown:
-						thisState = DisplayedState.Refreshing;
-						break;
-					default:
-						thisState = server.connectionState.read(reader).state === McpConnectionState.Kind.Error ? DisplayedState.Error : DisplayedState.None;
-						break;
-				}
-
-				serversPerState[thisState] ??= [];
-				serversPerState[thisState].push(server);
-			}
-
-			const unknownServerStates = mcpService.lazyCollectionState.read(reader);
-			if (unknownServerStates.state === LazyCollectionState.LoadingUnknown) {
-				serversPerState[DisplayedState.Refreshing] ??= [];
-				serversPerState[DisplayedState.Refreshing].push(...unknownServerStates.collections);
-			} else if (unknownServerStates.state === LazyCollectionState.HasUnknown) {
-				serversPerState[DisplayedState.NewTools] ??= [];
-				serversPerState[DisplayedState.NewTools].push(...unknownServerStates.collections);
-			}
-
-			let maxState = (serversPerState.length - 1) as DisplayedState;
-			if (maxState === DisplayedState.NewTools && config.read(reader) !== McpAutoStartValue.Never) {
-				maxState = DisplayedState.None;
-			}
-
-			return { state: maxState, servers: serversPerState[maxState] || [] };
-		});
-
-		// avoid hiding the hover if a state changes while it's open:
-		const displayedState = derivedObservableWithCache<DisplayedStateT>(this, (reader, last) => {
-			if (last && hoverIsOpen.read(reader)) {
-				return last;
-			} else {
-				return displayedStateCurrent.read(reader);
-			}
-		});
-
-		const actionItemState = displayedState.map(s => s.state);
-
-		this._store.add(actionViewItemService.register(MenuId.ChatInput, McpCommandIds.ListServer, (action, options) => {
-			if (!(action instanceof MenuItemAction)) {
-				return undefined;
-			}
-
-			return instaService.createInstance(class extends MenuEntryActionViewItem {
-
-				override render(container: HTMLElement): void {
-
-					super.render(container);
-					container.classList.add('chat-mcp');
-					container.style.position = 'relative';
-
-					const stateIndicator = container.appendChild($('.chat-mcp-state-indicator'));
-					stateIndicator.style.display = 'none';
-
-					this._register(autorun(r => {
-						const displayed = displayedState.read(r);
-						const { state } = displayed;
-						this.updateTooltip();
-
-
-						stateIndicator.ariaLabel = this.getLabelForState(displayed);
-						stateIndicator.className = 'chat-mcp-state-indicator';
-						if (state === DisplayedState.NewTools) {
-							stateIndicator.style.display = 'block';
-							stateIndicator.classList.add('chat-mcp-state-new', ...ThemeIcon.asClassNameArray(Codicon.refreshCompact));
-						} else if (state === DisplayedState.Error) {
-							stateIndicator.style.display = 'block';
-							stateIndicator.classList.add('chat-mcp-state-error', ...ThemeIcon.asClassNameArray(Codicon.warningCompact));
-						} else if (state === DisplayedState.Refreshing) {
-							stateIndicator.style.display = 'block';
-							stateIndicator.classList.add('chat-mcp-state-refreshing', ...ThemeIcon.asClassNameArray(ThemeIcon.modify(Codicon.loadingCompact, 'spin')));
-						} else {
-							stateIndicator.style.display = 'none';
-						}
-					}));
-				}
-
-				override async onClick(e: MouseEvent): Promise<void> {
-					e.preventDefault();
-					e.stopPropagation();
-
-					const { state, servers } = displayedStateCurrent.get();
-					if (state === DisplayedState.NewTools) {
-						const interaction = new McpStartServerInteraction();
-						servers.filter(isServer).forEach(server => server.stop().then(() => server.start({ interaction })));
-						mcpService.activateCollections();
-					} else if (state === DisplayedState.Refreshing) {
-						findLast(servers, isServer)?.showOutput();
-					} else if (state === DisplayedState.Error) {
-						const server = findLast(servers, isServer);
-						if (server) {
-							await server.showOutput(true);
-							commandService.executeCommand(McpCommandIds.ServerOptions, server.definition.id);
-						}
-					} else {
-						commandService.executeCommand(McpCommandIds.ListServer);
-					}
-				}
-
-				protected override getTooltip(): string {
-					return this.getLabelForState() || super.getTooltip();
-				}
-
-				protected override getHoverContents({ state, servers } = displayedStateCurrent.get()): string | undefined | IManagedHoverTooltipHTMLElement {
-					const link = (s: IMcpServer) => createMarkdownCommandLink({
-						text: s.definition.label,
-						id: McpCommandIds.ServerOptions,
-						arguments: [s.definition.id],
-						tooltip: localize('mcp.server.options.tooltip', 'Show server options for {0}', s.definition.label),
-					});
-
-					const single = servers.length === 1;
-					const names = servers.map(s => isServer(s) ? link(s) : '`' + s.label + '`').map(l => single ? l : `- ${l}`).join('\n');
-					let markdown: MarkdownString;
-					if (state === DisplayedState.NewTools) {
-						markdown = new MarkdownString(single
-							? localize('mcp.newTools.md.single', "MCP server {0} has been updated and may have new tools available.", names)
-							: localize('mcp.newTools.md.multi', "MCP servers have been updated and may have new tools available:\n\n{0}", names)
-						);
-					} else if (state === DisplayedState.Error) {
-						markdown = new MarkdownString(single
-							? localize('mcp.err.md.single', "MCP server {0} was unable to start successfully.", names)
-							: localize('mcp.err.md.multi', "Multiple MCP servers were unable to start successfully:\n\n{0}", names)
-						);
-					} else {
-						return this.getLabelForState() || undefined;
-					}
-
-					return {
-						element: (token): HTMLElement => {
-							hoverIsOpen.set(true, undefined);
-
-							const store = new DisposableStore();
-							store.add(toDisposable(() => hoverIsOpen.set(false, undefined)));
-							store.add(token.onCancellationRequested(() => {
-								store.dispose();
-							}));
-
-							// todo@connor4312/@benibenj: workaround for #257923
-							store.add(disposableWindowInterval(mainWindow, () => {
-								if (!container.isConnected) {
-									store.dispose();
-								}
-							}, 2000));
-
-							const container = $('div.mcp-hover-contents');
-
-							// Render markdown content
-							markdown.isTrusted = true;
-							const markdownResult = store.add(renderMarkdown(markdown));
-							container.appendChild(markdownResult.element);
-
-							// Add divider
-							const divider = $('hr.mcp-hover-divider');
-							container.appendChild(divider);
-
-							// Add checkbox for mcpAutoStartConfig setting
-							const checkboxContainer = $('div.mcp-hover-setting');
-							const settingLabelStr = localize('mcp.autoStart', "Automatically start MCP servers when sending a chat message");
-
-							const checkbox = store.add(new Checkbox(
-								settingLabelStr,
-								config.get() !== McpAutoStartValue.Never,
-								{ ...defaultCheckboxStyles }
-							));
-
-							checkboxContainer.appendChild(checkbox.domNode);
-
-							// Add label next to checkbox
-							const settingLabel = $('span.mcp-hover-setting-label', undefined, settingLabelStr);
-							checkboxContainer.appendChild(settingLabel);
-
-							const onChange = () => {
-								const newValue = checkbox.checked ? McpAutoStartValue.NewAndOutdated : McpAutoStartValue.Never;
-								configurationService.updateValue(mcpAutoStartConfig, newValue);
-							};
-
-							store.add(checkbox.onChange(onChange));
-
-							store.add(addDisposableListener(settingLabel, EventType.CLICK, () => {
-								checkbox.checked = !checkbox.checked;
-								onChange();
-							}));
-							container.appendChild(checkboxContainer);
-
-							return container;
-						},
-					};
-				}
-
-				private getLabelForState({ state, servers } = displayedStateCurrent.get()) {
-					if (state === DisplayedState.NewTools) {
-						return localize('mcp.newTools', "New tools available ({0})", servers.length || 1);
-					} else if (state === DisplayedState.Error) {
-						return localize('mcp.toolError', "Error loading {0} tool(s)", servers.length || 1);
-					} else if (state === DisplayedState.Refreshing) {
-						return localize('mcp.toolRefresh', "Discovering tools...");
-					} else {
-						return null;
-					}
-				}
-			}, action, { ...options, keybindingNotRenderedWithLabel: true });
-
-		}, Event.fromObservableLight(actionItemState)));
-	}
-}
+/** Compatibility contribution without MCP action rendering, observers or timers. */
+export class MCPServerActionRendering extends Disposable implements IWorkbenchContribution { }
 
 export class ResetMcpTrustCommand extends Action2 {
 	constructor() {
@@ -1113,9 +622,8 @@ export class ResetMcpTrustCommand extends Action2 {
 		});
 	}
 
-	run(accessor: ServicesAccessor): void {
-		const mcpService = accessor.get(IMcpService);
-		mcpService.resetTrust();
+	run(_accessor: ServicesAccessor): void {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1131,9 +639,8 @@ export class ResetMcpCachedTools extends Action2 {
 		});
 	}
 
-	run(accessor: ServicesAccessor): void {
-		const mcpService = accessor.get(IMcpService);
-		mcpService.resetCaches();
+	run(_accessor: ServicesAccessor): void {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1373,14 +880,6 @@ interface IAgentHostMcpServerCommandArg {
 	readonly serverId: string;
 }
 
-function isAgentHostMcpServerCommandArg(arg: string | IAgentHostMcpServerCommandArg): arg is IAgentHostMcpServerCommandArg {
-	return typeof arg !== 'string' && URI.isUri(arg.agentHostSession) && typeof arg.serverId === 'string';
-}
-
-function getAgentHostMcpServer(accessor: ServicesAccessor, arg: IAgentHostMcpServerCommandArg): IAgentHostMcpServer | undefined {
-	return accessor.get(IAgentHostCustomizationService).getMcpServers(arg.agentHostSession).find(server => server.id === arg.serverId);
-}
-
 export class RestartServer extends Action2 {
 	constructor() {
 		super({
@@ -1391,18 +890,8 @@ export class RestartServer extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, serverId: string | IAgentHostMcpServerCommandArg, opts?: IMcpServerStartOpts) {
-		if (isAgentHostMcpServerCommandArg(serverId)) {
-			const server = getAgentHostMcpServer(accessor, serverId);
-			accessor.get(ILogService).warn(`Restarting MCP server '${server?.name ?? serverId.serverId}' is not supported for agent-host servers`);
-			accessor.get(INotificationService).warn(localize('mcp.agentHost.restartUnsupported', "Restarting MCP server '{0}' is not supported for agent-host servers. Stop and start the server instead.", server?.name ?? serverId.serverId));
-			return;
-		}
-
-		const s = accessor.get(IMcpService).servers.get().find(s => s.definition.id === serverId);
-		s?.showOutput();
-		await s?.stop();
-		await s?.start({ promptType: 'all-untrusted', ...opts });
+	async run(_accessor: ServicesAccessor, _serverId: string | IAgentHostMcpServerCommandArg, _opts?: IMcpServerStartOpts) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1416,23 +905,8 @@ export class StartServer extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, serverId: string | IAgentHostMcpServerCommandArg, opts?: IMcpServerStartOpts & { waitForLiveTools?: boolean }) {
-		if (isAgentHostMcpServerCommandArg(serverId)) {
-			await getAgentHostMcpServer(accessor, serverId)?.start();
-			return;
-		}
-
-		let servers = accessor.get(IMcpService).servers.get();
-		if (serverId !== '*') {
-			servers = servers.filter(s => s.definition.id === serverId);
-		}
-
-		const startOpts: IMcpServerStartOpts = { promptType: 'all-untrusted', ...opts };
-		if (opts?.waitForLiveTools) {
-			await Promise.all(servers.map(s => startServerAndWaitForLiveTools(s, startOpts)));
-		} else {
-			await Promise.all(servers.map(s => s.start(startOpts)));
-		}
+	async run(_accessor: ServicesAccessor, _serverId: string | IAgentHostMcpServerCommandArg, _opts?: IMcpServerStartOpts & { waitForLiveTools?: boolean }) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1446,14 +920,8 @@ export class StopServer extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, serverId: string | IAgentHostMcpServerCommandArg) {
-		if (isAgentHostMcpServerCommandArg(serverId)) {
-			await getAgentHostMcpServer(accessor, serverId)?.stop();
-			return;
-		}
-
-		const s = accessor.get(IMcpService).servers.get().find(s => s.definition.id === serverId);
-		await s?.stop();
+	async run(_accessor: ServicesAccessor, _serverId: string | IAgentHostMcpServerCommandArg) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1469,11 +937,8 @@ export class McpBrowseCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor) {
-		await accessor.get(ICommandService).executeCommand(
-			AICustomizationManagementCommands.OpenMarketplace,
-			AICustomizationManagementSection.McpServers,
-		);
+	async run(_accessor: ServicesAccessor) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1499,8 +964,8 @@ export class McpBrowsePageCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor) {
-		await accessor.get(IMcpWorkbenchService).openSearch('');
+	async run(_accessor: ServicesAccessor) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1524,11 +989,8 @@ export class ShowInstalledMcpServersCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor) {
-		const extensionsWorkbenchService = accessor.get(IExtensionsWorkbenchService);
-		const viewsService = accessor.get(IViewsService);
-		await extensionsWorkbenchService.openSearch('');
-		await viewsService.openView(InstalledMcpServersViewId, true);
+	async run(_accessor: ServicesAccessor) {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1746,12 +1208,8 @@ export class McpBrowseResourcesCommand extends Action2 {
 		});
 	}
 
-	run(accessor: ServicesAccessor, server?: IMcpServer): void {
-		if (server) {
-			accessor.get(IInstantiationService).createInstance(McpResourceQuickPick, server).pick();
-		} else {
-			accessor.get(IQuickInputService).quickAccess.show(McpResourceQuickAccess.PREFIX);
-		}
+	run(_accessor: ServicesAccessor, _server?: IMcpServer): void {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1764,38 +1222,8 @@ export class McpConfigureSamplingModels extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, server: IMcpServer): Promise<number> {
-		const quickInputService = accessor.get(IQuickInputService);
-		const lmService = accessor.get(ILanguageModelsService);
-		const mcpSampling = accessor.get(IMcpSamplingService);
-
-		const existingIds = new Set(mcpSampling.getConfig(server).allowedModels);
-		const allItems: IQuickPickItem[] = lmService.getLanguageModelIds().map(id => {
-			const model = lmService.lookupLanguageModel(id)!;
-			if (!model.isUserSelectable) {
-				return undefined;
-			}
-			return {
-				label: model.name,
-				description: model.tooltip,
-				id,
-				picked: existingIds.size ? existingIds.has(id) : model.isDefaultForLocation[ChatAgentLocation.Chat],
-			};
-		}).filter(isDefined);
-
-		allItems.sort((a, b) => (b.picked ? 1 : 0) - (a.picked ? 1 : 0) || a.label.localeCompare(b.label));
-
-		// do the quickpick selection
-		const picked = await quickInputService.pick(allItems, {
-			placeHolder: localize('mcp.configureSamplingModels.ph', 'Pick the models {0} can access via MCP sampling', server.definition.label),
-			canPickMany: true,
-		});
-
-		if (picked) {
-			await mcpSampling.updateConfig(server, c => c.allowedModels = picked.map(p => p.id!));
-		}
-
-		return picked?.length || 0;
+	async run(_accessor: ServicesAccessor, _server: IMcpServer): Promise<number> {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1809,25 +1237,8 @@ export class McpStartPromptingServerCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, server: IMcpServer): Promise<void> {
-		const widget = await openPanelChatAndGetWidget(accessor.get(IViewsService), accessor.get(IChatWidgetService));
-		if (!widget) {
-			return;
-		}
-
-		const editor = widget.inputEditor;
-		const model = editor.getModel();
-		if (!model) {
-			return;
-		}
-
-		const range = (editor.getSelection() || model.getFullModelRange()).collapseToEnd();
-		const text = mcpPromptPrefix(server.definition) + '.';
-
-		model.applyEdits([{ range, text }]);
-		editor.setSelection(Range.fromPositions(range.getEndPosition().delta(0, text.length)));
-		widget.focusInput();
-		SuggestController.get(editor)?.triggerSuggest();
+	async run(_accessor: ServicesAccessor, _server: IMcpServer): Promise<void> {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }
 
@@ -1841,7 +1252,7 @@ export class McpSkipCurrentAutostartCommand extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor): Promise<void> {
-		accessor.get(IMcpService).cancelAutostart();
+	async run(_accessor: ServicesAccessor): Promise<void> {
+		throw new Error(localize('mcpCommand.unavailable', 'MCP commands are unavailable in this distribution.'));
 	}
 }

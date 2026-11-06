@@ -1,0 +1,9 @@
+# mcp-server-controls-runtime-remove
+
+Статус: ГОТОВО / ожидает интеграции. Владелец: MCP cleanup. Ветка: `agent/mcp-server-controls-runtime-remove`. База main `411cccde06e` + mcp-install-actions-runtime-remove. Claim `07437b26bcb`. Код/тесты: `2c0a4ff63d47a64ea719eca0a20cfbb513c44ea8`. Следующий пакет после release-0.0.9.
+
+В browser/mcpServerActions.ts удалены runtime implementations 12 actions: UninstallAction, четыре Enable/DisableMcpServer*Action, Start/Stop/RestartServerAction, ConfigureModelAccessAction, ShowSamplingRequestsAction, BrowseResourcesAction, McpServerStatusAction. Удалены service subscriptions/enablement mutations/uninstall/lifecycle/command dispatch/status computation. Сохранены class IDs/static constants и constructor compatibility: actions создаются без DI, always disabled/hidden, run явно rejects unavailable без чтения server metadata. Status action сохраняет status getter с независимым пустым списком и onDidChangeStatus=Event.None для оставшихся widgets.
+
+Новый test/browser/mcpServerControls.test.ts: 13 tests проходят (12 action boundaries с null/trap server + status/event contract). 44 configuration entry point tests проходят. ESLint обоих TS прошёл; итоговый узкий TypeScript с existing McpServerEditor/Widgets consumer — 0 diagnostics; git diff --check прошёл. Первый typecheck обнаружил отсутствующие public status/event members и unused default Severity import; исправлено до завершения задачи.
+
+AuthServerAction, ShowServerOutputAction, ShowServerConfigurationAction, ShowServerJsonConfigurationAction, общие menu/dropdown frameworks и их implementation сохранены. GitHub/auth/Git/SSH, пользовательские настройки/файлы не менялись. Интегрировать после mcp-install-actions-runtime-remove (`6c86b4abd89`), уже входящего в ветку. Общие typecheck/build/package/native smoke — на следующем пакете. Остальные MCP UI/contracts не позволяют заявить полное удаление MCP/AI.

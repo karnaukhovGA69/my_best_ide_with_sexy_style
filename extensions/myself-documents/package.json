@@ -137,7 +137,7 @@
     }
   },
   "scripts": {
-    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-documents && pnpm -C ../.. exec tsc -p extensions/myself-documents/webview",
+    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-documents && pnpm -C ../.. exec tsc -p extensions/myself-documents/webview && node esbuild.webview.mts",
     "test": "pnpm run compile && node --test test/*.test.cts",
     "test-webview": "node --test test/webview.test.cts"
   }

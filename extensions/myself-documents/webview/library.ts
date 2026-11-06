@@ -2,6 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import { marked } from '../../../src/vs/base/common/marked/marked.js';
+
 (() => {
 	const api = (globalThis as typeof globalThis & { acquireVsCodeApi(): { postMessage(message: object): void } }).acquireVsCodeApi();
 	const article = document.getElementById('document')!;
@@ -52,8 +54,9 @@
 		document.getElementById('notice')!.textContent = message.notice;
 		back.disabled = !message.back;
 		source.hidden = !message.source;
-		if (message.format === 'html') {
-			const parsed = new DOMParser().parseFromString(message.text, 'text/html');
+		if (message.format === 'html' || message.format === 'markdown') {
+			const html = message.format === 'markdown' ? marked.parse(message.text, { async: false }) : message.text;
+			const parsed = new DOMParser().parseFromString(html, 'text/html');
 			const body = (typeof message.selector === 'string' ? parsed.querySelector(message.selector) : undefined) ?? parsed.body;
 			article.replaceChildren(clean(body));
 		} else {
@@ -61,8 +64,17 @@
 		}
 		contents.replaceChildren();
 		let index = 0;
+		const headingIds = new Set<string>();
 		for (const heading of article.querySelectorAll('h1, h2, h3')) {
+			if (!heading.id && message.format === 'markdown') {
+				const slug = (heading.textContent ?? '').trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/\s/g, '-');
+				const base = 'doc-' + (slug || `local-heading-${index++}`);
+				let id = base; let suffix = 1;
+				while (headingIds.has(id) || document.getElementById(id)) { id = `${base}-${suffix++}`; }
+				heading.id = id;
+			}
 			if (!heading.id) { heading.id = `doc-local-heading-${index++}`; }
+			headingIds.add(heading.id);
 			const option = document.createElement('option'); option.value = heading.id; option.textContent = heading.textContent; contents.append(option);
 		}
 		contents.hidden = contents.options.length === 0;

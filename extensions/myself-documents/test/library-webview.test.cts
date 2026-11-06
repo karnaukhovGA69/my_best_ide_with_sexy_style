@@ -48,7 +48,7 @@ test('untrusted HTML cannot execute code, load resources, navigate, submit forms
 	} finally { await page.close(); }
 });
 
-test('contents and links work without opening a browser automatically; Markdown stays literal', async () => {
+test('contents and links work without opening a browser automatically; TXT stays literal', async () => {
 	const { page, external } = await open();
 	try {
 		await show(page, '<h1 id="intro">Intro</h1><a href="#details">Jump</a><h2 id="details">Details</h2><a href="next.html">Next</a>');
@@ -74,6 +74,37 @@ test('all five official sets render readable offline content with no external re
 			await page.waitForFunction(title => document.getElementById('title').textContent === title, entry.title);
 			assert.ok((await page.locator('#document').textContent()).length > 1000, file);
 		}
+		assert.deepEqual(external, []); assert.deepEqual(errors, []);
+	} finally { await page.close(); }
+});
+
+
+test('Markdown renders headings, lists, tables and code with local contents and inert resources', async () => {
+	const { page, external, errors } = await open();
+	try {
+		const markdown = [
+			'# Guide', '', '[Jump](#привет-мир)', '', '## Привет мир', '', '**Bold** and *emphasis*', '',
+			'- First', '- Second', '', '| Name | Value |', '| --- | --- |', '| Local | Yes |', '',
+			'```js', '<script>literal()</script>', '```', '', '## Привет мир', '',
+			'![Diagram](https://blocked.invalid/image)', '', '[Next](next.md)', '',
+			'<script>window.compromised=true</script>', '<iframe src="https://blocked.invalid/frame"></iframe>',
+			'<img src="https://blocked.invalid/inline" onerror="window.compromised=true">',
+			'<style>@import "https://blocked.invalid/style";</style>',
+		].join('\n');
+		await show(page, markdown, { format: 'markdown' });
+		assert.equal(await page.locator('#document h1').textContent(), 'Guide');
+		assert.deepEqual(await page.locator('#document h2').evaluateAll(nodes => nodes.map(n => n.id)), ['doc-привет-мир', 'doc-привет-мир-1']);
+		assert.equal(await page.locator('#contents option').count(), 3);
+		assert.equal(await page.locator('#document strong').textContent(), 'Bold');
+		assert.equal(await page.locator('#document li').count(), 2);
+		assert.equal(await page.locator('#document td').count(), 2);
+		assert.equal((await page.locator('#document pre code').textContent()).trim(), '<script>literal()</script>');
+		assert.equal(await page.locator('#document .image-description').textContent(), '[Diagram]');
+		await page.getByRole('link', { name: 'Jump', exact: true }).click();
+		await page.getByRole('link', { name: 'Next', exact: true }).click();
+		assert.deepEqual(await page.evaluate(() => window.messages.filter(m => m.type !== 'ready')), [{ type: 'link', href: 'next.md' }]);
+		assert.equal(await page.locator('#document script, #document img, #document iframe, #document style, #document [onerror]').count(), 0);
+		assert.equal(await page.evaluate(() => !!window.compromised), false);
 		assert.deepEqual(external, []); assert.deepEqual(errors, []);
 	} finally { await page.close(); }
 });

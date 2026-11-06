@@ -61,7 +61,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			const imported = this.context.globalState.get<LibraryEntry[]>('documentation.imports', []);
 			this.imports = Array.isArray(imported) ? imported.filter(entry => entry?.group === 'imported' && typeof entry.file === 'string' && safeRelativeFile(entry.file)
 				&& /^imports\/[a-f0-9-]+\.(html|md|txt)$/.test(entry.file) && typeof entry.id === 'string' && typeof entry.title === 'string'
-				&& (entry.format === 'html' || entry.format === 'text')) : [];
+				&& (entry.format === 'html' || entry.format === 'markdown' || entry.format === 'text')) : [];
 		} catch {
 			if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The local documentation catalog could not be loaded.')); }
 		}
@@ -114,7 +114,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			if (addHistory && this.current && this.current.id !== entry.id) { this.history.push(this.current.id); }
 			this.current = entry;
 			const group = this.groups.find(group => group.id === entry.group);
-			this.payload = { type: 'document', text: new TextDecoder().decode(bytes), format: entry.format, selector: entry.selector,
+			this.payload = { type: 'document', text: new TextDecoder().decode(bytes), format: /\.md$/i.test(entry.file) ? 'markdown' : entry.format, selector: entry.selector,
 				title: entry.title, metadata: [group?.title, group?.version, group?.license].filter(Boolean).join(' · '),
 				source: !!entry.source, back: this.history.length > 0, fragment,
 				notice: vscode.l10n.t('Offline copy. Scripts, forms and external media are disabled. Use the Find control to search this page.') };
@@ -177,7 +177,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 				new TextDecoder('utf-8', { fatal: true }).decode(bytes);
 				const title = uri.path.split('/').pop()!;
 				if (!/\.(html?|md|txt)$/i.test(title)) { throw new Error('format'); }
-				const format = /\.html?$/i.test(title) ? 'html' : 'text';
+				const format = /\.html?$/i.test(title) ? 'html' : /\.md$/i.test(title) ? 'markdown' : 'text';
 				const id = randomUUID();
 				const file = `imports/${id}.${format === 'html' ? 'html' : /\.md$/i.test(title) ? 'md' : 'txt'}`;
 				target = vscode.Uri.joinPath(this.context.globalStorageUri, file);

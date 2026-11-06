@@ -9,7 +9,7 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 const uri = value => ({ path: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
 	const actions = new Map(), files = new Map(), reads = [], writes = [], notices = [], external = [], sent = [];
-	const events = emitter(), disposed = emitter(); const state = { imports: [] };
+	const events = emitter(), disposed = emitter(); const state = { imports: options.imports ?? [] };
 	let provider, panel, selection; let beforeRead = options.beforeRead;
 	const catalog = { groups: [{ id: 'test', title: 'Test', version: '1', license: 'MIT' }], entries: [
 		{ id: 'one', group: 'test', title: 'One', file: 'test/one.html', source: 'https://example.invalid/one.html', format: 'html' },
@@ -150,4 +150,31 @@ test('a failed read completed after closing the reader does not show a stale err
 		f.panel().dispose(); f.files.delete('/extension/documentation/test/two.html'); release(); await pending;
 		assert.deepEqual(f.notices, []);
 	} finally { release?.(); f.dispose(); }
+});
+
+
+test('Markdown imports select formatted reading while TXT remains literal', async () => {
+	const f = await fixture();
+	try {
+		f.files.set('/chosen/guide.MD', Buffer.from('# Guide\n**Local**'));
+		f.files.set('/chosen/guide.txt', Buffer.from('# Plain'));
+		f.select([uri('/chosen/guide.MD'), uri('/chosen/guide.txt')]);
+		await f.actions.get('myself.documentation.import')();
+		assert.deepEqual(f.state.imports.map(e => e.format), ['markdown', 'text']);
+		await f.actions.get('myself.documentation.open')(f.state.imports[0].id); await f.message({ type: 'ready' });
+		assert.equal(f.sent.at(-1).format, 'markdown'); assert.equal(f.sent.at(-1).text, '# Guide\n**Local**');
+		await f.actions.get('myself.documentation.open')(f.state.imports[1].id);
+		assert.equal(f.sent.at(-1).format, 'text');
+	} finally { f.dispose(); }
+});
+
+test('previously imported Markdown is formatted without rewriting its saved entry or content', async () => {
+	const entry = { id: 'legacy', group: 'imported', title: 'Old guide.md', file: 'imports/abc-def.md', source: '', format: 'text' };
+	const f = await fixture({ imports: [entry] });
+	try {
+		f.files.set('/profile/' + entry.file, Buffer.from('# Legacy'));
+		await f.actions.get('myself.documentation.open')(entry.id); await f.message({ type: 'ready' });
+		assert.equal(f.sent.at(-1).format, 'markdown');
+		assert.deepEqual(f.state.imports, [entry]); assert.deepEqual(f.writes, []);
+	} finally { f.dispose(); }
 });

@@ -10,7 +10,7 @@ export interface LibraryEntry {
 	title: string;
 	file: string;
 	source: string;
-	format: 'html' | 'text';
+	format: 'html' | 'markdown' | 'text';
 	selector?: string;
 }
 
@@ -39,7 +39,7 @@ export function parseCatalog(text: string): LibraryCatalog {
 	for (const entry of value.entries) {
 		if (!entry || typeof entry.id !== 'string' || ids.has(entry.id) || !groups.has(entry.group) || typeof entry.title !== 'string'
 			|| typeof entry.file !== 'string' || !safeRelativeFile(entry.file) || typeof entry.source !== 'string'
-			|| (entry.format !== 'html' && entry.format !== 'text') || (entry.selector !== undefined && typeof entry.selector !== 'string')) {
+			|| (entry.format !== 'html' && entry.format !== 'markdown' && entry.format !== 'text') || (entry.selector !== undefined && typeof entry.selector !== 'string')) {
 			throw new Error('Invalid documentation entry');
 		}
 		ids.add(entry.id);

@@ -52,3 +52,7 @@
 - `chat-user-action-analytics-disable` — `6046e51350449aef882966785d4397fbec98716f`
 
 Назначение auth/catalog/root-clone подтверждено собственным claim github-repository-catalog: чат упрощения, extensions/myself-github/**. Интегратор отвечает за последующий build/allowlist wiring; дубликаты реализации не создавать.
+
+Четвёртый срез: занят общий client typecheck slot; перед запуском других package/typecheck процессов нет.
+
+Четвёртый срез ЗАВЕРШЁН: 3 задачи, 4 целевых browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 19 задач, 43 целевых browser tests. Package не запускался, архив неизменён.

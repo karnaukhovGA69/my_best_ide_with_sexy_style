@@ -1,0 +1,3 @@
+# documentation-markdown-reader
+
+Статус: ЗАНЯТО. Владелец: интегратор/documents agent. База: f669b3fb871. Область: extensions/myself-documents/{src/library.ts,src/libraryModel.ts,webview/library.ts,package.json,test/library*.test.cts,ThirdPartyNotices.txt}; этот отчёт; README.md и docs/myself-ide.md только статус Markdown. Реализовать форматированное чтение локального Markdown, включая ранее импортированные .md, существующий sanitizer/CSP и оглавление. Использовать уже vendored src/vs/base/common/marked без новых dependencies/downloads, bundling штатным esbuild; сохранить license. TXT остаётся буквальным. Не менять тему/layout, PDF, folders или другие рабочие области. Scoped compile/tests вместо полного package.

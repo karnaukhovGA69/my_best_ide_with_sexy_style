@@ -45,3 +45,10 @@
 Третий срез ЗАВЕРШЁН: 4 задачи, 15 browser tests passed, 0 page errors, полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 16 задач, 39 целевых browser tests. Готовый ZIP не пересобирался.
 
 Новое решение владельца передано из параллельного чата: вход/каталог GitHub возвращаются. AGENTS и три общих плана синхронизированы. Не интегрировать github-native-adapters-delete в рамках прежнего удаления: auth/catalog/root-clone требуют новой реализации и отдельного claim владельца. Предложенный владелец — чат github-native-adapters-delete; назначение не считается принятым до его собственного отчёта. Release-notes-local-only остаётся у MCP/build agent.
+
+Четвёртый срез — ЗАНЯТО интегратором:
+- `chat-status-promo-disable` — `b610a9ecbe39793f9ecceabb2b74a4f09eb5e07c`
+- `chat-suggest-next-disable` — `10b9a453fd5552ba9859a023625b2f8b4d513dbf`
+- `chat-user-action-analytics-disable` — `6046e51350449aef882966785d4397fbec98716f`
+
+Назначение auth/catalog/root-clone подтверждено собственным claim github-repository-catalog: чат упрощения, extensions/myself-github/**. Интегратор отвечает за последующий build/allowlist wiring; дубликаты реализации не создавать.

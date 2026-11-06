@@ -1,6 +1,6 @@
 # Build and branch cleanup 2026-11-06
 
-Статус: ЗАНЯТО. Владелец: чат new-chat / MCP. Прямое поручение пользователя: разобрать ветки/коммиты, удалить старые ветки и сделать билд.
+Статус: ГОТОВО. Владелец: чат new-chat / MCP. Прямое поручение пользователя: разобрать ветки/коммиты, удалить старые ветки и сделать билд.
 
 Область: удаление только локальных веток, уже полностью слитых в main и не занятых worktree; отчёт с SHA удалённых ссылок. Неслитые и занятые ветки сохраняются. Удаление remote branches не выполняется.
 
@@ -86,3 +86,13 @@ Build snapshot: интеграционный срез 379a3ea0067, общий cl
 - `integration/next-package` → `411cccde06e843fac42e170ccf749f7784c7f7e3`
 
 Обнаружен подтверждённый packaging defect: native documents log сообщает Webview.loadLocalResource для отсутствующего out/webview/editor.js; bundle лежит в webview/editor.js. ЗАНЯТО исправление extensions/myself-documents/esbuild.webview.mts и новый test/packaging.test.cts. Общий build helper сохраняет только basename outdir при --outputRoot. Исправление сохранит единый out/webview/editor.js для dev и production.
+
+Итог сборки: `7e52ba804691ae05c9057b0b9815cab580efe7af`. Production package macOS ARM64 собран на Node 24.22.1 / pnpm 12.16.0. Повторный package обоснован подтверждённой ошибкой пути webview, не сменой документации. Исправление ограничено esbuild.webview.mts, общий build helper не менялся. Regression packaging test и остальные 17 tests прошли; ESLint двух изменённых файлов прошёл. Полный client typecheck входного source snapshot выполнен интегратором, после него runtime/DI исходники в этой задаче не изменялись.
+
+Проверки финального бинарника: native editor/edit/save, terminal и bash, Tasks exit 0, обычный Git, method suggestions, ручной formatter (без autoformat), VSIX install/update/uninstall 0.0.1 → 0.0.2 прошли. Native documents suite: new/open/custom editor, undo/redo, CRLF save/reopen, external change, замена вкладки Save As прошли. Отдельный Playwright/CDP smoke упакованного приложения подтвердил загрузку webview, ввод текста и сохранение файла. Первые запуски вспомогательного UI fixture были невалидны (engines.vscode и конфликт debug-port), исправлены только в временном harness; итоговый изолированный запуск завершился успешно. Native PDF backend на Electron той же версии: export, cancel, concurrent rejection, write failure и cleanup прошли; PDF A4 на 1 и 6 страницах. Проверка всего native Save Dialog Save As через UI не заявляется.
+
+Deep ad-hoc signing → ASAR metadata refresh → outer signing → deep strict verify выполнены. Build-path guard до/после подписи прошёл. ASAR: проверены размеры, границы и integrity 4516 файлов. ZIP: 6044 members, CRC чистый, source maps отсутствуют, product commit соответствует собранному SHA.
+
+Артефакт: `Myself-IDE-2026-11-06-macOS-arm64.zip`. SHA-256: `9341b41e02f7c6f5f3390d1bd22d80670cfac7fee84873a591d3c63647cc8c89`. Локальная проверенная сборка, без GitHub release/push, без Apple notarization. Старый release-0.0.9 бинарник сохранён. Новые четвёртый/пятый срезы интегратора не входят в зафиксированный build snapshot.
+
+Проверенное исправление и этот отчёт готовы к включению в main. Остальные активные task worktrees и их изменения не затрагивались.

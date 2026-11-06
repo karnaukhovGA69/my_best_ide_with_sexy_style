@@ -56,3 +56,7 @@
 Четвёртый срез: занят общий client typecheck slot; перед запуском других package/typecheck процессов нет.
 
 Четвёртый срез ЗАВЕРШЁН: 3 задачи, 4 целевых browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 19 задач, 43 целевых browser tests. Package не запускался, архив неизменён.
+
+Пятый срез — ЗАНЯТО интегратором:
+- `chat-agent-recommendations-disable` — `63674c86bbb40096d576312d6a42ba2a9bf36869`
+- `chat-promo-notifications-disable` — `62150fa8baf6010a4fccaeb6734e30ae187f7001`

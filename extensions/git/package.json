@@ -3330,32 +3330,6 @@
             "default": true
           }
         },
-        "git.autofetch": {
-          "type": [
-            "boolean",
-            "string"
-          ],
-          "enum": [
-            true,
-            false,
-            "all"
-          ],
-          "scope": "resource",
-          "markdownDescription": "%config.autofetch%",
-          "default": false,
-          "tags": [
-            "usesOnlineServices"
-          ],
-          "agentsWindow": {
-            "default": true
-          }
-        },
-        "git.autofetchPeriod": {
-          "type": "number",
-          "scope": "resource",
-          "markdownDescription": "%config.autofetchPeriod%",
-          "default": 180
-        },
         "git.defaultBranchName": {
           "type": "string",
           "markdownDescription": "%config.defaultBranchName%",

@@ -3,27 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { resolveCopilotConfigSlashSubmit } from '../../../browser/agentSessions/agentHost/copilotConfigSlashSubmitHandler.js';
+import { InstantiationService } from '../../../../../../platform/instantiation/common/instantiationService.js';
+import { ServiceCollection } from '../../../../../../platform/instantiation/common/serviceCollection.js';
+import { CopilotConfigSlashSubmitHandlerContribution } from '../../../browser/agentSessions/agentHost/copilotConfigSlashSubmitHandler.js';
 
-suite('CopilotConfigSlashSubmitHandler', () => {
+suite('CopilotConfigSlashSubmitHandlerContribution', () => {
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	ensureNoDisposablesAreLeakedInTestSuite();
-
-	test('resolves typed config slash commands', () => {
-		assert.deepStrictEqual({
-			yoloOn: resolveCopilotConfigSlashSubmit('/yolo on'),
-			yoloOff: resolveCopilotConfigSlashSubmit('/yolo off'),
-			yoloInvalid: resolveCopilotConfigSlashSubmit('/yolo onxxxcva'),
-			planPrompt: resolveCopilotConfigSlashSubmit('/plan implement this'),
-			unknown: resolveCopilotConfigSlashSubmit('/not-a-config-command'),
-		}, {
-			yoloOn: { applyConfig: { autoApprove: 'autoApprove' }, strippedPrompt: '' },
-			yoloOff: { applyConfig: { autoApprove: 'default' }, strippedPrompt: '' },
-			yoloInvalid: undefined,
-			planPrompt: { applyConfig: { mode: 'plan' }, strippedPrompt: 'implement this' },
-			unknown: undefined,
-		});
+	test('does not register submit interception or resolve session, config, dialog, and storage services', () => {
+		const instantiation = store.add(new InstantiationService(new ServiceCollection(), true));
+		store.add(instantiation.createInstance(CopilotConfigSlashSubmitHandlerContribution));
 	});
 });

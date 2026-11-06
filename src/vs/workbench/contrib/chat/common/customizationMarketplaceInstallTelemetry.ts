@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { isCancellationError } from '../../../../base/common/errors.js';
-import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { type CustomizationMarketplaceInstallation } from '../../../../platform/customizationMarketplace/common/customizationMarketplaceService.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { CustomizationMarketplaceInstallOrigin } from './customizationMarketplaceInstallService.js';
@@ -22,22 +20,6 @@ export interface ICustomizationMarketplaceInstallTelemetryContext {
 }
 
 export type AvailableCustomizationMarketplaceInstallType = 'mcpServer' | 'plugin';
-
-type CustomizationMarketplaceInstallEvent = ICustomizationMarketplaceInstallTelemetryContext & {
-	outcome: 'success' | 'error' | 'cancelled';
-	durationMs: number;
-};
-
-type CustomizationMarketplaceInstallClassification = {
-	owner: 'pwang347';
-	comment: 'Tracks customization installation outcomes across the unified marketplace and legacy Available sections without collecting customization identifiers or content.';
-	surface: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Whether installation started from the unified customization marketplace or a legacy Available section.' };
-	customizationType: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Bounded customization category: skill, MCP server, plugin, connector, or unknown.' };
-	installKind: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Bounded installation mechanism supplied by the validated marketplace resource, or unknown.' };
-	origin: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Whether installation started from a curated section, a search result, or the fallback Browse catalog.' };
-	outcome: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'Whether installation succeeded, failed, or was cancelled.' };
-	durationMs: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; isMeasurement: true; comment: 'Installation duration in milliseconds.' };
-};
 
 /** Maps validated marketplace installation provenance to bounded telemetry categories. */
 export function getCustomizationMarketplaceInstallTelemetryContext(
@@ -79,27 +61,12 @@ export function getAvailableCustomizationMarketplaceInstallTelemetryContext(
 		: { surface: 'available', customizationType, installKind: 'configuredPlugin', origin: 'search' };
 }
 
-/** Runs an installation and emits one outcome event without including error or resource content. */
+/** Preserves operation behavior without collecting installation analytics. */
 export async function runCustomizationMarketplaceInstallWithTelemetry(
-	telemetryService: ITelemetryService,
-	context: ICustomizationMarketplaceInstallTelemetryContext,
+	_telemetryService: ITelemetryService,
+	_context: ICustomizationMarketplaceInstallTelemetryContext,
 	operation: () => Promise<void>,
-	token: CancellationToken = CancellationToken.None,
+	_token: CancellationToken = CancellationToken.None,
 ): Promise<void> {
-	const stopWatch = StopWatch.create(true);
-	try {
-		await operation();
-		telemetryService.publicLog2<CustomizationMarketplaceInstallEvent, CustomizationMarketplaceInstallClassification>('chatCustomizationMarketplace.install', {
-			...context,
-			outcome: 'success',
-			durationMs: stopWatch.elapsed(),
-		});
-	} catch (error) {
-		telemetryService.publicLog2<CustomizationMarketplaceInstallEvent, CustomizationMarketplaceInstallClassification>('chatCustomizationMarketplace.install', {
-			...context,
-			outcome: token.isCancellationRequested || isCancellationError(error) ? 'cancelled' : 'error',
-			durationMs: stopWatch.elapsed(),
-		});
-		throw error;
-	}
+	await operation();
 }

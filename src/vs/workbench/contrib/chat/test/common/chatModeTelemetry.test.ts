@@ -4,56 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { hash } from '../../../../../base/common/hash.js';
-import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { TestTelemetryService } from '../../../../../platform/telemetry/test/common/testTelemetryService.js';
-import { ChatMode, CustomChatMode } from '../../common/chatModes.js';
+import type { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
+import type { IChatMode } from '../../common/chatModes.js';
 import { reportChatModeChange } from '../../common/chatModeTelemetry.js';
-import { Target } from '../../common/promptSyntax/promptTypes.js';
-import { PromptsStorage } from '../../common/promptSyntax/service/promptsService.js';
 
-suite('ChatModeTelemetry', () => {
+suite('Chat mode telemetry disabled', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
-
-	test('reports custom agent selections with their picker metadata', () => {
-		const telemetryService = new TestTelemetryService();
-		const targetMode = new CustomChatMode({
-			id: 'reviewer',
-			uri: URI.file('/workspace/.claude/agents/reviewer.md'),
-			name: 'Reviewer',
-			agentInstructions: { content: '', toolReferences: [] },
-			source: { storage: PromptsStorage.local },
-			target: Target.Undefined,
-			visibility: { userInvocable: true, agentInvocable: true },
-			enabled: true,
-			tools: ['read', 'search'],
-		});
-
-		reportChatModeChange(telemetryService, ChatMode.Agent, targetMode, 4, 'claude');
-
-		assert.deepStrictEqual(telemetryService.events, [{
-			name: 'chat.modeChange',
-			data: {
-				provider: 'claude',
-				fromMode: 'agent',
-				mode: String(hash('Reviewer')),
-				requestCount: 4,
-				storage: 'local',
-				extensionId: undefined,
-				toolsCount: 2,
-				handoffsCount: 0,
-				isClaudeAgent: true,
-			},
-		}]);
+	test('does not read mode metadata or call telemetry', () => {
+		const fail = () => { throw new Error('Analytics dependencies must not be read'); };
+		const mode = new Proxy({} as IChatMode, { get: fail });
+		const telemetry = new Proxy({} as ITelemetryService, { get: fail });
+		assert.strictEqual(reportChatModeChange(telemetry, mode, mode, 7, 'provider'), undefined);
 	});
-
-	test('does not report selecting the current mode', () => {
-		const telemetryService = new TestTelemetryService();
-
-		reportChatModeChange(telemetryService, ChatMode.Agent, ChatMode.Agent, 0, undefined);
-
-		assert.deepStrictEqual(telemetryService.events, []);
-	});
-
 });

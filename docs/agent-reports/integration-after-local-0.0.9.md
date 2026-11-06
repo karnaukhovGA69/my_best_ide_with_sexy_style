@@ -33,3 +33,9 @@
 Удаление пяти перечисленных local refs завершено через git branch -d после ancestor/worktree checks; коммиты сохранены в main.
 
 Второй срез ЗАВЕРШЁН: 5 задач с dependencies, 5 browser tests и полный client typecheck passed. Всего после локального 0.0.9 интегрированы 12 задач, 24 целевых browser tests. Package/native заново не запускались, готовый архив неизменён; эти задачи относятся к следующему бинарному пакету.
+
+Третий срез — ЗАНЯТО интегратором: четыре готовые задачи без GitHub/authentication изменений.
+- `agent-folder-picker-tip-disable` — `9322cc5734d5bbcc86b87eb9a5b5b5c456b82d21`
+- `chat-followup-renderer-disable` — `21c392ad9055b35ef48c04bdcbe0252746476643`
+- `customization-migration-analytics-disable` — `e4ca4aa78f6714a702b9780055eb072faf8f2b58`
+- `chat-input-inline-autotrigger-disable` — `18c1611e5fe5bb8e08568266eef786f0b5497c78`

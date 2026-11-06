@@ -9,3 +9,5 @@
 План: отдельная конфигурация и класс Calmer, штатный flush layout без floating/connected/pill/glass, согласованные реальные JS/CSS размеры title/tabs/status/file rows, небольшие радиусы и focus из theme tokens. Классы на основных/дополнительных окнах, снятие при смене режима/dispose. Использовать существующие layout/persistence/resize; не создавать имитацию IDE. Native overall smoke и применение полного пресета в меню/новом профиле — интегратором.
 
 Проверки: targeted browser unit + реальный CSS/computed geometry, theme independence/HC/reduced motion, обратимое переключение, lint и selected diagnostics; без отдельной полной сборки.
+
+Расширение точного scope перед правками: src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts — только передача configuration service новому параметру базового EditorTabsControl. Нужен штатный config listener для согласованной JS/CSS высоты вкладок при переключении, без MutationObserver/polling.

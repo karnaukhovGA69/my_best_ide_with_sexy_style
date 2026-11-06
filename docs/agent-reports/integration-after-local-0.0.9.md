@@ -82,3 +82,7 @@
 - `agent-prompt-cache-notification-disable` — `ae9f6741743c7fab5db3b9836f2c409ebd08abca`
 
 Седьмой срез расширен до общего typecheck: ЗАНЯТО интегратором `terminal-orphan-compression-parser-delete` — `097535ae571fdc8bf7cfbafb38c132e6ae3d1228`. Готовая зависимость terminal-orphan-output-compression-delete уже объединена.
+
+Седьмой срез: занят общий client typecheck slot на три задачи; других package/typecheck процессов при запуске нет.
+
+Седьмой срез ЗАВЕРШЁН: 3 задачи, 10 browser tests passed (сохранённые output helpers, pass-through service, inert cache notification), 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Аудит относительных ссылок src/build/test/extensions: 6 удалённых файлов, 0 оставшихся ссылок. Общий слот освобождён. Всего после локального 0.0.9: 31 задача, 104 целевых browser tests. Package/native не запускались, готовый ZIP неизменён.

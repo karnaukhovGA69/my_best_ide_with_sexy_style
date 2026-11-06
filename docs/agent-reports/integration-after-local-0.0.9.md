@@ -139,3 +139,7 @@
 - `chat-todo-citation-analytics-disable` — `65a2ce1b638bb0014fea88ab24636f13fd85c1df`
 
 Common Markdown local media уже занят чатом упрощения; интегратор не меняет этот scope.
+
+Четырнадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет.
+
+Четырнадцатый срез ЗАВЕРШЁН: 4 implementation задачи, 19 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Command IDs меню размера текста сверены с существующими editor/terminal font zoom registrations; новый движок масштабирования не добавлялся. Общий слот освобождён. Всего после локального 0.0.9: 50 implementation задач, 326 browser test executions. Native menus и runtime нового пакета ещё не проверялись; package не запускался, готовый ZIP неизменён.

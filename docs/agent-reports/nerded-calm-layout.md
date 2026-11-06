@@ -13,3 +13,5 @@
 Расширение точного scope перед правками: src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts — только передача configuration service новому параметру базового EditorTabsControl. Нужен штатный config listener для согласованной JS/CSS высоты вкладок при переключении, без MutationObserver/polling.
 
 Дополнение scope перед правкой: src/vs/workbench/electron-browser/parts/titlebar/titlebarPart.ts — macOS override minimumHeight должен делегировать Calmer в BrowserTitlebarPart, иначе выбранные 48px не применяются в целевой desktop платформе. Native window control rendering/branding не менять.
+
+Тест native override располагается отдельно: src/vs/workbench/contrib/modernUI/test/electron-browser/calmerStudio.test.ts, чтобы browser-тесты не импортировали electron-browser слой.

@@ -16,7 +16,6 @@ import { ActionButton } from './actionButton';
 import { ApiRepository } from './api/api1';
 import type { Branch, BranchQuery, Change, CommitOptions, DiffChange, FetchOptions, LogOptions, Ref, Remote, RepositoryKind } from './api/git';
 import { ForcePushMode, GitErrorCodes, RefType, Status } from './api/git.constants';
-import { AutoFetcher } from './autofetch';
 import { GitBranchProtectionProvider, IBranchProtectionProviderRegistry } from './branchProtection';
 import { debounce, memoize, sequentialize, throttle } from './decorators';
 import { Repository as BaseRepository, BlameInformation, Commit, CommitShortStat, GitError, IDotGit, LogFileOptions, LsTreeElement, PullOptions, RefQuery, Stash, Submodule, Worktree } from './git';
@@ -1063,16 +1062,7 @@ export class Repository implements Disposable {
 		this.disposables.push(this.workingTreeGroup);
 		this.disposables.push(this.untrackedGroup);
 
-		// Don't allow auto-fetch in untrusted workspaces
-		if (workspace.isTrusted) {
-			this.disposables.push(new AutoFetcher(this, globalState));
-		} else {
-			const trustDisposable = workspace.onDidGrantWorkspaceTrust(() => {
-				trustDisposable.dispose();
-				this.disposables.push(new AutoFetcher(this, globalState));
-			});
-			this.disposables.push(trustDisposable);
-		}
+		// Remote fetches run only through explicit Git operations; no background scheduler.
 
 		// https://github.com/microsoft/vscode/issues/39039
 		const onSuccessfulPush = filterEvent(this.onDidRunOperation, e => e.operation.kind === OperationKind.Push && !e.error);

@@ -24,3 +24,8 @@ GitHub login/catalog приложения и Remote SSH/server остаются 
 
 
 Icon fix ГОТОВ: `6563c069472` на agent/release-install-telegram; отдельный ready report nerded-icons-language-independent. 8 resource + 4 real-loader browser tests, lint/diff --check passed. Ветка опубликована. Пользователь подтвердил, что проблема «темы» — отсутствие подсветки. В обычный пользовательский профиль через штатный packaged CLI установлены отдельные `vscode.go@10.0.0` и `vscode.json@10.0.0`; CLI installation + list подтвердили успех. VSIX подготовлены штатным build/package-grammar-extension.ts, содержат только декларации/грамматики/лицензию, без activation/server JS. QA-профиль интегратора с отдельным extensions-dir не менялся. Native цветная подсветка будет проверена в нормальном профиле установленного итогового приложения. Публичный allowlist языков не изменён.
+
+
+Личный языковой набор из docs/project-plan.md (Rust, C++, F#, Lua, Go, Docker, YAML, JSON, SQL) установлен полностью: CLI подтвердил 9 vscode.*@10.0.0 grammar extensions в обычном default profile. Публичный пакет и изолированные QA extension directories не менялись. Это базовая подсветка/языковые декларации, не LSP/debugger/formatter. Для screenshot/native проверки использовать безопасный demo project; пользовательский реальный проект в открытом окне не публиковать.
+
+Текущий f44 candidate устраняет gallery lookup, но НЕ содержит 6563c069472 icon fix. Выпуск и установка финальной версии ожидают включения этой ветки; source snapshot должен включать оба исправления. Generator icon fallbacks проверен на идемпотентность, дерево чистое.

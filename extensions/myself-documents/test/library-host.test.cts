@@ -32,7 +32,7 @@ async function fixture(options = {}) {
 			},
 			showOpenDialog: async () => selection,
 			showErrorMessage: async text => { notices.push(text); },
-			showInformationMessage: async (_text, action) => action,
+			showInformationMessage: async (_text, action) => options.confirm ? options.confirm(action) : action,
 		},
 		commands: { registerCommand: (id, action) => { actions.set(id, action); return { dispose() {} }; } },
 		workspace: { fs: {
@@ -177,4 +177,37 @@ test('previously imported Markdown is formatted without rewriting its saved entr
 		assert.equal(f.sent.at(-1).format, 'markdown');
 		assert.deepEqual(f.state.imports, [entry]); assert.deepEqual(f.writes, []);
 	} finally { f.dispose(); }
+});
+
+
+test('imported documentation opens absolute HTTP links only after confirmation', async () => {
+	let approve = false; const choices = [];
+	const f = await fixture({ confirm: action => { choices.push(action); return approve ? action : undefined; } });
+	try {
+		f.files.set('/chosen/links.md', Buffer.from('[Reference](https://example.invalid/reference)')); f.select([uri('/chosen/links.md')]);
+		await f.actions.get('myself.documentation.import')();
+		await f.actions.get('myself.documentation.open')(f.state.imports[0].id);
+		await f.message({ type: 'link', href: 'https://example.invalid/reference' });
+		assert.deepEqual(f.external, []); assert.equal(choices.at(-1), 'Open in Browser');
+		approve = true;
+		await f.message({ type: 'link', href: 'https://example.invalid/reference' });
+		await f.message({ type: 'link', href: 'http://example.invalid/plain' });
+		assert.deepEqual(f.external, ['https://example.invalid/reference', 'http://example.invalid/plain']);
+		for (const href of ['file:///etc/passwd', 'command:workbench.action.terminal.new', 'javascript:alert(1)', '../missing.md', '//server/share']) {
+			await f.message({ type: 'link', href });
+			assert.equal(choices.at(-1), undefined, href);
+		}
+		assert.equal(f.external.length, 2); assert.deepEqual(f.notices, []);
+	} finally { f.dispose(); }
+});
+
+test('closing a reader cancels a pending external-link confirmation', async () => {
+	let release; const gate = new Promise(resolve => { release = resolve; });
+	const f = await fixture({ confirm: () => gate });
+	try {
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'link', href: 'https://elsewhere.invalid/reference' });
+		f.panel().dispose(); release('Open in Browser'); await tick();
+		assert.deepEqual(f.external, []);
+	} finally { release?.(); f.dispose(); }
 });

@@ -153,11 +153,18 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			const target = findLocalLink(this.current, message.href, [...this.entries, ...this.imports]);
 			if (target) { await this.open(target.entry.id, target.fragment); }
 			else {
-				const current = this.current;
-				const choice = await vscode.window.showInformationMessage(vscode.l10n.t('This link is not included in the local library.'), vscode.l10n.t('Open in Browser'));
-				if (choice && current.source) {
-					const url = new URL(message.href, current.source);
-					if (url.protocol === 'https:' || url.protocol === 'http:') { await vscode.env.openExternal(vscode.Uri.parse(url.href)); }
+				let url: URL | undefined;
+				try {
+					const resolved = new URL(message.href, this.current.source || undefined);
+					if (resolved.protocol === 'https:' || resolved.protocol === 'http:') { url = resolved; }
+				} catch { /* Missing local files and malformed URLs cannot be opened externally. */ }
+				const notice = vscode.l10n.t('This link is not included in the local library.');
+				if (!url) { await vscode.window.showInformationMessage(notice); return; }
+				const generation = this.generation;
+				const open = vscode.l10n.t('Open in Browser');
+				const choice = await vscode.window.showInformationMessage(notice, open);
+				if (choice === open && generation === this.generation && !this.disposed) {
+					await vscode.env.openExternal(vscode.Uri.parse(url.href));
 				}
 			}
 		}

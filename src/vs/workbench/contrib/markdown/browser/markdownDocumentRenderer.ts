@@ -8,7 +8,8 @@ import { allowedMarkdownHtmlAttributes, allowedMarkdownHtmlTags } from '../../..
 import { raceCancellationError } from '../../../../base/common/async.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import * as marked from '../../../../base/common/marked/marked.js';
-import { Schemas } from '../../../../base/common/network.js';
+import { FileAccess, Schemas } from '../../../../base/common/network.js';
+import { URI } from '../../../../base/common/uri.js';
 import { escape } from '../../../../base/common/strings.js';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
 import { tokenizeToString } from '../../../../editor/common/languages/textToHtmlTokenizer.js';
@@ -162,17 +163,42 @@ const defaultAllowedLinkProtocols = Object.freeze([
 	Schemas.https,
 ]);
 
+function isLocalDocumentMedia(source: string, allowRelative: boolean): boolean {
+	if (/^[\\/]{2}/.test(source.replace(/[\t\r\n]/g, '').trim())) {
+		return false;
+	}
+	try {
+		const uri = URI.parse(source);
+		if (!uri.scheme) {
+			return allowRelative && !uri.authority && !/^[\\/]{2}/.test(uri.path);
+		}
+		if (uri.scheme === Schemas.data) {
+			return true;
+		}
+		if (uri.scheme === Schemas.file || uri.scheme === Schemas.vscodeFileResource) {
+			const file = FileAccess.uriToFileUri(uri);
+			return !file.authority && !/^[\\/]{2}/.test(file.path);
+		}
+		return false;
+	} catch {
+		return false;
+	}
+}
+
 function sanitize(documentContent: string, sanitizerConfig: MarkdownDocumentSanitizerConfig | undefined): TrustedHTML {
 	return sanitizeHtml(documentContent, {
 		allowedLinkProtocols: {
 			override: sanitizerConfig?.allowedLinkProtocols?.override ?? defaultAllowedLinkProtocols,
 		},
 		allowRelativeLinkPaths: sanitizerConfig?.allowRelativeLinkPaths,
-		allowedMediaProtocols: sanitizerConfig?.allowedMediaProtocols,
+		allowedMediaProtocols: sanitizerConfig?.allowedMediaProtocols ?? {
+			override: [Schemas.data, Schemas.file, Schemas.vscodeFileResource],
+		},
+		mediaSourceIsAllowed: source => isLocalDocumentMedia(source, !!sanitizerConfig?.allowRelativeMediaPaths),
 		allowRelativeMediaPaths: sanitizerConfig?.allowRelativeMediaPaths,
 		allowedTags: {
 			override: allowedMarkdownHtmlTags,
-			augment: sanitizerConfig?.allowedTags?.augment
+			augment: sanitizerConfig?.allowedTags?.augment.filter(tag => !['script', 'style', 'link', 'base', 'meta', 'iframe', 'object', 'embed'].includes(tag.toLowerCase()))
 		},
 		allowedAttributes: {
 			override: [
@@ -184,7 +210,13 @@ function sanitize(documentContent: string, sanitizerConfig: MarkdownDocumentSani
 				'tabindex',
 				'placeholder',
 			],
-			augment: sanitizerConfig?.allowedAttributes?.augment ?? [],
+			// Do not let optional HTML attributes bypass media checks or the existing safe style rule.
+			augment: sanitizerConfig?.allowedAttributes?.augment
+				.filter(attribute => !['srcset', 'style', 'srcdoc', 'background', 'ping', 'xlink:href'].includes(attribute.toLowerCase()))
+				.map(attribute => ['fill', 'stroke'].includes(attribute.toLowerCase()) ? {
+					attributeName: attribute,
+					shouldKeep: (_element, data) => /^(?:[a-z]+|context-(?:fill|stroke)|#[\da-f]{3,8}|rgba?\([\d\s.,%]+\)|url\(\s*#[\w:-]+\s*\))$/i.test(data.attrValue),
+				} : attribute) ?? [],
 		}
 	});
 }

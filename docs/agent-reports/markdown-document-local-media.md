@@ -1,0 +1,5 @@
+# markdown-document-local-media
+
+Статус: ИСХОДНЫЕ ИЗМЕНЕНИЯ ГОТОВЫ, ожидается пакетный typecheck. Владелец: интегратор/documents agent. База: main 9215f010f78; integration/after-local-0.0.9. Область: workbench/contrib/markdown/browser/markdownDocumentRenderer.ts, test/browser/markdownDocumentRenderer.test.ts, этот отчёт. Ограничить автоматические внешние media в самостоятельном document sanitizer, сохранив ручные anchors, локальные/data ресурсы, явный относительный local-media opt-in и code highlighting. extensionEditor/extensionsWorkbenchService и release notes остаются у своих владельцев. Общий base Markdown renderer не менять. Проверки: целевые browser tests с фактическим отсутствием запросов и пакетная типизация.
+
+6 browser tests passed, 0 page errors/HTTP fixture requests; lint и diff --check passed. Проверены http/https/UNC, permissive protocol options, srcset/style/embedded loaders и external SVG paint, сохранены local file/data/explicit relative media и anchors. Относительный opt-in требует локального document base у caller; extension/release-note callers проверяются их владельцами. Native smoke ещё не выполнен.

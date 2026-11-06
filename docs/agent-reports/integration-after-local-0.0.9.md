@@ -11,3 +11,7 @@
 - `chat-topology-count-telemetry-disable` — `a33d612080b6cdd5ca14b3ab134cd7f9fc992875`
 - `customization-count-telemetry-disable` — `6029b66ed012b4ac2b69e6dc0872635565a4f67b`
 - `customization-install-telemetry-disable` — `4315e49ed5bba5717065a1638758685ff9f40b1e`
+
+Первый срез: 19 browser tests passed, 0 page errors; imports/class reference scan удалённого inline view и diff --check чистые. Полный client typecheck PASSED (exit 0), слот освобождён; параллельных package/typecheck перед стартом не было.
+
+Первый срез ЗАВЕРШЁН: 7 задач, 19 browser tests; перенос в main без пересборки локального 0.0.9. Проверенный ZIP остаётся на 9d93537d452.

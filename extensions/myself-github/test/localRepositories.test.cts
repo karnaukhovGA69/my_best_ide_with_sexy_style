@@ -123,3 +123,25 @@ test('detects replacement of the repository while origin is being checked', asyn
 	};
 	await assert.rejects(f.service.prepare(repository, new AbortController().signal), { reason: 'unsafePath' });
 });
+
+test('prepares an empty repository with real Git using only a local fixture transport', async t => {
+	const { execFileSync } = require('node:child_process');
+	const { GitProcess } = require('../out/gitProcess.js');
+	const f = await fixture(t);
+	const bare = path.join(f.root, 'synthetic-source.git');
+	execFileSync('git', ['-c', 'init.templateDir=', 'init', '--bare', '-q', bare]);
+	const realGit = new GitProcess();
+	const service = new LocalRepositories(f.root, {
+		async clone(url, destination) {
+			assert.equal(url, remote);
+			// Only this fixture substitutes the network transport. No real GitHub request occurs.
+			execFileSync('git', ['-c', 'init.templateDir=', '-c', 'protocol.file.allow=always', 'clone', '--', bare, destination], { cwd: destination, stdio: 'ignore' });
+			execFileSync('git', ['-C', destination, 'remote', 'set-url', 'origin', url]);
+		},
+		origin: (destination, signal) => realGit.origin(destination, signal)
+	});
+	assert.equal(await service.prepare(repository, new AbortController().signal), f.target);
+	assert.equal(await service.prepare(repository, new AbortController().signal), f.target);
+	assert.equal((await fs.lstat(path.join(f.target, '.git'))).isDirectory(), true);
+	assert.deepEqual(await fs.readdir(path.dirname(f.target)), ['project']);
+});

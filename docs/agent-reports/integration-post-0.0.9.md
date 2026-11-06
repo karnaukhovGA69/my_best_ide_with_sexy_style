@@ -24,3 +24,11 @@
 - `agent/settings-search-local-only` — `88811e83e8198b150c0ac2c1776ce4dacabc4d32`
 
 Второй срез объединён без конфликтов; 131 browser tests passed, 0 page errors. Общий client typecheck для обоих срезов прошёл. Итого проверены 15 task snapshots (forwarding также входит как dependency AI-edit telemetry), 206 browser tests. Пакет передаётся в main без новой binary сборки; native external-terminal smoke остаётся проверкой следующего общего package. Release 0.0.9 остаётся отдельной незавершённой задачей.
+
+Третий snapshot (ЗАНЯТО интегратором): шесть MCP heads включают 11 implementation задач со своими зависимостями.
+- `agent/mcp-orphan-connection-tasks-delete` — `f32b7e8956376bc786bc928c2243e91424ff8eb2`
+- `agent/mcp-lifecycle-commands-remove` — `fc4896bf9f6404ef78d2881c89361a9a61066eb6`
+- `agent/mcp-server-controls-runtime-remove` — `4098428f5c30f38828eaba472f57035e06d64c72`
+- `agent/mcp-plugin-discovery-delete` — `f4d8aaf1bf50a87590c1228314aaededb44f22ab`
+- `agent/mcp-server-editor-runtime-remove` — `5058199e010d71634a4a24daba2a0f83a4fe386a`
+- `agent/mcp-configuration-form-delete` — `9de58123a971ee920e7bd2b69651f687dad49895`

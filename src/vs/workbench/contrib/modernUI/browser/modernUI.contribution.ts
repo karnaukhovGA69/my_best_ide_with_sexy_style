@@ -42,6 +42,7 @@ import './media/suggestWidget.css';
 import './media/tabs.css';
 import './connectedEditorTabs.js';
 import './appearanceActions.js';
+import './calmerStudio.js';
 import './media/titlebar.css';
 import '../../../services/themes/browser/modernTabColorCustomizations.js';
 

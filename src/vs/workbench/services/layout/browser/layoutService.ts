@@ -52,12 +52,28 @@ export const enum LayoutSettings {
 	LAYOUT_ACTIONS = 'workbench.layoutControl.enabled',
 	SHADOWS = 'workbench.shadows',
 	MODERN_UI = 'workbench.experimental.modernUI',
+	CALMER_STUDIO = 'workbench.calmerStudio',
 	MODERN_UI_DENSITY = 'window.density.layout',
 	MODERN_UI_FROSTED_GLASS = 'workbench.modernUIFrostedGlass',
 	MODERN_UI_FROSTED_GLASS_OPACITY = 'workbench.modernUIFrostedGlassOpacity',
 	MODERN_UI_EDITOR_TAB_STYLE = 'workbench.experimental.modernUIEditorTabStyle',
 	MODERN_UI_UPPERCASE_VIEW_HEADERS = 'workbench.experimental.modernUIUppercaseViewHeaders'
 }
+
+/** Calmer Studio uses the classic, flush layout. Modern UI remains an independent choice. */
+export function isCalmerStudio(configurationService: IConfigurationService): boolean {
+	return configurationService.getValue<boolean>(LayoutSettings.CALMER_STUDIO) === true
+		&& configurationService.getValue<boolean>(LayoutSettings.MODERN_UI) !== true;
+}
+
+/** Layout constraints; keep structural CSS heights in calmerStudio.css in sync. */
+export const CalmerStudioMetrics = Object.freeze({
+	titleBarHeight: 48,
+	tabHeight: 44,
+	compactTabHeight: 32,
+	statusBarHeight: 32,
+	fileRowHeight: 30,
+});
 
 export const enum ModernUIFrostedGlassOpacity {
 	Minimum = 50,

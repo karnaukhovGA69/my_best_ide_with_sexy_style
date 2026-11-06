@@ -20,3 +20,16 @@
 - `agents-window-shortcut-tip-disable` — `36b123972f359ae75e64ca200299916016450755`
 - `session-picker-orphan-payload-delete` — `16aa072303e666342236ad99640445b31cd66ab2`
 - `chat-orphan-spotlight-delete` — `08b014dda19a167242d65bd88f89aac01bcfc942`
+
+Второй срез: 5 browser tests passed, 0 page errors (включая retained onboarding registry); reference scan удалённых modules/symbols и diff --check чистые. Общий client typecheck PASSED (exit 0), слот освобождён; других package/typecheck процессов при запуске не было.
+
+ЗАНЯТО интегратором: удаление только собственных завершённых local refs, полностью слитых в main и не занятых worktree; remote refs и история не меняются.
+- `agent/ide-updater-orphan-workbench-delete` → `5b546644d972bab3baba03bf7e9623209d9e58db`
+- `agent/post-update-widget-orphan-delete` → `290748c352e022cd151b9c7cbfef86354709d49f`
+- `integration/post-0.0.9` → `8a9f66bc9af61dfa3a8e4648fd1989392f79a2d4`
+- `integration/release-0.0.9` → `a5f8f3a0ea45ad2d305852a69e6a27df2a510a7d`
+- `integration/release-0.0.9-final` → `f9f821d47f632bfd5afca144685208f5f99e42c2`
+
+Удаление пяти перечисленных local refs завершено через git branch -d после ancestor/worktree checks; коммиты сохранены в main.
+
+Второй срез ЗАВЕРШЁН: 5 задач с dependencies, 5 browser tests и полный client typecheck passed. Всего после локального 0.0.9 интегрированы 12 задач, 24 целевых browser tests. Package/native заново не запускались, готовый архив неизменён; эти задачи относятся к следующему бинарному пакету.

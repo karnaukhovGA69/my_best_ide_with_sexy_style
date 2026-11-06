@@ -84,3 +84,5 @@ Build snapshot: интеграционный срез 379a3ea0067, общий cl
 - `agent/mcp-server-controls-runtime-remove` → `4098428f5c30f38828eaba472f57035e06d64c72`
 - `agent/mcp-server-editor-runtime-remove` → `5058199e010d71634a4a24daba2a0f83a4fe386a`
 - `integration/next-package` → `411cccde06e843fac42e170ccf749f7784c7f7e3`
+
+Обнаружен подтверждённый packaging defect: native documents log сообщает Webview.loadLocalResource для отсутствующего out/webview/editor.js; bundle лежит в webview/editor.js. ЗАНЯТО исправление extensions/myself-documents/esbuild.webview.mts и новый test/packaging.test.cts. Общий build helper сохраняет только basename outdir при --outputRoot. Исправление сохранит единый out/webview/editor.js для dev и production.

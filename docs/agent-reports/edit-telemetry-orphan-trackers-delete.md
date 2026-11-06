@@ -1,0 +1,5 @@
+# edit-telemetry-orphan-trackers-delete
+
+Статус: ЗАНЯТО. Владелец: чат упрощения Myself IDE. Ветка: agent/edit-telemetry-orphan-trackers-delete. База: main a5f8f3a0ea4 плюс готовые зависимости agent/edit-statistics-startup-disable и agent/ai-edit-telemetry-runtime-disable (включает editor-telemetry-forwarding-disable). История зависимостей объединена только в собственном task worktree, main не меняется.
+
+Область: orphan browser/helpers, browser/telemetry/{agentHostEditMarkerService,editSourceTrackingFeature,editSourceTrackingImpl,arcTelemetryReporter,arcTelemetrySender,editTracker,scmAdapter}, browser/aiContributionFeature и тесты только этих удаляемых реализаций внутри editTelemetry. Существующий editTelemetry.test.ts сократить до metadata non-emission consumer regression. Сохранить AiEditTelemetryService interfaces/adapter, startup Git no-op commands, random/setting compatibility modules и common ArcTracker с его Node fixtures. Перед удалением проверить все внешние imports. Root wiring/deps/build и чужие области не менять.

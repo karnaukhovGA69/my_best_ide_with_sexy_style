@@ -116,3 +116,5 @@
 Одиннадцатый срез ЗАВЕРШЁН: 1 implementation task и обновление общих правил/планов; 4 browser tests passed, 0 page errors, полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 39 implementation задач, 193 целевых browser tests. GitHub login/account/catalog/root-clone-open отложены по последнему решению владельца, extension не подключается к ближайшему пакету. Package/native не запускались, готовый ZIP неизменён.
 
 Двенадцатый срез — ЗАНЯТО интегратором: `chat-thinking-title-generation-disable` — `d2333c8ba039880aa9a2d23ea13521784bfcc81f`. appearance-style-menu уже закреплён за чатом упрощения; дубликат UI implementation не создавать.
+
+Двенадцатый срез расширен: ЗАНЯТО интегратором `utility-model-settings-population-disable` — `465d3316fded17362061fd9cfb25716af8a66b5e`. Read-only local-resource-loading-audit отдельно фиксирует остаточные пути загрузки; не заявляет сетевое ограничение реализованным.

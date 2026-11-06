@@ -90,7 +90,7 @@ suite('MarkdownRenderer', () => {
 					text: 'a[b].ts',
 					href: 'https://example.com/a.ts',
 					title: 'file:///same',
-					image: 'https://example.com/a.ts',
+					image: '',
 					imageWidth: '10',
 					imageHeight: '20',
 				},
@@ -99,6 +99,69 @@ suite('MarkdownRenderer', () => {
 	});
 
 	suite('Images', () => {
+		test('external media stays blocked with trusted Markdown and permissive options', () => {
+			const sources = [
+				'https://example.invalid/image.png', 'http://example.invalid/image.png',
+				'HTTPS://example.invalid/image.png', '//example.invalid/image.png',
+				'file://remote-host/share/image.png', 'vscode-file://remote-host/share/image.png',
+				'vscode-remote-resource://example.invalid/image.png',
+				String.raw`\\example.invalid\share\image.png`, 'file:////example.invalid/share/image.png',
+			];
+			const results = sources.map(source => {
+				const markdown = new MarkdownString(`<img src="${source}"><video src="${source}" poster="${source}"><source src="${source}"></video>`, { supportHtml: true, isTrusted: true });
+				markdown.baseUri = URI.file('/documents/readme.md');
+				return store.add(renderMarkdown(markdown, { sanitizerConfig: {
+					remoteImageIsAllowed: () => true,
+					allowedMediaSchemes: { augment: ['http', 'https', 'vscode-remote-resource'] },
+				} })).element.querySelectorAll('[src], [poster]').length;
+			});
+			assert.deepStrictEqual(results, sources.map(() => 0));
+		});
+
+		test('external base URI and mapped destinations cannot activate media', () => {
+			const sources: IMarkdownString[] = [
+				{ value: '![image](relative.png)', baseUri: URI.parse('https://example.invalid/readme.md') },
+				{ value: '![image](file:///image.png)', uris: { 'file:///image.png': URI.parse('https://example.invalid/image.png') } },
+				{ value: '![image](test-filesystem://local/image.png)', uris: { 'test-filesystem://local/image.png': URI.parse('https://example.invalid/image.png') } },
+			];
+			const results = sources.map(markdown => store.add(renderMarkdown(markdown, { sanitizerConfig: {
+				remoteImageIsAllowed: () => true,
+				allowedMediaSchemes: { augment: ['test-filesystem'] },
+			} })).element.querySelectorAll('[src]').length);
+			assert.deepStrictEqual(results, [0, 0, 0]);
+		});
+
+		test('data images ignore URI mappings during transport resolution', () => {
+			const source = 'data:image/png;base64,AA==';
+			let resolutions = 0;
+			store.add(FileAccess.registerBrowserUriProvider('https', {
+				resolve: async () => { resolutions++; return { object: URI.parse('https://example.invalid/image.png'), dispose: () => { } }; },
+			}));
+			const result = store.add(renderMarkdown({ value: `![image](${source})`, uris: { [source]: URI.parse('https://example.invalid/image.png') } }));
+			assert.deepStrictEqual({ source: result.element.querySelector('img')?.getAttribute('src'), resolutions }, { source, resolutions: 0 });
+		});
+
+		test('local video posters use the filesystem transport and dispose it', async () => {
+			const reads: string[] = [];
+			let disposed = false;
+			store.add(FileAccess.registerBrowserUriProvider('test-filesystem', {
+				resolve: async uri => { reads.push(uri.toString()); return { object: URI.parse('data:image/png;base64,AA=='), dispose: () => { disposed = true; } }; },
+			}));
+			const markdown = new MarkdownString('<video poster="poster.png"></video>', { supportHtml: true });
+			markdown.baseUri = URI.parse('test-filesystem://workspace/doc/readme.md');
+			const result = store.add(renderMarkdown(markdown, { sanitizerConfig: { allowedMediaSchemes: { augment: ['test-filesystem'] } } }));
+			await Promise.resolve();
+			const poster = result.element.querySelector('video')?.getAttribute('poster');
+			result.dispose();
+			assert.deepStrictEqual({ reads, poster, disposed }, { reads: ['test-filesystem://workspace/doc/poster.png'], poster: 'data:image/png;base64,AA==', disposed: true });
+		});
+
+		test('srcset cannot bypass media policy through an attribute override', () => {
+			const markdown = new MarkdownString('<img srcset="https://example.invalid/image.png 1x">', { supportHtml: true });
+			const result = store.add(renderMarkdown(markdown, { sanitizerConfig: { allowedAttributes: { override: ['SRCSET'] } } }));
+			assert.strictEqual(result.element.querySelector('[srcset]'), null);
+		});
+
 		test('resolves only sanitized media through the registered browser transport', async () => {
 			const read: string[] = [];
 			const resource = URI.parse('test-filesystem://connection/image.png?metadata=original');
@@ -187,13 +250,13 @@ suite('MarkdownRenderer', () => {
 		test('image rendering conforms to default', () => {
 			const markdown = { value: `![image](http://example.com/cat.gif 'caption')` };
 			const result: HTMLElement = store.add(renderMarkdown(markdown)).element;
-			assertNodeEquals(result, '<div><p><img title="caption" alt="image" src="http://example.com/cat.gif"></p></div>');
+			assertNodeEquals(result, '<div><p><img title="caption" alt="image"></p></div>');
 		});
 
 		test('image rendering conforms to default without title', () => {
 			const markdown = { value: `![image](http://example.com/cat.gif)` };
 			const result: HTMLElement = store.add(renderMarkdown(markdown)).element;
-			assertNodeEquals(result, '<div><p><img alt="image" src="http://example.com/cat.gif"></p></div>');
+			assertNodeEquals(result, '<div><p><img alt="image"></p></div>');
 		});
 
 		test('disallowed remote images are rendered as plaintext', () => {
@@ -213,7 +276,7 @@ suite('MarkdownRenderer', () => {
 				checkedUris,
 				html: result.innerHTML,
 			}, {
-				checkedUris: ['https://example.com/collect?secret%3Dvalue'],
+				checkedUris: [],
 				html: '<p>&lt;img src="https://example.com/collect?secret=value" alt="image"&gt;</p>',
 			});
 		});
@@ -267,7 +330,7 @@ suite('MarkdownRenderer', () => {
 				checkedUris,
 				imageCounts: results.map(result => result.querySelectorAll('img').length),
 			}, {
-				checkedUris: destinations.map(destination => URI.parse(destination).toString()),
+				checkedUris: [URI.parse(destinations[2]).toString()],
 				imageCounts: [0, 0, 0],
 			});
 		});
@@ -336,17 +399,17 @@ suite('MarkdownRenderer', () => {
 
 		test('image width from title params', () => {
 			const result: HTMLElement = store.add(renderMarkdown({ value: `![image](http://example.com/cat.gif|width=100px 'caption')` })).element;
-			assertNodeEquals(result, `<div><p><img width="100" title="caption" alt="image" src="http://example.com/cat.gif"></p></div>`);
+			assertNodeEquals(result, `<div><p><img width="100" title="caption" alt="image"></p></div>`);
 		});
 
 		test('image height from title params', () => {
 			const result: HTMLElement = store.add(renderMarkdown({ value: `![image](http://example.com/cat.gif|height=100 'caption')` })).element;
-			assertNodeEquals(result, `<div><p><img height="100" title="caption" alt="image" src="http://example.com/cat.gif"></p></div>`);
+			assertNodeEquals(result, `<div><p><img height="100" title="caption" alt="image"></p></div>`);
 		});
 
 		test('image width and height from title params', () => {
 			const result: HTMLElement = store.add(renderMarkdown({ value: `![image](http://example.com/cat.gif|height=200,width=100 'caption')` })).element;
-			assertNodeEquals(result, `<div><p><img height="200" width="100" title="caption" alt="image" src="http://example.com/cat.gif"></p></div>`);
+			assertNodeEquals(result, `<div><p><img height="200" width="100" title="caption" alt="image"></p></div>`);
 		});
 
 		test('image with file uri should render as same origin uri', () => {
@@ -782,7 +845,7 @@ suite('MarkdownRenderer', () => {
 		md.baseUri = URI.parse('https://example.com/path/');
 
 		const result = store.add(renderMarkdown(md)).element;
-		assert.strictEqual(result.innerHTML, `<p><a href="" title="./foo" draggable="false" data-href="https://example.com/path/foo">text</a> <a href="" data-href="https://example.com/path/bar">bar</a> <img src="https://example.com/path/cat.gif"></p>`);
+		assert.strictEqual(result.innerHTML, `<p><a href="" title="./foo" draggable="false" data-href="https://example.com/path/foo">text</a> <a href="" data-href="https://example.com/path/bar">bar</a> <img></p>`);
 	});
 
 	suite('Copy-safe hrefs', () => {
@@ -955,7 +1018,7 @@ suite('MarkdownRenderer', () => {
 			mds.appendMarkdown(`<img src="http://example.com/cat.gif">`);
 
 			const result = store.add(renderMarkdown(mds)).element;
-			assert.strictEqual(result.innerHTML, `<img src="http://example.com/cat.gif">`);
+			assert.strictEqual(result.innerHTML, `<img>`);
 		});
 
 		test('Should render html images with file uri as same origin uri', () => {

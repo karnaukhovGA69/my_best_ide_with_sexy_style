@@ -1132,13 +1132,10 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 
 	private async onDidChangeRunningExtensions(added: ReadonlyArray<IExtensionDescription>, removed: ReadonlyArray<IExtensionDescription>): Promise<void> {
 		const changedExtensions: IExtension[] = [];
-		const extensionsToFetch: IExtensionDescription[] = [];
 		for (const desc of added) {
 			const extension = this.installed.find(e => areSameExtensions({ id: desc.identifier.value, uuid: desc.uuid }, e.identifier));
 			if (extension) {
 				changedExtensions.push(extension);
-			} else {
-				extensionsToFetch.push(desc);
 			}
 		}
 		const workspaceExtensions: IExtensionDescription[] = [];
@@ -1146,13 +1143,14 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 			if (this.workspaceContextService.isInsideWorkspace(desc.extensionLocation)) {
 				workspaceExtensions.push(desc);
 			} else {
-				extensionsToFetch.push(desc);
+				const extension = this.installed.find(e => areSameExtensions({ id: desc.identifier.value, uuid: desc.uuid }, e.identifier));
+				if (extension) {
+					changedExtensions.push(extension);
+				}
 			}
 		}
-		if (extensionsToFetch.length) {
-			const extensions = await this.getExtensions(extensionsToFetch.map(e => ({ id: e.identifier.value, uuid: e.uuid })), CancellationToken.None);
-			changedExtensions.push(...extensions);
-		}
+		// Runtime registration is local bookkeeping, not a user request to query
+		// the gallery (development extensions may not be installed at all).
 		if (workspaceExtensions.length) {
 			const extensions = await this.getResourceExtensions(workspaceExtensions.map(e => e.extensionLocation), true);
 			changedExtensions.push(...extensions);

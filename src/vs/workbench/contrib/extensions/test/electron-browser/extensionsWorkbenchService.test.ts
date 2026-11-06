@@ -471,6 +471,36 @@ suite('ExtensionsWorkbenchServiceTest', () => {
 		}
 	});
 
+	test('runtime extension registration never queries the gallery', async () => {
+		const local = aLocalExtension('runtime');
+		const running = {
+			...local.manifest,
+			identifier: new ExtensionIdentifier(local.identifier.id),
+			extensionLocation: local.location,
+			isBuiltin: false,
+			isUserBuiltin: false,
+			isUnderDevelopment: true,
+			targetPlatform: getTargetPlatform(platform, arch),
+			preRelease: false
+		};
+		const changes = disposableStore.add(new Emitter<{ added: typeof running[]; removed: typeof running[] }>());
+		const galleryChecks = sinon.spy(async () => []);
+		instantiationService.stub(IExtensionGalleryService, 'getExtensions', galleryChecks);
+		instantiationService.stub(IExtensionService, {
+			onDidChangeExtensions: changes.event,
+			extensions: [running],
+			canAddExtension() { return true; },
+			canRemoveExtension() { return true; },
+			async whenInstalledExtensionsRegistered() { return true; }
+		});
+		testObject = await aWorkbenchService();
+		await testObject.whenInitialized;
+		changes.fire({ added: [], removed: [running] });
+		changes.fire({ added: [running], removed: [] });
+		await timeout(0);
+		assert.strictEqual(galleryChecks.callCount, 0);
+	});
+
 	test('stale auto-update settings and background events never check or install updates', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 		const local = aLocalExtension('a', { version: '1.0.1' }, { forceAutoUpdate: true });
 		const gallery = aGalleryExtension(local.manifest.name, { identifier: local.identifier, version: '1.0.2' });

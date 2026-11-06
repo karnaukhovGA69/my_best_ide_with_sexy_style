@@ -54,3 +54,5 @@
 Пятый срез ЗАВЕРШЁН: 7 задач, 18 browser tests, 0 page errors, полный client typecheck и diff --check прошли. Scan 15041 TS sources не нашёл относительных imports 11 удалённых файлов. Итого пять срезов: 39 implementation tasks, 376 целевых browser tests. Полный старый ChatPetWidget suite не запускался: проверены только изменённые сценарии сервиса, отсутствие телеметрии и сохранность настроек. План разработки синхронизирован с текущим разделением source integration и binary build. Следующие задачи резервируются отдельно; готовность бинарного релиза не заявляется.
 
 Шестой срез — ЗАНЯТО интегратором: model-survey-orphan-support-delete `fdf9751b5f19b2e67ced38b17d8c8870d04d3fbe` (включает widget-disable). Активная survey-orphan-config-delete пока не принимается. Сборка другого агента остаётся на собственном snapshot.
+
+Шестой срез дополнен готовой survey-orphan-config-delete `6c95c88d515b0a9b60f156224e60fec48cd01095` — ЗАНЯТО интегратором. Own updater workbench cleanup `5b546644d97` также включён.

@@ -1,0 +1,71 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_nsfs(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_nsfs(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_nsfs - ioctl() operations for Linux namespaces</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/nsfs.h&gt;</b>  /* Definition of <b>NS_*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, unsigned long </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Discovering_namespace_relationships"><a class="permalink" href="#Discovering_namespace_relationships">Discovering
+  namespace relationships</a></h2>
+<dl class="Bl-tag">
+  <dt id="NS_GET_USERNS"><a class="permalink" href="#NS_GET_USERNS"><b>NS_GET_USERNS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="NS_GET_PARENT"><a class="permalink" href="#NS_GET_PARENT"><b>NS_GET_PARENT</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Discovering_the_namespace_type"><a class="permalink" href="#Discovering_the_namespace_type">Discovering
+  the namespace type</a></h2>
+<dl class="Bl-tag">
+  <dt id="NS_GET_NSTYPE"><a class="permalink" href="#NS_GET_NSTYPE"><b>NS_GET_NSTYPE</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Discovering_the_owner_of_a_user_namespace"><a class="permalink" href="#Discovering_the_owner_of_a_user_namespace">Discovering
+  the owner of a user namespace</a></h2>
+<dl class="Bl-tag">
+  <dt id="NS_GET_OWNER_UID"><a class="permalink" href="#NS_GET_OWNER_UID"><b>NS_GET_OWNER_UID</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="ENOTTY"><a class="permalink" href="#ENOTTY"><b>ENOTTY</b></a></dt>
+  <dd><i>fd</i> does not refer to a <i>/proc/</i>pid<i>/ns/</i>* file.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>fstat</b>(2), <b>proc</b>(5),
+    <b>namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

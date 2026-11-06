@@ -1,0 +1,65 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_oom_score(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_oom_score(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/oom_score - OOM-killer score</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/oom_score</i> (since Linux 2.6.11)</dt>
+  <dd>This file displays the current score that the kernel gives to this process
+      for the purpose of selecting a process for the OOM-killer. A higher score
+      means that the process is more likely to be selected by the OOM-killer.
+      The basis for this score is the amount of memory used by the process, with
+      increases (+) or decreases (-) for factors including:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>whether the process is privileged (-).</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Before Linux 2.6.36 the following factors were also used in the
+      calculation of oom_score:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>whether the process creates a lot of children using <b>fork</b>(2)
+    (+);</dd>
+  <dt>&#x2022;</dt>
+  <dd>whether the process has been running a long time, or has used a lot of CPU
+      time (-);</dd>
+  <dt>&#x2022;</dt>
+  <dd>whether the process has a low nice value (i.e., &gt; 0) (+); and</dd>
+  <dt>&#x2022;</dt>
+  <dd>whether the process is making direct hardware access (-).</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The <i>oom_score</i> also reflects the adjustment specified by the
+      <i>oom_score_adj</i> or <i>oom_adj</i> setting for the process.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5), <b>proc_pid_oom_score_adj</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

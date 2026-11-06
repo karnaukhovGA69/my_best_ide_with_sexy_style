@@ -1,0 +1,58 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">io_destroy(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">io_destroy(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">io_destroy - destroy an asynchronous I/O context</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Asynchronous I/O library (<i>libaio</i>,&#x00A0;<i>-laio</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;libaio.h&gt;</b></pre>
+<pre><b>long&#x00A0;io_destroy(io_context_t&#x00A0;*</b><i>ctx_idp</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>io_destroy</b>() system call will attempt to cancel all
+    outstanding asynchronous I/O operations against <i>ctx_id</i>, will block on
+    the completion of all operations that could not be canceled, and will
+    destroy the <i>ctx_id</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>io_destroy</b>() returns 0. On error, a negative
+    error code is returned to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>io_destroy</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">libaio.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">libaio.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>io_destroy</b>(2), <b>io</b>(3), <b>aio</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-04-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

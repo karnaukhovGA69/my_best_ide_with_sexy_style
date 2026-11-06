@@ -1,0 +1,84 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_GETFD(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_GETFD(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GETFD, F_SETFD - get/set file descriptor flags</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_GETFD);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_SETFD, int </b><i>arg</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These operations manipulate the flags associated with a file
+    descriptor. Currently, only one such flag is defined: <b>FD_CLOEXEC</b>, the
+    close-on-exec flag. If the <b>FD_CLOEXEC</b> bit is set, the file descriptor
+    will automatically be closed during a successful <b>execve</b>(2). (If the
+    <b>execve</b>(2) fails, the file descriptor is left open.) If the
+    <b>FD_CLOEXEC</b> bit is not set, the file descriptor will remain open
+    across an <b>execve</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="F_GETFD"><a class="permalink" href="#F_GETFD"><b>F_GETFD</b></a></dt>
+  <dd>Return (as the function result) the file descriptor flags; <i>arg</i> is
+      ignored.</dd>
+  <dt id="F_SETFD"><a class="permalink" href="#F_SETFD"><b>F_SETFD</b></a></dt>
+  <dd>Set the file descriptor flags to the value specified by <i>arg</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_GETFD~2"><a class="permalink" href="#F_GETFD~2"><b>F_GETFD</b></a></dt>
+  <dd>Value of file descriptor flags.</dd>
+  <dt id="F_SETFD~2"><a class="permalink" href="#F_SETFD~2"><b>F_SETFD</b></a></dt>
+  <dd>Zero.</dd>
+</dl>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SVr4, 4.3BSD, POSIX.1-1988.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">In multithreaded programs, using <b>fcntl</b>(2) <b>F_SETFD</b> to
+    set the close-on-exec flag at the same time as another thread performs a
+    <b>fork</b>(2) plus <b>execve</b>(2) is vulnerable to a race condition that
+    may unintentionally leak the file descriptor to the program executed in the
+    child process. See the discussion of the <b>O_CLOEXEC</b> flag in
+    <b>open</b>(2) for details and a remedy to the problem.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

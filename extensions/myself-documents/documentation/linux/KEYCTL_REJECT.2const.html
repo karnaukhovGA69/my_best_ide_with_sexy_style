@@ -1,0 +1,170 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_INSTANTIATE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_INSTANTIATE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_INSTANTIATE, KEYCTL_INSTANTIATE_IOV, KEYCTL_NEGATE,
+    KEYCTL_REJECT - key instantiation functions</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(</b>size_t n;
+<b>             SYS_keyctl, KEYCTL_INSTANTIATE, key_serial_t </b><i>key</i><b>,</b>
+<b>             const void </b><i>payload</i><b>[</b><i>n</i><b>], size_t </b><i>n</i><b>,</b>
+<b>             key_serial_t </b><i>keyring</i><b>);</b>
+<b>long syscall(</b>size_t n;
+<b>             SYS_keyctl, KEYCTL_INSTANTIATE_IOV, key_serial_t </b><i>key</i><b>,</b>
+<b>             const struct iovec </b><i>payload</i><b>[</b><i>n</i><b>], unsigned int </b><i>n</i><b>,</b>
+<b>             key_serial_t </b><i>keyring</i><b>);</b>
+<b>long syscall(SYS_keyctl, KEYCTL_NEGATE, key_serial_t </b><i>key</i><b>,</b>
+<b>             unsigned int </b><i>timeout</i><b>, key_serial_t </b><i>keyring</i><b>);</b>
+<b>long syscall(SYS_keyctl, KEYCTL_REJECT, key_serial_t </b><i>key</i><b>,</b>
+<b>             unsigned int </b><i>timeout</i><b>, int </b><i>error</i><b>, key_serial_t </b><i>keyring</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="KEYCTL_INSTANTIATE"><a class="permalink" href="#KEYCTL_INSTANTIATE"><b>KEYCTL_INSTANTIATE</b></a></dt>
+  <dd>(Positively) instantiate an uninstantiated key with a specified
+    payload.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The ID of the key to be instantiated is provided in <i>key</i>.</dd>
+  <dt></dt>
+  <dd>The key payload is specified in the buffer pointed to by <i>payload</i>;
+      the size of that buffer is specified in <i>n</i>.</dd>
+  <dt></dt>
+  <dd>The payload may be a null pointer and the buffer size may be 0 if this is
+      supported by the key type (e.g., it is a keyring).</dd>
+  <dt></dt>
+  <dd>The operation may be fail if the payload data is in the wrong format or is
+      otherwise invalid.</dd>
+  <dt></dt>
+  <dd>If <i>keyring</i> is nonzero, then, subject to the same constraints and
+      rules as <b>KEYCTL_LINK</b>(2const), the instantiated key is linked into
+      the keyring whose ID specified in <i>keyring</i>.</dd>
+  <dt></dt>
+  <dd>The caller must have the appropriate authorization key, and once the
+      uninstantiated key has been instantiated, the authorization key is
+      revoked. In other words, this operation is available only from a
+      <b>request-key</b>(8)-style program. See <b>request_key</b>(2) for an
+      explanation of uninstantiated keys and key instantiation.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="KEYCTL_INSTANTIATE_IOV"><a class="permalink" href="#KEYCTL_INSTANTIATE_IOV"><b>KEYCTL_INSTANTIATE_IOV</b></a></dt>
+  <dd>Instantiate an uninstantiated key with a payload specified via a vector of
+      buffers.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This operation is the same as <b>KEYCTL_INSTANTIATE</b>, but the payload
+      data is specified as an array of <i>iovec</i> structures (see
+      <b>iovec</b>(3type)).</dd>
+  <dt></dt>
+  <dd>The pointer to the payload vector is specified in <i>payload</i>. The
+      number of items in the vector is specified in <i>n</i>.</dd>
+  <dt></dt>
+  <dd>The <i>key</i> and <i>keyring</i> are interpreted as for
+      <b>KEYCTL_INSTANTIATE</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="KEYCTL_NEGATE"><a class="permalink" href="#KEYCTL_NEGATE"><b>KEYCTL_NEGATE</b></a></dt>
+  <dd>Negatively instantiate an uninstantiated key.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This operation is equivalent to the call:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>keyctl(KEYCTL_REJECT, key, timeout, ENOKEY, keyring);
+    </pre>
+    <br/>
+  </dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="KEYCTL_REJECT"><a class="permalink" href="#KEYCTL_REJECT"><b>KEYCTL_REJECT</b></a></dt>
+  <dd>Mark a key as negatively instantiated and set an expiration timer on the
+      key. This operation provides a superset of the functionality of the
+      earlier <b>KEYCTL_NEGATE</b> operation.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The ID of the key that is to be negatively instantiated is specified in
+      <i>key</i>. The <i>timeout</i> argument specifies the lifetime of the key,
+      in seconds. The <i>error</i> argument specifies the error to be returned
+      when a search hits this key; typically, this is one of
+      <b>EKEYREJECTED</b>, <b>EKEYREVOKED</b>, or <b>EKEYEXPIRED</b>.</dd>
+  <dt></dt>
+  <dd>If <i>keyring</i> is nonzero, then, subject to the same constraints and
+      rules as <b>KEYCTL_LINK</b>(2const), the negatively instantiated key is
+      linked into the keyring whose ID is specified in <i>keyring</i>.</dd>
+  <dt></dt>
+  <dd>The caller must have the appropriate authorization key. In other words,
+      this operation is available only from a <b>request-key</b>(8)-style
+      program. See <b>request_key</b>(2).</dd>
+  <dt></dt>
+  <dd>The caller must have the appropriate authorization key, and once the
+      uninstantiated key has been instantiated, the authorization key is
+      revoked. In other words, this operation is available only from a
+      <b>request-key</b>(8)-style program. See <b>request_key</b>(2) for an
+      explanation of uninstantiated keys and key instantiation.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">Wrappers are provided in the <i>libkeyutils</i> library:
+    <b>keyctl_instantiate</b>(3), <b>keyctl_instantiate_iov</b>(3),
+    <b>keyctl_negate</b>(3), and <b>keyctl_reject</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="KEYCTL_INSTANTIATE~2"><a class="permalink" href="#KEYCTL_INSTANTIATE~2"><b>KEYCTL_INSTANTIATE</b></a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_NEGATE~2"><a class="permalink" href="#KEYCTL_NEGATE~2"><b>KEYCTL_NEGATE</b></a></dt>
+  <dd>Linux 2.6.10.</dd>
+  <dt id="KEYCTL_INSTANTIATE_IOV~2"><a class="permalink" href="#KEYCTL_INSTANTIATE_IOV~2"><b>KEYCTL_INSTANTIATE_IOV</b></a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_REJECT~2"><a class="permalink" href="#KEYCTL_REJECT~2"><b>KEYCTL_REJECT</b></a></dt>
+  <dd>Linux 2.6.39.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_instantiate</b>(3),
+    <b>keyctl_instantiate_iov</b>(3), <b>keyctl_negate</b>(3),
+    <b>keyctl_reject</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,71 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strlcpy(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strlcpy(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strlcpy, strlcat - string return-hypothetical-non-truncated-length
+    copy/catenate (with truncation)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;string.h&gt;</b></pre>
+<pre><b>size_t&#x00A0;strlcpy(</b>size_t&#x00A0;dsize;
+<b>               char&#x00A0;</b><i>dst</i><b>[restrict&#x00A0;</b><i>dsize</i><b>], const&#x00A0;char&#x00A0;*restrict&#x00A0;</b><i>src</i><b>,</b>
+<b>               size_t&#x00A0;</b><i>dsize</i><b>);</b>
+<b>size_t&#x00A0;strlcat(</b>size_t&#x00A0;dsize;
+<b>               char&#x00A0;</b><i>dst</i><b>[restrict&#x00A0;</b><i>dsize</i><b>], const&#x00A0;char&#x00A0;*restrict&#x00A0;</b><i>src</i><b>,</b>
+<b>               size_t&#x00A0;</b><i>dsize</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>strlcpy</b>() copies the string pointed to by <i>src</i>, into
+    a string at the buffer pointed to by <i>dst</i>.</p>
+<p class="Pp"><b>strlcat</b>() catenates the string pointed to by <i>src</i>,
+    after the string pointed to by <i>dst</i> (overwriting its terminating null
+    byte).</p>
+<p class="Pp">For both functions, if the string doesn't fit in the buffer, it is
+    truncated.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">These functions return the total length of the string they tried
+    to create, as if truncation didn't happen.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">OpenBSD 2.4, POSIX.1-2024, glibc 2.38.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">These functions are vulnerable to denial of service (DoS) attacks,
+    since they read the entire source string.</p>
+<p class="Pp"><b>strscpy</b>(9) is a better function for copying with
+    truncation, as it doesn't have that issue. It's not provided by libc, so
+    users should write their own implementation.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>strlcpy</b>(3), <b>strcpy</b>(3), <b>string</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

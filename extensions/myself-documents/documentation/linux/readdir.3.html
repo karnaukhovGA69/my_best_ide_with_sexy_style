@@ -1,0 +1,229 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">readdir(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">readdir(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">readdir - read a directory</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;dirent.h&gt;</b></pre>
+<pre><b>struct dirent *readdir(DIR *</b><i>dirp</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>readdir</b>() function returns a pointer to a <i>dirent</i>
+    structure representing the next directory entry in the directory stream
+    pointed to by <i>dirp</i>. It returns NULL on reaching the end of the
+    directory stream or if an error occurred.</p>
+<p class="Pp">In the glibc implementation, the <i>dirent</i> structure is
+    defined as follows:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct dirent {
+<br/>
+    ino_t          d_ino;       /* Inode number */
+<br/>
+    off_t          d_off;       /* Not an offset; see below */
+<br/>
+    unsigned short d_reclen;    /* Length of this record */
+<br/>
+    unsigned char  d_type;      /* Type of file; not supported
+<br/>
+                                   by all filesystem types */
+<br/>
+    char           d_name[256]; /* Null-terminated filename */
+};
+</pre>
+<br/>
+<p class="Pp">The only fields in the <i>dirent</i> structure that are mandated
+    by POSIX.1 are <i>.d_name</i> and <i>.d_ino</i>. The other fields are
+    unstandardized, and not present on all systems; see VERSIONS.</p>
+<p class="Pp">The fields of the <i>dirent</i> structure are as follows:</p>
+<dl class="Bl-tag">
+  <dt><i>.d_ino</i></dt>
+  <dd>This is the inode number of the file in the filesystem containing the
+      directory on which <b>readdir</b>() was called. If the directory entry is
+      a mount point, then <i>.d_ino</i> differs from <i>.st_ino</i> returned by
+      <b>stat</b>(2) on this file: <i>.d_ino</i> is the inode number of the
+      mount point, while <i>.st_ino</i> is the inode number of the root
+      directory of the mounted filesystem.</dd>
+  <dt><i>.d_off</i></dt>
+  <dd>The value returned in <i>.d_off</i> is the same as would be returned by
+      calling <b>telldir</b>(3) at the current position in the directory stream.
+      Be aware that despite its type and name, the <i>.d_off</i> field is seldom
+      any kind of directory offset on modern filesystems. Applications should
+      treat this field as an opaque value, making no assumptions about its
+      contents; see also <b>telldir</b>(3).</dd>
+  <dt><i>.d_reclen</i></dt>
+  <dd>This is the size (in bytes) of the returned record. This may not match the
+      size of the structure definition shown above; see VERSIONS.</dd>
+  <dt><i>.d_type</i></dt>
+  <dd>This field contains a value indicating the file type, making it possible
+      to avoid the expense of calling <b>lstat</b>(2) if further actions depend
+      on the type of the file.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>When a suitable feature test macro is defined (<b>_DEFAULT_SOURCE</b>
+      since glibc 2.19, or <b>_BSD_SOURCE</b> on glibc 2.19 and earlier), glibc
+      defines the following macro constants for the value returned in
+      <i>.d_type</i>:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="DT_BLK"><a class="permalink" href="#DT_BLK"><b>DT_BLK</b></a></dt>
+  <dd>This is a block device.</dd>
+  <dt id="DT_CHR"><a class="permalink" href="#DT_CHR"><b>DT_CHR</b></a></dt>
+  <dd>This is a character device.</dd>
+  <dt id="DT_DIR"><a class="permalink" href="#DT_DIR"><b>DT_DIR</b></a></dt>
+  <dd>This is a directory.</dd>
+  <dt id="DT_FIFO"><a class="permalink" href="#DT_FIFO"><b>DT_FIFO</b></a></dt>
+  <dd>This is a named pipe (FIFO).</dd>
+  <dt id="DT_LNK"><a class="permalink" href="#DT_LNK"><b>DT_LNK</b></a></dt>
+  <dd>This is a symbolic link.</dd>
+  <dt id="DT_REG"><a class="permalink" href="#DT_REG"><b>DT_REG</b></a></dt>
+  <dd>This is a regular file.</dd>
+  <dt id="DT_SOCK"><a class="permalink" href="#DT_SOCK"><b>DT_SOCK</b></a></dt>
+  <dd>This is a UNIX domain socket.</dd>
+  <dt id="DT_UNKNOWN"><a class="permalink" href="#DT_UNKNOWN"><b>DT_UNKNOWN</b></a></dt>
+  <dd>The file type could not be determined.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Currently, only some filesystems (among them: Btrfs, ext2, ext3, and ext4)
+      have full support for returning the file type in <i>.d_type</i>. All
+      applications must properly handle a return of <b>DT_UNKNOWN</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><i>.d_name</i></dt>
+  <dd>This field contains the null terminated filename; see VERSIONS.</dd>
+</dl>
+<p class="Pp">The data returned by <b>readdir</b>() may be overwritten by
+    subsequent calls to <b>readdir</b>() for the same directory stream.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>readdir</b>() returns a pointer to a <i>dirent</i>
+    structure. (This structure may be statically allocated; do not attempt to
+    <b>free</b>(3) it.)</p>
+<p class="Pp">If the end of the directory stream is reached, NULL is returned
+    and <i>errno</i> is not changed. If an error occurs, NULL is returned and
+    <i>errno</i> is set to indicate the error. To distinguish end of stream from
+    an error, set <i>errno</i> to zero before calling <b>readdir</b>() and then
+    check the value of <i>errno</i> if NULL is returned.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd>Invalid directory stream descriptor <i>dirp</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>readdir ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:dirstream</td>
+  </tr>
+</table>
+<p class="Pp">In the current POSIX.1 specification (POSIX.1-2008),
+    <b>readdir</b>() is not required to be thread-safe. However, in modern
+    implementations (including the glibc implementation), concurrent calls to
+    <b>readdir</b>() that specify different directory streams are thread-safe.
+    In cases where multiple threads must read from the same directory stream,
+    using <b>readdir</b>() with external synchronization is still preferable to
+    the use of the deprecated <b>readdir_r</b>(3) function. It is expected that
+    a future version of POSIX.1 will require that <b>readdir</b>() be
+    thread-safe when concurrently employed on different directory streams.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">Only the fields <i>.d_name</i> and (as an XSI extension)
+    <i>.d_ino</i> are specified in POSIX.1. Other than Linux, the <i>.d_type</i>
+    field is available mainly only on BSD systems. The remaining fields are
+    available on many, but not all systems. Under glibc, programs can check for
+    the availability of the fields not defined in POSIX.1 by testing whether the
+    macros <b>_DIRENT_HAVE_D_NAMLEN</b>, <b>_DIRENT_HAVE_D_RECLEN</b>,
+    <b>_DIRENT_HAVE_D_OFF</b>, or <b>_DIRENT_HAVE_D_TYPE</b> are defined.</p>
+<section class="Ss">
+<h2 class="Ss" id="The_"><a class="permalink" href="#The_">The <i>.d_name</i>
+  field</a></h2>
+<p class="Pp">The <i>dirent</i> structure definition shown above is taken from
+    the glibc headers, and shows the <i>.d_name</i> field with a fixed size.</p>
+<p class="Pp"><i>Warning</i>: applications should avoid any dependence on the
+    size of the <i>.d_name</i> field. POSIX defines it as
+    <i>char&#x00A0;d_name[]</i>, a character array of unspecified size, with at
+    most <b>NAME_MAX</b> characters preceding the terminating null byte
+  ('\0').</p>
+<p class="Pp">POSIX.1 explicitly notes that this field should not be used as an
+    lvalue. The standard also notes that the use of <i>sizeof(.d_name)</i> is
+    incorrect; use <i>strlen(.d_name)</i> instead. (On some systems, this field
+    is defined as <i>char&#x00A0;d_name[1]</i>!) By implication, the use
+    <i>sizeof(struct dirent)</i> to capture the size of the record including the
+    size of <i>.d_name</i> is also incorrect.</p>
+<p class="Pp">Note that while the call</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>fpathconf(fd, _PC_NAME_MAX)
+</pre>
+<br/>
+<p class="Pp">returns the value 255 for most filesystems, on some filesystems
+    (e.g., CIFS, Windows SMB servers), the null-terminated filename that is
+    (correctly) returned in <i>.d_name</i> can actually exceed this size. In
+    such cases, the <i>.d_reclen</i> field will contain a value that exceeds the
+    size of the glibc <i>dirent</i> structure shown above.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">A directory stream is opened using <b>opendir</b>(3).</p>
+<p class="Pp">The order in which filenames are read by successive calls to
+    <b>readdir</b>() depends on the filesystem implementation; it is unlikely
+    that the names will be sorted in any fashion.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>getdents</b>(2), <b>read</b>(2), <b>closedir</b>(3),
+    <b>dirfd</b>(3), <b>ftw</b>(3), <b>offsetof</b>(3), <b>opendir</b>(3),
+    <b>readdir_r</b>(3), <b>rewinddir</b>(3), <b>scandir</b>(3),
+    <b>seekdir</b>(3), <b>telldir</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,82 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">io_cancel(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">io_cancel(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">io_cancel - cancel an outstanding asynchronous I/O operation</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/aio_abi.h&gt;</b>    /* Definition of needed types */
+<b>#include &lt;sys/syscall.h&gt;</b>      /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(SYS_io_cancel, aio_context_t </b><i>ctx_id</i><b>, struct iocb *</b><i>iocb</i><b>,</b>
+<b>            struct io_event *</b><i>result</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>Note</i>: you probably want to use the <b>io_getevents</b>(3)
+    wrapper function provided by <i>libaio</i>; see VERSIONS.</p>
+<p class="Pp">The <b>io_cancel</b>() system call attempts to cancel an
+    asynchronous I/O operation previously submitted with <b>io_submit</b>(2).
+    The <i>iocb</i> argument describes the operation to be canceled and the
+    <i>ctx_id</i> argument is the AIO context to which the operation was
+    submitted. If the operation is successfully canceled, the event will be
+    copied into the memory pointed to by <i>result</i> without being placed into
+    the completion queue.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>io_cancel</b>() returns 0. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The <i>iocb</i> specified was not canceled.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>One of the data structures points to invalid data.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The AIO context specified by <i>ctx_id</i> is invalid.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd><b>io_cancel</b>() is not implemented on this architecture.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp"><a class="Lk" href="https://pagure.io/libaio"><i>libaio</i></a>
+    provides a wrapper function with the same name, but different prototype and
+    return value. You probably want to use that wrapper.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.5.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>io_destroy</b>(2), <b>io_getevents</b>(2), <b>io_setup</b>(2),
+    <b>io_submit</b>(2), <b>io_cancel</b>(3), <b>aio</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-04-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

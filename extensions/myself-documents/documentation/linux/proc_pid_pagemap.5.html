@@ -1,0 +1,74 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_pagemap(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_pagemap(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/pagemap - mapping of virtual pages</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/pagemap</i> (since Linux 2.6.25)</dt>
+  <dd>This file shows the mapping of each of the process's virtual pages into
+      physical page frames or swap area. It contains one 64-bit value for each
+      virtual page, with the bits set as follows:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>63</dt>
+  <dd>If set, the page is present in RAM.</dd>
+  <dt>62</dt>
+  <dd>If set, the page is in swap space</dd>
+  <dt>61 (since Linux 3.5)</dt>
+  <dd>The page is a file-mapped page or a shared anonymous page.</dd>
+  <dt>60&#x2013;58 (since Linux 3.11)</dt>
+  <dd>Zero</dd>
+  <dt>57 (since Linux 5.14)</dt>
+  <dd>If set, the page is write-protected through <b>userfaultfd</b>(2).</dd>
+  <dt>56 (since Linux 4.2)</dt>
+  <dd>The page is exclusively mapped.</dd>
+  <dt>55 (since Linux 3.11)</dt>
+  <dd>PTE is soft-dirty (see the kernel source file
+      <i>Documentation/admin-guide/mm/soft-dirty.rst</i>).</dd>
+  <dt>54&#x2013;0</dt>
+  <dd>If the page is present in RAM (bit 63), then these bits provide the page
+      frame number, which can be used to index <i>/proc/kpageflags</i> and
+      <i>/proc/kpagecount</i>. If the page is present in swap (bit 62), then
+      bits 4&#x2013;0 give the swap type, and bits 54&#x2013;5 encode the swap
+      offset.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Before Linux 3.11, bits 60&#x2013;55 were used to encode the base-2 log of
+      the page size.</dd>
+  <dt></dt>
+  <dd>To employ <i>/proc/</i>pid<i>/pagemap</i> efficiently, use
+      <i>/proc/</i>pid<i>/maps</i> to determine which areas of memory are
+      actually mapped and seek to skip over unmapped regions.</dd>
+  <dt></dt>
+  <dd>The <i>/proc/</i>pid<i>/pagemap</i> file is present only if the
+      <b>CONFIG_PROC_PAGE_MONITOR</b> kernel configuration option is
+    enabled.</dd>
+  <dt></dt>
+  <dd>Permission to access this file is governed by a ptrace access mode
+      <b>PTRACE_MODE_READ_FSCREDS</b> check; see <b>ptrace</b>(2).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

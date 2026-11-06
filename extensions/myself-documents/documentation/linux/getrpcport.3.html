@@ -1,0 +1,65 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getrpcport(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">getrpcport(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getrpcport - get RPC port number</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;rpc/rpc.h&gt;</b></pre>
+<pre><b>int getrpcport(const char *</b><i>host</i><b>, unsigned long </b><i>prognum</i><b>,</b>
+<b>               unsigned long </b><i>versnum</i><b>, unsigned int </b><i>proto</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>getrpcport</b>() returns the port number for version
+    <i>versnum</i> of the RPC program <i>prognum</i> running on <i>host</i> and
+    using protocol <i>proto</i>. It returns 0 if it cannot contact the
+    portmapper, or if <i>prognum</i> is not registered. If <i>prognum</i> is
+    registered but not with version <i>versnum</i>, it will still return a port
+    number (for some version of the program) indicating that the program is
+    indeed registered. The version mismatch will be detected upon the first call
+    to the service.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>getrpcport ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe env locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">BSD, Solaris.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

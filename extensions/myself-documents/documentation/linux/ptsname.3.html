@@ -1,0 +1,136 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ptsname(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">ptsname(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ptsname, ptsname_r - get the name of the slave pseudoterminal</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>char *ptsname(int </b><i>fd</i><b>);</b>
+<b>int ptsname_r(</b>size_t size;
+<b>              int </b><i>fd</i><b>, char </b><i>buf</i><b>[</b><i>size</i><b>], size_t </b><i>size</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>ptsname</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.24:
+<br/>
+        _XOPEN_SOURCE &gt;= 500
+<br/>
+    glibc 2.23 and earlier:
+<br/>
+        _XOPEN_SOURCE</pre>
+<p class="Pp"><b>ptsname_r</b>():</p>
+<pre>
+<br/>
+    _GNU_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>ptsname</b>() function returns the name of the slave
+    pseudoterminal device corresponding to the master referred to by the file
+    descriptor <i>fd</i>.</p>
+<p class="Pp">The <b>ptsname_r</b>() function is the reentrant equivalent of
+    <b>ptsname</b>(). It returns the name of the slave pseudoterminal device as
+    a null-terminated string in the buffer pointed to by <i>buf</i>. The
+    <i>size</i> argument specifies the number of bytes available in
+  <i>buf</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>ptsname</b>() returns a pointer to a string in
+    static storage which will be overwritten by subsequent calls. This pointer
+    must not be freed. On failure, NULL is returned.</p>
+<p class="Pp">On success, <b>ptsname_r</b>() returns 0. On failure, an error
+    number is returned to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>(<b>ptsname_r</b>() only) <i>buf</i> is NULL. (This error is returned only
+      for glibc 2.25 and earlier.)</dd>
+  <dt id="ENOTTY"><a class="permalink" href="#ENOTTY"><b>ENOTTY</b></a></dt>
+  <dd><i>fd</i> does not refer to a pseudoterminal master device.</dd>
+  <dt id="ERANGE"><a class="permalink" href="#ERANGE"><b>ERANGE</b></a></dt>
+  <dd>(<b>ptsname_r</b>() only) <i>buf</i> is too small.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>ptsname ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:ptsname</td>
+  </tr>
+  <tr>
+    <td>ptsname_r ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A version of <b>ptsname_r</b>() is documented on Tru64, HP-UX, and
+    FreeBSD, but on those implementations, -1 is returned on error, with
+    <i>errno</i> set to indicate the error. Avoid using this function in
+    portable programs.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="ptsname"><a class="permalink" href="#ptsname"><b>ptsname</b>():</a></dt>
+  <dd>POSIX.1-2008.</dd>
+  <dt id="ptsname_r"><a class="permalink" href="#ptsname_r"><b>ptsname_r</b>():</a></dt>
+  <dd>POSIX.1-2024.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="ptsname~2"><a class="permalink" href="#ptsname~2"><b>ptsname</b>():</a></dt>
+  <dd>POSIX.1-2001. glibc 2.1.</dd>
+</dl>
+<p class="Pp"><b>ptsname</b>() is part of the UNIX 98 pseudoterminal support
+    (see <b>pts</b>(4)).</p>
+<dl class="Bl-tag">
+  <dt id="ptsname_r~2"><a class="permalink" href="#ptsname_r~2"><b>ptsname_r</b>():</a></dt>
+  <dd>GNU.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>grantpt</b>(3), <b>posix_openpt</b>(3), <b>ttyname</b>(3),
+    <b>unlockpt</b>(3), <b>pts</b>(4), <b>pty</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-29</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

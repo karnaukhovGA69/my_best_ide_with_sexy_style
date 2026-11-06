@@ -1,0 +1,98 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">profil(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">profil(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">profil - execution time profile</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int profil(unsigned short *</b><i>buf</i><b>, size_t </b><i>bufsiz</i><b>,</b>
+<b>           size_t </b><i>offset</i><b>, unsigned int </b><i>scale</i><b>);</b></pre>
+<pre></pre>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>profil</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.21:
+<br/>
+        _DEFAULT_SOURCE
+<br/>
+    In glibc 2.19 and 2.20:
+<br/>
+        _DEFAULT_SOURCE || (_XOPEN_SOURCE &amp;&amp; _XOPEN_SOURCE &lt; 500)
+<br/>
+    Up to and including glibc 2.19:
+<br/>
+        _BSD_SOURCE || (_XOPEN_SOURCE &amp;&amp; _XOPEN_SOURCE &lt; 500)</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This routine provides a means to find out in what areas your
+    program spends most of its time. The argument <i>buf</i> points to
+    <i>bufsiz</i> bytes of core. Every virtual 10 milliseconds, the user's
+    program counter (PC) is examined: <i>offset</i> is subtracted and the result
+    is multiplied by <i>scale</i> and divided by 65536. If the resulting value
+    is less than <i>bufsiz</i>, then the corresponding entry in <i>buf</i> is
+    incremented. If <i>buf</i> is NULL, profiling is disabled.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Zero is always returned.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>profil ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Similar to a call in SVr4.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp"><b>profil</b>() cannot be used on a program that also uses
+    <b>ITIMER_PROF</b> interval timers (see <b>setitimer</b>(2)).</p>
+<p class="Pp">True kernel profiling provides more accurate results.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>gprof</b>(1), <b>sprof</b>(1), <b>setitimer</b>(2),
+    <b>sigaction</b>(2), <b>signal</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

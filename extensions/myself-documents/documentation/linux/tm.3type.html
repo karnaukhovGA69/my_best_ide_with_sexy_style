@@ -1,0 +1,105 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">tm(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">tm(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">tm - broken-down time</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;time.h&gt;</b></pre>
+<pre><b>struct tm {</b>
+<b>    int         tm_sec;</b>    /* Seconds          [<b>0</b>, <b>60</b>] */
+<b>    int         tm_min;</b>    /* Minutes          [<b>0</b>, <b>59</b>] */
+<b>    int         tm_hour;</b>   /* Hour             [<b>0</b>, <b>23</b>] */
+<b>    int         tm_mday;</b>   /* Day of the month [<b>1</b>, <b>31</b>] */
+<b>    int         tm_mon;</b>    /* Month            [<b>0</b>, <b>11</b>]  (January = <b>0</b>) */
+<b>    int         tm_year;</b>   /* Year minus <b>1900</b> */
+<b>    int         tm_wday;</b>   /* Day of the week  [<b>0</b>, <b>6</b>]   (Sunday = <b>0</b>) */
+<b>    int         tm_yday;</b>   /* Day of the year  [<b>0</b>, <b>365</b>] (Jan/01 = <b>0</b>) */
+<b>    int         tm_isdst;</b>  /* Daylight savings flag */
+<br/>
+    /* Since POSIX.1-2024:  */
+<b>    long        tm_gmtoff;</b> /* Seconds East of UTC */
+<b>    const char *tm_zone;</b>   /* Timezone abbreviation */
+<b>};</b>
+</pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><i>tm_gmtoff</i>, <i>tm_zone</i>:</p>
+<pre>
+<br/>
+    Since glibc 2.20:
+<br/>
+        _DEFAULT_SOURCE
+<br/>
+    glibc 2.20 and earlier:
+<br/>
+        _BSD_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Describes time, broken down into distinct components.</p>
+<p class="Pp"><i>tm_isdst</i> describes whether daylight saving time is in
+    effect at the time described. The value is positive if daylight saving time
+    is in effect, zero if it is not, and negative if the information is not
+    available.</p>
+<p class="Pp"><i>tm_gmtoff</i> is the difference, in seconds, of the timezone
+    represented by this broken-down time and UTC (this is the additive inverse
+    of <b>timezone</b>(3)).</p>
+<p class="Pp"><i>tm_zone</i> is the equivalent of <b>tzname</b>(3) for the
+    timezone represented by this broken-down time.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">In C90, <i>tm_sec</i> could represent values in the range
+    [<b>0</b>, <b>61</b>], which could represent a double leap second. UTC
+    doesn't permit double leap seconds, so it was limited to <b>60</b> in
+  C99.</p>
+<p class="Pp"><b>timezone</b>(3), as a variable, is an XSI extension: some
+    systems provide the V7-compatible <b>timezone</b>(3) function. The
+    <i>tm_gmtoff</i> field provides an alternative (with the opposite sign) for
+    those systems.</p>
+<p class="Pp"><i>tm_zone</i> points to static storage and may be overridden on
+    subsequent calls to <b>localtime</b>(3) and similar functions (however, this
+    never happens under glibc).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C23, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, POSIX.1-1988.</p>
+<p class="Pp"><i>tm_gmtoff</i> and <i>tm_zone</i> originate from 4.3BSD-Tahoe
+    (where <i>tm_zone</i> is a <i>char *</i>), and were first standardized in
+    POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp"><i>tm_sec</i> can represent a leap second with the value
+    <b>60</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ctime</b>(3), <b>strftime</b>(3), <b>strptime</b>(3),
+    <b>time</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-29</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

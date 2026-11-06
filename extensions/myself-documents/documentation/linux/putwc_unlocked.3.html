@@ -1,0 +1,168 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">unlocked_stdio(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">unlocked_stdio(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getc_unlocked, getchar_unlocked, putc_unlocked, putchar_unlocked -
+    nonlocking stdio functions</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>int getc_unlocked(FILE *</b><i>stream</i><b>);</b>
+<b>int getchar_unlocked(void);</b>
+<b>int putc_unlocked(int </b><i>c</i><b>, FILE *</b><i>stream</i><b>);</b>
+<b>int putchar_unlocked(int </b><i>c</i><b>);</b></pre>
+<pre><b>void clearerr_unlocked(FILE *</b><i>stream</i><b>);</b>
+<b>int feof_unlocked(FILE *</b><i>stream</i><b>);</b>
+<b>int ferror_unlocked(FILE *</b><i>stream</i><b>);</b>
+<b>int fileno_unlocked(FILE *</b><i>stream</i><b>);</b>
+<b>int fflush_unlocked(FILE *_Nullable </b><i>stream</i><b>);</b></pre>
+<pre><b>int fgetc_unlocked(FILE *</b><i>stream</i><b>);</b>
+<b>int fputc_unlocked(int </b><i>c</i><b>, FILE *</b><i>stream</i><b>);</b></pre>
+<pre><b>size_t fread_unlocked(</b>size_t size, size_t n;
+<b>                      void </b><i>ptr</i><b>[restrict </b><i>size</i><b> * </b><i>n</i><b>],</b>
+<b>                      size_t </b><i>size</i><b>, size_t </b><i>n</i><b>,</b>
+<b>                      FILE *restrict </b><i>stream</i><b>);</b>
+<b>size_t fwrite_unlocked(</b>size_t size, size_t n;
+<b>                      const void </b><i>ptr</i><b>[restrict </b><i>size</i><b> * </b><i>n</i><b>],</b>
+<b>                      size_t </b><i>size</i><b>, size_t </b><i>n</i><b>,</b>
+<b>                      FILE *restrict </b><i>stream</i><b>);</b></pre>
+<pre><b>char *fgets_unlocked(</b>int n;
+<b>                      char </b><i>s</i><b>[restrict </b><i>n</i><b>], int </b><i>n</i><b>, FILE *restrict </b><i>stream</i><b>);</b>
+<b>int fputs_unlocked(const char *restrict </b><i>s</i><b>, FILE *restrict </b><i>stream</i><b>);</b></pre>
+<pre><b>#include &lt;wchar.h&gt;</b></pre>
+<pre><b>wint_t getwc_unlocked(FILE *</b><i>stream</i><b>);</b>
+<b>wint_t getwchar_unlocked(void);</b>
+<b>wint_t fgetwc_unlocked(FILE *</b><i>stream</i><b>);</b></pre>
+<pre><b>wint_t fputwc_unlocked(wchar_t </b><i>wc</i><b>, FILE *</b><i>stream</i><b>);</b>
+<b>wint_t putwc_unlocked(wchar_t </b><i>wc</i><b>, FILE *</b><i>stream</i><b>);</b>
+<b>wint_t putwchar_unlocked(wchar_t </b><i>wc</i><b>);</b></pre>
+<pre><b>wchar_t *fgetws_unlocked(</b>int n;
+<b>                      wchar_t </b><i>ws</i><b>[restrict </b><i>n</i><b>], int </b><i>n</i><b>,</b>
+<b>                      FILE *restrict </b><i>stream</i><b>);</b>
+<b>int fputws_unlocked(const wchar_t *restrict </b><i>ws</i><b>,</b>
+<b>                      FILE *restrict </b><i>stream</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>getc_unlocked</b>(), <b>getchar_unlocked</b>(),
+    <b>putc_unlocked</b>(), <b>putchar_unlocked</b>():</p>
+<pre>
+<br/>
+    /* glibc &gt;= 2.24: */ _POSIX_C_SOURCE &gt;= 199309L
+<br/>
+        || /* glibc &lt;= 2.23: */ _POSIX_C_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _SVID_SOURCE || _BSD_SOURCE</pre>
+<p class="Pp"><b>clearerr_unlocked</b>(), <b>feof_unlocked</b>(),
+    <b>ferror_unlocked</b>(), <b>fileno_unlocked</b>(),
+    <b>fflush_unlocked</b>(), <b>fgetc_unlocked</b>(), <b>fputc_unlocked</b>(),
+    <b>fread_unlocked</b>(), <b>fwrite_unlocked</b>():</p>
+<pre>
+<br/>
+    /* glibc &gt;= 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _SVID_SOURCE || _BSD_SOURCE</pre>
+<p class="Pp"><b>fgets_unlocked</b>(), <b>fputs_unlocked</b>(),
+    <b>getwc_unlocked</b>(), <b>getwchar_unlocked</b>(),
+    <b>fgetwc_unlocked</b>(), <b>fputwc_unlocked</b>(),
+    <b>putwchar_unlocked</b>(), <b>fgetws_unlocked</b>(),
+    <b>fputws_unlocked</b>():</p>
+<pre>
+<br/>
+    _GNU_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Each of these functions has the same behavior as its counterpart
+    without the &quot;_unlocked&quot; suffix, except that they do not use
+    locking (they do not set locks themselves, and do not test for the presence
+    of locks set by others) and hence are thread-unsafe. See
+    <b>flockfile</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>getc_unlocked (), putc_unlocked (), clearerr_unlocked (),
+      fflush_unlocked (), fgetc_unlocked (), fputc_unlocked (), fread_unlocked
+      (), fwrite_unlocked (), fgets_unlocked (), fputs_unlocked (),
+      getwc_unlocked (), fgetwc_unlocked (), fputwc_unlocked (), putwc_unlocked
+      (), fgetws_unlocked (), fputws_unlocked ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe race:stream</td>
+  </tr>
+  <tr>
+    <td>getchar_unlocked (), getwchar_unlocked ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:stdin</td>
+  </tr>
+  <tr>
+    <td>putchar_unlocked (), putwchar_unlocked ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:stdout</td>
+  </tr>
+  <tr>
+    <td>feof_unlocked (), ferror_unlocked (), fileno_unlocked ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="getc_unlocked"><a class="permalink" href="#getc_unlocked"><b>getc_unlocked</b>()</a></dt>
+  <dd></dd>
+  <dt id="getchar_unlocked"><a class="permalink" href="#getchar_unlocked"><b>getchar_unlocked</b>()</a></dt>
+  <dd></dd>
+  <dt id="putc_unlocked"><a class="permalink" href="#putc_unlocked"><b>putc_unlocked</b>()</a></dt>
+  <dd></dd>
+  <dt id="putchar_unlocked"><a class="permalink" href="#putchar_unlocked"><b>putchar_unlocked</b>()</a></dt>
+  <dd>POSIX.1-2008.</dd>
+  <dt id="Others:"><a class="permalink" href="#Others:">Others:</a></dt>
+  <dd>None.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="getc_unlocked~2"><a class="permalink" href="#getc_unlocked~2"><b>getc_unlocked</b>()</a></dt>
+  <dd></dd>
+  <dt id="getchar_unlocked~2"><a class="permalink" href="#getchar_unlocked~2"><b>getchar_unlocked</b>()</a></dt>
+  <dd></dd>
+  <dt id="putc_unlocked~2"><a class="permalink" href="#putc_unlocked~2"><b>putc_unlocked</b>()</a></dt>
+  <dd></dd>
+  <dt id="putchar_unlocked~2"><a class="permalink" href="#putchar_unlocked~2"><b>putchar_unlocked</b>()</a></dt>
+  <dd>POSIX.1-2001.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>flockfile</b>(3), <b>stdio</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

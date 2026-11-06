@@ -1,0 +1,50 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_config.gz(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_config.gz(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/config.gz - kernel build configuration</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/config.gz</i> (since Linux 2.6)</dt>
+  <dd>This file exposes the configuration options that were used to build the
+      currently running kernel, in the same format as they would be shown in the
+      <i>.config</i> file that resulted when configuring the kernel (using
+      <i>make xconfig</i>, <i>make config</i>, or similar). The file contents
+      are compressed; view or search them using <b>zcat</b>(1) and
+      <b>zgrep</b>(1). As long as no changes have been made to the following
+      file, the contents of <i>/proc/config.gz</i> are the same as those
+      provided by:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>cat /lib/modules/$(uname -r)/build/.config
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd><i>/proc/config.gz</i> is provided only if the kernel is configured with
+      <b>CONFIG_IKCONFIG_PROC</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

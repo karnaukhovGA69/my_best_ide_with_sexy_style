@@ -1,0 +1,191 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">quotactl(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">quotactl(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">quotactl, quotactl_fd - manipulate disk quotas</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b> /* Definition of <b>Q_X*</b> and <b>XFS_QUOTA_*</b> constants
+                        (or <b>&lt;linux/dqblk_xfs.h&gt;</b>; see NOTES) */
+<b>#include &lt;sys/quota.h&gt;</b></pre>
+<pre><b>int quotactl(int </b><i>op</i><b>, const char *_Nullable </b><i>special</i><b>, int </b><i>id</i><b>,</b>
+<b>             caddr_t </b><i>addr</i><b>);</b></pre>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b> /* Definition of <b>Q_X*</b> and <b>XFS_QUOTA_*</b> constants
+                        (or <b>&lt;linux/dqblk_xfs.h&gt;</b>; see NOTES) */
+<b>#include &lt;sys/syscall.h&gt;</b>    /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(SYS_quotactl_fd, int </b><i>fd</i><b>, int </b><i>op</i><b>, int </b><i>id</i><b>, caddr_t </b><i>addr</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The quota system can be used to set per-user, per-group, and
+    per-project limits on the amount of disk space used on a filesystem. For
+    each user and/or group, a soft limit and a hard limit can be set for each
+    filesystem. The hard limit can't be exceeded. The soft limit can be
+    exceeded, but warnings will ensue. Moreover, the user can't exceed the soft
+    limit for more than grace period duration (one week by default) at a time;
+    after this, the soft limit counts as a hard limit.</p>
+<p class="Pp">The <b>quotactl</b>() and <b>quotactl_fd</b>() calls manipulate
+    disk quotas. The difference between these functions is the way the
+    filesystem being manipulated is specified, see description of the arguments
+    below. See NOTES for why one variant might be preferred over the other.</p>
+<p class="Pp">The <i>op</i> argument indicates an operation to be applied to the
+    user or group ID specified in <i>id</i>. To initialize the <i>op</i>
+    argument, use the <i>QCMD(subop, type)</i> macro. The <i>type</i> value is
+    either <b>USRQUOTA</b>, for user quotas, <b>GRPQUOTA</b>, for group quotas,
+    or (since Linux 4.1) <b>PRJQUOTA</b>, for project quotas. The <i>subop</i>
+    value is described below.</p>
+<p class="Pp">For <b>quotactl</b>(), the <i>special</i> argument is a pointer to
+    a null-terminated string containing the pathname of the (mounted) block
+    special device for the filesystem being manipulated.</p>
+<p class="Pp">For <b>quotactl_fd</b>(), the <i>fd</i> argument is a file
+    descriptor (which may be opened with the <b>O_PATH</b> flag) referring to a
+    file or directory on the filesystem being manipulated.</p>
+<p class="Pp">The <i>addr</i> argument is the address of an optional,
+    operation-specific, data structure that is copied in or out of the system.
+    The interpretation of <i>addr</i> is given with each operation below.</p>
+<p class="Pp">The <i>subop</i> value is one of the following operations:</p>
+<dl class="Bl-tag">
+  <dt id="Q_QUOTAON"><a class="permalink" href="#Q_QUOTAON"><b>Q_QUOTAON</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_QUOTAOFF"><a class="permalink" href="#Q_QUOTAOFF"><b>Q_QUOTAOFF</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_GETQUOTA"><a class="permalink" href="#Q_GETQUOTA"><b>Q_GETQUOTA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_GETNEXTQUOTA"><a class="permalink" href="#Q_GETNEXTQUOTA"><b>Q_GETNEXTQUOTA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_SETQUOTA"><a class="permalink" href="#Q_SETQUOTA"><b>Q_SETQUOTA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_GETINFO"><a class="permalink" href="#Q_GETINFO"><b>Q_GETINFO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_SETINFO"><a class="permalink" href="#Q_SETINFO"><b>Q_SETINFO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_GETFMT"><a class="permalink" href="#Q_GETFMT"><b>Q_GETFMT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_SYNC"><a class="permalink" href="#Q_SYNC"><b>Q_SYNC</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_GETSTATS"><a class="permalink" href="#Q_GETSTATS"><b>Q_GETSTATS</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+<p class="Pp">For XFS filesystems making use of the XFS Quota Manager (XQM), the
+    above operations are bypassed and the following operations are used:</p>
+<dl class="Bl-tag">
+  <dt id="Q_XQUOTAON"><a class="permalink" href="#Q_XQUOTAON"><b>Q_XQUOTAON</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XQUOTAOFF"><a class="permalink" href="#Q_XQUOTAOFF"><b>Q_XQUOTAOFF</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XGETQUOTA"><a class="permalink" href="#Q_XGETQUOTA"><b>Q_XGETQUOTA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XGETNEXTQUOTA"><a class="permalink" href="#Q_XGETNEXTQUOTA"><b>Q_XGETNEXTQUOTA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XSETQLIM"><a class="permalink" href="#Q_XSETQLIM"><b>Q_XSETQLIM</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XGETQSTAT"><a class="permalink" href="#Q_XGETQSTAT"><b>Q_XGETQSTAT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XGETQSTATV"><a class="permalink" href="#Q_XGETQSTATV"><b>Q_XGETQSTATV</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XQUOTARM"><a class="permalink" href="#Q_XQUOTARM"><b>Q_XQUOTARM</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="Q_XQUOTASYNC"><a class="permalink" href="#Q_XQUOTASYNC"><b>Q_XQUOTASYNC</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned; on error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>addr</i> or <i>special</i> is invalid.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>op</i> or <i>type</i> is invalid.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>The file specified by <i>special</i> or <i>addr</i> does not exist.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd>The kernel has not been compiled with the <b>CONFIG_QUOTA</b> option.</dd>
+  <dt id="ENOTBLK"><a class="permalink" href="#ENOTBLK"><b>ENOTBLK</b></a></dt>
+  <dd><i>special</i> is not a block device.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The caller lacked the required privilege (<b>CAP_SYS_ADMIN</b>) for the
+      specified operation.</dd>
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b></a></dt>
+  <dd>No disk quota is found for the indicated user. Quotas have not been turned
+      on for this filesystem.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Alternative_XFS_header"><a class="permalink" href="#Alternative_XFS_header">Alternative
+  XFS header</a></h2>
+<p class="Pp">Instead of <i>&lt;xfs/xqm.h&gt;</i> one can use
+    <i>&lt;linux/dqblk_xfs.h&gt;</i>, taking into account that there are several
+    naming discrepancies:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>Quota enabling flags (of format <b>XFS_QUOTA_[UGP]DQ_{ACCT,ENFD}</b>) are
+      defined without a leading &quot;X&quot;, as
+      <b>FS_QUOTA_[UGP]DQ_{ACCT,ENFD}</b>.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The same is true for <b>XFS_{USER,GROUP,PROJ}_QUOTA</b> quota type flags,
+      which are defined as <b>FS_{USER,GROUP,PROJ}_QUOTA</b>.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The <i>dqblk_xfs.h</i> header file defines its own <b>XQM_USRQUOTA</b>,
+      <b>XQM_GRPQUOTA</b>, and <b>XQM_PRJQUOTA</b> constants for the available
+      quota types, but their values are the same as for constants without the
+      <b>XQM_</b> prefix.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="quotactl()_versus_quotactl_fd()"><a class="permalink" href="#quotactl()_versus_quotactl_fd()">quotactl()
+  versus quotactl_fd()</a></h2>
+<p class="Pp">The original <b>quotactl</b>() variant of this system call
+    requires specifying the block device containing the filesystem to operate
+    on. This makes it impossible to use in cases where the filesystem has no
+    backing block device (e.g., tmpfs). Even when the block device does exist,
+    it might be difficult to locate (requires scanning <i>/proc/self/mounts</i>
+    and even some filesystem-specific parsing in the case of, for example,
+    bcachefs). <b>quotactl_fd</b>() instead works on the mount point, which
+    avoids this limitation and is simpler to use (since the filesystem to
+    manipulate is typically specified by its mount point anyway).</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="quotactl_fd"><a class="permalink" href="#quotactl_fd"><b>quotactl_fd</b>()</a></dt>
+  <dd>Linux 5.14.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>quota</b>(1), <b>getrlimit</b>(2), <b>quotacheck</b>(8),
+    <b>quotaon</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

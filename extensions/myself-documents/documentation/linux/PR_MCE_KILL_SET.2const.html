@@ -1,0 +1,69 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_MCE_KILL_SET(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_MCE_KILL_SET(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_MCE_KILL_SET - set the machine check memory corruption kill
+    policy</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_MCE_KILL, PR_MCE_KILL_SET, long </b><i>pol</i><b>, 0L, 0L);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Use a thread-specific memory corruption kill policy.</p>
+<p class="Pp"><i>pol</i> defines whether the policy is <i>early kill</i>
+    (<b>PR_MCE_KILL_EARLY</b>), <i>late kill</i> (<b>PR_MCE_KILL_LATE</b>), or
+    the system-wide default (<b>PR_MCE_KILL_DEFAULT</b>).</p>
+<p class="Pp">Early kill means that the thread receives a <b>SIGBUS</b> signal
+    as soon as hardware memory corruption is detected inside its address
+  space.</p>
+<p class="Pp">In late kill mode, the process is killed only when it accesses a
+    corrupted page. See <b>sigaction</b>(2) for more information on the
+    <b>SIGBUS</b> signal.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>pol</i> is not a valid value.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.32.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>PR_MCE_KILL</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

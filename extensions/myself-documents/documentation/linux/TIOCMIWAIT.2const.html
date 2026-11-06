@@ -1,0 +1,157 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TIOCMSET(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TIOCMSET(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TIOCMGET, TIOCMSET, TIOCMBIC, TIOCMBIS, TIOCMIWAIT, TIOCGICOUNT -
+    modem control</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of <b>TIOC*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TIOCMGET, int *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCMSET, const int *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCMBIC, const int *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCMBIS, const int *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCMIWAIT, int </b><i>arg</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCGICOUNT, struct serial_icounter_struct *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;linux/serial.h&gt;</b></pre>
+<pre><b>struct serial_icounter_struct;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="TIOCMGET"><a class="permalink" href="#TIOCMGET"><b>TIOCMGET</b></a></dt>
+  <dd>Get the status of modem bits.</dd>
+  <dt id="TIOCMSET"><a class="permalink" href="#TIOCMSET"><b>TIOCMSET</b></a></dt>
+  <dd>Set the status of modem bits.</dd>
+  <dt id="TIOCMBIC"><a class="permalink" href="#TIOCMBIC"><b>TIOCMBIC</b></a></dt>
+  <dd>Clear the indicated modem bits.</dd>
+  <dt id="TIOCMBIS"><a class="permalink" href="#TIOCMBIS"><b>TIOCMBIS</b></a></dt>
+  <dd>Set the indicated modem bits.</dd>
+</dl>
+<p class="Pp">The following bits are used by the above ioctls:</p>
+<p class="Pp"></p>
+<table class="tbl">
+  <tr>
+    <td><b>TIOCM_LE</b></td>
+    <td>DSR (data set ready/line enable)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_DTR</b></td>
+    <td>DTR (data terminal ready)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_RTS</b></td>
+    <td>RTS (request to send)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_ST</b></td>
+    <td>Secondary TXD (transmit)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_SR</b></td>
+    <td>Secondary RXD (receive)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_CTS</b></td>
+    <td>CTS (clear to send)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_CAR</b></td>
+    <td>DCD (data carrier detect)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_CD</b></td>
+    <td>see TIOCM_CAR</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_RNG</b></td>
+    <td>RNG (ring)</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_RI</b></td>
+    <td>see TIOCM_RNG</td>
+  </tr>
+  <tr>
+    <td><b>TIOCM_DSR</b></td>
+    <td>DSR (data set ready)</td>
+  </tr>
+</table>
+<dl class="Bl-tag">
+  <dt id="TIOCMIWAIT"><a class="permalink" href="#TIOCMIWAIT"><b>TIOCMIWAIT</b></a></dt>
+  <dd>Wait for any of the 4 modem bits (DCD, RI, DSR, CTS) to change. The bits
+      of interest are specified as a bit mask in <i>arg</i>, by ORing together
+      any of the bit values, <b>TIOCM_RNG</b>, <b>TIOCM_DSR</b>,
+      <b>TIOCM_CD</b>, and <b>TIOCM_CTS</b>. The caller should use
+      <b>TIOCGICOUNT</b> to see which bit has changed.</dd>
+  <dt id="TIOCGICOUNT"><a class="permalink" href="#TIOCGICOUNT"><b>TIOCGICOUNT</b></a></dt>
+  <dd>Get counts of input serial line interrupts (DCD, RI, DSR, CTS). The counts
+      are written to the <i>serial_icounter_struct</i> structure pointed to by
+      <i>argp</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Note: both 1-&gt;0 and 0-&gt;1 transitions are counted, except for RI,
+      where only 0-&gt;1 transitions are counted.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">Check the condition of DTR on the serial port.</p>
+<p class="Pp"></p>
+<pre>#include &lt;asm/termbits.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;unistd.h&gt;
+int
+main(void)
+{
+<br/>
+    int fd, serial;
+<br/>
+    fd = open(&quot;/dev/ttyS0&quot;, O_RDONLY);
+<br/>
+    ioctl(fd, TIOCMGET, &amp;serial);
+<br/>
+    if (serial &amp; TIOCM_DTR)
+<br/>
+        puts(&quot;TIOCM_DTR is set&quot;);
+<br/>
+    else
+<br/>
+        puts(&quot;TIOCM_DTR is not set&quot;);
+<br/>
+    close(fd);
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

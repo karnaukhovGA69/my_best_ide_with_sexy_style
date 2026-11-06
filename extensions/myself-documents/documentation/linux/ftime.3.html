@@ -1,0 +1,106 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ftime(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">ftime(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ftime - return date and time</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/timeb.h&gt;</b></pre>
+<pre><b>[[deprecated]] int ftime(struct timeb *</b><i>tp</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>NOTE</b>: This function is no longer provided by the GNU C
+    library. Use <b>clock_gettime</b>(2) instead.</p>
+<p class="Pp">This function returns the current time as seconds and milliseconds
+    since the Epoch, 1970-01-01 00:00:00 +0000 (UTC). The time is returned in
+    <i>tp</i>, which is declared as follows:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct timeb {
+<br/>
+    time_t         time;
+<br/>
+    unsigned short millitm;
+<br/>
+    short          timezone;
+<br/>
+    short          dstflag;
+};
+</pre>
+<br/>
+<p class="Pp">Here <i>time</i> is the number of seconds since the Epoch, and
+    <i>millitm</i> is the number of milliseconds since <i>time</i> seconds since
+    the Epoch. The <i>timezone</i> field is the local timezone measured in
+    minutes of time west of Greenwich (with a negative value indicating minutes
+    east of Greenwich). The <i>dstflag</i> field is a flag that, if nonzero,
+    indicates that Daylight Saving time applies locally during the appropriate
+    part of the year.</p>
+<p class="Pp">POSIX.1-2001 says that the contents of the <i>timezone</i> and
+    <i>dstflag</i> fields are unspecified; avoid relying on them.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">This function always returns 0. (POSIX.1-2001 specifies, and some
+    systems document, a -1 error return.)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>ftime ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.2BSD. Marked as LEGACY in POSIX.1-2001; removed in POSIX.1-2008.
+    Removed in glibc 2.33.</p>
+<p class="Pp">This function is obsolete. Don't use it. If the time in seconds
+    suffices, <b>time</b>(2) can be used; <b>gettimeofday</b>(2) gives
+    microseconds; <b>clock_gettime</b>(2) gives nanoseconds but is not as widely
+    available.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">Early glibc2 is buggy and returns 0 in the <i>millitm</i> field;
+    glibc 2.1.1 is correct again.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>gettimeofday</b>(2), <b>time</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-29</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

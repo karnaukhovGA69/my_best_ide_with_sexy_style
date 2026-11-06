@@ -1,0 +1,37 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_sysvipc(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_sysvipc(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/sysvipc/ - System V IPC</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/sysvipc/</i></dt>
+  <dd>Subdirectory containing the pseudo-files <i>msg</i>, <i>sem</i> and
+      <i>shm</i>. These files list the System V Interprocess Communication (IPC)
+      objects (respectively: message queues, semaphores, and shared memory) that
+      currently exist on the system, providing similar information to that
+      available via <b>ipcs</b>(1). These files have headers and are formatted
+      (one IPC object per line) for easy understanding. <b>sysvipc</b>(7)
+      provides further background on the information shown by these files.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

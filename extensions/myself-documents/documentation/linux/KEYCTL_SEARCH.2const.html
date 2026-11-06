@@ -1,0 +1,93 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_SEARCH(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_SEARCH(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_SEARCH - search a keyring for a key</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_SEARCH, key_serial_t </b><i>src</i><b>,</b>
+<b>             char *</b><i>type</i><b>, char *</b><i>desc</i><b>,</b>
+<b>             unsigned long </b><i>dst</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Search for a key in a keyring tree, returning its ID and
+    optionally linking it to a specified keyring.</p>
+<p class="Pp">The tree to be searched is specified by passing the ID of the head
+    keyring in <i>src</i>. The search is performed breadth-first and
+    recursively.</p>
+<p class="Pp">The <i>type</i> and <i>desc</i> arguments specify the key to be
+    searched for: <i>type</i> contains the key type (a null-terminated character
+    string up to 32 bytes in size, including the terminating null byte), and
+    <i>desc</i> contains the description of the key (a null-terminated character
+    string up to 4096 bytes in size, including the terminating null byte).</p>
+<p class="Pp">The source keyring must grant <i>search</i> permission to the
+    caller. When performing the recursive search, only keyrings that grant the
+    caller <i>search</i> permission will be searched. Only keys with for which
+    the caller has <i>search</i> permission can be found.</p>
+<p class="Pp">If the key is found, its ID is returned as the function
+  result.</p>
+<p class="Pp">If the key is found and <i>dst</i> is nonzero, then, subject to
+    the same constraints and rules as <b>KEYCTL_LINK</b>(2const), the key is
+    linked into the keyring whose ID is specified in <i>dst</i>. If the
+    destination keyring specified in <i>dst</i> already contains a link to a key
+    that has the same type and description, then that link will be displaced by
+    a link to the key found by this operation.</p>
+<p class="Pp">Instead of valid existing keyring IDs, the source (<i>src</i>) and
+    destination (<i>dst</i>) keyrings can be one of the special keyring IDs
+    listed under <b>KEYCTL_GET_KEYRING_ID</b>(2const).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the ID of the key that was found.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The size of the description in <i>desc</i> (including the terminating null
+      byte) exceeded 4096 bytes.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_search</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.10.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_search</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

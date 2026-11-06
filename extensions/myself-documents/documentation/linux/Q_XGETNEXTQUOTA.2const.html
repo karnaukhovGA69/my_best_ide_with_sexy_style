@@ -1,0 +1,74 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">Q_XGETNEXTQUOTA(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">Q_XGETNEXTQUOTA(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">Q_XGETNEXTQUOTA - get disk quota limits for next user or group for
+    an XFS filesystem</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b>      /* See quotactl(2) */
+<b>#include &lt;sys/quota.h&gt;</b></pre>
+<pre><b>int&#x00A0;quotactl(QCMD(Q_XGETNEXTQUOTA, </b><i>type</i><b>), const&#x00A0;char&#x00A0;*_Nullable&#x00A0;</b><i>special</i><b>,</b>
+<b>             int&#x00A0;</b><i>id</i><b>, caddr_t&#x00A0;</b><i>addr</i><b>);</b></pre>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b>      /* See quotactl_fd(2) */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int&#x00A0;syscall(SYS_quotactl_fd, int </b><i>fd</i><b>, QCMD(Q_XGETNEXTQUOTA, </b><i>type</i><b>),</b>
+<b>             int&#x00A0;</b><i>id</i><b>, struct&#x00A0;fs_disk_quota&#x00A0;*</b><i>addr</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This operation is the same as <b>Q_XGETQUOTA</b>(2const), but it
+    returns (in the <b>fs_disk_quota</b>(2type) structure pointed to by
+    <i>addr</i>) quota information for the next ID greater than or equal to
+    <i>id</i> that has a quota set.</p>
+<p class="Pp">Since <b>fs_disk_quota</b>(2type) already has <i>q_id</i> field,
+    no separate structure type is needed (in contrast with
+    <b>Q_GETQUOTA</b>(2const) and <b>Q_GETNEXTQUOTA</b>(2const)).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b></a></dt>
+  <dd>There is no ID greater than or equal to <i>id</i> that has an active
+      quota.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.6.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>quotactl</b>(2), <b>quotactl_fd</b>(2),
+    <b>Q_XGETQUOTA</b>(2const), <b>fs_disk_quota</b>(2type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

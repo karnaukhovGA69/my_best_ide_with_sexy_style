@@ -1,0 +1,179 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/, /proc/self/ - process information</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/</i></dt>
+  <dd>There is a numerical subdirectory for each running process; the
+      subdirectory is named by the process ID. Each <i>/proc/</i>pid
+      subdirectory contains the pseudo-files and directories described
+    below.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The files inside each <i>/proc/</i>pid directory are normally owned by the
+      effective user and effective group ID of the process. However, as a
+      security measure, the ownership is made <i>root:root</i> if the process's
+      &quot;dumpable&quot; attribute is set to a value other than 1.</dd>
+  <dt></dt>
+  <dd>Before Linux 4.11, <i>root:root</i> meant the &quot;global&quot; root user
+      ID and group ID (i.e., UID 0 and GID 0 in the initial user namespace).
+      Since Linux 4.11, if when the last time the process called
+      <b>execve</b>(2), it was in a noninitial user namespace that has a valid
+      mapping for user (group) ID 0 inside the namespace, then the user (group)
+      ownership of the files under <i>/proc/</i>pid is instead made the same as
+      the root user (group) ID of the namespace. This means that inside a
+      container, things work as expected for the container &quot;root&quot;
+      user.</dd>
+  <dt></dt>
+  <dd>The process's &quot;dumpable&quot; attribute may change for the following
+      reasons:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>The attribute was explicitly set via the <b>prctl</b>(2)
+      <b>PR_SET_DUMPABLE</b> operation.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The attribute was reset to the value in the file
+      <i>/proc/sys/fs/suid_dumpable</i> (described below), for the reasons
+      described in <b>prctl</b>(2).</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Resetting the &quot;dumpable&quot; attribute to 1 reverts the ownership of
+      the <i>/proc/</i>pid<i>/*</i> files to the process's effective UID and
+      GID. Note, however, that if the effective UID or GID is subsequently
+      modified, then the &quot;dumpable&quot; attribute may be reset, as
+      described in <b>prctl</b>(2). Therefore, it may be desirable to reset the
+      &quot;dumpable&quot; attribute <i>after</i> making any desired changes to
+      the process's effective UID or GID.</dd>
+  <dt></dt>
+  <dd>See also:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="proc_pid_attr"><a class="permalink" href="#proc_pid_attr"><b>proc_pid_attr</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_autogroup"><a class="permalink" href="#proc_pid_autogroup"><b>proc_pid_autogroup</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_auxv"><a class="permalink" href="#proc_pid_auxv"><b>proc_pid_auxv</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_cgroup"><a class="permalink" href="#proc_pid_cgroup"><b>proc_pid_cgroup</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_clear_refs"><a class="permalink" href="#proc_pid_clear_refs"><b>proc_pid_clear_refs</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_cmdline"><a class="permalink" href="#proc_pid_cmdline"><b>proc_pid_cmdline</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_comm"><a class="permalink" href="#proc_pid_comm"><b>proc_pid_comm</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_coredump_filter"><a class="permalink" href="#proc_pid_coredump_filter"><b>proc_pid_coredump_filter</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_cpuset"><a class="permalink" href="#proc_pid_cpuset"><b>proc_pid_cpuset</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_cwd"><a class="permalink" href="#proc_pid_cwd"><b>proc_pid_cwd</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_environ"><a class="permalink" href="#proc_pid_environ"><b>proc_pid_environ</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_exe"><a class="permalink" href="#proc_pid_exe"><b>proc_pid_exe</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_fd"><a class="permalink" href="#proc_pid_fd"><b>proc_pid_fd</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_fdinfo"><a class="permalink" href="#proc_pid_fdinfo"><b>proc_pid_fdinfo</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_gid_map"><a class="permalink" href="#proc_pid_gid_map"><b>proc_pid_gid_map</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_io"><a class="permalink" href="#proc_pid_io"><b>proc_pid_io</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_limits"><a class="permalink" href="#proc_pid_limits"><b>proc_pid_limits</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_map_files"><a class="permalink" href="#proc_pid_map_files"><b>proc_pid_map_files</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_maps"><a class="permalink" href="#proc_pid_maps"><b>proc_pid_maps</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_mem"><a class="permalink" href="#proc_pid_mem"><b>proc_pid_mem</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_mountinfo"><a class="permalink" href="#proc_pid_mountinfo"><b>proc_pid_mountinfo</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_mounts"><a class="permalink" href="#proc_pid_mounts"><b>proc_pid_mounts</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_mountstats"><a class="permalink" href="#proc_pid_mountstats"><b>proc_pid_mountstats</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_net"><a class="permalink" href="#proc_pid_net"><b>proc_pid_net</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_ns"><a class="permalink" href="#proc_pid_ns"><b>proc_pid_ns</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_numa_maps"><a class="permalink" href="#proc_pid_numa_maps"><b>proc_pid_numa_maps</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_oom_adj"><a class="permalink" href="#proc_pid_oom_adj"><b>proc_pid_oom_adj</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_oom_score"><a class="permalink" href="#proc_pid_oom_score"><b>proc_pid_oom_score</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_oom_score_adj"><a class="permalink" href="#proc_pid_oom_score_adj"><b>proc_pid_oom_score_adj</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_pagemap"><a class="permalink" href="#proc_pid_pagemap"><b>proc_pid_pagemap</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_personality"><a class="permalink" href="#proc_pid_personality"><b>proc_pid_personality</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_projid_map"><a class="permalink" href="#proc_pid_projid_map"><b>proc_pid_projid_map</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_root"><a class="permalink" href="#proc_pid_root"><b>proc_pid_root</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_seccomp"><a class="permalink" href="#proc_pid_seccomp"><b>proc_pid_seccomp</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_setgroups"><a class="permalink" href="#proc_pid_setgroups"><b>proc_pid_setgroups</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_smaps"><a class="permalink" href="#proc_pid_smaps"><b>proc_pid_smaps</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_stack"><a class="permalink" href="#proc_pid_stack"><b>proc_pid_stack</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_stat"><a class="permalink" href="#proc_pid_stat"><b>proc_pid_stat</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_statm"><a class="permalink" href="#proc_pid_statm"><b>proc_pid_statm</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_status"><a class="permalink" href="#proc_pid_status"><b>proc_pid_status</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_syscall"><a class="permalink" href="#proc_pid_syscall"><b>proc_pid_syscall</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_task"><a class="permalink" href="#proc_pid_task"><b>proc_pid_task</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_timers"><a class="permalink" href="#proc_pid_timers"><b>proc_pid_timers</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_timerslack_ns"><a class="permalink" href="#proc_pid_timerslack_ns"><b>proc_pid_timerslack_ns</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_uid_map"><a class="permalink" href="#proc_pid_uid_map"><b>proc_pid_uid_map</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_pid_wchan"><a class="permalink" href="#proc_pid_wchan"><b>proc_pid_wchan</b>(5)</a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt><i>/proc/self/</i></dt>
+  <dd>This directory refers to the process accessing the <i>/proc</i>
+      filesystem, and is identical to the <i>/proc</i> directory named by the
+      process ID of the same process.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-03-18</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

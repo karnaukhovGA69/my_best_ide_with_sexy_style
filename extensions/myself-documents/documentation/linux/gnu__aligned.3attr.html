@@ -1,0 +1,63 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">gnu::aligned(3attr)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">gnu::aligned(3attr)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">gnu::aligned - set alignment of an object</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>[[gnu::aligned(</b><i>alignment</i><b>)]]</b>
+<b>[[gnu::aligned]]</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This attribute can be applied to a type or a variable, and sets
+    its <i>alignment</i> in bytes.</p>
+<p class="Pp">If the <i>alignment</i> is not specified, the maximum alignment is
+    used. This is equivalent to</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>[[gnu::aligned(alignof(max_align_t))]]
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<dl class="Bl-tag">
+  <dt><b>__attribute__((aligned(</b><i>alignment</i><b>)))</b></dt>
+  <dd></dd>
+  <dt><b>__declspec(align(</b><i>alignment</i><b>))</b></dt>
+  <dd></dd>
+</dl>
+<p class="Pp">C11 provides the <b>_Alignas</b>() type specifier, which has
+    similar semantics.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">gcc, g++, clang 11, clang++ 2.8.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">This attribute can increase the natural alignment of a type, but
+    it can't decrease it.</p>
+<p class="Pp">The linker may limit the maximum alignment that can be
+  applied.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-06-28</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

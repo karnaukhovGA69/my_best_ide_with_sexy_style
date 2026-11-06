@@ -1,0 +1,199 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fspick(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">fspick(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fspick - select filesystem for reconfiguration</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b>          /* Definition of <b>AT_*</b> constants */
+<b>#include &lt;sys/mount.h&gt;</b></pre>
+<pre><b>int fspick(int </b><i>dirfd</i><b>, const char *</b><i>path</i><b>, unsigned int </b><i>flags</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>fspick</b>() system call is part of the suite of
+    file-descriptor-based mount facilities in Linux.</p>
+<p class="Pp"><b>fspick</b>() creates a new filesystem configuration context for
+    the extant filesystem instance associated with the path described by
+    <i>dirfd</i> and <i>path</i>, places it into reconfiguration mode (similar
+    to <b>mount</b>(8) with the <b>-o&#x00A0;remount</b> option). A new file
+    descriptor associated with the filesystem configuration context is then
+    returned. The calling process must have the <b>CAP_SYS_ADMIN</b> capability
+    in order to create a new filesystem configuration context.</p>
+<p class="Pp">The resultant file descriptor can be used with <b>fsconfig</b>(2)
+    to specify the desired set of changes to filesystem parameters of the
+    filesystem instance. Once the desired set of changes have been configured,
+    the changes can be effectuated by calling <b>fsconfig</b>(2) with the
+    <b>FSCONFIG_CMD_RECONFIGURE</b> command. In contrast to the behavior of
+    <b>MS_REMOUNT</b> with <b>mount</b>(2), <b>fspick</b>() instantiates the
+    filesystem configuration context with a copy of the extant filesystem's
+    filesystem parameters; thus, subsequent <b>FSCONFIG_CMD_RECONFIGURE</b>
+    operations will only update filesystem parameters explicitly modified with
+    <b>fsconfig</b>(2).</p>
+<p class="Pp">As with &quot;*at()&quot; system calls, <b>fspick</b>() uses the
+    <i>dirfd</i> argument in conjunction with the <i>path</i> argument to
+    determine the path to operate on, as follows:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in <i>path</i> is absolute, then <i>dirfd</i> is
+      ignored.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in <i>path</i> is relative and <i>dirfd</i> is the
+      special value <b>AT_FDCWD</b>, then <i>path</i> is interpreted relative to
+      the current working directory of the calling process (like
+      <b>open</b>(2)).</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in <i>path</i> is relative, then it is interpreted
+      relative to the directory referred to by the file descriptor <i>dirfd</i>
+      (rather than relative to the current working directory of the calling
+      process, as is done by <b>open</b>(2) for a relative pathname). In this
+      case, <i>dirfd</i> must be a directory that was opened for reading
+      (<b>O_RDONLY</b>) or using the <b>O_PATH</b> flag.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If <i>path</i> is an empty string, and <i>flags</i> contains
+      <b>FSPICK_EMPTY_PATH</b>, then the file descriptor <i>dirfd</i> is
+      operated on directly. In this case, <i>dirfd</i> may refer to any type of
+      file, not just a directory.</dd>
+</dl>
+<p class="Pp">See <b>openat</b>(2) for an explanation of why the <i>dirfd</i>
+    argument is useful.</p>
+<p class="Pp"><i>flags</i> can be used to control aspects of how <i>path</i> is
+    resolved and properties of the returned file descriptor. A value for
+    <i>flags</i> is constructed by bitwise ORing zero or more of the following
+    constants:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="FSPICK_CLOEXEC"><a class="permalink" href="#FSPICK_CLOEXEC"><b>FSPICK_CLOEXEC</b></a></dt>
+  <dd>Set the close-on-exec (<b>FD_CLOEXEC</b>) flag on the new file descriptor.
+      See the description of the <b>O_CLOEXEC</b> flag in <b>open</b>(2) for
+      reasons why this may be useful.</dd>
+  <dt id="FSPICK_EMPTY_PATH"><a class="permalink" href="#FSPICK_EMPTY_PATH"><b>FSPICK_EMPTY_PATH</b></a></dt>
+  <dd>If <i>path</i> is an empty string, operate on the file referred to by
+      <i>dirfd</i> (which may have been obtained from <b>open</b>(2),
+      <b>fsmount</b>(2), or <b>open_tree</b>(2)). In this case, <i>dirfd</i> may
+      refer to any type of file, not just a directory. If <i>dirfd</i> is
+      <b>AT_FDCWD</b>, <b>fspick</b>() will operate on the current working
+      directory of the calling process.</dd>
+  <dt id="FSPICK_SYMLINK_NOFOLLOW"><a class="permalink" href="#FSPICK_SYMLINK_NOFOLLOW"><b>FSPICK_SYMLINK_NOFOLLOW</b></a></dt>
+  <dd>Do not follow symbolic links in the terminal component of <i>path</i>. If
+      <i>path</i> references a symbolic link, the returned filesystem context
+      will reference the filesystem that the symbolic link itself resides
+    on.</dd>
+  <dt id="FSPICK_NO_AUTOMOUNT"><a class="permalink" href="#FSPICK_NO_AUTOMOUNT"><b>FSPICK_NO_AUTOMOUNT</b></a></dt>
+  <dd>Do not automount the terminal (&quot;basename&quot;) component of
+      <i>path</i> if it is a directory that is an automount point. This allows
+      you to reconfigure an automount point, rather than the location that would
+      be mounted. This flag has no effect if the automount point has already
+      been mounted over.</dd>
+</dl>
+</div>
+<p class="Pp">As with filesystem contexts created with <b>fsopen</b>(2), the
+    file descriptor returned by <b>fspick</b>() may be queried for message
+    strings at any time by calling <b>read</b>(2) on the file descriptor. (See
+    the &quot;Message retrieval interface&quot; subsection in <b>fsopen</b>(2)
+    for more details on the message format.)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, a new file descriptor is returned. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>Search permission is denied for one of the directories in the path prefix
+      of <i>path</i>. (See also <b>path_resolution</b>(7).)</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>path</i> is relative but <i>dirfd</i> is neither <b>AT_FDCWD</b> nor a
+      valid file descriptor.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>path</i> is NULL or a pointer to a location outside the calling
+      process's accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid flag specified in <i>flags</i>.</dd>
+  <dt id="ELOOP"><a class="permalink" href="#ELOOP"><b>ELOOP</b></a></dt>
+  <dd>Too many symbolic links encountered when resolving <i>path</i>.</dd>
+  <dt id="EMFILE"><a class="permalink" href="#EMFILE"><b>EMFILE</b></a></dt>
+  <dd>The calling process has too many open files to create more.</dd>
+  <dt id="ENAMETOOLONG"><a class="permalink" href="#ENAMETOOLONG"><b>ENAMETOOLONG</b></a></dt>
+  <dd><i>path</i> is longer than <b>PATH_MAX</b>.</dd>
+  <dt id="ENFILE"><a class="permalink" href="#ENFILE"><b>ENFILE</b></a></dt>
+  <dd>The system has too many open files to create more.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>A component of <i>path</i> does not exist, or is a dangling symbolic
+    link.</dd>
+  <dt id="ENOENT~2"><a class="permalink" href="#ENOENT~2"><b>ENOENT</b></a></dt>
+  <dd><i>path</i> is an empty string, but <b>FSPICK_EMPTY_PATH</b> is not
+      specified in <i>flags</i>.</dd>
+  <dt id="ENOTDIR"><a class="permalink" href="#ENOTDIR"><b>ENOTDIR</b></a></dt>
+  <dd>A component of the path prefix of <i>path</i> is not a directory; or
+      <i>path</i> is relative and <i>dirfd</i> is a file descriptor referring to
+      a file other than a directory.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate sufficient memory to complete the
+    operation.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The calling process does not have the required <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.2. glibc 2.36.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following example sets the read-only flag on the filesystem
+    instance referenced by the mount object attached at <i>/tmp</i>.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int fsfd = fspick(AT_FDCWD, &quot;/tmp&quot;, FSPICK_CLOEXEC);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;ro&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_CMD_RECONFIGURE, NULL, NULL, 0);
+</pre>
+<br/>
+<p class="Pp">The above procedure is roughly equivalent to the following mount
+    operation using <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(NULL, &quot;/tmp&quot;, NULL, MS_REMOUNT | MS_RDONLY, NULL);
+</pre>
+<br/>
+<p class="Pp">With the notable caveat that in this example, <b>mount</b>(2) will
+    clear all other filesystem parameters (such as <b>MS_DIRSYNC</b> or
+    <b>MS_SYNCHRONOUS</b>); <b>fsconfig</b>(2) will only modify the <b>ro</b>
+    parameter.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fsconfig</b>(2), <b>fsmount</b>(2), <b>fsopen</b>(2),
+    <b>mount</b>(2), <b>mount_setattr</b>(2), <b>move_mount</b>(2),
+    <b>open_tree</b>(2), <b>mount_namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

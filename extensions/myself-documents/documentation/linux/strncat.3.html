@@ -1,0 +1,111 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strncat(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strncat(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strncat - nonstring catenate</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include&#x00A0;&lt;string.h&gt;</b>  // see memory.h(3head)</pre>
+<pre><b>char *strncat(</b>size_t ssize;
+<b>              char *restrict </b><i>dst</i><b>, const char </b><i>src</i><b>[restrict </b><i>ssize</i><b>],</b>
+<b>              size_t </b><i>ssize</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This function appends at most <i>ssize</i> non-null bytes from the
+    array pointed to by <i>src</i>, followed by a null character, to the end of
+    the string pointed to by <i>dst</i>. <i>dst</i> must point to a string
+    contained in a buffer that is large enough, that is, the buffer size must be
+    at least <i>strlen(dst) + strnlen(src, ssize) + 1</i>.</p>
+<p class="Pp">It is equivalent to</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>stpcpy(mempcpy(strnul(dst), src, strnlen(src, ssize)), &quot;&quot;), dst
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>strncat</b>() returns <i>dst</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strncat ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">The name of this function is confusing:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>It has no relation to <b>strncpy</b>(3).</dd>
+  <dt>&#x2022;</dt>
+  <dd>It doesn't truncate the input nonstring.</dd>
+</dl>
+<p class="Pp">If the destination buffer does not already contain a string, or is
+    not large enough, the behavior is undefined. See <b>_FORTIFY_SOURCE</b> in
+    <b>feature_test_macros</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>#include &lt;stdcountof.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;utmp.h&gt;
+void print_ut_user(struct utmp *ut);
+void
+print_ut_user(struct utmp *ut)
+{
+	char  buf[countof(ut-&gt;ut_user) + 1];
+	strcpy(buf, &quot;&quot;);
+	strncat(buf, ut-&gt;ut_user, countof(ut-&gt;ut_user));
+	puts(buf);
+}
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memory.h</b>(3head), <b>string_copying</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

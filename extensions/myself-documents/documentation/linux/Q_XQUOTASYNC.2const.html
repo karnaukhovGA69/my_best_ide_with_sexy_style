@@ -1,0 +1,64 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">Q_XQUOTASYNC(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">Q_XQUOTASYNC(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">Q_XQUOTASYNC - no-op</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b>      /* See quotactl(2) */
+<b>#include &lt;sys/quota.h&gt;</b></pre>
+<pre>[[deprecated]]
+<b>int&#x00A0;quotactl(QCMD(Q_XQUOTASYNC, </b><i>type</i><b>), NULL, 0, NULL);</b></pre>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b>      /* See quotactl_fd(2) */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre>[[deprecated]]
+<b>int syscall(SYS_quotactl_fd, int </b><i>fd</i><b>, QCMD(Q_XQUOTASYNC, </b><i>type</i><b>));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This operation was an XFS quota equivalent to
+    <b>Q_SYNC</b>(2const), but it is no-op since Linux 3.4, as <b>sync</b>(1)
+    writes quota information to disk now (in addition to the other filesystem
+    metadata that it writes out).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>quotactl</b>(2)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>quotactl</b>(2)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.15. No-op since Linux 3.4.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>quotactl</b>(2), <b>quotactl_fd</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

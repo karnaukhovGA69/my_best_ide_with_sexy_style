@@ -1,0 +1,96 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">socketpair(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">socketpair(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">socketpair - create a pair of connected sockets</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int socketpair(int </b><i>domain</i><b>, int </b><i>type</i><b>, int </b><i>protocol</i><b>, int </b><i>sv</i><b>[2]);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>socketpair</b>() call creates an unnamed pair of connected
+    sockets in the specified <i>domain</i>, of the specified <i>type</i>, and
+    using the optionally specified <i>protocol</i>. For further details of these
+    arguments, see <b>socket</b>(2).</p>
+<p class="Pp">The file descriptors used in referencing the new sockets are
+    returned in <i>sv[0]</i> and <i>sv[1]</i>. The two sockets are
+    indistinguishable.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned. On error, -1 is returned,
+    <i>errno</i> is set to indicate the error, and <i>sv</i> is left
+  unchanged</p>
+<p class="Pp">On Linux (and other systems), <b>socketpair</b>() does not modify
+    <i>sv</i> on failure. A requirement standardizing this behavior was added in
+    POSIX.1-2008 TC2.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EAFNOSUPPORT"><a class="permalink" href="#EAFNOSUPPORT"><b>EAFNOSUPPORT</b></a></dt>
+  <dd>The specified address family is not supported on this machine.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>The address <i>sv</i> does not specify a valid part of the process address
+      space.</dd>
+  <dt id="EMFILE"><a class="permalink" href="#EMFILE"><b>EMFILE</b></a></dt>
+  <dd>The per-process limit on the number of open file descriptors has been
+      reached.</dd>
+  <dt id="ENFILE"><a class="permalink" href="#ENFILE"><b>ENFILE</b></a></dt>
+  <dd>The system-wide limit on the total number of open files has been
+    reached.</dd>
+  <dt id="EOPNOTSUPP"><a class="permalink" href="#EOPNOTSUPP"><b>EOPNOTSUPP</b></a></dt>
+  <dd>The specified protocol does not support creation of socket pairs.</dd>
+  <dt id="EPROTONOSUPPORT"><a class="permalink" href="#EPROTONOSUPPORT"><b>EPROTONOSUPPORT</b></a></dt>
+  <dd>The specified protocol is not supported on this machine.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">On Linux, the only supported domains for this call are
+    <b>AF_UNIX</b> (or synonymously, <b>AF_LOCAL</b>) and <b>AF_TIPC</b> (since
+    Linux 4.12).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, 4.2BSD.</p>
+<p class="Pp">It is generally portable to/from non-BSD systems supporting clones
+    of the BSD socket layer (including System&#x00A0;V variants).</p>
+<dl class="Bl-tag">
+  <dt id="SOCK_CLOEXEC"><a class="permalink" href="#SOCK_CLOEXEC"><b>SOCK_CLOEXEC</b></a></dt>
+  <dd></dd>
+  <dt id="SOCK_NONBLOCK"><a class="permalink" href="#SOCK_NONBLOCK"><b>SOCK_NONBLOCK</b></a></dt>
+  <dd>POSIX.1-2024; Linux 2.6.27. (See <b>socket</b>(2).)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>pipe</b>(2), <b>read</b>(2), <b>socket</b>(2), <b>write</b>(2),
+    <b>socket</b>(7), <b>unix</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-29</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

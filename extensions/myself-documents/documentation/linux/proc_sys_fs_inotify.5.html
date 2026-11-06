@@ -1,0 +1,51 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_sys_fs_inotify(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_sys_fs_inotify(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/sys/fs/inotify/ - kernel variables related to inotify</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><i>/proc/sys/fs/inotify/</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This directory contains files that can be used to limit the amount
+    of kernel memory consumed by the <b>inotify</b>(7) interface.</p>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/fs/inotify/max_queued_events</i></dt>
+  <dd>The value in this file is used when an application calls
+      <b>inotify_init</b>(2) to set an upper limit on the number of events that
+      can be queued to the corresponding inotify instance. Events in excess of
+      this limit are dropped, but an <b>IN_Q_OVERFLOW</b> event is always
+      generated.</dd>
+  <dt><i>/proc/sys/fs/inotify/max_user_instances</i></dt>
+  <dd>This specifies an upper limit on the number of inotify instances that can
+      be created per real user ID.</dd>
+  <dt><i>/proc/sys/fs/inotify/max_user_watches</i></dt>
+  <dd>This specifies an upper limit on the number of watches that can be created
+      per real user ID.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.13.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc_sys_fs</b>(5), <b>inotify</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

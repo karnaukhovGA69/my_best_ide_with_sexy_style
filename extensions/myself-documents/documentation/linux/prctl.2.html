@@ -1,0 +1,250 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">prctl(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">prctl(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">prctl - operations on a process or thread</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(int </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>prctl</b>() manipulates various aspects of the behavior of the
+    calling thread or process.</p>
+<p class="Pp"><b>prctl</b>() is called with a first argument describing what to
+    do, and further arguments with a significance depending on the first one.
+    The first argument can be:</p>
+<dl class="Bl-tag">
+  <dt id="PR_CAP_AMBIENT"><a class="permalink" href="#PR_CAP_AMBIENT"><b>PR_CAP_AMBIENT</b></a></dt>
+  <dd></dd>
+  <dt id="PR_CAPBSET_READ"><a class="permalink" href="#PR_CAPBSET_READ"><b>PR_CAPBSET_READ</b></a></dt>
+  <dd></dd>
+  <dt id="PR_CAPBSET_DROP"><a class="permalink" href="#PR_CAPBSET_DROP"><b>PR_CAPBSET_DROP</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_CHILD_SUBREAPER"><a class="permalink" href="#PR_SET_CHILD_SUBREAPER"><b>PR_SET_CHILD_SUBREAPER</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_CHILD_SUBREAPER"><a class="permalink" href="#PR_GET_CHILD_SUBREAPER"><b>PR_GET_CHILD_SUBREAPER</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_DUMPABLE"><a class="permalink" href="#PR_SET_DUMPABLE"><b>PR_SET_DUMPABLE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_DUMPABLE"><a class="permalink" href="#PR_GET_DUMPABLE"><b>PR_GET_DUMPABLE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_ENDIAN"><a class="permalink" href="#PR_SET_ENDIAN"><b>PR_SET_ENDIAN</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_ENDIAN"><a class="permalink" href="#PR_GET_ENDIAN"><b>PR_GET_ENDIAN</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_FP_MODE"><a class="permalink" href="#PR_SET_FP_MODE"><b>PR_SET_FP_MODE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_FP_MODE"><a class="permalink" href="#PR_GET_FP_MODE"><b>PR_GET_FP_MODE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_FPEMU"><a class="permalink" href="#PR_SET_FPEMU"><b>PR_SET_FPEMU</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_FPEMU"><a class="permalink" href="#PR_GET_FPEMU"><b>PR_GET_FPEMU</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_FPEXC"><a class="permalink" href="#PR_SET_FPEXC"><b>PR_SET_FPEXC</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_FPEXC"><a class="permalink" href="#PR_GET_FPEXC"><b>PR_GET_FPEXC</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_IO_FLUSHER"><a class="permalink" href="#PR_SET_IO_FLUSHER"><b>PR_SET_IO_FLUSHER</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_IO_FLUSHER"><a class="permalink" href="#PR_GET_IO_FLUSHER"><b>PR_GET_IO_FLUSHER</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_KEEPCAPS"><a class="permalink" href="#PR_SET_KEEPCAPS"><b>PR_SET_KEEPCAPS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_KEEPCAPS"><a class="permalink" href="#PR_GET_KEEPCAPS"><b>PR_GET_KEEPCAPS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_MCE_KILL"><a class="permalink" href="#PR_MCE_KILL"><b>PR_MCE_KILL</b></a></dt>
+  <dd></dd>
+  <dt id="PR_MCE_KILL_GET"><a class="permalink" href="#PR_MCE_KILL_GET"><b>PR_MCE_KILL_GET</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_MM"><a class="permalink" href="#PR_SET_MM"><b>PR_SET_MM</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_VMA"><a class="permalink" href="#PR_SET_VMA"><b>PR_SET_VMA</b></a></dt>
+  <dd></dd>
+  <dt id="PR_MPX_ENABLE_MANAGEMENT"><a class="permalink" href="#PR_MPX_ENABLE_MANAGEMENT"><b>PR_MPX_ENABLE_MANAGEMENT</b></a></dt>
+  <dd></dd>
+  <dt id="PR_MPX_DISABLE_MANAGEMENT"><a class="permalink" href="#PR_MPX_DISABLE_MANAGEMENT"><b>PR_MPX_DISABLE_MANAGEMENT</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_NAME"><a class="permalink" href="#PR_SET_NAME"><b>PR_SET_NAME</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_NAME"><a class="permalink" href="#PR_GET_NAME"><b>PR_GET_NAME</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_NO_NEW_PRIVS"><a class="permalink" href="#PR_SET_NO_NEW_PRIVS"><b>PR_SET_NO_NEW_PRIVS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_NO_NEW_PRIVS"><a class="permalink" href="#PR_GET_NO_NEW_PRIVS"><b>PR_GET_NO_NEW_PRIVS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_PAC_RESET_KEYS"><a class="permalink" href="#PR_PAC_RESET_KEYS"><b>PR_PAC_RESET_KEYS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_PDEATHSIG"><a class="permalink" href="#PR_SET_PDEATHSIG"><b>PR_SET_PDEATHSIG</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_PDEATHSIG"><a class="permalink" href="#PR_GET_PDEATHSIG"><b>PR_GET_PDEATHSIG</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_PTRACER"><a class="permalink" href="#PR_SET_PTRACER"><b>PR_SET_PTRACER</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_SECCOMP"><a class="permalink" href="#PR_SET_SECCOMP"><b>PR_SET_SECCOMP</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_SECCOMP"><a class="permalink" href="#PR_GET_SECCOMP"><b>PR_GET_SECCOMP</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_SECUREBITS"><a class="permalink" href="#PR_SET_SECUREBITS"><b>PR_SET_SECUREBITS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_SECUREBITS"><a class="permalink" href="#PR_GET_SECUREBITS"><b>PR_GET_SECUREBITS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_SPECULATION_CTRL"><a class="permalink" href="#PR_GET_SPECULATION_CTRL"><b>PR_GET_SPECULATION_CTRL</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_SPECULATION_CTRL"><a class="permalink" href="#PR_SET_SPECULATION_CTRL"><b>PR_SET_SPECULATION_CTRL</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SVE_SET_VL"><a class="permalink" href="#PR_SVE_SET_VL"><b>PR_SVE_SET_VL</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SVE_GET_VL"><a class="permalink" href="#PR_SVE_GET_VL"><b>PR_SVE_GET_VL</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_SYSCALL_USER_DISPATCH"><a class="permalink" href="#PR_SET_SYSCALL_USER_DISPATCH"><b>PR_SET_SYSCALL_USER_DISPATCH</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_TAGGED_ADDR_CTRL"><a class="permalink" href="#PR_SET_TAGGED_ADDR_CTRL"><b>PR_SET_TAGGED_ADDR_CTRL</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_TAGGED_ADDR_CTRL"><a class="permalink" href="#PR_GET_TAGGED_ADDR_CTRL"><b>PR_GET_TAGGED_ADDR_CTRL</b></a></dt>
+  <dd></dd>
+  <dt id="PR_TASK_PERF_EVENTS_DISABLE"><a class="permalink" href="#PR_TASK_PERF_EVENTS_DISABLE"><b>PR_TASK_PERF_EVENTS_DISABLE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_TASK_PERF_EVENTS_ENABLE"><a class="permalink" href="#PR_TASK_PERF_EVENTS_ENABLE"><b>PR_TASK_PERF_EVENTS_ENABLE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_THP_DISABLE"><a class="permalink" href="#PR_SET_THP_DISABLE"><b>PR_SET_THP_DISABLE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_THP_DISABLE"><a class="permalink" href="#PR_GET_THP_DISABLE"><b>PR_GET_THP_DISABLE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_TID_ADDRESS"><a class="permalink" href="#PR_GET_TID_ADDRESS"><b>PR_GET_TID_ADDRESS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_TIMERSLACK"><a class="permalink" href="#PR_SET_TIMERSLACK"><b>PR_SET_TIMERSLACK</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_TIMERSLACK"><a class="permalink" href="#PR_GET_TIMERSLACK"><b>PR_GET_TIMERSLACK</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_TIMING"><a class="permalink" href="#PR_SET_TIMING"><b>PR_SET_TIMING</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_TIMING"><a class="permalink" href="#PR_GET_TIMING"><b>PR_GET_TIMING</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_TSC"><a class="permalink" href="#PR_SET_TSC"><b>PR_SET_TSC</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_TSC"><a class="permalink" href="#PR_GET_TSC"><b>PR_GET_TSC</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_UNALIGN"><a class="permalink" href="#PR_SET_UNALIGN"><b>PR_SET_UNALIGN</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_UNALIGN"><a class="permalink" href="#PR_GET_UNALIGN"><b>PR_GET_UNALIGN</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_AUXV"><a class="permalink" href="#PR_GET_AUXV"><b>PR_GET_AUXV</b></a></dt>
+  <dd></dd>
+  <dt id="PR_SET_MDWE"><a class="permalink" href="#PR_SET_MDWE"><b>PR_SET_MDWE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_GET_MDWE"><a class="permalink" href="#PR_GET_MDWE"><b>PR_GET_MDWE</b></a></dt>
+  <dd></dd>
+  <dt id="PR_RISCV_SET_ICACHE_FLUSH_CTX"><a class="permalink" href="#PR_RISCV_SET_ICACHE_FLUSH_CTX"><b>PR_RISCV_SET_ICACHE_FLUSH_CTX</b></a></dt>
+  <dd></dd>
+  <dt id="PR_FUTEX_HASH"><a class="permalink" href="#PR_FUTEX_HASH"><b>PR_FUTEX_HASH</b></a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, a nonnegative value is returned. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The value of <i>op</i> is not recognized, or not supported on this
+    system.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>An unused argument is nonzero.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">IRIX has a <b>prctl</b>() system call (also introduced in Linux
+    2.1.44 as irix_prctl on the MIPS architecture), with prototype</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre><b>ptrdiff_t prctl(int </b><i>op</i><b>, int </b><i>arg2</i><b>, int </b><i>arg3</i><b>);</b>
+</pre>
+<br/>
+<p class="Pp">and operations to get the maximum number of processes per user,
+    get the maximum number of processors the calling process can use, find out
+    whether a specified process is currently blocked, get or set the maximum
+    stack size, and so on.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.1.57, glibc 2.0.6</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">The prototype of the libc wrapper uses a variadic argument list.
+    This makes it necessary to pass the arguments with the right width. When
+    passing numeric constants, such as 0, use a suffix: <b>0L</b>.</p>
+<p class="Pp">Careless use of some <b>prctl</b>() operations can confuse the
+    user-space run-time environment, so these operations should be used with
+    care.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>signal</b>(2), <b>PR_CAP_AMBIENT</b>(2const),
+    <b>PR_CAPBSET_READ</b>(2const), <b>PR_CAPBSET_DROP</b>(2const),
+    <b>PR_SET_CHILD_SUBREAPER</b>(2const),
+    <b>PR_GET_CHILD_SUBREAPER</b>(2const), <b>PR_SET_DUMPABLE</b>(2const),
+    <b>PR_GET_DUMPABLE</b>(2const), <b>PR_SET_ENDIAN</b>(2const),
+    <b>PR_GET_ENDIAN</b>(2const), <b>PR_SET_FP_MODE</b>(2const),
+    <b>PR_GET_FP_MODE</b>(2const), <b>PR_SET_FPEMU</b>(2const),
+    <b>PR_GET_FPEMU</b>(2const), <b>PR_SET_FPEXC</b>(2const),
+    <b>PR_GET_FPEXC</b>(2const), <b>PR_SET_IO_FLUSHER</b>(2const),
+    <b>PR_GET_IO_FLUSHER</b>(2const), <b>PR_SET_KEEPCAPS</b>(2const),
+    <b>PR_GET_KEEPCAPS</b>(2const), <b>PR_MCE_KILL</b>(2const),
+    <b>PR_MCE_KILL_GET</b>(2const), <b>PR_SET_MM</b>(2const),
+    <b>PR_SET_VMA</b>(2const), <b>PR_MPX_ENABLE_MANAGEMENT</b>(2const),
+    <b>PR_MPX_DISABLE_MANAGEMENT</b>(2const), <b>PR_SET_NAME</b>(2const),
+    <b>PR_GET_NAME</b>(2const), <b>PR_SET_NO_NEW_PRIVS</b>(2const),
+    <b>PR_GET_NO_NEW_PRIVS</b>(2const), <b>PR_PAC_RESET_KEYS</b>(2const),
+    <b>PR_SET_PDEATHSIG</b>(2const), <b>PR_GET_PDEATHSIG</b>(2const),
+    <b>PR_SET_PTRACER</b>(2const), <b>PR_SET_SECCOMP</b>(2const),
+    <b>PR_GET_SECCOMP</b>(2const), <b>PR_SET_SECUREBITS</b>(2const),
+    <b>PR_GET_SECUREBITS</b>(2const), <b>PR_SET_SPECULATION_CTRL</b>(2const),
+    <b>PR_GET_SPECULATION_CTRL</b>(2const), <b>PR_SVE_SET_VL</b>(2const),
+    <b>PR_SVE_GET_VL</b>(2const), <b>PR_SET_SYSCALL_USER_DISPATCH</b>(2const),
+    <b>PR_SET_TAGGED_ADDR_CTRL</b>(2const),
+    <b>PR_GET_TAGGED_ADDR_CTRL</b>(2const),
+    <b>PR_TASK_PERF_EVENTS_DISABLE</b>(2const),
+    <b>PR_TASK_PERF_EVENTS_ENABLE</b>(2const),
+    <b>PR_SET_THP_DISABLE</b>(2const), <b>PR_GET_THP_DISABLE</b>(2const),
+    <b>PR_GET_TID_ADDRESS</b>(2const), <b>PR_SET_TIMERSLACK</b>(2const),
+    <b>PR_GET_TIMERSLACK</b>(2const), <b>PR_SET_TIMING</b>(2const),
+    <b>PR_GET_TIMING</b>(2const), <b>PR_SET_TSC</b>(2const),
+    <b>PR_GET_TSC</b>(2const), <b>PR_SET_UNALIGN</b>(2const),
+    <b>PR_GET_UNALIGN</b>(2const), <b>PR_GET_AUXV</b>(2const),
+    <b>PR_SET_MDWE</b>(2const), <b>PR_GET_MDWE</b>(2const),
+    <b>PR_RISCV_SET_ICACHE_FLUSH_CTX</b>(2const), <b>PR_FUTEX_HASH</b>(2const),
+    <b>core</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

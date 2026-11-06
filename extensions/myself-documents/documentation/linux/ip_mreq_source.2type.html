@@ -1,0 +1,63 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ip_mreq_source(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">ip_mreq_source(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ip_mreq_source - IP multicast request source</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b></pre>
+<p class="Pp"></p>
+<pre>struct ip_mreq_source {
+<br/>
+    struct in_addr  imr_multiaddr;   /* IP multicast group address */
+<br/>
+    struct in_addr  imr_interface;   /* IP address of local interface */
+<br/>
+    struct in_addr  imr_sourceaddr;  /* IP address of multicast source */
+};
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <i>ip_mreq_source</i> structure is similar to the
+    <b>ip_mreqn</b>(2type) structure.</p>
+<dl class="Bl-tag">
+  <dt><i>.imr_multiaddr</i></dt>
+  <dd>The address of the multicast group the application wants to join or
+    leave.</dd>
+  <dt><i>.imr_interface</i></dt>
+  <dd>The address of the local interface with which the system should join or
+      leave the multicast group.</dd>
+  <dt><i>.imr_sourceaddr</i></dt>
+  <dd>The address of the source the application wants to receive data from.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.22, Linux 2.5.68.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IP_ADD_SOURCE_MEMBERSHIP</b>(2const),
+    <b>IP_BLOCK_SOURCE</b>(2const), <b>IP_DROP_SOURCE_MEMBERSHIP</b>(2const),
+    <b>IP_UNBLOCK_SOURCE</b>(2const), <b>ip</b>(7).</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

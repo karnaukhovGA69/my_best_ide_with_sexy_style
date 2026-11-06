@@ -1,0 +1,85 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">dqinfo(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">dqinfo(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">dqinfo - disk quota information</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/quota.h&gt;</b></pre>
+<p class="Pp"></p>
+<pre>struct dqinfo {
+	uint64_t  dqi_bgrace;
+	uint64_t  dqi_igrace;
+	uint32_t  dqi_flags;
+	uint32_t  dqi_valid;
+};
+/* Quota format QFMT_VFS_OLD */
+#define DQF_ROOT_SQUASH (1 &lt;&lt; 0)
+/* Quota format QFMT_VFS_V0 / QFMT_VFS_V1 */
+#define DQF_SYS_FILE    (1 &lt;&lt; 16)
+#define IIF_BGRACE  1
+#define IIF_IGRACE  2
+#define IIF_FLAGS   4
+#define IIF_ALL     (IIF_BGRACE | IIF_IGRACE | IIF_FLAGS)
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="struct_dqinfo"><a class="permalink" href="#struct_dqinfo">struct
+  dqinfo</a></h2>
+<dl class="Bl-tag">
+  <dt><i>.dqi_bgrace</i></dt>
+  <dd>Time before block soft limit becomes hard limit.</dd>
+  <dt><i>.dqi_igrace</i></dt>
+  <dd>Time before inode soft limit becomes hard limit.</dd>
+  <dt><i>.dqi_flags</i></dt>
+  <dd>Flags for quotafile (<b>DQF_<i>*</i></b>). </dd>
+  <dt><i>.dqi_valid</i></dt>
+  <dd>Bit mask of <b>IIF_</b><i>*</i> constants. It is set to indicate which
+      fields in the <i>dqinfo</i> structure are valid.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="DQF__*"><a class="permalink" href="#DQF__*"><b>DQF_</b><i>*</i></a></h2>
+<dl class="Bl-tag">
+  <dt id="DQF_ROOT_SQUASH"><a class="permalink" href="#DQF_ROOT_SQUASH"><b>DQF_ROOT_SQUASH</b></a></dt>
+  <dd>Root squash enabled.</dd>
+  <dt id="DQF_SYS_FILE"><a class="permalink" href="#DQF_SYS_FILE"><b>DQF_SYS_FILE</b></a></dt>
+  <dd>Quota stored in a system file.</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.22.</p>
+<p class="Pp">Before Linux 4.0, <b>DQF_ROOT_SQUASH</b> had been defined
+    privately as <b>V1_DQF_RSQUASH</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>Q_GETINFO</b>(2const), <b>Q_SETINFO</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,276 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fsopen(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">fsopen(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fsopen - create a new filesystem context</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/mount.h&gt;</b></pre>
+<pre><b>int fsopen(const char *</b><i>fsname</i><b>, unsigned int </b><i>flags</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>fsopen</b>() system call is part of the suite of
+    file-descriptor-based mount facilities in Linux.</p>
+<p class="Pp"><b>fsopen</b>() creates a blank filesystem configuration context
+    within the kernel for the filesystem named by <i>fsname</i> and places it
+    into creation mode. A new file descriptor associated with the filesystem
+    configuration context is then returned. The calling process must have the
+    <b>CAP_SYS_ADMIN</b> capability in order to create a new filesystem
+    configuration context.</p>
+<p class="Pp">A filesystem configuration context is an in-kernel representation
+    of a pending transaction, containing a set of configuration parameters that
+    are to be applied when creating a new instance of a filesystem (or modifying
+    the configuration of an existing filesystem instance, such as when using
+    <b>fspick</b>(2)).</p>
+<p class="Pp">After obtaining a filesystem configuration context with
+    <b>fsopen</b>(), the general workflow for operating on the context looks
+    like the following:</p>
+<dl class="Bl-tag">
+  <dt>(1)</dt>
+  <dd>Pass the filesystem context file descriptor to <b>fsconfig</b>(2) to
+      specify any desired filesystem parameters. This may be done as many times
+      as necessary.</dd>
+  <dt>(2)</dt>
+  <dd>Pass the same filesystem context file descriptor to <b>fsconfig</b>(2)
+      with <b>FSCONFIG_CMD_CREATE</b> to create an instance of the configured
+      filesystem.</dd>
+  <dt>(3)</dt>
+  <dd>Pass the same filesystem context file descriptor to <b>fsmount</b>(2) to
+      create a new detached mount object for the root of the filesystem
+      instance, which is then attached to a new file descriptor. (This also
+      places the filesystem context file descriptor into reconfiguration mode,
+      similar to the mode produced by <b>fspick</b>(2).) Once a mount object has
+      been created with <b>fsmount</b>(2), the filesystem context file
+      descriptor can be safely closed.</dd>
+  <dt>(4)</dt>
+  <dd>Now that a mount object has been created, you may</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>use the detached mount object file descriptor as a <i>dirfd</i> argument
+      to &quot;*at()&quot; system calls; and/or</dd>
+  <dt>&#x2022;</dt>
+  <dd>attach the mount object to a mount point by passing the mount object file
+      descriptor to <b>move_mount</b>(2). This will also prevent the mount
+      object from being unmounted and destroyed when the mount object file
+      descriptor is closed.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The mount object file descriptor will remain associated with the mount
+      object even after doing the above operations, so you may repeatedly use
+      the mount object file descriptor with <b>move_mount</b>(2) and/or
+      &quot;*at()&quot; system calls as many times as necessary.</dd>
+</dl>
+<p class="Pp">A filesystem context will move between different modes throughout
+    its lifecycle (such as the creation phase when created with <b>fsopen</b>(),
+    the reconfiguration phase when an existing filesystem instance is selected
+    with <b>fspick</b>(2), and the intermediate &quot;awaiting-mount&quot; phase
+    between <b>FSCONFIG_CMD_CREATE</b> and <b>fsmount</b>(2)), which has an
+    impact on what operations are permitted on the filesystem context.</p>
+<p class="Pp">The file descriptor returned by <b>fsopen</b>() also acts as a
+    channel for filesystem drivers to provide more comprehensive diagnostic
+    information than is normally provided through the standard <b>errno</b>(3)
+    interface for system calls. If an error occurs at any time during the
+    workflow mentioned above, calling <b>read</b>(2) on the filesystem context
+    file descriptor will retrieve any ancillary information about the
+    encountered errors. (See the &quot;Message retrieval interface&quot; section
+    for more details on the message format.)</p>
+<p class="Pp"><i>flags</i> can be used to control aspects of the creation of the
+    filesystem configuration context file descriptor. A value for <i>flags</i>
+    is constructed by bitwise ORing zero or more of the following constants:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="FSOPEN_CLOEXEC"><a class="permalink" href="#FSOPEN_CLOEXEC"><b>FSOPEN_CLOEXEC</b></a></dt>
+  <dd>Set the close-on-exec (<b>FD_CLOEXEC</b>) flag on the new file descriptor.
+      See the description of the <b>O_CLOEXEC</b> flag in <b>open</b>(2) for
+      reasons why this may be useful.</dd>
+</dl>
+</div>
+<p class="Pp">A list of filesystems supported by the running kernel (and thus a
+    list of valid values for <i>fsname</i>) can be obtained from
+    <i>/proc/filesystems</i>. (See also <b>proc_filesystems</b>(5).)</p>
+<section class="Ss">
+<h2 class="Ss" id="Message_retrieval_interface"><a class="permalink" href="#Message_retrieval_interface">Message
+  retrieval interface</a></h2>
+<p class="Pp">When doing operations on a filesystem configuration context, the
+    filesystem driver may choose to provide ancillary information to userspace
+    in the form of message strings.</p>
+<p class="Pp">The filesystem context file descriptors returned by
+    <b>fsopen</b>() and <b>fspick</b>(2) may be queried for message strings at
+    any time by calling <b>read</b>(2) on the file descriptor. Each call to
+    <b>read</b>(2) will return a single message, prefixed to indicate its
+  class:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="e"><a class="permalink" href="#e"><b>e&#x00A0;</b><i>message</i></a></dt>
+  <dd>An error message was logged. This is usually associated with an error
+      being returned from the corresponding system call which triggered this
+      message.</dd>
+  <dt id="w"><a class="permalink" href="#w"><b>w&#x00A0;</b><i>message</i></a></dt>
+  <dd>A warning message was logged.</dd>
+  <dt id="i"><a class="permalink" href="#i"><b>i&#x00A0;</b><i>message</i></a></dt>
+  <dd>An informational message was logged.</dd>
+</dl>
+</div>
+<p class="Pp">Messages are removed from the queue as they are read. Note that
+    the message queue has limited depth, so it is possible for messages to get
+    lost. If there are no messages in the message queue, <b>read(2)</b> will
+    return -1 and <i>errno</i> will be set to <b>ENODATA</b>. If the <i>buf</i>
+    argument to <b>read</b>(2) is not large enough to contain the entire
+    message, <b>read</b>(2) will return -1 and <i>errno</i> will be set to
+    <b>EMSGSIZE</b>. (See BUGS.)</p>
+<p class="Pp">If there are multiple filesystem contexts referencing the same
+    filesystem instance (such as if you call <b>fspick</b>(2) multiple times for
+    the same mount), each one gets its own independent message queue. This does
+    not apply to multiple file descriptors that are tied to the same underlying
+    open file description (such as those created with <b>dup</b>(2)).</p>
+<p class="Pp">Message strings will usually be prefixed by the name of the
+    filesystem or kernel subsystem that logged the message, though this may not
+    always be the case. See the Linux kernel source code for details.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, a new file descriptor is returned. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>fsname</i> is NULL or a pointer to a location outside the calling
+      process's accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>flags</i> had an invalid flag set.</dd>
+  <dt id="EMFILE"><a class="permalink" href="#EMFILE"><b>EMFILE</b></a></dt>
+  <dd>The calling process has too many open files to create more.</dd>
+  <dt id="ENFILE"><a class="permalink" href="#ENFILE"><b>ENFILE</b></a></dt>
+  <dd>The system has too many open files to create more.</dd>
+  <dt id="ENODEV"><a class="permalink" href="#ENODEV"><b>ENODEV</b></a></dt>
+  <dd>The filesystem named by <i>fsname</i> is not supported by the kernel.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate sufficient memory to complete the
+    operation.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The calling process does not have the required <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.2. glibc 2.36.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Message_retrieval_interface_and_EMSGSIZE"><a class="permalink" href="#Message_retrieval_interface_and_EMSGSIZE">Message
+  retrieval interface and EMSGSIZE</a></h2>
+<p class="Pp">As described in the &quot;Message retrieval interface&quot;
+    subsection above, calling <b>read</b>(2) with too small a buffer to contain
+    the next pending message in the message queue for the filesystem
+    configuration context will cause <b>read</b>(2) to return -1 and set
+    <b>errno</b>(3) to <b>EMSGSIZE</b>.</p>
+<p class="Pp">However, this failed operation still consumes the message from the
+    message queue. This effectively discards the message silently, as no data is
+    copied into the <b>read</b>(2) buffer.</p>
+<p class="Pp">Programs should take care to ensure that their buffers are
+    sufficiently large to contain any reasonable message string, in order to
+    avoid silently losing valuable diagnostic information.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">To illustrate the workflow for creating a new mount, the following
+    is an example of how to mount an <b>ext4</b>(5) filesystem stored on
+    <i>/dev/sdb1</i> onto <i>/mnt</i>.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int fsfd, mntfd;
+fsfd = fsopen(&quot;ext4&quot;, FSOPEN_CLOEXEC);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;ro&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_SET_PATH, &quot;source&quot;, &quot;/dev/sdb1&quot;, AT_FDCWD);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;noatime&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;acl&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;user_xattr&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;iversion&quot;, NULL, 0)
+fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC, MOUNT_ATTR_RELATIME);
+move_mount(mntfd, &quot;&quot;, AT_FDCWD, &quot;/mnt&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">First, an ext4 configuration context is created and attached to
+    the file descriptor <i>fsfd</i>. Then, a series of parameters (such as the
+    source of the filesystem) are provided using <b>fsconfig</b>(2), followed by
+    the filesystem instance being created with <b>FSCONFIG_CMD_CREATE</b>.
+    <b>fsmount</b>(2) is then used to create a new mount object attached to the
+    file descriptor <i>mntfd</i>, which is then attached to the intended mount
+    point using <b>move_mount</b>(2).</p>
+<p class="Pp">The above procedure is functionally equivalent to the following
+    mount operation using <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(&quot;/dev/sdb1&quot;, &quot;/mnt&quot;, &quot;ext4&quot;, MS_RELATIME,
+<br/>
+      &quot;ro,noatime,acl,user_xattr,iversion&quot;);
+</pre>
+<br/>
+<p class="Pp">And here's an example of creating a mount object of an NFS server
+    share and setting a Smack security module label. However, instead of
+    attaching it to a mount point, the program uses the mount object directly to
+    open a file from the NFS share.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int fsfd, mntfd, fd;
+fsfd = fsopen(&quot;nfs&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;source&quot;, &quot;example.com/pub&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;nfsvers&quot;, &quot;3&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;rsize&quot;, &quot;65536&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;wsize&quot;, &quot;65536&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;smackfsdef&quot;, &quot;foolabel&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;rdma&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+mntfd = fsmount(fsfd, 0, MOUNT_ATTR_NODEV);
+fd = openat(mntfd, &quot;src/linux-5.2.tar.xz&quot;, O_RDONLY);
+</pre>
+<br/>
+<p class="Pp">Unlike the previous example, this operation has no trivial
+    equivalent with <b>mount</b>(2), as it was not previously possible to create
+    a mount object that is not attached to any mount point.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fsconfig</b>(2), <b>fsmount</b>(2), <b>fspick</b>(2),
+    <b>mount</b>(2), <b>mount_setattr</b>(2), <b>move_mount</b>(2),
+    <b>open_tree</b>(2), <b>mount_namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

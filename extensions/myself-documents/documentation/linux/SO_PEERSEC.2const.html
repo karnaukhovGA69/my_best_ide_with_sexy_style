@@ -1,0 +1,94 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">SO_PEERSEC(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">SO_PEERSEC(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">SO_PEERSEC - get the security context of a peer socker</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;getsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;SOL_SOCKET,&#x00A0;SO_PEERSEC,</b>
+<b>               void&#x00A0;</b><i>buf</i><b>[</b><i>size</i><b>],&#x00A0;size_t&#x00A0;</b><i>size</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">If labeled IPSEC or NetLabel is configured on both the sending and
+    receiving hosts, this read-only socket option returns the security context
+    of the peer socket connected to this socket. By default, this will be the
+    same as the security context of the process that created the peer socket
+    unless overridden by the policy or by a process with the required
+    permissions.</p>
+<p class="Pp">The argument to <b>getsockopt</b>(2) is a pointer to a buffer of
+    the specified length in bytes into which the security context string will be
+    copied. If the buffer length is less than the length of the security context
+    string, then <b>getsockopt</b>(2) returns -1, sets <i>errno</i> to
+    <b>ERANGE</b>, and returns the required length via <i>size</i>. The caller
+    should allocate at least <b>NAME_MAX</b> bytes for the buffer initially,
+    although this is not guaranteed to be sufficient. Resizing the buffer to the
+    returned length and retrying may be necessary.</p>
+<p class="Pp">The security context string may include a terminating null
+    character in the returned length, but is not guaranteed to do so: a security
+    context &quot;foo&quot; might be represented as either {'f','o','o'} of
+    length 3 or {'f','o','o','\0'} of length 4, which are considered to be
+    interchangeable. The string is printable, does not contain non-terminating
+    null characters, and is in an unspecified encoding (in particular, it is not
+    guaranteed to be ASCII or UTF-8).</p>
+<section class="Ss">
+<h2 class="Ss" id="AF_UNIX"><a class="permalink" href="#AF_UNIX">AF_UNIX</a></h2>
+<p class="Pp">The use of this option for sockets in the <b>AF_UNIX</b> address
+    family is supported since Linux 2.6.2 for connected stream sockets, and
+    since Linux 4.18 also for stream and datagram socket pairs created using
+    <b>socketpair</b>(2).</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="AF_INET"><a class="permalink" href="#AF_INET">AF_INET</a></h2>
+<p class="Pp">For <b>AF_INET</b> sockets, labeled IPSEC or NetLabel needs to be
+    configured on both the sending and receiving hosts.</p>
+<p class="Pp">The use of this option for sockets in the <b>AF_INET</b> address
+    family is supported since Linux 2.6.17 for TCP sockets, and since Linux 4.17
+    for SCTP sockets.</p>
+<p class="Pp">For SELinux, NetLabel conveys only the MLS portion of the security
+    context of the peer across the wire, defaulting the rest of the security
+    context to the values defined in the policy for the netmsg initial security
+    identifier (SID). However, NetLabel can be configured to pass full security
+    contexts over loopback. Labeled IPSEC always passes full security contexts
+    as part of establishing the security association (SA) and looks them up
+    based on the association for each packet.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>SOL_SOCKET</b>(2const). See <b>setsockopt</b>(2). See
+    <b>socket</b>(7).</p>
+<dl class="Bl-tag">
+  <dt id="ERANGE"><a class="permalink" href="#ERANGE"><b>ERANGE</b></a></dt>
+  <dd>The buffer <i>size</i> is not enough.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.2.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>SOL_SOCKET</b>(2const), <b>setsockopt</b>(2),
+  <b>socket</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-01</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

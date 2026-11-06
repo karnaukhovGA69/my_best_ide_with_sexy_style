@@ -1,0 +1,70 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">alarm(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">alarm(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">alarm - set an alarm clock for delivery of a signal</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>unsigned int alarm(unsigned int </b><i>seconds</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>alarm</b>() arranges for a <b>SIGALRM</b> signal to be
+    delivered to the calling process in <i>seconds</i> seconds.</p>
+<p class="Pp">If <i>seconds</i> is zero, any pending alarm is canceled.</p>
+<p class="Pp">In any event any previously set <b>alarm</b>() is canceled.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>alarm</b>() returns the number of seconds remaining until any
+    previously scheduled alarm was due to be delivered, or zero if there was no
+    previously scheduled alarm.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.3BSD, SVr4, POSIX.1-1988.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp"><b>alarm</b>() and <b>setitimer</b>(2) share the same timer; calls
+    to one will interfere with use of the other.</p>
+<p class="Pp">Alarms created by <b>alarm</b>() are preserved across
+    <b>execve</b>(2) and are not inherited by children created via
+    <b>fork</b>(2).</p>
+<p class="Pp"><b>sleep</b>(3) may be implemented using <b>SIGALRM</b>; mixing
+    calls to <b>alarm</b>() and <b>sleep</b>(3) is a bad idea.</p>
+<p class="Pp">Scheduling delays can, as ever, cause the execution of the process
+    to be delayed by an arbitrary amount of time.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>gettimeofday</b>(2), <b>pause</b>(2), <b>select</b>(2),
+    <b>setitimer</b>(2), <b>sigaction</b>(2), <b>signal</b>(2),
+    <b>timer_create</b>(2), <b>timerfd_create</b>(2), <b>sleep</b>(3),
+    <b>time</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

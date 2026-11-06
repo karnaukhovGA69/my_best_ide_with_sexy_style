@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_LINK(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_LINK(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_LINK - link a key to a keyring</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_LINK, key_serial_t </b><i>key</i><b>,</b>
+<b>             key_serial_t </b><i>keyring</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Create a link from a keyring to a key.</p>
+<p class="Pp">The key to be linked is specified in <i>key</i>; the keyring is
+    specified in <i>keyring</i>.</p>
+<p class="Pp">If a key with the same type and description is already linked in
+    the keyring, then that key is displaced from the keyring.</p>
+<p class="Pp">Before creating the link, the kernel checks the nesting of the
+    keyrings and returns appropriate errors if the link would produce a cycle or
+    if the nesting of keyrings would be too deep (The limit on the nesting of
+    keyrings is determined by the kernel constant
+    <b>KEYRING_SEARCH_MAX_DEPTH</b>, defined with the value 6, and is necessary
+    to prevent overflows on the kernel stack when recursively searching
+    keyrings).</p>
+<p class="Pp">The caller must have <i>link</i> permission on the key being added
+    and <i>write</i> permission on the keyring.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EDEADLK"><a class="permalink" href="#EDEADLK"><b>EDEADLK</b></a></dt>
+  <dd>The requested link would result in a cycle.</dd>
+  <dt id="ELOOP"><a class="permalink" href="#ELOOP"><b>ELOOP</b></a></dt>
+  <dd>The requested link would cause the maximum nesting depth for keyrings to
+      be exceeded.</dd>
+  <dt id="ENFILE"><a class="permalink" href="#ENFILE"><b>ENFILE</b> (before
+    Linux 3.13)</a></dt>
+  <dd>The keyring is full. (Before Linux 3.13, the available space for storing
+      keyring links was limited to a single page of memory; since Linux 3.13,
+      there is no fixed limit.)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_link</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.10.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_link</b>(3),
+    <b>KEYCTL_UNLINK</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

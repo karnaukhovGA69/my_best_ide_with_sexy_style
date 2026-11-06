@@ -1,0 +1,95 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">assert(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">assert(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">assert - abort the program if assertion is false</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;assert.h&gt;</b></pre>
+<pre><b>void assert(bool </b><i>expression</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This macro can help programmers find bugs in their programs, or
+    handle exceptional cases via a crash that will produce limited debugging
+    output.</p>
+<p class="Pp">If <i>expression</i> is false (i.e., compares equal to zero),
+    <b>assert</b>() prints an error message to standard error and terminates the
+    program by calling <b>abort</b>(3). The error message includes the name of
+    the file and function containing the <b>assert</b>() call, the source code
+    line number of the call, and the text of the argument; something like:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>prog: some_file.c:16: some_func: Assertion `val == 0' failed.
+</pre>
+<br/>
+<p class="Pp">If the macro <b>NDEBUG</b> is defined at the moment
+    <i>&lt;assert.h&gt;</i> was last included, the macro <b>assert</b>()
+    generates no code, and hence does nothing at all. It is not recommended to
+    define <b>NDEBUG</b> if using <b>assert</b>() to detect error conditions
+    since the software may behave non-deterministically.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">No value is returned.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>assert ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, C99, POSIX.1-2001.</p>
+<p class="Pp">In C89, <i>expression</i> is required to be of type <i>int</i> and
+    undefined behavior results if it is not, but in C99 it may have any scalar
+    type.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp"><b>assert</b>() is implemented as a macro; if the expression
+    tested has side-effects, program behavior will be different depending on
+    whether <b>NDEBUG</b> is defined. This may create Heisenbugs which go away
+    when debugging is turned on.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>abort</b>(3), <b>assert_perror</b>(3), <b>exit</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

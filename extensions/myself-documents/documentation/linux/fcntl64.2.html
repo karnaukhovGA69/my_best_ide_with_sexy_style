@@ -1,0 +1,214 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fcntl(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">fcntl(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fcntl - manipulate file descriptor</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, int </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>fcntl</b>() performs one of the operations described below on
+    the open file descriptor <i>fd</i>. The operation is determined by
+    <i>op</i>.</p>
+<p class="Pp">Certain of the operations below are supported only since a
+    particular Linux kernel version. The preferred method of checking whether
+    the host kernel supports a particular operation is to invoke <b>fcntl</b>()
+    with the desired <i>op</i> value and then test whether the call failed with
+    <b>EINVAL</b>, indicating that the kernel does not recognize this value.</p>
+<section class="Ss">
+<h2 class="Ss" id="Duplicating_a_file_descriptor"><a class="permalink" href="#Duplicating_a_file_descriptor">Duplicating
+  a file descriptor</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_DUPFD"><a class="permalink" href="#F_DUPFD"><b>F_DUPFD</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_DUPFD_CLOEXEC"><a class="permalink" href="#F_DUPFD_CLOEXEC"><b>F_DUPFD_CLOEXEC</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="File_descriptor_flags"><a class="permalink" href="#File_descriptor_flags">File
+  descriptor flags</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_GETFD"><a class="permalink" href="#F_GETFD"><b>F_GETFD</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SETFD"><a class="permalink" href="#F_SETFD"><b>F_SETFD</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="File_status_flags"><a class="permalink" href="#File_status_flags">File
+  status flags</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_GETFL"><a class="permalink" href="#F_GETFL"><b>F_GETFL</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SETFL"><a class="permalink" href="#F_SETFL"><b>F_SETFL</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Advisory_record_locking"><a class="permalink" href="#Advisory_record_locking">Advisory
+  record locking</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_SETLK"><a class="permalink" href="#F_SETLK"><b>F_SETLK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SETLKW"><a class="permalink" href="#F_SETLKW"><b>F_SETLKW</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GETLK"><a class="permalink" href="#F_GETLK"><b>F_GETLK</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Open_file_description_locks_(non-POSIX)"><a class="permalink" href="#Open_file_description_locks_(non-POSIX)">Open
+  file description locks (non-POSIX)</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_OFD_SETLK"><a class="permalink" href="#F_OFD_SETLK"><b>F_OFD_SETLK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_OFD_SETLKW"><a class="permalink" href="#F_OFD_SETLKW"><b>F_OFD_SETLKW</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_OFD_GETLK"><a class="permalink" href="#F_OFD_GETLK"><b>F_OFD_GETLK</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Managing_signals"><a class="permalink" href="#Managing_signals">Managing
+  signals</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_GETOWN"><a class="permalink" href="#F_GETOWN"><b>F_GETOWN</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SETOWN"><a class="permalink" href="#F_SETOWN"><b>F_SETOWN</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GETOWN_EX"><a class="permalink" href="#F_GETOWN_EX"><b>F_GETOWN_EX</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SETOWN_EX"><a class="permalink" href="#F_SETOWN_EX"><b>F_SETOWN_EX</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GETSIG"><a class="permalink" href="#F_GETSIG"><b>F_GETSIG</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SETSIG"><a class="permalink" href="#F_SETSIG"><b>F_SETSIG</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Leases"><a class="permalink" href="#Leases">Leases</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_SETLEASE"><a class="permalink" href="#F_SETLEASE"><b>F_SETLEASE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GETLEASE"><a class="permalink" href="#F_GETLEASE"><b>F_GETLEASE</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Delegations"><a class="permalink" href="#Delegations">Delegations</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_SETDELEG"><a class="permalink" href="#F_SETDELEG"><b>F_SETDELEG</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GETDELEG"><a class="permalink" href="#F_GETDELEG"><b>F_GETDELEG</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="File_and_directory_change_notification_(dnotify)"><a class="permalink" href="#File_and_directory_change_notification_(dnotify)">File
+  and directory change notification (dnotify)</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_NOTIFY"><a class="permalink" href="#F_NOTIFY"><b>F_NOTIFY</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Changing_the_capacity_of_a_pipe"><a class="permalink" href="#Changing_the_capacity_of_a_pipe">Changing
+  the capacity of a pipe</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_SETPIPE_SZ"><a class="permalink" href="#F_SETPIPE_SZ"><b>F_SETPIPE_SZ</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GETPIPE_SZ"><a class="permalink" href="#F_GETPIPE_SZ"><b>F_GETPIPE_SZ</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="File_Sealing"><a class="permalink" href="#File_Sealing">File
+  Sealing</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_ADD_SEALS"><a class="permalink" href="#F_ADD_SEALS"><b>F_ADD_SEALS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GET_SEALS"><a class="permalink" href="#F_GET_SEALS"><b>F_GET_SEALS</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="File_read/write_hints"><a class="permalink" href="#File_read/write_hints">File
+  read/write hints</a></h2>
+<dl class="Bl-tag">
+  <dt id="F_GET_RW_HINT"><a class="permalink" href="#F_GET_RW_HINT"><b>F_GET_RW_HINT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SET_RW_HINT"><a class="permalink" href="#F_SET_RW_HINT"><b>F_SET_RW_HINT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_GET_FILE_RW_HINT"><a class="permalink" href="#F_GET_FILE_RW_HINT"><b>F_GET_FILE_RW_HINT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="F_SET_FILE_RW_HINT"><a class="permalink" href="#F_SET_FILE_RW_HINT"><b>F_SET_FILE_RW_HINT</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">For a successful call, the return value depends on the
+  operation.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b> or
+    <b>EAGAIN</b></a></dt>
+  <dd>Operation is prohibited by locks held by other processes.</dd>
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The operation is prohibited because the file has been memory-mapped by
+      another process.</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>fd</i> is not an open file descriptor</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The value specified in <i>op</i> is not recognized by this kernel.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">POSIX.1-2024 specifies <b>FD_CLOFORK</b> and
+    <b>F_DUPFD_CLOFORK</b>, but Linux doesn't support them.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.3BSD, SVr4, POSIX.1-1988.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>dup2</b>(2), <b>flock</b>(2), <b>open</b>(2), <b>socket</b>(2),
+    <b>lockf</b>(3), <b>capabilities</b>(7), <b>feature_test_macros</b>(7),
+    <b>lslocks</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

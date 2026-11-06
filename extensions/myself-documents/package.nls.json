@@ -1,7 +1,11 @@
 {
   "displayName": "Myself Documents",
-  "description": "Write plain-text documents and export them to PDF locally.",
+  "description": "Write plain-text documents, export PDF and read local documentation.",
   "new": "New Document",
   "open": "Open as Document",
-  "editor": "Document"
+  "editor": "Document",
+  "library.title": "Documentation",
+  "library.search": "Search Local Documentation",
+  "library.import": "Add Local Document",
+  "library.remove": "Remove from Library"
 }

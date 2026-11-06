@@ -1,0 +1,67 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">open_how(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">open_how(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">open_how - how to open a pathname</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Linux kernel headers</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/openat2.h&gt;</b></pre>
+<pre><b>struct open_how {</b>
+<b>    u64  flags;</b>    /* <b>O_</b>* flags */
+<b>    u64  mode;</b>     /* Mode for <b>O_</b>{<b>CREAT</b>,<b>TMPFILE</b>} */
+<b>    u64  resolve;</b>  /* <b>RESOLVE_</b>* flags */
+<br/>
+    /* ... */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Specifies how a pathname should be opened.</p>
+<p class="Pp">The fields are as follows:</p>
+<dl class="Bl-tag">
+  <dt id="flags"><a class="permalink" href="#flags"><i>flags</i></a></dt>
+  <dd>This field specifies the file creation and file status flags to use when
+      opening the file.</dd>
+  <dt id="mode"><a class="permalink" href="#mode"><i>mode</i></a></dt>
+  <dd>This field specifies the mode for the new file.</dd>
+  <dt id="resolve"><a class="permalink" href="#resolve"><i>resolve</i></a></dt>
+  <dd>This is a bit mask of flags that modify the way in which <i>all</i>
+      components of a pathname will be resolved (see <b>path_resolution</b>(7)
+      for background information).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Extra fields may be appended to the structure, with a zero value
+    in a new field resulting in the kernel behaving as though that extension
+    field was not present. Therefore, a user <i>must</i> zero-fill this
+    structure on initialization.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>openat2</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

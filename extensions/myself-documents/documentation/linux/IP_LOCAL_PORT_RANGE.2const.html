@@ -1,0 +1,64 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IP_LOCAL_PORT_RANGE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IP_LOCAL_PORT_RANGE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IP_LOCAL_PORT_RANGE - default local port range</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_LOCAL_PORT_RANGE,</b>
+<b>               const&#x00A0;uint32_t&#x00A0;*</b><i>val</i><b>,&#x00A0;sizeof(uint32_t));</b>
+<b>int&#x00A0;getsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_LOCAL_PORT_RANGE,</b>
+<b>               uint32_t&#x00A0;*</b><i>val</i><b>,&#x00A0;sizeof(uint32_t));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set or get the per-socket default local port range.</p>
+<p class="Pp">This option can be used to clamp down the global local port range,
+    defined by the <i>/proc/sys/net/ipv4/ip_local_port_range</i> interface, for
+    a given socket.</p>
+<p class="Pp">The option takes an <i>uint32_t</i> value with the high 16 bits
+    set to the upper range bound, and the low 16 bits set to the lower range
+    bound. Range bounds are inclusive. The 16-bit values should be in host byte
+    order.</p>
+<p class="Pp">The lower bound has to be less than the upper bound when both
+    bounds are not zero. Otherwise, setting the option fails with EINVAL.</p>
+<p class="Pp">If either bound is outside of the global local port range, or is
+    zero, then that bound has no effect.</p>
+<p class="Pp">To reset the setting, pass zero as both the upper and the lower
+    bound.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>IPPROTO_IP</b>(2const). See <b>setsockopt</b>(2). See
+    <b>ip</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 6.3.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IP</b>(2const), <b>setsockopt</b>(2),
+    <b>proc_sys_net_ipv4</b>(5), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

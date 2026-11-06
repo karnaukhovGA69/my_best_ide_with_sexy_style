@@ -1,0 +1,45 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ttyS(4)</td>
+    <td class="head-vol">Device Drivers Manual</td>
+    <td class="head-rtitle">ttyS(4)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ttyS - serial terminal lines</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>ttyS[0-3]</b> are character devices for the serial terminal
+    lines.</p>
+<p class="Pp">They are typically created by:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mknod -m 660 /dev/ttyS0 c 4 64 # base address 0x3f8
+mknod -m 660 /dev/ttyS1 c 4 65 # base address 0x2f8
+mknod -m 660 /dev/ttyS2 c 4 66 # base address 0x3e8
+mknod -m 660 /dev/ttyS3 c 4 67 # base address 0x2e8
+chown root:tty /dev/ttyS[0-3]
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/dev/ttyS[0-3]</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>chown</b>(1), <b>mknod</b>(1), <b>tty</b>(4), <b>agetty</b>(8),
+    <b>mingetty</b>(8), <b>setserial</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

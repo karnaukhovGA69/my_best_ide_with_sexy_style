@@ -1,0 +1,62 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getc(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">getc(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getc - get character from stream</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>int getc(FILE *</b><i>stream</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>getc</b>() is equivalent to <b>fgetc</b>(3), except for the
+    BUGS (see below).</p>
+<p class="Pp">Use <b>fgetc</b>(3) instead.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C23, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Multiple_evaluation"><a class="permalink" href="#Multiple_evaluation">Multiple
+  evaluation</a></h2>
+<p class="Pp">It may be implemented as a macro, and it may evaluate
+    <i>stream</i> more than once.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Name"><a class="permalink" href="#Name">Name</a></h2>
+<p class="Pp">The name is inconsistent. It is often confused with
+    <b>getchar</b>(3), as normally <i>&lt;stdio.h&gt;</i> functions without the
+    &quot;f&quot; prefix in their name are variants that use <i>stdin</i>.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fgetc</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

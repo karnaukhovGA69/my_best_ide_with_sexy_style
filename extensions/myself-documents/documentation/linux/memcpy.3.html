@@ -1,0 +1,90 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">memcpy(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">memcpy(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">memcpy - memory copy</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include&#x00A0;&lt;string.h&gt;</b>  // see memory.h(3head)</pre>
+<pre><b>void *memcpy(</b>size_t n;
+<b>             void </b><i>dest</i><b>[restrict </b><i>n</i><b>], const void </b><i>src</i><b>[restrict </b><i>n</i><b>],</b>
+<b>             size_t </b><i>n</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>memcpy</b>() function copies <i>n</i> bytes from memory
+    area <i>src</i> to memory area <i>dest</i>. The memory areas must not
+    overlap. Use <b>memmove</b>(3) if the memory areas do overlap.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>memcpy</b>() function returns a pointer to <i>dest</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>memcpy ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Failure to observe the requirement that the memory areas do not
+    overlap has been the source of significant bugs. (POSIX and the C standards
+    are explicit that employing <b>memcpy</b>() with overlapping areas produces
+    undefined behavior.) Most notably, in glibc 2.13 a performance optimization
+    of <b>memcpy</b>() on some platforms (including x86-64) included changing
+    the order in which bytes were copied from <i>src</i> to <i>dest</i>.</p>
+<p class="Pp">This change revealed breakages in a number of applications that
+    performed copying with overlapping areas. Under the previous implementation,
+    the order in which the bytes were copied had fortuitously hidden the bug,
+    which was revealed when the copying order was reversed. In glibc 2.14, a
+    versioned symbol was added so that old binaries (i.e., those linked against
+    glibc versions earlier than 2.14) employed a <b>memcpy</b>() implementation
+    that safely handles the overlapping buffers case (by providing an
+    &quot;older&quot; <b>memcpy</b>() implementation that was aliased to
+    <b>memmove</b>(3)).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memory.h</b>(3head), <b>memmove</b>(3), <b>mempcpy</b>(3),
+    <b>wmemcpy</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

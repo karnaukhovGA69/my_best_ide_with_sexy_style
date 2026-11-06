@@ -1,0 +1,254 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_tty(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_tty(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_tty - ioctls for terminals and serial lines</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, int </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>ioctl</b>(2) call for terminals and serial ports accepts
+    many possible operation arguments. Most require a third argument, of varying
+    type, here called <i>argp</i> or <i>arg</i>.</p>
+<p class="Pp">Use of <b>ioctl</b>() makes for nonportable programs. Use the
+    POSIX interface described in <b>termios</b>(7) whenever possible.</p>
+<section class="Ss">
+<h2 class="Ss" id="Get_and_set_terminal_attributes"><a class="permalink" href="#Get_and_set_terminal_attributes">Get
+  and set terminal attributes</a></h2>
+<dl class="Bl-tag">
+  <dt id="TCGETS"><a class="permalink" href="#TCGETS"><b>TCGETS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETS"><a class="permalink" href="#TCSETS"><b>TCSETS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETSW"><a class="permalink" href="#TCSETSW"><b>TCSETSW</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETSF"><a class="permalink" href="#TCSETSF"><b>TCSETSF</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCGETS2"><a class="permalink" href="#TCGETS2"><b>TCGETS2</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETS2"><a class="permalink" href="#TCSETS2"><b>TCSETS2</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETSW2"><a class="permalink" href="#TCSETSW2"><b>TCSETSW2</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETSF2"><a class="permalink" href="#TCSETSF2"><b>TCSETSF2</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCGETA"><a class="permalink" href="#TCGETA"><b>TCGETA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETA"><a class="permalink" href="#TCSETA"><b>TCSETA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETAW"><a class="permalink" href="#TCSETAW"><b>TCSETAW</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSETAF"><a class="permalink" href="#TCSETAF"><b>TCSETAF</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Locking_the_termios_structure"><a class="permalink" href="#Locking_the_termios_structure">Locking
+  the termios structure</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCGLCKTRMIOS"><a class="permalink" href="#TIOCGLCKTRMIOS"><b>TIOCGLCKTRMIOS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSLCKTRMIOS"><a class="permalink" href="#TIOCSLCKTRMIOS"><b>TIOCSLCKTRMIOS</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Get_and_set_window_size"><a class="permalink" href="#Get_and_set_window_size">Get
+  and set window size</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCGWINSZ"><a class="permalink" href="#TIOCGWINSZ"><b>TIOCGWINSZ</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSWINSZ"><a class="permalink" href="#TIOCSWINSZ"><b>TIOCSWINSZ</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Sending_a_break"><a class="permalink" href="#Sending_a_break">Sending
+  a break</a></h2>
+<dl class="Bl-tag">
+  <dt id="TCSBRK"><a class="permalink" href="#TCSBRK"><b>TCSBRK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCSBRKP"><a class="permalink" href="#TCSBRKP"><b>TCSBRKP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSBRK"><a class="permalink" href="#TIOCSBRK"><b>TIOCSBRK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCCBRK"><a class="permalink" href="#TIOCCBRK"><b>TIOCCBRK</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Software_flow_control"><a class="permalink" href="#Software_flow_control">Software
+  flow control</a></h2>
+<dl class="Bl-tag">
+  <dt id="TCXONC"><a class="permalink" href="#TCXONC"><b>TCXONC</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Buffer_count_and_flushing"><a class="permalink" href="#Buffer_count_and_flushing">Buffer
+  count and flushing</a></h2>
+<dl class="Bl-tag">
+  <dt id="FIONREAD"><a class="permalink" href="#FIONREAD"><b>FIONREAD</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCINQ"><a class="permalink" href="#TIOCINQ"><b>TIOCINQ</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCOUTQ"><a class="permalink" href="#TIOCOUTQ"><b>TIOCOUTQ</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TCFLSH"><a class="permalink" href="#TCFLSH"><b>TCFLSH</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSERGETLSR"><a class="permalink" href="#TIOCSERGETLSR"><b>TIOCSERGETLSR</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Faking_input"><a class="permalink" href="#Faking_input">Faking
+  input</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCSTI"><a class="permalink" href="#TIOCSTI"><b>TIOCSTI</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Redirecting_console_output"><a class="permalink" href="#Redirecting_console_output">Redirecting
+  console output</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCCONS"><a class="permalink" href="#TIOCCONS"><b>TIOCCONS</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Controlling_terminal"><a class="permalink" href="#Controlling_terminal">Controlling
+  terminal</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCSCTTY"><a class="permalink" href="#TIOCSCTTY"><b>TIOCSCTTY</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCNOTTY"><a class="permalink" href="#TIOCNOTTY"><b>TIOCNOTTY</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Process_group_and_session_ID"><a class="permalink" href="#Process_group_and_session_ID">Process
+  group and session ID</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCGPGRP"><a class="permalink" href="#TIOCGPGRP"><b>TIOCGPGRP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSPGRP"><a class="permalink" href="#TIOCSPGRP"><b>TIOCSPGRP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCGSID"><a class="permalink" href="#TIOCGSID"><b>TIOCGSID</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Exclusive_mode"><a class="permalink" href="#Exclusive_mode">Exclusive
+  mode</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCEXCL"><a class="permalink" href="#TIOCEXCL"><b>TIOCEXCL</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCGEXCL"><a class="permalink" href="#TIOCGEXCL"><b>TIOCGEXCL</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCNXCL"><a class="permalink" href="#TIOCNXCL"><b>TIOCNXCL</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Line_discipline"><a class="permalink" href="#Line_discipline">Line
+  discipline</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCGETD"><a class="permalink" href="#TIOCGETD"><b>TIOCGETD</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSETD"><a class="permalink" href="#TIOCSETD"><b>TIOCSETD</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Pseudoterminal_ioctls"><a class="permalink" href="#Pseudoterminal_ioctls">Pseudoterminal
+  ioctls</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCPKT"><a class="permalink" href="#TIOCPKT"><b>TIOCPKT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCGPKT"><a class="permalink" href="#TIOCGPKT"><b>TIOCGPKT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSPTLCK"><a class="permalink" href="#TIOCSPTLCK"><b>TIOCSPTLCK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCGPTLCK"><a class="permalink" href="#TIOCGPTLCK"><b>TIOCGPTLCK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCGPTPEER"><a class="permalink" href="#TIOCGPTPEER"><b>TIOCGPTPEER</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Modem_control"><a class="permalink" href="#Modem_control">Modem
+  control</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCMGET"><a class="permalink" href="#TIOCMGET"><b>TIOCMGET</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCMSET"><a class="permalink" href="#TIOCMSET"><b>TIOCMSET</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCMBIC"><a class="permalink" href="#TIOCMBIC"><b>TIOCMBIC</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCMBIS"><a class="permalink" href="#TIOCMBIS"><b>TIOCMBIS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCMIWAIT"><a class="permalink" href="#TIOCMIWAIT"><b>TIOCMIWAIT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCGICOUNT"><a class="permalink" href="#TIOCGICOUNT"><b>TIOCGICOUNT</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Marking_a_line_as_local"><a class="permalink" href="#Marking_a_line_as_local">Marking
+  a line as local</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCGSOFTCAR"><a class="permalink" href="#TIOCGSOFTCAR"><b>TIOCGSOFTCAR</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="TIOCSSOFTCAR"><a class="permalink" href="#TIOCSSOFTCAR"><b>TIOCSSOFTCAR</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Linux-specific"><a class="permalink" href="#Linux-specific">Linux-specific</a></h2>
+<p class="Pp">For the <b>TIOCLINUX</b>(2const) ioctl, see
+    <b>ioctl_console</b>(2).</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Kernel_debugging"><a class="permalink" href="#Kernel_debugging">Kernel
+  debugging</a></h2>
+<dl class="Bl-tag">
+  <dt id="TIOCTTYGSTRUCT"><a class="permalink" href="#TIOCTTYGSTRUCT"><b>TIOCTTYGSTRUCT</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ldattach</b>(8), <b>ioctl_console</b>(2),
+    <b>termios</b>(7), <b>pty</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -14,10 +14,11 @@ async function fixture(options = {}) {
 	const document = { uri: options.resource ?? uri('/Essay.txt'), version: 1, isDirty: false, eol: 2, getText: () => text, positionAt: offset => offset };
 	const replace = value => { text = value; document.version++; document.isDirty = true; changes.fire({ document }); };
 	const vscode = {
-		...viewApi, EndOfLine: { CRLF: 2 }, Range: class { constructor(start, end) { this.start = start; this.end = end; } },
+		...viewApi, EventEmitter: class { constructor() { this.event = emitter().event; } fire() {} dispose() {} }, EndOfLine: { CRLF: 2 }, Range: class { constructor(start, end) { this.start = start; this.end = end; } },
 		WorkspaceEdit: class { replace(resource, range, value) { this.edit = { resource, range, value }; } },
-		window: { registerCustomEditorProvider: (_id, value) => { provider = value; return { dispose() {} }; } },
+		window: { createTreeView: () => ({ dispose() {} }), showErrorMessage() {}, registerCustomEditorProvider: (_id, value) => { provider = value; return { dispose() {} }; } },
 		workspace: {
+			fs: { readFile: async () => new TextEncoder().encode('{"groups":[],"entries":[]}') },
 			onDidChangeTextDocument: changes.event, onDidSaveTextDocument: saves.event,
 			applyEdit: async edit => { const { range, value } = edit.edit; history.push(text); replace(text.slice(0, range.start) + value + text.slice(range.end)); return true; },
 			save: async () => {
@@ -37,7 +38,7 @@ async function fixture(options = {}) {
 		}
 	};
 	const extension = loadWithVscode('extension.js', vscode);
-	extension.activate({ subscriptions: [], extensionUri: uri('extension') });
+	extension.activate({ subscriptions: [], extensionUri: uri('extension'), globalState: { get: () => [] } });
 	await provider.resolveCustomTextEditor(document, { webview: { cspSource: 'https://example.invalid', asWebviewUri: u => u, postMessage: m => sent.push(m), onDidReceiveMessage: messages.event }, onDidDispose: disposal.event });
 	return { document, sent, executed, changes, saves, disposal, text: () => text, replace, message: async message => { messages.fire(message); await tick(); }, history };
 }

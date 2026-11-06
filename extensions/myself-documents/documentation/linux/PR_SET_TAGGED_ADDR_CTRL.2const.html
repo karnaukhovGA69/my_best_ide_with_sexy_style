@@ -1,0 +1,118 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_SET_TAGGED_ADDR_CTRL(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_SET_TAGGED_ADDR_CTRL(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_SET_TAGGED_ADDR_CTRL - control support for passing tagged
+    user-space addresses to the kernel</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_SET_TAGGED_ADDR_CTRL, long </b><i>mode</i><b>, 0L, 0L, 0L);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Controls support for passing tagged user-space addresses to the
+    kernel (i.e., addresses where bits 56&#x2014;63 are not all zero).</p>
+<p class="Pp">The level of support is selected by <i>support</i>, which can be
+    one of the following:</p>
+<dl class="Bl-tag">
+  <dt><b>0L</b></dt>
+  <dd>Addresses that are passed for the purpose of being dereferenced by the
+      kernel must be untagged.</dd>
+  <dt id="PR_TAGGED_ADDR_ENABLE"><a class="permalink" href="#PR_TAGGED_ADDR_ENABLE"><b>PR_TAGGED_ADDR_ENABLE</b></a></dt>
+  <dd>Addresses that are passed for the purpose of being dereferenced by the
+      kernel may be tagged, with the exceptions summarized below.</dd>
+</dl>
+<p class="Pp">On success, the mode specified in <i>mode</i> is set for the
+    calling thread.</p>
+<p class="Pp">If <i>prctl(PR_SET_TAGGED_ADDR_CTRL, 0L, 0L, 0L, 0L)</i> fails
+    with <b>EINVAL</b>, then all addresses passed to the kernel must be
+    untagged.</p>
+<p class="Pp">Irrespective of which mode is set, addresses passed to certain
+    interfaces must always be untagged:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd><b>brk</b>(2), <b>mmap</b>(2), <b>shmat</b>(2), <b>shmdt</b>(2), and the
+      <i>new_address</i> argument of <b>mremap</b>(2).</dd>
+  <dt></dt>
+  <dd>(Prior to Linux 5.6 these accepted tagged addresses, but the behavior may
+      not be what you expect. Don't rely on it.)</dd>
+  <dt>&#x2022;</dt>
+  <dd>&#x2018;polymorphic&#x2019; interfaces that accept pointers to arbitrary
+      types cast to a <i>void *</i> or other generic type, specifically
+      <b>prctl</b>(), <b>ioctl</b>(2), and in general <b>setsockopt</b>(2) (only
+      certain specific <b>setsockopt</b>(2) options allow tagged
+    addresses).</dd>
+</dl>
+<p class="Pp">This list of exclusions may shrink when moving from one kernel
+    version to a later kernel version. While the kernel may make some guarantees
+    for backwards compatibility reasons, for the purposes of new software the
+    effect of passing tagged addresses to these interfaces is unspecified.</p>
+<p class="Pp">The mode set by this call is inherited across <b>fork</b>(2) and
+    <b>clone</b>(2). The mode is reset by <b>execve</b>(2) to 0 (i.e., tagged
+    addresses not permitted in the user/kernel ABI).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>mode</i> is invalid or unsupported.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>This feature is disabled via
+    <i>/proc/sys/abi/tagged_addr_disabled</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/abi/tagged_addr_disabled</i></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux. arm64 only.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.4 (arm64).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">This call is primarily intended for use by the run-time
+    environment. A successful <b>PR_SET_TAGGED_ADDR_CTRL</b> call elsewhere may
+    crash the calling process. The conditions for using it safely are complex
+    and system-dependent. Don't use it unless you know what you are doing.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>PR_SET_TAGGED_ADDR_CTRL</b>(2const)</p>
+<p class="Pp">For more information, see the kernel source file
+    <i>Documentation/arm64/tagged-address-abi.rst</i>.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,411 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">open_tree(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">open_tree(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">open_tree - open path or create detached mount object and attach
+    to fd</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE         </b>/* See feature_test_macros(7) */
+<b>#include &lt;fcntl.h&gt;</b>          /* Definition of <b>AT_*</b> constants */
+<b>#include &lt;sys/mount.h&gt;</b></pre>
+<pre><b>int open_tree(int </b><i>dirfd</i><b>, const char *</b><i>path</i><b>, unsigned int </b><i>flags</i><b>);</b></pre>
+<pre><b>#include &lt;sys/syscall.h&gt;</b>    /* Definition of <b>SYS_*</b> constants */</pre>
+<pre><b>int syscall(SYS_open_tree_attr,</b>
+<b>            int </b><i>dirfd</i><b>, const char *</b><i>path</i><b>, unsigned int </b><i>flags</i><b>,</b>
+<b>            struct mount_attr *_Nullable </b><i>attr</i><b>, size_t </b><i>size</i><b>);</b></pre>
+<p class="Pp"><i>Note</i>: glibc provides no wrapper for
+    <b>open_tree_attr</b>(), necessitating the use of <b>syscall</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>open_tree</b>() system call is part of the suite of
+    file-descriptor-based mount facilities in Linux.</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>If <i>flags</i> contains <b>OPEN_TREE_CLONE</b>, <b>open_tree</b>()
+      creates a detached mount object which consists of a bind-mount of the path
+      specified by the <i>path</i>. A new file descriptor associated with the
+      detached mount object is then returned. The mount object is equivalent to
+      a bind-mount that would be created by <b>mount</b>(2) called with
+      <b>MS_BIND</b>, except that it is tied to a file descriptor and is not
+      mounted onto the filesystem.</dd>
+  <dt></dt>
+  <dd>As with file descriptors returned from <b>fsmount</b>(2), the resultant
+      file descriptor can then be used with <b>move_mount</b>(2),
+      <b>mount_setattr</b>(2), or other such system calls to do further mount
+      operations.</dd>
+  <dt></dt>
+  <dd>This mount object will be unmounted and destroyed when the file descriptor
+      is closed if it was not otherwise attached to a mount point by calling
+      <b>move_mount</b>(2). This implicit unmount operation is lazy&#x2014;akin
+      to calling <b>umount2</b>(2) with <b>MNT_DETACH</b>; thus, any existing
+      open references to files from the mount object will continue to work, and
+      the mount object will only be completely destroyed once it ceases to be
+      busy.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If <i>flags</i> does not contain <b>OPEN_TREE_CLONE</b>,
+      <b>open_tree</b>() returns a file descriptor that is exactly equivalent to
+      one produced by <b>openat</b>(2) when called with the same <i>dirfd</i>
+      and <i>path</i>.</dd>
+</dl>
+<p class="Pp">In either case, the resultant file descriptor acts the same as one
+    produced by <b>open</b>(2) with <b>O_PATH</b>, meaning it can also be used
+    as a <i>dirfd</i> argument to &quot;*at()&quot; system calls. However,
+    unlike <b>open</b>(2) called with <b>O_PATH</b>, automounts will by default
+    be triggered by <b>open_tree</b>() unless <b>AT_NO_AUTOMOUNT</b> is included
+    in <i>flags</i>.</p>
+<p class="Pp">As with &quot;*at()&quot; system calls, <b>open_tree</b>() uses
+    the <i>dirfd</i> argument in conjunction with the <i>path</i> argument to
+    determine the path to operate on, as follows:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in <i>path</i> is absolute, then <i>dirfd</i> is
+      ignored.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in <i>path</i> is relative and <i>dirfd</i> is the
+      special value <b>AT_FDCWD</b>, then <i>path</i> is interpreted relative to
+      the current working directory of the calling process (like
+      <b>open</b>(2)).</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in <i>path</i> is relative, then it is interpreted
+      relative to the directory referred to by the file descriptor <i>dirfd</i>
+      (rather than relative to the current working directory of the calling
+      process, as is done by <b>open</b>(2) for a relative pathname). In this
+      case, <i>dirfd</i> must be a directory that was opened for reading
+      (<b>O_RDONLY</b>) or using the <b>O_PATH</b> flag.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If <i>path</i> is an empty string, and <i>flags</i> contains
+      <b>AT_EMPTY_PATH</b>, then the file descriptor <i>dirfd</i> is operated on
+      directly. In this case, <i>dirfd</i> may refer to any type of file, not
+      just a directory.</dd>
+</dl>
+<p class="Pp">See <b>openat</b>(2) for an explanation of why the <i>dirfd</i>
+    argument is useful.</p>
+<p class="Pp"><i>flags</i> can be used to control aspects of the path lookup and
+    properties of the returned file descriptor. A value for <i>flags</i> is
+    constructed by bitwise ORing zero or more of the following constants:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="AT_EMPTY_PATH"><a class="permalink" href="#AT_EMPTY_PATH"><b>AT_EMPTY_PATH</b></a></dt>
+  <dd>If <i>path</i> is an empty string, operate on the file referred to by
+      <i>dirfd</i> (which may have been obtained from <b>open</b>(2),
+      <b>fsmount</b>(2), or from another <b>open_tree</b>() call). In this case,
+      <i>dirfd</i> may refer to any type of file, not just a directory. If
+      <i>dirfd</i> is <b>AT_FDCWD</b>, <b>open_tree</b>() will operate on the
+      current working directory of the calling process. This flag is
+      Linux-specific; define <b>_GNU_SOURCE</b> to obtain its definition.</dd>
+  <dt id="AT_NO_AUTOMOUNT"><a class="permalink" href="#AT_NO_AUTOMOUNT"><b>AT_NO_AUTOMOUNT</b></a></dt>
+  <dd>Do not automount the terminal (&quot;basename&quot;) component of
+      <i>path</i> if it is a directory that is an automount point. This allows
+      you to create a handle to the automount point itself, rather than the
+      location it would mount. This flag has no effect if the mount point has
+      already been mounted over. This flag is Linux-specific; define
+      <b>_GNU_SOURCE</b> to obtain its definition.</dd>
+  <dt id="AT_SYMLINK_NOFOLLOW"><a class="permalink" href="#AT_SYMLINK_NOFOLLOW"><b>AT_SYMLINK_NOFOLLOW</b></a></dt>
+  <dd>If <i>path</i> is a symbolic link, do not dereference it; instead, create
+      either a handle to the link itself or a bind-mount of it. The resultant
+      file descriptor is indistinguishable from one produced by <b>openat</b>(2)
+      with <b>O_PATH</b>|<b>O_NOFOLLLOW</b>.</dd>
+  <dt id="OPEN_TREE_CLOEXEC"><a class="permalink" href="#OPEN_TREE_CLOEXEC"><b>OPEN_TREE_CLOEXEC</b></a></dt>
+  <dd>Set the close-on-exec (<b>FD_CLOEXEC</b>) flag on the new file descriptor.
+      See the description of the <b>O_CLOEXEC</b> flag in <b>open</b>(2) for
+      reasons why this may be useful.</dd>
+  <dt id="OPEN_TREE_CLONE"><a class="permalink" href="#OPEN_TREE_CLONE"><b>OPEN_TREE_CLONE</b></a></dt>
+  <dd>Rather than creating an <b>openat</b>(2)-style <b>O_PATH</b> file
+      descriptor, create a bind-mount of <i>path</i> (akin to
+      <i>mount&#x00A0;--bind</i>) as a detached mount object. In order to do
+      this operation, the calling process must have the <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+  <dt id="AT_RECURSIVE"><a class="permalink" href="#AT_RECURSIVE"><b>AT_RECURSIVE</b></a></dt>
+  <dd>Create a recursive bind-mount of the path (akin to
+      <i>mount&#x00A0;--rbind</i>) as a detached mount object. This flag is only
+      permitted in conjunction with <b>OPEN_TREE_CLONE</b>.</dd>
+</dl>
+</div>
+<section class="Ss">
+<h2 class="Ss" id="open_tree_attr()"><a class="permalink" href="#open_tree_attr()">open_tree_attr()</a></h2>
+<p class="Pp">The <b>open_tree_attr</b>() system call operates in exactly the
+    same way as <b>open_tree</b>(), except for the differences described
+  here.</p>
+<p class="Pp">After performing the same operation as with <b>open_tree</b>(),
+    <b>open_tree_attr</b>() will apply the mount attribute changes described in
+    <i>attr</i> to the file descriptor before it is returned. (See
+    <b>mount_attr</b>(2type) for a description of the <i>mount_attr</i>
+    structure. As described in <b>mount_setattr</b>(2), <i>size</i> must be set
+    to <i>sizeof(struct mount_attr)</i> in order to support future extensions.)
+    If <i>attr</i> is NULL, or has <i>attr.attr_clr</i>, <i>attr.attr_set</i>,
+    and <i>attr.propagation</i> all set to zero, then <b>open_tree_attr</b>()
+    has identical behavior to <b>open_tree</b>().</p>
+<p class="Pp">The application of <i>attr</i> to the resultant file descriptor
+    has identical semantics to <b>mount_setattr</b>(2), except for the following
+    extensions and general caveats:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>Unlike <b>mount_setattr</b>(2) called with a regular
+      <b>OPEN_TREE_CLONE</b> detached mount object from <b>open_tree</b>(),
+      <b>open_tree_attr</b>() can specify a different setting for
+      <b>MOUNT_ATTR_IDMAP</b> to the original mount object cloned with
+      <b>OPEN_TREE_CLONE</b>.</dd>
+  <dt></dt>
+  <dd>Adding <b>MOUNT_ATTR_IDMAP</b> to <i>attr.attr_clr</i> will disable
+      ID-mapping for the new mount object; adding <b>MOUNT_ATTR_IDMAP</b> to
+      <i>attr.attr_set</i> will configure the mount object to have the
+      ID-mapping defined by the user namespace referenced by the file descriptor
+      <i>attr.userns_fd</i>. (The semantics of which are identical to when
+      <b>mount_setattr</b>(2) is used to configure
+    <b>MOUNT_ATTR_IDMAP</b>.)</dd>
+  <dt></dt>
+  <dd>Changing or removing the mapping of an ID-mapped mount is only permitted
+      if a new detached mount object is being created with <i>flags</i>
+      including <b>OPEN_TREE_CLONE</b>.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If <i>flags</i> contains <b>AT_RECURSIVE</b>, then the attributes
+      described in <i>attr</i> are applied recursively (just as when
+      <b>mount_setattr</b>(2) is called with <b>AT_RECURSIVE</b>). However, this
+      applies in addition to the <b>open_tree</b>()-specific behavior regarding
+      <b>AT_RECURSIVE</b>, and thus <i>flags</i> must also contain
+      <b>OPEN_TREE_CLONE</b>.</dd>
+</dl>
+<p class="Pp">Note that if <i>flags</i> does not contain <b>OPEN_TREE_CLONE</b>,
+    <b>open_tree_attr</b>() will attempt to modify the mount attributes of the
+    mount object attached at the path described by <i>dirfd</i> and <i>path</i>.
+    As with <b>mount_setattr</b>(2), if said path is not a mount point,
+    <b>open_tree_attr</b>() will return an error.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, a new file descriptor is returned. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>Search permission is denied for one of the directories in the path prefix
+      of <i>path</i>. (See also <b>path_resolution</b>(7).)</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>path</i> is relative but <i>dirfd</i> is neither <b>AT_FDCWD</b> nor a
+      valid file descriptor.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>path</i> is NULL or a pointer to a location outside the calling
+      process's accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid flag specified in <i>flags</i>.</dd>
+  <dt id="ELOOP"><a class="permalink" href="#ELOOP"><b>ELOOP</b></a></dt>
+  <dd>Too many symbolic links encountered when resolving <i>path</i>.</dd>
+  <dt id="EMFILE"><a class="permalink" href="#EMFILE"><b>EMFILE</b></a></dt>
+  <dd>The calling process has too many open files to create more.</dd>
+  <dt id="ENAMETOOLONG"><a class="permalink" href="#ENAMETOOLONG"><b>ENAMETOOLONG</b></a></dt>
+  <dd><i>path</i> is longer than <b>PATH_MAX</b>.</dd>
+  <dt id="ENFILE"><a class="permalink" href="#ENFILE"><b>ENFILE</b></a></dt>
+  <dd>The system has too many open files to create more.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>A component of <i>path</i> does not exist, or is a dangling symbolic
+    link.</dd>
+  <dt id="ENOENT~2"><a class="permalink" href="#ENOENT~2"><b>ENOENT</b></a></dt>
+  <dd><i>path</i> is an empty string, but <b>AT_EMPTY_PATH</b> is not specified
+      in <i>flags</i>.</dd>
+  <dt id="ENOTDIR"><a class="permalink" href="#ENOTDIR"><b>ENOTDIR</b></a></dt>
+  <dd>A component of the path prefix of <i>path</i> is not a directory, or
+      <i>path</i> is relative and <i>dirfd</i> is a file descriptor referring to
+      a file other than a directory.</dd>
+  <dt id="ENOSPC"><a class="permalink" href="#ENOSPC"><b>ENOSPC</b></a></dt>
+  <dd>The &quot;anonymous&quot; mount namespace necessary to contain the
+      <b>OPEN_TREE_CLONE</b> detached bind-mount mount object could not be
+      allocated, as doing so would exceed the configured per-user limit on the
+      number of mount namespaces in the current user namespace. (See also
+      <b>namespaces</b>(7).)</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate sufficient memory to complete the
+    operation.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd><i>flags</i> contains <b>OPEN_TREE_CLONE</b> but the calling process does
+      not have the required <b>CAP_SYS_ADMIN</b> capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="open_tree"><a class="permalink" href="#open_tree"><b>open_tree</b>()</a></dt>
+  <dd>Linux 5.2, glibc 2.36.</dd>
+  <dt id="open_tree_attr"><a class="permalink" href="#open_tree_attr"><b>open_tree_attr</b>()</a></dt>
+  <dd>Linux 6.15.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Mount_propagation"><a class="permalink" href="#Mount_propagation">Mount
+  propagation</a></h2>
+<p class="Pp">The bind-mount mount objects created by <b>open_tree</b>() with
+    <b>OPEN_TREE_CLONE</b> are not associated with the mount namespace of the
+    calling process. Instead, each mount object is placed in a newly allocated
+    &quot;anonymous&quot; mount namespace associated with the calling
+  process.</p>
+<p class="Pp">One of the side-effects of this is that (unlike bind-mounts
+    created with <b>mount</b>(2)), mount propagation (as described in
+    <b>mount_namespaces</b>(7)) will not be applied to bind-mounts created by
+    <b>open_tree</b>() until the bind-mount is attached with
+    <b>move_mount</b>(2), at which point the mount object will be associated
+    with the mount namespace where it was attached and mount propagation will
+    resume. Note that any mount propagation events that occurred before the
+    mount object was attached will <i>not</i> be propagated to the mount object,
+    even after it is attached.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following examples show how <b>open_tree</b>() can be used in
+    place of more traditional <b>mount</b>(2) calls with <b>MS_BIND</b>.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int srcfd = open_tree(AT_FDCWD, &quot;/var&quot;, OPEN_TREE_CLONE);
+move_mount(srcfd, &quot;&quot;, AT_FDCWD, &quot;/mnt&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">First, a detached bind-mount mount object of <i>/var</i> is
+    created and associated with the file descriptor <i>srcfd</i>. Then, the
+    mount object is attached to <i>/mnt</i> using <b>move_mount</b>(2) with
+    <b>MOVE_MOUNT_F_EMPTY_PATH</b> to request that the detached mount object
+    associated with the file descriptor <i>srcfd</i> be moved (and thus
+    attached) to <i>/mnt</i>.</p>
+<p class="Pp">The above procedure is functionally equivalent to the following
+    mount operation using <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(&quot;/var&quot;, &quot;/mnt&quot;, NULL, MS_BIND, NULL);
+</pre>
+<br/>
+<p class="Pp"><b>OPEN_TREE_CLONE</b> can be combined with <b>AT_RECURSIVE</b> to
+    create recursive detached bind-mount mount objects, which in turn can be
+    attached to mount points to create recursive bind-mounts.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int srcfd = open_tree(AT_FDCWD, &quot;/var&quot;,
+<br/>
+                      OPEN_TREE_CLONE | AT_RECURSIVE);
+move_mount(srcfd, &quot;&quot;, AT_FDCWD, &quot;/mnt&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">The above procedure is functionally equivalent to the following
+    mount operation using <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(&quot;/var&quot;, &quot;/mnt&quot;, NULL, MS_BIND | MS_REC, NULL);
+</pre>
+<br/>
+<p class="Pp">One of the primary benefits of using <b>open_tree</b>() and
+    <b>move_mount</b>(2) over the traditional <b>mount</b>(2) is that operating
+    with <i>dirfd</i>-style file descriptors is far easier and more
+  intuitive.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int srcfd = open_tree(100, &quot;&quot;, AT_EMPTY_PATH | OPEN_TREE_CLONE);
+move_mount(srcfd, &quot;&quot;, 200, &quot;foo&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">The above procedure is roughly equivalent to the following mount
+    operation using <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(&quot;/proc/self/fd/100&quot;,
+<br/>
+      &quot;/proc/self/fd/200/foo&quot;,
+<br/>
+      NULL, MS_BIND, NULL);
+</pre>
+<br/>
+<p class="Pp">In addition, you can use the file descriptor returned by
+    <b>open_tree</b>() as the <i>dirfd</i> argument to any &quot;*at()&quot;
+    system calls:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int dirfd, fd;
+dirfd = open_tree(AT_FDCWD, &quot;/etc&quot;, OPEN_TREE_CLONE);
+fd = openat(dirfd, &quot;passwd&quot;, O_RDONLY);
+fchmodat(dirfd, &quot;shadow&quot;, 0000, 0);
+close(dirfd);
+close(fd);
+/* The bind-mount is now destroyed */
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="open_tree_attr()~2"><a class="permalink" href="#open_tree_attr()~2">open_tree_attr()</a></h2>
+<p class="Pp">The following is an example of how <b>open_tree_attr</b>() can be
+    used to take an existing id-mapped mount and construct a new bind-mount
+    mount object with a different <b>MOUNT_ATTR_IDMAP</b> attribute. The
+    resultant detached mount object can be used like any other mount object
+    returned by <b>open_tree</b>().</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int nsfd1, nsfd2;
+int mntfd1, mntfd2, mntfd3;
+struct mount_attr attr;
+mntfd1 = open_tree(AT_FDCWD, &quot;/foo&quot;, OPEN_TREE_CLONE);
+/* Configure the id-mapping of mntfd1 */
+nsfd1 = open(&quot;/proc/1234/ns/user&quot;, O_RDONLY);
+memset(&amp;attr, 0, sizeof(attr));
+attr.attr_set = MOUNT_ATTR_IDMAP;
+attr.userns_fd = nsfd1;
+mount_setattr(mntfd1, &quot;&quot;, AT_EMPTY_PATH, &amp;attr, sizeof(attr));
+/* Create a new copy with a different id-mapping */
+nsfd2 = open(&quot;/proc/5678/ns/user&quot;, O_RDONLY);
+memset(&amp;attr, 0, sizeof(attr));
+attr.attr_clr = MOUNT_ATTR_IDMAP;
+attr.attr_set = MOUNT_ATTR_IDMAP;
+attr.userns_fd = nsfd2;
+mntfd2 = open_tree_attr(mntfd1, &quot;&quot;, OPEN_TREE_CLONE,
+<br/>
+                        &amp;attr, sizeof(attr));
+/* Create a new copy with the id-mapping cleared */
+memset(&amp;attr, 0, sizeof(attr));
+attr.attr_clr = MOUNT_ATTR_IDMAP;
+mntfd3 = open_tree_attr(mntfd1, &quot;&quot;, OPEN_TREE_CLONE,
+<br/>
+                        &amp;attr, sizeof(attr));
+</pre>
+<br/>
+<p class="Pp"><b>open_tree_attr</b>() can also be used with attached mount
+    objects; the above example is only intended to be illustrative.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fsconfig</b>(2), <b>fsmount</b>(2), <b>fsopen</b>(2),
+    <b>fspick</b>(2), <b>mount</b>(2), <b>mount_setattr</b>(2),
+    <b>move_mount</b>(2), <b>mount_namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-22</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

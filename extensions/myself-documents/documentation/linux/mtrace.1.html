@@ -1,0 +1,58 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">mtrace(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">mtrace(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">mtrace - interpret the malloc trace log</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">mtrace</code></td>
+    <td>[<i>option</i>&#x00A0;...] [<i>binary</i>] <i>mtracedata</i></td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>mtrace</b> is a Perl script used to interpret and provide human
+    readable output of the trace log contained in the file <i>mtracedata</i>,
+    whose contents were produced by <b>mtrace</b>(3). If <i>binary</i> is
+    provided, the output of <b>mtrace</b> also contains the source file name
+    with line number information for problem locations (assuming that
+    <i>binary</i> was compiled with debugging information).</p>
+<p class="Pp">For more information about the <b>mtrace</b>(3) function and
+    <b>mtrace</b> script usage, see <b>mtrace</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt id="help"><a class="permalink" href="#help"><b>--help</b></a></dt>
+  <dd>Print help and exit.</dd>
+  <dt id="version"><a class="permalink" href="#version"><b>--version</b></a></dt>
+  <dd>Print version information and exit.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">For bug reporting instructions, please see:
+    <a class="Lk" href="http_//www.gnu.org/software/libc/bugs.html">http://www.gnu.org/software/libc/bugs.html</a>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memusage</b>(1), <b>mtrace</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,208 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">snprintf(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">snprintf(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">snprintf, vsnprintf - string print formatted</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>int snprintf(</b>size_t size;
+<b>            char </b><i>str</i><b>[restrict </b><i>size</i><b>], size_t </b><i>size</i><b>,</b>
+<b>            const char *restrict </b><i>format</i><b>, ...);</b>
+<b>int vsnprintf(</b>size_t size;
+<b>            char </b><i>str</i><b>[restrict </b><i>size</i><b>], size_t </b><i>size</i><b>,</b>
+<b>            const char *restrict </b><i>format</i><b>, va_list </b><i>ap</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>snprintf</b>(), <b>vsnprintf</b>():</p>
+<pre>
+<br/>
+    _XOPEN_SOURCE &gt;= 500 || _ISOC99_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions are similar to <b>printf</b>(3), except that they
+    write to the character string <i>str</i> instead of a stream.</p>
+<p class="Pp">The functions <b>snprintf</b>() and <b>vsnprintf</b>() write at
+    most <i>size</i> bytes (including the terminating null byte ('\0')) to
+    <i>str</i>.</p>
+<p class="Pp"><b>vsnprintf</b>() is equivalent to <b>snprintf</b>(), except that
+    it is called with a <i>va_list</i> instead of a variable number of
+    arguments. This function does not call the <i>va_end</i> macro. Because it
+    invokes the <i>va_arg</i> macro, the value of <i>ap</i> is undefined after
+    the call. See <b>stdarg</b>(3).</p>
+<p class="Pp">C99 and POSIX.1-2001 specify that the results are undefined if a
+    call to <b>snprintf</b>() or <b>vsnprintf</b>() would cause copying to take
+    place between objects that overlap (e.g., if the target string array and one
+    of the supplied input arguments refer to the same buffer). See CAVEATS.</p>
+<section class="Ss">
+<h2 class="Ss" id="Format_of_the_format_string"><a class="permalink" href="#Format_of_the_format_string">Format
+  of the format string</a></h2>
+<p class="Pp">See <b>printf</b>(3).</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Upon successful return, these functions return the number of bytes
+    printed (excluding the null byte used to end output to strings).</p>
+<p class="Pp">The functions <b>snprintf</b>() and <b>vsnprintf</b>() do not
+    write more than <i>size</i> bytes (including the terminating null byte
+    ('\0')). If the output was truncated due to this limit, then the return
+    value is the number of characters (excluding the terminating null byte)
+    which would have been written to the final string if enough space had been
+    available. Thus, a return value of <i>size</i> or more means that the output
+    was truncated. (See also below under CAVEATS.)</p>
+<p class="Pp">On error, a negative value is returned, and <i>errno</i> is set to
+    indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>printf</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>snprintf (), vsnprintf ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SUSv2, C99, POSIX.1-2001.</p>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Concerning the return value, SUSv2 and C99 contradict each other: when
+      <b>snprintf</b>() is called with <i>size</i>=0 then SUSv2 stipulates an
+      unspecified return value less than 1, while C99 allows <i>str</i> to be
+      NULL in this case, and gives the return value (as always) as the number of
+      characters that would have been written in case the output string has been
+      large enough. POSIX.1-2001 and later align their specification of
+      <b>snprintf</b>() with C99.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Some programs imprudently rely on code such as the following</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>snprintf(buf, countof(buf), &quot;%s some further text&quot;, buf);
+</pre>
+<br/>
+<p class="Pp">to append text to <i>buf</i>. However, the standards explicitly
+    note that the results are undefined if source and destination buffers
+    overlap when calling <b>snprintf</b>() and <b>vsnprintf</b>(). Depending on
+    the version of <b>gcc</b>(1) used, and the compiler options employed, calls
+    such as the above will <b>not</b> produce the expected results.</p>
+<p class="Pp">The glibc implementation of the functions <b>snprintf</b>() and
+    <b>vsnprintf</b>() conforms to the C99 standard, that is, behaves as
+    described above, since glibc 2.1. Until glibc 2.0.6, they would return -1
+    when the output was truncated.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">See <b>printf</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">To allocate a sufficiently large string and print into it (code
+    correct for both glibc 2.0 and glibc 2.1):</p>
+<p class="Pp"></p>
+<pre>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdarg.h&gt;
+char *
+make_message(const char *fmt, ...)
+{
+<br/>
+    int n = 0;
+<br/>
+    size_t size = 0;
+<br/>
+    char *p = NULL;
+<br/>
+    va_list ap;
+<br/>
+    /* Determine required size.  */
+<br/>
+    va_start(ap, fmt);
+<br/>
+    n = vsnprintf(p, size, fmt, ap);
+<br/>
+    va_end(ap);
+<br/>
+    if (n &lt; 0)
+<br/>
+        return NULL;
+<br/>
+    size = (size_t) n + 1;      /* One extra byte for '\0' */
+<br/>
+    p = malloc(size);
+<br/>
+    if (p == NULL)
+<br/>
+        return NULL;
+<br/>
+    va_start(ap, fmt);
+<br/>
+    n = vsnprintf(p, size, fmt, ap);
+<br/>
+    va_end(ap);
+<br/>
+    if (n &lt; 0) {
+<br/>
+        free(p);
+<br/>
+        return NULL;
+<br/>
+    }
+<br/>
+    return p;
+}
+</pre>
+<p class="Pp">If truncation occurs in glibc versions prior to glibc 2.0.6, this
+    is treated as an error instead of being handled gracefully.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>printf</b>(1), <b>asprintf</b>(3), <b>printf</b>(3),
+    <b>puts</b>(3), <b>scanf</b>(3), <b>setlocale</b>(3), <b>strfromd</b>(3),
+    <b>wcrtomb</b>(3), <b>wprintf</b>(3), <b>locale</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-07</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

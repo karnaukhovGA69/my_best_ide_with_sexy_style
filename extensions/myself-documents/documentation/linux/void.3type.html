@@ -1,0 +1,73 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">void(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">void(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">void - abstract type</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>void *</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">A pointer to any object type may be converted to a pointer to
+    <i>void</i> and back. POSIX further requires that any pointer, including
+    pointers to functions, may be converted to a pointer to <i>void</i> and
+    back.</p>
+<p class="Pp">Conversions from and to any other pointer type are done
+    implicitly, not requiring casts at all. Note that this feature prevents any
+    kind of type checking: the programmer should be careful not to convert a
+    <i>void *</i> value to a type incompatible to that of the underlying data,
+    because that would result in undefined behavior.</p>
+<p class="Pp">This type is useful in function parameters and return value to
+    allow passing values of any type. The function will typically use some
+    mechanism to know the real type of the data being passed via a pointer to
+    <i>void</i>.</p>
+<p class="Pp">A value of this type can't be dereferenced, as it would give a
+    value of type <i>void</i>, which is not possible. Likewise, pointer
+    arithmetic is not possible with this type. However, in GNU C, pointer
+    arithmetic is allowed as an extension to the standard; this is done by
+    treating the size of a <i>void</i> or of a function as 1. A consequence of
+    this is that <i>sizeof</i> is also allowed on <i>void</i> and on function
+    types, and returns 1.</p>
+<section class="Ss">
+<h2 class="Ss" id="Use_with_printf(3)_and_scanf(3)"><a class="permalink" href="#Use_with_printf(3)_and_scanf(3)">Use
+  with printf(3) and scanf(3)</a></h2>
+<p class="Pp">The conversion specifier for <i>void *</i> for the
+    <b>printf</b>(3) and the <b>scanf</b>(3) families of functions is
+  <b>p</b>.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">The POSIX requirement about compatibility between <i>void *</i>
+    and function pointers was added in POSIX.1-2008 Technical Corrigendum 1
+    (2013).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, POSIX.1-1990.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>malloc</b>(3), <b>memcmp</b>(3), <b>memcpy</b>(3),
+    <b>memset</b>(3), <b>intptr_t</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

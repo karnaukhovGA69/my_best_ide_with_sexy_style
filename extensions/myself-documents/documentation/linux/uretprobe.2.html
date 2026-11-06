@@ -1,0 +1,63 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">uretprobe(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">uretprobe(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">uretprobe - execute pending return uprobes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>int uretprobe(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>uretprobe</b>() is an alternative to breakpoint instructions
+    for triggering return uprobe consumers.</p>
+<p class="Pp">Calls to <b>uretprobe</b>() are only made from the user-space
+    trampoline provided by the kernel. Calls from any other place result in a
+    <b>SIGILL</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The return value is architecture-specific.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="SIGILL"><a class="permalink" href="#SIGILL"><b>SIGILL</b></a></dt>
+  <dd><b>uretprobe</b>() was called by a user-space program.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">The behavior varies across systems.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 6.11.</p>
+<p class="Pp"><b>uretprobe</b>() was initially introduced for the x86_64
+    architecture where it was shown to be faster than breakpoint traps. It might
+    be extended to other architectures.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp"><b>uretprobe</b>() exists only to allow the invocation of return
+    uprobe consumers. It should <b>never</b> be called directly.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

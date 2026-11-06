@@ -1,0 +1,93 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_GET_PERSISTENT(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_GET_PERSISTENT(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_GET_PERSISTENT - get the persistent keyring for a user</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_GET_PERSISTENT, uid_t </b><i>uid</i><b>,</b>
+<b>             key_serial_t </b><i>keyring</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Get the persistent keyring (<b>persistent-keyring</b>(7)) for a
+    specified user and link it to a specified keyring.</p>
+<p class="Pp">The user ID is specified in <i>uid</i>. If the value -1 is
+    specified, the caller's real user ID is used. The ID of the destination
+    keyring is specified in <i>keyring</i>.</p>
+<p class="Pp">The caller must have the <b>CAP_SETUID</b> capability in its user
+    namespace in order to fetch the persistent keyring for a user ID that does
+    not match either the real or effective user ID of the caller.</p>
+<p class="Pp">If the call is successful, a link to the persistent keyring is
+    added to the keyring whose ID was specified in <i>keyring</i>.</p>
+<p class="Pp">The caller must have <i>write</i> permission on the keyring.</p>
+<p class="Pp">The persistent keyring will be created by the kernel if it does
+    not yet exist.</p>
+<p class="Pp">Each time the <b>KEYCTL_GET_PERSISTENT</b> operation is performed,
+    the persistent keyring will have its expiration timeout reset to the value
+    in:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>/proc/sys/kernel/keys/persistent_keyring_expiry
+</pre>
+<br/>
+<p class="Pp">Should the timeout be reached, the persistent keyring will be
+    removed and everything it pins can then be garbage collected.</p>
+<p class="Pp">Persistent keyrings were added in Linux 3.13.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the ID of the persistent keyring.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd><i>uid</i> specified a UID other than the calling thread's real or
+      effective UID, and the caller did not have the <b>CAP_SETUID</b>
+      capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_get_persistent</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 3.13.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_get_persistent</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,108 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_RESTRICT_KEYRING(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_RESTRICT_KEYRING(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_RESTRICT_KEYRING - restrict keys that may be linked to a
+    keyring</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_RESTRICT_KEYRING, key_serial_t </b><i>keyring</i><b>,</b>
+<b>             const char *_Nullable </b><i>type</i><b>, const char *</b><i>restriction</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Apply a key-linking restriction to the keyring with the ID
+    provided in <i>keyring</i>. The caller must have <i>setattr</i> permission
+    on the key. If <i>type</i> is NULL, any attempt to add a key to the keyring
+    is blocked; otherwise it contains a pointer to a string with a key type name
+    and <i>restriction</i> contains a pointer to string that describes the
+    type-specific restriction. As of Linux 4.12, only the type
+    &quot;asymmetric&quot; has restrictions defined:</p>
+<dl class="Bl-tag">
+  <dt id="builtin_trusted"><a class="permalink" href="#builtin_trusted"><b>builtin_trusted</b></a></dt>
+  <dd>Allows only keys that are signed by a key linked to the built-in keyring
+      (&quot;.builtin_trusted_keys&quot;).</dd>
+  <dt id="builtin_and_secondary_trusted"><a class="permalink" href="#builtin_and_secondary_trusted"><b>builtin_and_secondary_trusted</b></a></dt>
+  <dd>Allows only keys that are signed by a key linked to the secondary keyring
+      (&quot;.secondary_trusted_keys&quot;) or, by extension, a key in a
+      built-in keyring, as the latter is linked to the former.</dd>
+  <dt id="key_or_keyring:"><a class="permalink" href="#key_or_keyring:"><b>key_or_keyring:</b><i>key</i></a></dt>
+  <dd></dd>
+  <dt id="key_or_keyring:~2"><a class="permalink" href="#key_or_keyring:~2"><b>key_or_keyring:</b><i>key</i><b>:chain</b></a></dt>
+  <dd>If <i>key</i> specifies the ID of a key of type &quot;asymmetric&quot;,
+      then only keys that are signed by this key are allowed.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If <i>key</i> specifies the ID of a keyring, then only keys that are
+      signed by a key linked to this keyring are allowed.</dd>
+  <dt></dt>
+  <dd>If &quot;:chain&quot; is specified, keys that are signed by a keys linked
+      to the destination keyring (that is, the keyring with the ID specified in
+      the <i>keyring</i> argument) are also allowed.</dd>
+</dl>
+<p class="Pp">Note that a restriction can be configured only once for the
+    specified keyring; once a restriction is set, it can't be overridden.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EDEADLK"><a class="permalink" href="#EDEADLK"><b>EDEADLK</b></a></dt>
+  <dd>The requested keyring restriction would result in a cycle.</dd>
+  <dt id="EEXIST"><a class="permalink" href="#EEXIST"><b>EEXIST</b></a></dt>
+  <dd><i>keyring</i> already has a restriction set.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>The type provided in <i>type</i> argument doesn't support setting key
+      linking restrictions.</dd>
+  <dt id="EOPNOTSUPP"><a class="permalink" href="#EOPNOTSUPP"><b>EOPNOTSUPP</b></a></dt>
+  <dd><i>type</i> was &quot;asymmetric&quot;, and the key specified in the
+      restriction specification provided in <i>restriction</i> has type other
+      than &quot;asymmetric&quot; or &quot;keyring&quot;.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_restrict_keyring</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.12.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_restrict_keyring</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

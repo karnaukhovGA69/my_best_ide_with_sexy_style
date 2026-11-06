@@ -1,0 +1,221 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">git-bisect-rebase(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">git-bisect-rebase(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">git-bisect-rebase - Rebase a branch bisecting to find conflicting
+    commits</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">git&#x00A0;bisect-rebase</code></td>
+    <td>[<i>option&#x00A0;</i>...] [<i>upstream</i> [<i>branch</i>]]</td>
+  </tr>
+</table>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">git&#x00A0;bisect-rebase</code></td>
+    <td>[<i>--abort</i>|<i>--continue</i>|<i>--quit</i>]</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>git-bisect-rebase</b>(1) rebases <i>branch</i> on top of
+    <i>upstream</i> progressively, stopping at each commit from <i>upstream</i>
+    which introduces a conflict.</p>
+<p class="Pp">It uses <b>git-bisect</b>(1) to find the conflicts efficiently,
+    and <b>git-rebase</b>(1) to perform the rebase operations.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="PARAMETERS"><a class="permalink" href="#PARAMETERS">PARAMETERS</a></h1>
+<p class="Pp"><i>upstream</i> and <i>branch</i> are interpreted as if by
+    <b>git-rebase</b>(1).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Mode_options"><a class="permalink" href="#Mode_options">Mode
+  options</a></h2>
+<dl class="Bl-tag">
+  <dt id="abort"><a class="permalink" href="#abort"><b>--abort</b></a></dt>
+  <dd>Abort the bisect-rebase operation and reset HEAD to the original
+      <i>branch</i>.</dd>
+  <dt id="continue"><a class="permalink" href="#continue"><b>--continue</b></a></dt>
+  <dd>Restart the bisect-rebase process after having resolved a rebase
+    conflict.</dd>
+  <dt id="quit"><a class="permalink" href="#quit"><b>--quit</b></a></dt>
+  <dd>Abort the bisect-rebase operation, but HEAD is not reset.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="git"><a class="permalink" href="#git">git-bisect(1)
+  options</a></h2>
+<p class="Pp">The following options are interpreted as if by
+    <b>git-bisect</b>(1).</p>
+<dl class="Bl-tag">
+  <dt id="first"><a class="permalink" href="#first"><b>--first-parent</b></a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="git-rebase(1)_options"><a class="permalink" href="#git-rebase(1)_options">git-rebase(1)
+  options</a></h2>
+<p class="Pp">The following options are interpreted as if by
+    <b>git-rebase</b>(1).</p>
+<dl class="Bl-tag">
+  <dt id="rebase"><a class="permalink" href="#rebase"><b>--rebase-merges</b>[=<i>arg</i>]</a></dt>
+  <dd></dd>
+  <dt id="r"><a class="permalink" href="#r"><b>-r</b></a></dt>
+  <dd></dd>
+  <dt id="no"><a class="permalink" href="#no"><b>--no-rebase-merges</b></a></dt>
+  <dd></dd>
+  <dt id="apply"><a class="permalink" href="#apply"><b>--apply</b></a></dt>
+  <dd></dd>
+  <dt id="empty"><a class="permalink" href="#empty"><b>--empty</b>=<i>arg</i></a></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>keep-empty</b></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>reapply-cherry-picks</b></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>allow-empty-message</b></dt>
+  <dd></dd>
+  <dt id="merge"><a class="permalink" href="#merge"><b>--merge</b></a></dt>
+  <dd></dd>
+  <dt id="m"><a class="permalink" href="#m"><b>-m</b></a></dt>
+  <dd></dd>
+  <dt id="strategy"><a class="permalink" href="#strategy"><b>--strategy</b>=<i>arg</i></a></dt>
+  <dd></dd>
+  <dt id="s"><a class="permalink" href="#s"><b>-s</b><i>&#x00A0;<i>arg</i></i></a></dt>
+  <dd></dd>
+  <dt><b>--strategy-option</b>=<i>arg</i></dt>
+  <dd></dd>
+  <dt id="X"><a class="permalink" href="#X"><b>-X</b><i>&#x00A0;arg</i></a></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>rerere-autoupdate</b></dt>
+  <dd></dd>
+  <dt id="gpg"><a class="permalink" href="#gpg"><b>--gpg-sign</b>[=<i>arg</i>]</a></dt>
+  <dd></dd>
+  <dt id="S"><a class="permalink" href="#S"><b>-S</b><i>arg</i></a></dt>
+  <dd></dd>
+  <dt id="no~2"><a class="permalink" href="#no~2"><b>--no-gpg-sign</b></a></dt>
+  <dd></dd>
+  <dt id="quiet"><a class="permalink" href="#quiet"><b>--quiet</b></a></dt>
+  <dd></dd>
+  <dt id="q"><a class="permalink" href="#q"><b>-q</b></a></dt>
+  <dd></dd>
+  <dt id="verbose"><a class="permalink" href="#verbose"><b>--verbose</b></a></dt>
+  <dd></dd>
+  <dt id="v"><a class="permalink" href="#v"><b>-v</b></a></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>stat</b></dt>
+  <dd></dd>
+  <dt id="n"><a class="permalink" href="#n"><b>-n</b></a></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>verify</b></dt>
+  <dd></dd>
+  <dt id="C"><a class="permalink" href="#C"><b>-C</b><i>arg</i></a></dt>
+  <dd></dd>
+  <dt id="no~3"><a class="permalink" href="#no~3"><b>--no-ff</b></a></dt>
+  <dd></dd>
+  <dt id="force"><a class="permalink" href="#force"><b>--force-rebase</b></a></dt>
+  <dd></dd>
+  <dt id="f"><a class="permalink" href="#f"><b>-f</b></a></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>ignore-whitespace</b></dt>
+  <dd></dd>
+  <dt><b>--</b>[<b>no-</b>]<b>update-refs</b></dt>
+  <dd></dd>
+  <dt id="exec"><a class="permalink" href="#exec"><b>--exec</b>=<i>arg</i></a></dt>
+  <dd></dd>
+  <dt id="x"><a class="permalink" href="#x"><b>-x</b><i>&#x00A0;arg</i></a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Other_options"><a class="permalink" href="#Other_options">Other
+  options</a></h2>
+<dl class="Bl-tag">
+  <dt id="pre"><a class="permalink" href="#pre"><b>--pre-exec</b>=<i>cmd</i></a></dt>
+  <dd>Run <i>cmd</i> at the target commit found by <b>git-bisect</b>(1), before
+      every <b>git-rebase</b>(1) operation. The exit code will be interpreted as
+      if by <i>git&#x00A0;bisect&#x00A0;run&#x00A0;cmd</i>.</dd>
+  <dt id="post"><a class="permalink" href="#post"><b>--post-exec</b>=<i>cmd</i></a></dt>
+  <dd>Run <i>cmd</i> after a <b>git-rebase</b>(1) operation finishes
+      successfully. The exit code will be interpreted as if by
+      <i>git&#x00A0;bisect&#x00A0;run&#x00A0;cmd</i>.</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Rebasing_a_single_branch"><a class="permalink" href="#Rebasing_a_single_branch">Rebasing
+  a single branch</a></h2>
+<p class="Pp">Algorithm for rebasing a branch 'x' on top of 'master'.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>git bisect-rebase master x;
+#	if no conflicts, done
+#	loop:
+#	resolve conflicts
+git rebase --continue;
+git bisect-rebase --continue;
+#	... rinse and repeat (goto loop)
+</pre>
+<br/>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Rebasing_a_tree_of_branches"><a class="permalink" href="#Rebasing_a_tree_of_branches">Rebasing
+  a tree of branches</a></h2>
+<p class="Pp">Algorithm for rebasing a tree of branches on top of 'master'.
+    Consider a branch 'A', with two childs 'B' and 'C'.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>#	loop:
+git bisect-rebase master A;
+#	if no conflicts, goto children
+git rebase --abort;
+git bisect-rebase --quit;
+#	children:
+git bisect-rebase A B;
+#	follow algorithm for single branch with master=A and x=B
+git bisect-rebase A C;
+#	follow algorithm for single branch with master=A and x=C
+#	if 'goto children' above, done
+git tag tmpA;
+git bisect-rebase master A;
+#	resolve conflicts
+git rebase --continue;
+git bisect-rebase --quit;
+git rebase --onto A tmpA B;
+#	resolve conflicts, if any
+git rebase --onto A tmpA C;
+#	resolve conflicts, if any
+git tag -d tmpA;
+#	... rinse and repeat (goto loop)
+</pre>
+<br/>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>git-bisect</b>(1), <b>git-rebase</b>(1)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-10-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

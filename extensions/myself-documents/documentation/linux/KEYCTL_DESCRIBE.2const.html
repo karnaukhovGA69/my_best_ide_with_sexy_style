@@ -1,0 +1,95 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_DESCRIBE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_DESCRIBE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_DESCRIBE - describe a key</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(</b>size_t size;
+<b>             SYS_keyctl, KEYCTL_DESCRIBE, key_serial_t </b><i>key</i><b>,</b>
+<b>             char </b><i>desc</i><b>[_Nullable </b><i>size</i><b>], size_t </b><i>size</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Obtain a string describing the attributes of a specified key.</p>
+<p class="Pp">The ID of the key to be described is specified in <i>key</i>. The
+    descriptive string is returned in the buffer pointed to by <i>desc</i>;
+    <i>size</i> specifies the size of that buffer in bytes.</p>
+<p class="Pp">The key must grant the caller <i>view</i> permission.</p>
+<p class="Pp">The returned string is null-terminated and contains the following
+    information about the key:</p>
+<p class="Pp">
+  <br/>
+  <i>type</i>;<i>uid</i>;<i>gid</i>;<i>perm</i>;<i>description</i>
+  <br/>
+</p>
+<p class="Pp">In the above, <i>type</i> and <i>description</i> are strings,
+    <i>uid</i> and <i>gid</i> are decimal strings, and <i>perm</i> is a
+    hexadecimal permissions mask. The descriptive string is written with the
+    following format:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>%s;%d;%d;%08x;%s
+</pre>
+<br/>
+<p class="Pp"><b>Note: the intention is that the descriptive string should</b>
+    <b>be extensible in future kernel versions.</b> In particular, the
+    <i>description</i> field will not contain semicolons; it should be parsed by
+    working backwards from the end of the string to find the last semicolon.
+    This allows future semicolon-delimited fields to be inserted in the
+    descriptive string in the future.</p>
+<p class="Pp">Writing to the buffer is attempted only when <i>desc</i> is
+    non-NULL and the specified buffer size is large enough to accept the
+    descriptive string (including the terminating null byte). In order to
+    determine whether the buffer size was too small, check to see if the return
+    value of the operation is greater than <i>size</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the size of the description (including the terminating
+    null byte), irrespective of the provided buffer size.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_describe</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.10.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_describe</b>(3),
+    <b>keyctl_describe_alloc</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

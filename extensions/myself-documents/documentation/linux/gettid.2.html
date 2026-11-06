@@ -1,0 +1,74 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">gettid(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">gettid(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">gettid - get thread identification</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>pid_t gettid(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>gettid</b>() returns the caller's thread ID (TID). In a
+    single-threaded process, the thread ID is equal to the process ID (PID, as
+    returned by <b>getpid</b>(2)). In a multithreaded process, all threads have
+    the same PID, but each one has a unique TID. For further details, see the
+    discussion of <b>CLONE_THREAD</b> in <b>clone</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, returns the thread ID of the calling thread.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">This call is always successful.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.11, glibc 2.30.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The thread ID returned by this call is not the same thing as a
+    POSIX thread ID (i.e., the opaque value returned by
+  <b>pthread_self</b>(3)).</p>
+<p class="Pp">In a new thread group created by a <b>clone</b>(2) call that does
+    not specify the <b>CLONE_THREAD</b> flag (or, equivalently, a new process
+    created by <b>fork</b>(2)), the new process is a thread group leader, and
+    its thread group ID (the value returned by <b>getpid</b>(2)) is the same as
+    its thread ID (the value returned by <b>gettid</b>()).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>capget</b>(2), <b>clone</b>(2), <b>fcntl</b>(2),
+    <b>fork</b>(2), <b>get_robust_list</b>(2), <b>getpid</b>(2),
+    <b>ioprio_set</b>(2), <b>perf_event_open</b>(2),
+    <b>sched_setaffinity</b>(2), <b>sched_setparam</b>(2),
+    <b>sched_setscheduler</b>(2), <b>tgkill</b>(2), <b>timer_create</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

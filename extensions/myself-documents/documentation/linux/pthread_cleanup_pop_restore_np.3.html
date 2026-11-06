@@ -1,0 +1,98 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">pthread_cleanup_push_defer_np(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">pthread_cleanup_push_defer_np(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">pthread_cleanup_push_defer_np, pthread_cleanup_pop_restore_np -
+    push and pop thread cancelation clean-up handlers while saving cancelability
+    type</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">POSIX threads library
+  (<i>libpthread</i>,&#x00A0;<i>-lpthread</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;pthread.h&gt;</b></pre>
+<pre><b>void pthread_cleanup_push_defer_np(typeof(void (void *)) *</b><i>routine</i><b>,</b>
+<b>                                   void *</b><i>arg</i><b>);</b>
+<b>void pthread_cleanup_pop_restore_np(int </b><i>execute</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>pthread_cleanup_push_defer_np</b>(),
+    <b>pthread_cleanup_pop_defer_np</b>():</p>
+<pre>
+<br/>
+    _GNU_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions are the same as <b>pthread_cleanup_push</b>(3) and
+    <b>pthread_cleanup_pop</b>(3), except for the differences noted on this
+    page.</p>
+<p class="Pp">Like <b>pthread_cleanup_push</b>(3),
+    <b>pthread_cleanup_push_defer_np</b>() pushes <i>routine</i> onto the
+    thread's stack of cancelation clean-up handlers. In addition, it also saves
+    the thread's current cancelability type, and sets the cancelability type to
+    &quot;deferred&quot; (see <b>pthread_setcanceltype</b>(3)); this ensures
+    that cancelation clean-up will occur even if the thread's cancelability type
+    was &quot;asynchronous&quot; before the call.</p>
+<p class="Pp">Like <b>pthread_cleanup_pop</b>(3),
+    <b>pthread_cleanup_pop_restore_np</b>() pops the top-most clean-up handler
+    from the thread's stack of cancelation clean-up handlers. In addition, it
+    restores the thread's cancelability type to its value at the time of the
+    matching <b>pthread_cleanup_push_defer_np</b>().</p>
+<p class="Pp">The caller must ensure that calls to these functions are paired
+    within the same function, and at the same lexical nesting level. Other
+    restrictions apply, as described in <b>pthread_cleanup_push</b>(3).</p>
+<p class="Pp">This sequence of calls:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>pthread_cleanup_push_defer_np(routine, arg);
+pthread_cleanup_pop_restore_np(execute);
+</pre>
+<br/>
+<p class="Pp">is equivalent to (but shorter and more efficient than):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int oldtype;
+pthread_cleanup_push(routine, arg);
+pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &amp;oldtype);
+...
+pthread_setcanceltype(oldtype, NULL);
+pthread_cleanup_pop(execute);
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU; hence the suffix &quot;_np&quot; (nonportable) in the
+  names.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">glibc 2.0</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>pthread_cancel</b>(3), <b>pthread_cleanup_push</b>(3),
+    <b>pthread_setcancelstate</b>(3), <b>pthread_testcancel</b>(3),
+    <b>pthreads</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

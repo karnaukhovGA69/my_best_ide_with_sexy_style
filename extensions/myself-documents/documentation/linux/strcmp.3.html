@@ -1,0 +1,150 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strcmp(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strcmp(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strcmp - strings compare</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;string.h&gt;</b></pre>
+<pre><b>int strcmp(const char *</b><i>s1</i><b>, const char *</b><i>s2</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>strcmp</b>() function compares the two strings <i>s1</i>
+    and <i>s2</i>, as if by calling <b>memcmp</b>(3).</p>
+<p class="Pp">It is equivalent to</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>memcmp(s1, s2, MIN(strlen(s1),strlen(s2))+1)
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>memcmp</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strcmp ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">The locale is not taken into account (for a locale-aware
+    comparison, see <b>strcoll</b>(3)).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below can be used to demonstrate the operation of
+    <b>strcmp</b>().</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> ./strcmp ABC ABC</b>;
+&lt;str1&gt; and &lt;str2&gt; are equal
+$<b> ./strcmp ABC AB</b>;      # 'C' is ASCII 67; 'C' - '\0' = 67
+&lt;str1&gt; is greater than &lt;str2&gt; (67)
+$<b> ./strcmp ABA ABZ</b>;     # 'A' is ASCII 65; 'Z' is ASCII 90
+&lt;str1&gt; is less than &lt;str2&gt; (-25)
+$<b> ./strcmp ABJ ABC</b>;
+&lt;str1&gt; is greater than &lt;str2&gt; (7)
+$<b> ./strcmp $'\201' A</b>;   # 0201 - 0101 = 0100 (or 64 decimal)
+&lt;str1&gt; is greater than &lt;str2&gt; (64)
+</pre>
+<br/>
+<p class="Pp">The last example uses <b>bash</b>(1)-specific syntax to produce a
+    string containing an 8-bit ASCII code; the result demonstrates that the
+    string comparison uses unsigned characters.</p>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>// strcmp.c
+// Licensed under GNU General Public License v2 or later.
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int res;
+<br/>
+    if (argc != 3) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s &lt;str1&gt; &lt;str2&gt;\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    res = strcmp(argv[1], argv[2]);
+<br/>
+    if (res == 0) {
+<br/>
+        printf(&quot;&lt;str1&gt; and &lt;str2&gt; are equal&quot;);
+<br/>
+        printf(&quot;\n&quot;);
+<br/>
+    } else if (res &lt; 0) {
+<br/>
+        printf(&quot;&lt;str1&gt; is less than &lt;str2&gt; (%d)\n&quot;, res);
+<br/>
+    } else {
+<br/>
+        printf(&quot;&lt;str1&gt; is greater than &lt;str2&gt; (%d)\n&quot;, res);
+<br/>
+    }
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memcmp</b>(3), <b>strcasecmp</b>(3), <b>strcoll</b>(3),
+    <b>streq</b>(3), <b>string</b>(3), <b>strverscmp</b>(3),
+  <b>wcscmp</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

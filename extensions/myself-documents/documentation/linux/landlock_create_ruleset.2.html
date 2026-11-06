@@ -1,0 +1,213 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">landlock_create_ruleset(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">landlock_create_ruleset(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">landlock_create_ruleset - create a new Landlock ruleset</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/landlock.h&gt;</b>  /* Definition of <b>LANDLOCK_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>     /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(SYS_landlock_create_ruleset,</b>
+<b>            const struct landlock_ruleset_attr *</b><i>attr</i><b>,</b>
+<b>            size_t </b><i>size</i><b> , uint32_t </b><i>flags</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">A Landlock ruleset identifies a set of rules (i.e., actions on
+    objects). This <b>landlock_create_ruleset</b>() system call creates a new
+    file descriptor which identifies a ruleset. This file descriptor can then be
+    used by <b>landlock_add_rule</b>(2) and <b>landlock_restrict_self</b>(2).
+    See <b>landlock</b>(7) for a global overview.</p>
+<p class="Pp"><i>attr</i> specifies the properties of the new ruleset. It points
+    to the following structure:</p>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct landlock_ruleset_attr {
+<br/>
+    __u64 handled_access_fs;
+<br/>
+    __u64 handled_access_net;
+<br/>
+    __u64 scoped;
+<br/>
+    __u64 quiet_access_fs;
+<br/>
+    __u64 quiet_access_net;
+<br/>
+    __u64 quiet_scoped;
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd><i>handled_access_fs</i> is a bitmask of handled filesystem actions (see
+      <b>Filesystem actions</b> in <b>landlock</b>(7)).</dd>
+  <dt></dt>
+  <dd><i>handled_access_net</i> is a bitmask of handled network actions (see
+      <b>Network actions</b> in <b>landlock</b>(7)).</dd>
+  <dt></dt>
+  <dd><i>scoped</i> is a bitmask of scope flags (see <b>Scope flags</b> in
+      <b>landlock</b>(7)).</dd>
+  <dt></dt>
+  <dd><i>quiet_access_fs</i> is a bit mask of filesystem actions which should
+      not be logged if the per-object quiet flag is set.</dd>
+  <dt></dt>
+  <dd><i>quiet_access_net</i> is a bit mask of network actions which should not
+      be logged if the per-object quiet flag is set.</dd>
+  <dt></dt>
+  <dd><i>quiet_scoped</i> is a bit mask of scoped actions which should not be
+      logged.</dd>
+  <dt></dt>
+  <dd>This structure defines a set of <i>handled access rights</i>, a set of
+      actions on different object types, which should be denied by default when
+      the ruleset is enacted. Vice versa, access rights that are not
+      specifically listed here are not going to be denied by this ruleset when
+      it is enacted.</dd>
+  <dt></dt>
+  <dd>For historical reasons, the <b>LANDLOCK_ACCESS_FS_REFER</b> right is
+      always denied by default, even when its bit is not set in
+      <i>handled_access_fs</i>. In order to add new rules with this access
+      right, the bit must still be set explicitly (see <b>Filesystem actions</b>
+      in <b>landlock</b>(7)).</dd>
+  <dt></dt>
+  <dd>The explicit listing of <i>handled access rights</i> is required for
+      backwards compatibility reasons. In most use cases, processes that use
+      Landlock will <i>handle</i> a wide range or all access rights that they
+      know about at build time (and that they have tested with a kernel that
+      supported them all).</dd>
+  <dt></dt>
+  <dd><i>quiet_access_fs</i> and <i>quiet_access_net</i> are bit masks of
+      actions for which a denial by this layer will not trigger a log if the
+      corresponding object (or its children, for filesystem rules) is marked
+      with the &quot;quiet&quot; bit via <b>LANDLOCK_ADD_RULE_QUIET</b>, even if
+      logging would normally take place per <b>landlock_restrict_self</b>(2)
+      flags. <i>quiet_scoped</i> is similar, except that it does not require
+      marking any objects as quiet (if the ruleset is created with any bits set
+      in <i>quiet_scoped</i>, then denial of such scoped resources will not
+      trigger any log). These 3 fields are available since Landlock ABI version
+      10 (see <b>Quiet rule flag</b> in <b>landlock</b>(7)).</dd>
+  <dt></dt>
+  <dd><i>quiet_access_fs</i>, <i>quiet_access_net</i> and <i>quiet_scoped</i>
+      must be a subset of <i>handled_access_fs</i>, <i>handled_access_net</i>
+      and <i>scoped</i> respectively.</dd>
+  <dt></dt>
+  <dd>This structure can grow in future Landlock versions.</dd>
+</dl>
+<p class="Pp"><i>size</i> must be specified as <i>sizeof(struct
+    landlock_ruleset_attr)</i> for compatibility reasons.</p>
+<p class="Pp"><i>flags</i> must be 0 if <i>attr</i> is used. Otherwise,
+    <i>flags</i> can be set to:</p>
+<dl class="Bl-tag">
+  <dt id="LANDLOCK_CREATE_RULESET_VERSION"><a class="permalink" href="#LANDLOCK_CREATE_RULESET_VERSION"><b>LANDLOCK_CREATE_RULESET_VERSION</b></a></dt>
+  <dd>Return the highest supported Landlock ABI version (starting at 1). This
+      version can be used for a best-effort security approach, which is
+      encouraged when user space is not pinned to a specific kernel
+    version.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Unless noted otherwise, all features documented in these manual pages are
+      available with the version 1.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="LANDLOCK_CREATE_RULESET_ERRATA"><a class="permalink" href="#LANDLOCK_CREATE_RULESET_ERRATA"><b>LANDLOCK_CREATE_RULESET_ERRATA</b></a></dt>
+  <dd>Return a bitmask of fixed issues for the current Landlock ABI version. If
+      bit N is set (i.e.,
+      <i>errata&#x00A0;&amp;&#x00A0;(1&#x00A0;&lt;&lt;&#x00A0;(N&#x00A0;-&#x00A0;1))</i>),
+      then erratum N has been fixed in the running kernel.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>In addition to ABI versions, Landlock's errata mechanism tracks fixes for
+      issues that may affect backwards compatibility or require userspace
+      awareness.</dd>
+  <dt></dt>
+  <dd>Only check errata if your application specifically relies on behavior that
+      changed due to the fix.</dd>
+  <dt></dt>
+  <dd>The full list of Landlock errata is available at
+      <a class="Lk" href="https_//docs.kernel.org/userspace-api/landlock.html#landlock-errata">https://docs.kernel.org/userspace-api/landlock.html#landlock-errata</a>.</dd>
+  <dt></dt>
+  <dd>This flag is available on all Linux versions where Landlock errata were
+      fixed. This specifically includes all newest bugfix releases of stable
+      kernels where Landlock is supported.</dd>
+</dl>
+<p class="Pp">If <b>LANDLOCK_CREATE_RULESET_VERSION</b> or
+    <b>LANDLOCK_CREATE_RULESET_ERRATA</b> is set, then <i>attr</i> must be NULL
+    and <i>size</i> must be 0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>landlock_create_ruleset</b>() returns a new
+    Landlock ruleset file descriptor, a Landlock ABI version, or a Landlock
+    errata bitmask, according to <i>flags</i>.</p>
+<p class="Pp">On error, -1 is returned and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp"><b>landlock_create_ruleset</b>() can fail for the following
+    reasons:</p>
+<dl class="Bl-tag">
+  <dt id="E2BIG"><a class="permalink" href="#E2BIG"><b>E2BIG</b></a></dt>
+  <dd><i>size</i> is too big.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>attr</i> was not a valid address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Unknown <i>flags</i>, or unknown access, or unknown scope, or too small
+      <i>size</i>.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>Non-NULL <i>attr</i> or non-zero <i>size</i> in combination with
+      <b>LANDLOCK_CREATE_RULESET_VERSION</b> or
+      <b>LANDLOCK_CREATE_RULESET_ERRATA</b>.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd><i>quiet_access_fs</i>, <i>quiet_access_net</i>, or <i>quiet_scoped</i> is
+      not a subset of the corresponding <i>handled_access_fs</i>,
+      <i>handled_access_net</i>, or <i>scoped</i>.</dd>
+  <dt id="ENOMSG"><a class="permalink" href="#ENOMSG"><b>ENOMSG</b></a></dt>
+  <dd>Empty accesses (i.e., <i>attr</i> did not specify any access rights to
+      restrict).</dd>
+  <dt id="EOPNOTSUPP"><a class="permalink" href="#EOPNOTSUPP"><b>EOPNOTSUPP</b></a></dt>
+  <dd>Landlock is supported by the kernel but disabled at boot time.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.13.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>landlock</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>landlock_add_rule</b>(2), <b>landlock_restrict_self</b>(2),
+    <b>landlock</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

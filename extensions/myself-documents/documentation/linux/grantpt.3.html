@@ -1,0 +1,110 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">grantpt(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">grantpt(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">grantpt - grant access to the slave pseudoterminal</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _XOPEN_SOURCE</b>
+<b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>int grantpt(int </b><i>fd</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>grantpt</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.24:
+<br/>
+        _XOPEN_SOURCE &gt;= 500
+<br/>
+    glibc 2.23 and earlier:
+<br/>
+        _XOPEN_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>grantpt</b>() function changes the mode and owner of the
+    slave pseudoterminal device corresponding to the master pseudoterminal
+    referred to by the file descriptor <i>fd</i>. The user ID of the slave is
+    set to the real UID of the calling process. The group ID is set to an
+    unspecified value (e.g., <i>tty</i>). The mode of the slave is set to 0620
+    (crw--w----).</p>
+<p class="Pp">The behavior of <b>grantpt</b>() is unspecified if a signal
+    handler is installed to catch <b>SIGCHLD</b> signals.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">When successful, <b>grantpt</b>() returns 0. Otherwise, it returns
+    -1 and sets <i>errno</i> to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>The corresponding slave pseudoterminal could not be accessed.</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd>The <i>fd</i> argument is not a valid open file descriptor.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The <i>fd</i> argument is valid but not associated with a master
+      pseudoterminal.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>grantpt ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">glibc 2.1. POSIX.1-2001.</p>
+<p class="Pp">This is part of the UNIX 98 pseudoterminal support, see
+    <b>pts</b>(4).</p>
+<p class="Pp">Historical systems implemented this function via a set-user-ID
+    helper binary called &quot;pt_chown&quot;. glibc on Linux before glibc 2.33
+    could do so as well, in order to support configurations with only BSD
+    pseudoterminals; this support has been removed. On modern systems this is
+    either a no-op &#x2014;with permissions configured on pty allocation, as is
+    the case on Linux&#x2014; or an <b>ioctl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>open</b>(2), <b>posix_openpt</b>(3), <b>ptsname</b>(3),
+    <b>unlockpt</b>(3), <b>pts</b>(4), <b>pty</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

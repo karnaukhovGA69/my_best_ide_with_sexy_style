@@ -1,0 +1,76 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">NULL(3const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">NULL(3const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">NULL - null pointer constant</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stddef.h&gt;</b></pre>
+<pre><b>#define NULL  ((void *) 0)</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>NULL</b> represents a null pointer constant, that is, a pointer
+    that does not point to anything.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, POSIX.1-1988.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following headers also provide <b>NULL</b>:
+    <i>&lt;locale.h&gt;</i>, <i>&lt;stdio.h&gt;</i>, <i>&lt;stdlib.h&gt;</i>,
+    <i>&lt;string.h&gt;</i>, <i>&lt;time.h&gt;</i>, <i>&lt;unistd.h&gt;</i>, and
+    <i>&lt;wchar.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">It is undefined behavior to dereference a null pointer, and that
+    usually causes a segmentation fault in practice.</p>
+<p class="Pp">It is also undefined behavior to perform pointer arithmetic on
+  it.</p>
+<p class="Pp"><i>NULL - NULL</i> is undefined behavior, according to ISO C, but
+    is defined to be 0 in C++.</p>
+<p class="Pp">To avoid confusing human readers of the code, do not compare
+    pointer variables to <b>0</b>, and do not assign <b>0</b> to them. Instead,
+    always use <b>NULL</b>.</p>
+<p class="Pp"><b>NULL</b> shouldn't be confused with <b>NUL</b>, which is an
+    <b>ascii</b>(7) character, represented in C as <b>'\0'</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">When it is necessary to set a pointer variable to a null pointer,
+    it is not enough to use <b>memset</b>(3) to zero the pointer (this is
+    usually done when zeroing a struct that contains pointers), since ISO C and
+    POSIX don't guarantee that a bit pattern of all 0s represent a null pointer.
+    See the EXAMPLES section in <b>getaddrinfo</b>(3) for an example program
+    that does this correctly.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>void</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

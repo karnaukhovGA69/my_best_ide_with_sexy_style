@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">cfmakeraw(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">cfmakeraw(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">cfmakeraw - set terminal raw mode</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define&#x00A0;_DEFAULT_SOURCE</b>  /* See feature_test_macros(7) */
+<b>#include &lt;termios.h&gt;</b></pre>
+<pre><b>void cfmakeraw(struct termios *</b><i>termios_p</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>cfmakeraw</b>() sets the terminal to something like the
+    &quot;raw&quot; mode of the old Version 7 terminal driver: input is
+    available character by character, echoing is disabled, and all special
+    processing of terminal input and output characters is disabled.</p>
+<p class="Pp">The terminal attributes are set as follows:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>termios_p-&gt;c_iflag &amp;= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
+<br/>
+                | INLCR | IGNCR | ICRNL | IXON);
+termios_p-&gt;c_oflag &amp;= ~OPOST;
+termios_p-&gt;c_lflag &amp;= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+termios_p-&gt;c_cflag &amp;= ~(CSIZE | PARENB);
+termios_p-&gt;c_cflag |= CS8;
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<dl class="Bl-tag">
+  <dt><b>0</b></dt>
+  <dd>on success.</dd>
+  <dt><b>-1</b></dt>
+  <dd>on failure and set <i>errno</i> to indicate the error.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>cfmakeraw ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>termios</b>(3type), <b>termios</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

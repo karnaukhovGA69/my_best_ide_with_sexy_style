@@ -1,0 +1,92 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">UFFDIO_SET_MODE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">UFFDIO_SET_MODE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">UFFDIO_SET_MODE - toggle userfaultfd runtime mode bits</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b>  /* Definition of <b>UFFD*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, UFFDIO_SET_MODE, struct uffdio_set_mode *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b></pre>
+<pre></pre>
+<pre><b>struct uffdio_set_mode {</b>
+<b>    __u64  enable;</b>   /* Feature bits to set */
+<b>    __u64  disable;</b>  /* Feature bits to clear */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Toggle userfaultfd features that may be flipped at runtime.</p>
+<p class="Pp">Bits set in <i>.enable</i> turn the named features on; bits set in
+    <i>.disable</i> turn them off. The two fields must not overlap. Today only
+    <b>UFFD_FEATURE_RWP_ASYNC</b> is a valid bit in either field; any other bit
+    causes the ioctl to fail with <b>EINVAL</b>. Enabling
+    <b>UFFD_FEATURE_RWP_ASYNC</b> also requires <b>UFFD_FEATURE_RWP</b> to have
+    been negotiated at <b>UFFDIO_API</b>(2const) time.</p>
+<p class="Pp">The operation is serialized against in-flight page faults, so the
+    new mode takes effect only after every fault that started before the call
+    has finished, and any fault that starts after the call observes the new
+    mode. This allows a single userfaultfd to switch between lightweight async
+    detection and synchronous eviction without re-registering its ranges.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>A bit other than <b>UFFD_FEATURE_RWP_ASYNC</b> was specified in
+      <i>.enable</i> or <i>.disable</i>.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The fields <i>.enable</i> and <i>.disable</i> overlap.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd><b>UFFD_FEATURE_RWP_ASYNC</b> was requested without
+      <b>UFFD_FEATURE_RWP</b> having been negotiated.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>argp</i> refers to an address that is outside the calling process's
+      accessible address space.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 7.2.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>userfaultfd</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_userfaultfd</b>(2),
+    <b>userfaultfd</b>(2)</p>
+<p class="Pp"><i>linux.git/Documentation/admin-guide/mm/userfaultfd.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-05-28</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

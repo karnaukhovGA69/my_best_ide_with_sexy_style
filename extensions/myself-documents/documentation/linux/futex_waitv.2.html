@@ -1,0 +1,293 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">futex_waitv(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">futex_waitv(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">futex_waitv - wait for FUTEX_WAKE operation on a vector of
+  futexes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/futex.h&gt;</b>  /* Definition of <b>FUTEX*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b>
+<b>#include &lt;time.h&gt;</b></pre>
+<pre><b>long&#x00A0;syscall(</b>unsigned&#x00A0;int&#x00A0;n;
+<b>             SYS_futex_waitv, struct&#x00A0;futex_waitv&#x00A0;</b><i>waiters</i><b>[</b><i>n</i><b>],</b>
+<b>             unsigned&#x00A0;int&#x00A0;</b><i>n</i><b>, unsigned&#x00A0;int&#x00A0;</b><i>flags</i><b>,</b>
+<b>             const&#x00A0;struct&#x00A0;timespec&#x00A0;*_Nullable&#x00A0;</b><i>timeout</i><b>, clockid_t&#x00A0;</b><i>clockid</i><b>);</b></pre>
+<p class="Pp"></p>
+<pre><b>#include &lt;linux/futex.h&gt;</b></pre>
+<pre>struct futex_waitv {
+	u64  val;         /* Expected value at <i>uaddr</i> */
+	u64  uaddr;       /* User address to wait on */
+	u32  flags;       /* Flags for this waiter */
+	u32  __reserved;  /* Align to u64 */
+};
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Implements the FUTEX_WAIT_MULTIPLE operation, analogous to a
+    synchronous atomic parallel <b>FUTEX_WAIT</b>(2const) or
+    <b>FUTEX_WAIT_PRIVATE</b> on up to <b>FUTEX_WAITV_MAX</b> futex words. For
+    an overview of futexes, see <b>futex</b>(7); for a description of the
+    general interface, see <b>futex</b>(2); for general minutiae of futex
+    waiting, see the page above.</p>
+<p class="Pp">This operation tests that the values at the futex words
+    <i>waiters</i>[].<i>uaddr[0]</i> still contain respective expected values
+    <i>waiters</i>[].<i>val</i>, and if so, sleeps waiting for a
+    <b>FUTEX_WAKE</b>(2const) operation on any of the futex words, and returns
+    the index of <i>a</i> waiter whose futex was woken.</p>
+<p class="Pp">If the thread starts to sleep, it is considered a waiter on all
+    given futex words. If any of the futex values do not match their respective
+    <i>waiters</i>[].<i>val</i>, the call fails immediately with the error
+    <b>EAGAIN</b>.</p>
+<p class="Pp">If <i>timeout</i> is NULL, the call blocks indefinitely.
+    Otherwise, <i>*timeout</i> specifies a deadline measured against clock
+    <i>clockid</i>. This interval will be rounded up to the system clock
+    granularity, and is guaranteed not to expire early.</p>
+<p class="Pp">The following clocks are supported:</p>
+<dl class="Bl-tag">
+  <dt id="CLOCK_MONOTONIC"><a class="permalink" href="#CLOCK_MONOTONIC"><b>CLOCK_MONOTONIC</b></a></dt>
+  <dd></dd>
+  <dt id="CLOCK_REALTIME"><a class="permalink" href="#CLOCK_REALTIME"><b>CLOCK_REALTIME</b></a></dt>
+  <dd></dd>
+</dl>
+<p class="Pp">Futex words to monitor are given by <i>struct futex_waitv</i>,
+    whose fields are analogous to <b>FUTEX_WAIT</b>(2const) parameters, except
+    <i>.__reserved</i> must be 0 and <i>.flags</i> must contain exactly one size
+    flag, ORed with some other flags.</p>
+<dl class="Bl-tag">
+  <dt id="FUTEX2_SIZE_U32"><a class="permalink" href="#FUTEX2_SIZE_U32"><b>FUTEX2_SIZE_U32</b></a></dt>
+  <dd><i>.val</i> and <i>.uaddr[]</i> are 32-bit unsigned integers.</dd>
+  <dt id="FUTEX2_SIZE_U8"><a class="permalink" href="#FUTEX2_SIZE_U8"><b>FUTEX2_SIZE_U8</b></a></dt>
+  <dd></dd>
+  <dt id="FUTEX2_SIZE_U16"><a class="permalink" href="#FUTEX2_SIZE_U16"><b>FUTEX2_SIZE_U16</b></a></dt>
+  <dd></dd>
+  <dt id="FUTEX2_SIZE_U64"><a class="permalink" href="#FUTEX2_SIZE_U64"><b>FUTEX2_SIZE_U64</b></a></dt>
+  <dd>These are defined, but not supported (<b>EINVAL</b>).</dd>
+  <dt id="FUTEX2_NUMA"><a class="permalink" href="#FUTEX2_NUMA"><b>FUTEX2_NUMA</b></a></dt>
+  <dd>The futex word is followed by another word of the same size (<i>.uaddr</i>
+      points to <i>uint</i>N<i>_t[2]</i> rather than <i>uint</i>N<i>_t</i>. The
+      word is given by <i>.uaddr[1]</i>), which can be either
+      <b>FUTEX_NO_NODE</b> (all bits set) or a NUMA node number.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If the NUMA word is <b>FUTEX_NO_NODE</b>, the node number of the processor
+      the syscall executes on is written to it. (Except that in an <b>EINVAL</b>
+      or <b>EFAULT</b> condition, this happens to all waiters whose
+      <i>.flags</i> have <b>FUTEX2_NUMA</b> set.)</dd>
+  <dt></dt>
+  <dd>Futexes are placed on the NUMA node given by the NUMA word. Futexes
+      without this flag are placed on a random node.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="FUTEX2_PRIVATE"><a class="permalink" href="#FUTEX2_PRIVATE"><b>FUTEX2_PRIVATE</b></a></dt>
+  <dd>By default, the futex is shared (like <b>FUTEX_WAIT</b>(2const)), and can
+      be accessed by multiple processes; this flag waits on a private futex
+      word, where all users must use the same virtual memory map (like
+      <b>FUTEX_WAIT_PRIVATE</b>; this most often means they are part of the same
+      process). Private futexes are faster than shared ones.</dd>
+</dl>
+<p class="Pp">Programs should assign to <i>.uaddr</i> by casting a pointer to
+    <i>uintptr_t</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Returns an index to an arbitrary entry in <i>waiters</i>
+    corresponding to some woken-up futex. This implies no information about
+    other waiters.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>waiters</i> points outside the accessible address space.</dd>
+  <dt id="EFAULT~2"><a class="permalink" href="#EFAULT~2"><b>EFAULT</b></a></dt>
+  <dd><i>timeout</i> is not NULL and points outside the accessible address
+      space.</dd>
+  <dt id="EFAULT~3"><a class="permalink" href="#EFAULT~3"><b>EFAULT</b></a></dt>
+  <dd>Any <i>waiters</i>[].<i>uaddr</i> field points outside the accessible
+      address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Any <i>waiters</i>[].<i>uaddr</i> field does not point to a valid
+      object&#x2014;that is, the address is not aligned appropriately for the
+      specified <b>FUTEX2_SIZE_</b><i>*</i><b>.</b></dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>flags</i> was not 0.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd><i>n</i> was not in the range [<b>1</b>, <b>FUTEX_WAITV_MAX</b>].</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd><i>timeout</i> was not NULL and <i>clockid</i> was not a valid clock.</dd>
+  <dt id="EINVAL~5"><a class="permalink" href="#EINVAL~5"><b>EINVAL</b></a></dt>
+  <dd><i>*timeout</i> is denormal (before epoch or <i>tv_nsec</i> not in the
+      range [<b>0</b>, <b>999'999'999</b>]).</dd>
+  <dt id="EINVAL~6"><a class="permalink" href="#EINVAL~6"><b>EINVAL</b></a></dt>
+  <dd>Any <i>waiters</i>[].<i>flags</i> field contains an unknown flag.</dd>
+  <dt id="EINVAL~7"><a class="permalink" href="#EINVAL~7"><b>EINVAL</b></a></dt>
+  <dd>Any <i>waiters</i>[].<i>flags</i> field does not contain exactly one size
+      flag, or it contains an unsupported one.</dd>
+  <dt id="EINVAL~8"><a class="permalink" href="#EINVAL~8"><b>EINVAL</b></a></dt>
+  <dd>Any <i>waiters</i>[].<i>__reserved</i> field is not 0.</dd>
+  <dt id="EINVAL~9"><a class="permalink" href="#EINVAL~9"><b>EINVAL</b></a></dt>
+  <dd>Any <i>waiters</i>[].<i>value</i> field has more bits set than permitted
+      than the size flags.</dd>
+  <dt id="EINVAL~10"><a class="permalink" href="#EINVAL~10"><b>EINVAL</b></a></dt>
+  <dd><b>FUTEX2_NUMA</b> was set in <i>waiters</i>[].<i>flags</i>, and the NUMA
+      word (which is the same size as the futex word) is too small to contain
+      the highest possible index of a NUMA domain (for example,
+      <b>FUTEX2_SIZE_U8</b> and there are at least 255 possible NUMA
+    domains).</dd>
+  <dt id="EINVAL~11"><a class="permalink" href="#EINVAL~11"><b>EINVAL</b></a></dt>
+  <dd><b>FUTEX2_NUMA</b> was set in <i>waiters</i>[].<i>flags</i>, and the NUMA
+      word is larger than the maximum possible NUMA node and not
+      <b>FUTEX_NO_NODE</b>.</dd>
+  <dt id="ETIMEDOUT"><a class="permalink" href="#ETIMEDOUT"><b>ETIMEDOUT</b></a></dt>
+  <dd>The timeout elapsed before any futex was woken.</dd>
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b> or
+    <b>EWOULDBLOCK</b></a></dt>
+  <dd>The value in <i>.uaddr[0]</i> was not equal to the expected value
+      <i>.val</i> at the time of the call.</dd>
+  <dt id="EINTR"><a class="permalink" href="#EINTR"><b>EINTR</b></a></dt>
+  <dd>The operation was interrupted by a signal (see <b>signal</b>(7)).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.16.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below executes a linear-time operation on 10 threads,
+    displaying the results in real time, waiting at most 1 second for each new
+    result. The first 3 threads operate on the same data (complete in the same
+    time). <b>!</b> indicates the futex that woke up each
+  <b>futex_waitv</b>().</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$&#x00A0;<b>./futex_waitv</b>
+153	153	153	237	100	245	177	127	215	61
+									122!
+				200!
+							254!
+306	306!
+		306!
+						354!
+								430!
+			474!
+					490!
+futex_waitv: my_futex_waitv: Connection timed out
+</pre>
+<p class="Pp"></p>
+<pre>#include &lt;err.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;linux/futex.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;stdatomic.h&gt;
+#include &lt;stdcountof.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/syscall.h&gt;
+#include &lt;time.h&gt;
+#include &lt;unistd.h&gt;
+static inline long
+my_futex_wake_private(_Atomic uint32_t *uaddr, uint32_t val)
+{
+	return syscall(SYS_futex, uaddr, FUTEX_WAKE_PRIVATE, val);
+}
+static inline long
+my_futex_waitv(unsigned int n;
+<br/>
+               struct futex_waitv waiters[n], unsigned int n,
+<br/>
+               unsigned int flags, const struct timespec *timeout,
+<br/>
+               clockid_t clockid)
+{
+	return syscall(SYS_futex_waitv, waiters, n, flags, timeout, clockid);
+}
+void *
+worker(void *arg)
+{
+	_Atomic uint32_t  *futex = arg;
+	usleep(*futex * 10000);
+	*futex *= 2;
+	my_futex_wake_private(futex, 1);
+	return NULL;
+}
+int
+main(void)
+{
+	_Atomic uint32_t    futexes[10];
+	uint8_t             init[countof(futexes)];
+	struct futex_waitv  waiters[countof(futexes)] = {};
+	if (getentropy(init, sizeof(init)))
+		err(EXIT_FAILURE, &quot;getentropy&quot;);
+	init[0] = init[1] = init[2];
+	for (int i = 0; i &lt; countof(futexes); ++i) {
+		printf(&quot;%w8u\t&quot;, init[i]);
+		atomic_init(&amp;futexes[i], init[i]);
+		pthread_create(&amp;(pthread_t){}, NULL, worker, &amp;futexes[i]);
+	}
+	putchar('\n');
+	for (int i = 0; i &lt; countof(futexes); ++i) {
+		waiters[i].val   = futexes[i];
+		waiters[i].uaddr = (uintptr_t) &amp;futexes[i];
+		waiters[i].flags = FUTEX2_SIZE_U32 | FUTEX2_PRIVATE;
+	}
+	for (;;) {
+		int              woke;
+		struct timespec  timeout;
+		clock_gettime(CLOCK_MONOTONIC, &amp;timeout);
+		timeout.tv_sec += 1;
+		woke = my_futex_waitv(waiters, countof(futexes), 0, &amp;timeout, CLOCK_MONOTONIC);
+		if (woke == -1 &amp;&amp; (errno != EAGAIN &amp;&amp; errno != EWOULDBLOCK))
+			err(EXIT_FAILURE, &quot;my_futex_waitv&quot;);
+		for (int i = 0; i &lt; countof(futexes); ++i) {
+			if (futexes[i] != waiters[i].val)
+				printf(&quot;%w32u%s&quot;, futexes[i], i == woke ? &quot;!&quot; : &quot;&quot;);
+			putchar('\t');
+		}
+		putchar('\n');
+		for (int i = 0; i &lt; countof(futexes); ++i)
+			waiters[i].val = futexes[i];
+	}
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>futex</b>(2), <b>FUTEX_WAIT</b>(2const),
+    <b>FUTEX_WAKE</b>(2const), <b>futex</b>(7)</p>
+<p class="Pp">Kernel source file
+  <i>Documentation/userspace-api/futex2.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-22</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

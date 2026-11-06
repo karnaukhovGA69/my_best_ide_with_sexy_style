@@ -1,0 +1,176 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_GET_SEALS(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_GET_SEALS(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GET_SEALS, F_ADD_SEALS - get/add file seals</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_ADD_SEALS, int </b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_GET_SEALS);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">File seals limit the set of allowed operations on a given file.
+    For each seal that is set on a file, a specific set of operations will fail
+    with <b>EPERM</b> on this file from now on. The file is said to be sealed.
+    The default set of seals depends on the type of the underlying file and
+    filesystem. For an overview of file sealing, a discussion of its purpose,
+    and some code examples, see <b>memfd_create</b>(2).</p>
+<p class="Pp">Currently, file seals can be applied only to a file descriptor
+    returned by <b>memfd_create</b>(2) (if the <b>MFD_ALLOW_SEALING</b> was
+    employed). On other filesystems, all <b>fcntl</b>() operations that operate
+    on seals will return <b>EINVAL</b>.</p>
+<p class="Pp">Seals are a property of an inode. Thus, all open file descriptors
+    referring to the same inode share the same set of seals. Furthermore, seals
+    can never be removed, only added.</p>
+<dl class="Bl-tag">
+  <dt id="F_ADD_SEALS"><a class="permalink" href="#F_ADD_SEALS"><b>F_ADD_SEALS</b></a></dt>
+  <dd>Add the seals given in the bit-mask argument <i>arg</i> to the set of
+      seals of the inode referred to by the file descriptor <i>fd</i>. Seals
+      cannot be removed again. Once this call succeeds, the seals are enforced
+      by the kernel immediately. If the current set of seals includes
+      <b>F_SEAL_SEAL</b> (see below), then this call will be rejected with
+      <b>EPERM</b>. Adding a seal that is already set is a no-op, in case
+      <b>F_SEAL_SEAL</b> is not set already. In order to place a seal, the file
+      descriptor <i>fd</i> must be writable.</dd>
+  <dt id="F_GET_SEALS"><a class="permalink" href="#F_GET_SEALS"><b>F_GET_SEALS</b></a></dt>
+  <dd>Return (as the function result) the current set of seals of the inode
+      referred to by <i>fd</i>. If no seals are set, 0 is returned. If the file
+      does not support sealing, -1 is returned and <i>errno</i> is set to
+      <b>EINVAL</b>.</dd>
+</dl>
+<p class="Pp">The following seals are available:</p>
+<dl class="Bl-tag">
+  <dt id="F_SEAL_SEAL"><a class="permalink" href="#F_SEAL_SEAL"><b>F_SEAL_SEAL</b></a></dt>
+  <dd>If this seal is set, any further call to <b>fcntl</b>() with
+      <b>F_ADD_SEALS</b> fails with the error <b>EPERM</b>. Therefore, this seal
+      prevents any modifications to the set of seals itself. If the initial set
+      of seals of a file includes <b>F_SEAL_SEAL</b>, then this effectively
+      causes the set of seals to be constant and locked.</dd>
+  <dt id="F_SEAL_SHRINK"><a class="permalink" href="#F_SEAL_SHRINK"><b>F_SEAL_SHRINK</b></a></dt>
+  <dd>If this seal is set, the file in question cannot be reduced in size. This
+      affects <b>open</b>(2) with the <b>O_TRUNC</b> flag as well as
+      <b>truncate</b>(2) and <b>ftruncate</b>(2). Those calls fail with
+      <b>EPERM</b> if you try to shrink the file in question. Increasing the
+      file size is still possible.</dd>
+  <dt id="F_SEAL_GROW"><a class="permalink" href="#F_SEAL_GROW"><b>F_SEAL_GROW</b></a></dt>
+  <dd>If this seal is set, the size of the file in question cannot be increased.
+      This affects <b>write</b>(2) beyond the end of the file,
+      <b>truncate</b>(2), <b>ftruncate</b>(2), and <b>fallocate</b>(2). These
+      calls fail with <b>EPERM</b> if you use them to increase the file size. If
+      you keep the size or shrink it, those calls still work as expected.</dd>
+  <dt id="F_SEAL_WRITE"><a class="permalink" href="#F_SEAL_WRITE"><b>F_SEAL_WRITE</b></a></dt>
+  <dd>If this seal is set, you cannot modify the contents of the file. Note that
+      shrinking or growing the size of the file is still possible and allowed.
+      Thus, this seal is normally used in combination with one of the other
+      seals. This seal affects <b>write</b>(2) and <b>fallocate</b>(2) (only in
+      combination with the <b>FALLOC_FL_PUNCH_HOLE</b> flag). Those calls fail
+      with <b>EPERM</b> if this seal is set. Furthermore, trying to create new
+      shared, writable memory-mappings via <b>mmap</b>(2) will also fail with
+      <b>EPERM</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Using the <b>F_ADD_SEALS</b> operation to set the <b>F_SEAL_WRITE</b> seal
+      fails with <b>EBUSY</b> if any writable, shared mapping exists. Such
+      mappings must be unmapped before you can add this seal. Furthermore, if
+      there are any asynchronous I/O operations (<b>io_submit</b>(2)) pending on
+      the file, all outstanding writes will be discarded.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="F_SEAL_FUTURE_WRITE"><a class="permalink" href="#F_SEAL_FUTURE_WRITE"><b>F_SEAL_FUTURE_WRITE</b>
+    (since Linux 5.1)</a></dt>
+  <dd>The effect of this seal is similar to <b>F_SEAL_WRITE</b>, but the
+      contents of the file can still be modified via shared writable mappings
+      that were created prior to the seal being set. Any attempt to create a new
+      writable mapping on the file via <b>mmap</b>(2) will fail with
+      <b>EPERM</b>. Likewise, an attempt to write to the file via
+      <b>write</b>(2) will fail with <b>EPERM</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Using this seal, one process can create a memory buffer that it can
+      continue to modify while sharing that buffer on a &quot;read-only&quot;
+      basis with other processes.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="F_SEAL_EXEC"><a class="permalink" href="#F_SEAL_EXEC"><b>F_SEAL_EXEC</b>
+    (since Linux 6.3)</a></dt>
+  <dd>If this seal is set, the execute mode bits of the file cannot be modified.
+      Attempting to change the execute mode bits via <b>fchmod</b>(2) or similar
+      will fail with <b>EPERM</b>. This results in a memfd that is either
+      permanently executable or permanently not executable.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Adding this seal implicitly adds <b>F_SEAL_GROW</b>, <b>F_SEAL_SHRINK</b>,
+      <b>F_SEAL_WRITE</b>, and <b>F_SEAL_FUTURE_WRITE</b>. This ensures that the
+      executable code is not writeable. All the pre-requisites to add the
+      implied seals must be met to successfully add <b>F_SEAL_EXEC</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_GET_SEALS~2"><a class="permalink" href="#F_GET_SEALS~2"><b>F_GET_SEALS</b></a></dt>
+  <dd>A bit mask identifying the seals that have been set for the inode referred
+      to by <i>fd</i>.</dd>
+  <dt id="F_ADD_SEALS~2"><a class="permalink" href="#F_ADD_SEALS~2"><b>F_ADD_SEALS</b></a></dt>
+  <dd>Zero.</dd>
+</dl>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EBUSY"><a class="permalink" href="#EBUSY"><b>EBUSY</b></a></dt>
+  <dd><i>op</i> is <b>F_ADD_SEALS</b>, <i>arg</i> includes <b>F_SEAL_WRITE</b>,
+      and there exists a writable, shared mapping on the file referred to by
+      <i>fd</i>.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>op</i> is <b>F_ADD_SEALS</b> and <i>arg</i> includes an unrecognized
+      sealing bit.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The filesystem containing the inode referred to by <i>fd</i> does not
+      support sealing.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd><i>op</i> was <b>F_ADD_SEALS</b>, but <i>fd</i> was not open for writing
+      or the current set of seals on the file already includes
+      <b>F_SEAL_SEAL</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 3.17.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-04</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

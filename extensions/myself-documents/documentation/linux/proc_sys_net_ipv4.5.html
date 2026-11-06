@@ -1,0 +1,142 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_sys_net_ipv4(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_sys_net_ipv4(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/sys/net/ipv4/ - IPv4</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The IP protocol supports a set of <i>/proc</i> interfaces to
+    configure some global parameters. The parameters can be accessed by reading
+    or writing files in the directory <i>/proc/sys/net/ipv4/</i>. Interfaces
+    described as <i>Boolean</i> take an integer value, with a nonzero value
+    (&quot;true&quot;) meaning that the corresponding option is enabled, and a
+    zero value (&quot;false&quot;) meaning that the option is disabled.</p>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/net/ipv4/ip_always_defrag</i> (Boolean; since Linux
+    2.2.13)</dt>
+  <dd>[New with Linux 2.2.13; in earlier kernel versions this feature was
+      controlled at compile time by the <b>CONFIG_IP_ALWAYS_DEFRAG</b> option;
+      this option is not present in Linux 2.4.x and later]</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>When this boolean flag is enabled (not equal 0), incoming fragments (parts
+      of IP packets that arose when some host between origin and destination
+      decided that the packets were too large and cut them into pieces) will be
+      reassembled (defragmented) before being processed, even if they are about
+      to be forwarded.</dd>
+  <dt></dt>
+  <dd>Enable only if running either a firewall that is the sole link to your
+      network or a transparent proxy; never ever use it for a normal router or
+      host. Otherwise, fragmented communication can be disturbed if the
+      fragments travel over different links. Defragmentation also has a large
+      memory and CPU time cost.</dd>
+  <dt></dt>
+  <dd>This is automagically turned on when masquerading or transparent proxying
+      are configured.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/net/ipv4/ip_autoconfig</i> (since Linux 2.2 to Linux
+    2.6.17)</dt>
+  <dd>Not documented.</dd>
+  <dt><i>/proc/sys/net/ipv4/ip_default_ttl</i> (integer; default: 64; since
+    Linux 2.2)</dt>
+  <dd>Set the default time-to-live value of outgoing packets. This can be
+      changed per socket with the <b>IP_TTL</b> option.</dd>
+  <dt><i>/proc/sys/net/ipv4/ip_dynaddr</i> (Boolean; default: disabled; since
+    Linux 2.0.31)</dt>
+  <dd>Enable dynamic socket address and masquerading entry rewriting on
+      interface address change. This is useful for dialup interface with
+      changing IP addresses. 0 means no rewriting, 1 turns it on and 2 enables
+      verbose mode.</dd>
+  <dt><i>/proc/sys/net/ipv4/ip_forward</i> (Boolean; default: disabled; since
+    Linux 1.2)</dt>
+  <dd>Enable IP forwarding with a boolean flag. IP forwarding can be also set on
+      a per-interface basis.</dd>
+  <dt><i>/proc/sys/net/ipv4/ip_local_port_range</i> (since Linux 2.2)</dt>
+  <dd>This file contains two integers that define the default local port range
+      allocated to sockets that are not explicitly bound to a port
+      number&#x2014;that is, the range used for <i>ephemeral ports</i>. An
+      ephemeral port is allocated to a socket in the following
+    circumstances:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>the port number in a socket address is specified as 0 when calling
+      <b>bind</b>(2);</dd>
+  <dt>&#x2022;</dt>
+  <dd><b>listen</b>(2) is called on a stream socket that was not previously
+      bound;</dd>
+  <dt>&#x2022;</dt>
+  <dd><b>connect</b>(2) was called on a socket that was not previously
+    bound;</dd>
+  <dt>&#x2022;</dt>
+  <dd><b>sendto</b>(2) is called on a datagram socket that was not previously
+      bound.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Allocation of ephemeral ports starts with the first number in
+      <i>/proc/sys/net/ipv4/ip_local_port_range</i> and ends with the second
+      number. If the range of ephemeral ports is exhausted, then the relevant
+      system call returns an error (but see BUGS).</dd>
+  <dt></dt>
+  <dd>Note that the port range in <i>/proc/sys/net/ipv4/ip_local_port_range</i>
+      should not conflict with the ports used by masquerading (although the case
+      is handled). Also, arbitrary choices may cause problems with some firewall
+      packet filters that make assumptions about the local ports in use. The
+      first number should be at least greater than 1024, or better, greater than
+      4096, to avoid clashes with well known ports and to minimize firewall
+      problems.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/net/ipv4/ip_no_pmtu_disc</i> (Boolean; default: disabled;
+    since Linux 2.2)</dt>
+  <dd>If enabled, don't do Path MTU Discovery for TCP sockets by default. Path
+      MTU discovery may fail if misconfigured firewalls (that drop all ICMP
+      packets) or misconfigured interfaces (e.g., a point-to-point link where
+      the both ends don't agree on the MTU) are on the path. It is better to fix
+      the broken routers on the path than to turn off Path MTU Discovery
+      globally, because not doing it incurs a high cost to the network.</dd>
+  <dt><i>/proc/sys/net/ipv4/ip_nonlocal_bind</i> (Boolean; default: disabled;
+    since Linux 2.4)</dt>
+  <dd>If set, allows processes to <b>bind</b>(2) to nonlocal IP addresses, which
+      can be quite useful, but may break some applications.</dd>
+  <dt><i>/proc/sys/net/ipv4/ip6frag_time</i> (integer; default: 30)</dt>
+  <dd>Time in seconds to keep an IPv6 fragment in memory.</dd>
+  <dt><i>/proc/sys/net/ipv4/ip6frag_secret_interval</i> (integer; default:
+    600)</dt>
+  <dd>Regeneration interval (in seconds) of the hash secret (or lifetime for the
+      hash secret) for IPv6 fragments.</dd>
+  <dt><i>/proc/sys/net/ipv4/ipfrag_high_thresh</i> (integer)</dt>
+  <dd></dd>
+  <dt><i>/proc/sys/net/ipv4/ipfrag_low_thresh</i> (integer)</dt>
+  <dd>If the amount of queued IP fragments reaches
+      <i>/proc/sys/net/ipv4/ipfrag_high_thresh</i>, the queue is pruned down to
+      <i>/proc/sys/net/ipv4/ipfrag_low_thresh</i>. Contains an integer with the
+      number of bytes.</dd>
+  <dt><i>/proc/sys/net/ipv4/neigh/</i>*</dt>
+  <dd>See <b>arp</b>(7).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5), <b>proc_sys_net</b>(5), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,76 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">div_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">div_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">div_t, ldiv_t, lldiv_t, imaxdiv_t - quotient and remainder of an
+    integer division</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>typedef struct {</b>
+<b>    int quot;</b> /* Quotient */
+<b>    int rem;</b>  /* Remainder */
+<b>} div_t;</b></pre>
+<pre><b>typedef struct {</b>
+<b>    long quot;</b> /* Quotient */
+<b>    long rem;</b>  /* Remainder */
+<b>} ldiv_t;</b></pre>
+<pre><b>typedef struct {</b>
+<b>    long long quot;</b> /* Quotient */
+<b>    long long rem;</b>  /* Remainder */
+<b>} lldiv_t;</b></pre>
+<pre><b>#include &lt;inttypes.h&gt;</b></pre>
+<pre><b>typedef struct {</b>
+<b>    intmax_t quot;</b> /* Quotient */
+<b>    intmax_t rem;</b>  /* Remainder */
+<b>} imaxdiv_t;</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">[[<i>l</i>]<i>l</i>]<i>div_t</i> is the type of the value returned
+    by the [[<b>l</b>]<b>l</b>]<b>div</b>(3) function.</p>
+<p class="Pp"><i>imaxdiv_t</i> is the type of the value returned by the
+    <b>imaxdiv</b>(3) function.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="div_t"><a class="permalink" href="#div_t"><i>div_t</i></a></dt>
+  <dd></dd>
+  <dt id="ldiv_t"><a class="permalink" href="#ldiv_t"><i>ldiv_t</i></a></dt>
+  <dd>SUSv1, C99, POSIX.1-2001.</dd>
+  <dt id="lldiv_t"><a class="permalink" href="#lldiv_t"><i>lldiv_t</i></a></dt>
+  <dd></dd>
+  <dt id="imaxdiv_t"><a class="permalink" href="#imaxdiv_t"><i>imaxdiv_t</i></a></dt>
+  <dd>C99, POSIX.1-2001.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>div</b>(3), <b>imaxdiv</b>(3), <b>ldiv</b>(3),
+  <b>lldiv</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

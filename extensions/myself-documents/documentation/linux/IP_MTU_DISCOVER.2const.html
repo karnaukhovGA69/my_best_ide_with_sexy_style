@@ -1,0 +1,117 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IP_MTU_DISCOVER(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IP_MTU_DISCOVER(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IP_MTU_DISCOVER - path maximum transfer unit size discovery</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_MTU_DISCOVER,</b>
+<b>               const&#x00A0;int&#x00A0;*</b><i>val</i><b>,&#x00A0;sizeof(int));</b>
+<b>int&#x00A0;getsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_MTU_DISCOVER,</b>
+<b>               int&#x00A0;*</b><i>val</i><b>,&#x00A0;sizeof(int));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set or receive the Path MTU Discovery setting for a socket.</p>
+<p class="Pp">When enabled, Linux will perform Path MTU Discovery as defined in
+    RFC&#x00A0;1191 on <b>SOCK_STREAM</b> sockets.</p>
+<p class="Pp">For non-<b>SOCK_STREAM</b> sockets, <b>IP_PMTUDISC_DO</b> forces
+    the don't-fragment flag to be set on all outgoing packets. It is the user's
+    responsibility to packetize the data in MTU-sized chunks and to do the
+    retransmits if necessary. The kernel will reject (with <b>EMSGSIZE</b>)
+    datagrams that are bigger than the known path MTU. <b>IP_PMTUDISC_WANT</b>
+    will fragment a datagram if needed according to the path MTU, or will set
+    the don't-fragment flag otherwise.</p>
+<p class="Pp">The system-wide default can be toggled between
+    <b>IP_PMTUDISC_WANT</b> and <b>IP_PMTUDISC_DONT</b> by writing
+    (respectively, zero and nonzero values) to the
+    <i>/proc/sys/net/ipv4/ip_no_pmtu_disc</i> file.</p>
+<table class="tbl">
+  <tr>
+    <td style="text-align: center;">Path MTU discovery value</td>
+    <td>Meaning</td>
+  </tr>
+  <tr>
+    <td>IP_PMTUDISC_WANT</td>
+    <td>Use per-route settings.</td>
+  </tr>
+  <tr>
+    <td>IP_PMTUDISC_DONT</td>
+    <td>Never do Path MTU Discovery.</td>
+  </tr>
+  <tr>
+    <td>IP_PMTUDISC_DO</td>
+    <td>Always do Path MTU Discovery.</td>
+  </tr>
+  <tr>
+    <td>IP_PMTUDISC_PROBE</td>
+    <td>Set DF but ignore Path MTU.</td>
+  </tr>
+</table>
+<p class="Pp">When PMTU discovery is enabled, the kernel automatically keeps
+    track of the path MTU per destination host. When it is connected to a
+    specific peer with <b>connect</b>(2), the currently known path MTU can be
+    retrieved conveniently using the <b>IP_MTU</b>(2const) socket option (e.g.,
+    after an <b>EMSGSIZE</b> error occurred). The path MTU may change over time.
+    For connectionless sockets with many destinations, the new MTU for a given
+    destination can also be accessed using the error queue (see
+    <b>IP_RECVERR</b>(2const)). A new error will be queued for every incoming
+    MTU update.</p>
+<p class="Pp">While MTU discovery is in progress, initial packets from datagram
+    sockets may be dropped. Applications using UDP should be aware of this and
+    not take it into account for their packet retransmit strategy.</p>
+<p class="Pp">To bootstrap the path MTU discovery process on unconnected
+    sockets, it is possible to start with a big datagram size (headers up to 64
+    kilobytes long) and let it shrink by updates of the path MTU.</p>
+<p class="Pp">To get an initial estimate of the path MTU, connect a datagram
+    socket to the destination address using <b>connect</b>(2) and retrieve the
+    MTU by calling <b>getsockopt</b>(2) with the <b>IP_MTU</b>(2const)
+  option.</p>
+<p class="Pp">It is possible to implement RFC 4821 MTU probing with
+    <b>SOCK_DGRAM</b> or <b>SOCK_RAW</b> sockets by setting a value of
+    <b>IP_PMTUDISC_PROBE</b>. This is also particularly useful for diagnostic
+    tools such as <b>tracepath</b>(8) that wish to deliberately send probe
+    packets larger than the observed Path MTU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>IPPROTO_IP</b>(2const). See <b>setsockopt</b>(2). See
+    <b>ip</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.2.</p>
+<dl class="Bl-tag">
+  <dt id="IP_PMTUDISC_PROBE"><a class="permalink" href="#IP_PMTUDISC_PROBE"><b>IP_PMTUDISC_PROBE</b></a></dt>
+  <dd>Linux 2.6.22.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IP</b>(2const), <b>setsockopt</b>(2), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

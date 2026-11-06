@@ -1,0 +1,90 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_SESSION_TO_PARENT(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_SESSION_TO_PARENT(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_SESSION_TO_PARENT - set the parent process's session
+    keyring</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_SESSION_TO_PARENT);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Replace the session keyring to which the <i>parent</i> of the
+    calling process subscribes with the session keyring of the calling
+  process.</p>
+<p class="Pp">The keyring will be replaced in the parent process at the point
+    where the parent next transitions from kernel space to user space.</p>
+<p class="Pp">The keyring must exist and must grant the caller <i>link</i>
+    permission. The parent process must be single-threaded and have the same
+    effective ownership as this process and must not be set-user-ID or
+    set-group-ID. The UID of the parent process's existing session keyring (f it
+    has one), as well as the UID of the caller's session keyring much match the
+    caller's effective UID.</p>
+<p class="Pp">The fact that it is the parent process that is affected by this
+    operation allows a program such as the shell to start a child process that
+    uses this operation to change the shell's session keyring. (This is what the
+    <b>keyctl</b>(1) <b>new_session</b> command does.)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>All of the UIDs (GIDs) of the parent process do not match the effective
+      UID (GID) of the calling process.</dd>
+  <dt id="EPERM~2"><a class="permalink" href="#EPERM~2"><b>EPERM</b></a></dt>
+  <dd>The UID of the parent's existing session keyring or the UID of the
+      caller's session keyring did not match the effective UID of the
+    caller.</dd>
+  <dt id="EPERM~3"><a class="permalink" href="#EPERM~3"><b>EPERM</b></a></dt>
+  <dd>The parent process is not single-threaded.</dd>
+  <dt id="EPERM~4"><a class="permalink" href="#EPERM~4"><b>EPERM</b></a></dt>
+  <dd>The parent process is <b>init</b>(1) or a kernel thread.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_session_to_parent</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.32.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_session_to_parent</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

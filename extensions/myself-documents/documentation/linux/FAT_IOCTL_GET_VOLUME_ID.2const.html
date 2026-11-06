@@ -1,0 +1,149 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FAT_IOCTL_GET_VOLUME_ID(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FAT_IOCTL_GET_VOLUME_ID(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FAT_IOCTL_GET_VOLUME_ID - read the volume ID in a FAT
+  filesystem</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/msdos_fs.h&gt;</b>  /* Definition of <b>FAT_*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, FAT_IOCTL_GET_VOLUME_ID, uint32_t *</b><i>id</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">FAT filesystems are identified by a volume ID. The volume ID can
+    be read with <b>FAT_IOCTL_GET_VOLUME_ID</b>.</p>
+<p class="Pp">The <i>fd</i> argument can be a file descriptor for any file or
+    directory of the filesystem. It is sufficient to create the file descriptor
+    by calling <b>open</b>(2) with the <b>O_RDONLY</b> flag.</p>
+<p class="Pp">The <i>id</i> argument is a pointer to the field that will be
+    filled with the volume ID. Typically the volume ID is displayed to the user
+    as a group of two 16-bit fields:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>printf(&quot;Volume ID %04x-%04x\n&quot;, id &gt;&gt; 16, id &amp; 0xFFFF);
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 3.11.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following program demonstrates the use of <b>ioctl</b>(2) to
+    display the volume ID of a FAT filesystem.</p>
+<p class="Pp">The following output was recorded when applying the program for
+    directory <i>/mnt/user</i>:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$ ./display_fat_volume_id /mnt/user
+Volume ID 6443-6241
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source_(display_fat_volume_id.c)"><a class="permalink" href="#Program_source_(display_fat_volume_id.c)">Program
+  source (display_fat_volume_id.c)</a></h2>
+<p class="Pp"></p>
+<pre>#include &lt;fcntl.h&gt;
+#include &lt;linux/msdos_fs.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;unistd.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int       fd;
+<br/>
+    int       ret;
+<br/>
+    uint32_t  id;
+<br/>
+    if (argc != 2) {
+<br/>
+        printf(&quot;Usage: %s FILENAME\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fd = open(argv[1], O_RDONLY);
+<br/>
+    if (fd == -1) {
+<br/>
+        perror(&quot;open&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /*
+<br/>
+     * Read volume ID.
+<br/>
+     */
+<br/>
+    ret = ioctl(fd, FAT_IOCTL_GET_VOLUME_ID, &amp;id);
+<br/>
+    if (ret == -1) {
+<br/>
+        perror(&quot;ioctl&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /*
+<br/>
+     * Format the output as two groups of 16 bits each.
+<br/>
+     */
+<br/>
+    printf(&quot;Volume ID %04x-%04x\n&quot;, id &gt;&gt; 16, id &amp; 0xFFFF);
+<br/>
+    close(fd);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_fat</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

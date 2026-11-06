@@ -1,0 +1,51 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">UNIMPLEMENTED(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">UNIMPLEMENTED(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">afs_syscall, break, fattach, fdetach, ftime, getmsg, getpmsg,
+    gtty, isastream, lock, madvise1, mpx, prof, profil, putmsg, putpmsg,
+    security, stty, tuxcall, ulimit, vserver - unimplemented system calls</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre>Unimplemented system calls.</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These system calls are not implemented in the Linux kernel.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">These system calls always return -1 and set <i>errno</i> to
+    <b>ENOSYS</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">Note that <b>ftime</b>(3), <b>profil</b>(3), and <b>ulimit</b>(3)
+    are implemented as library functions.</p>
+<p class="Pp">Some system calls, like <b>alloc_hugepages</b>(2),
+    <b>free_hugepages</b>(2), <b>ioperm</b>(2), <b>iopl</b>(2), and
+    <b>vm86</b>(2) exist only on certain architectures.</p>
+<p class="Pp">Some system calls, like <b>ipc</b>(2), <b>create_module</b>(2),
+    <b>init_module</b>(2), and <b>delete_module</b>(2) exist only when the Linux
+    kernel was built with support for them.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>syscalls</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,94 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_SET_NAME(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_SET_NAME(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_SET_NAME, PR_GET_NAME - operations on a process or thread</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_SET_NAME, const char *</b><i>name</i><b>);</b>
+<b>int prctl(PR_GET_NAME, char </b><i>name</i><b>[16]);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="PR_SET_NAME"><a class="permalink" href="#PR_SET_NAME"><b>PR_SET_NAME</b></a></dt>
+  <dd>Set the name of the calling thread, using the value in the location
+      pointed to by <i>name</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The name can be up to 16 bytes long, including the terminating null byte.
+      If the length of the string, including the terminating null byte, exceeds
+      16 bytes, the string is silently truncated.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="PR_GET_NAME"><a class="permalink" href="#PR_GET_NAME"><b>PR_GET_NAME</b>
+    (since Linux 2.6.11)</a></dt>
+  <dd>Return the name of the calling thread, in the buffer pointed to by
+      <i>name</i>. The returned string will be null-terminated.</dd>
+</dl>
+<p class="Pp">This is the same attribute that can be set via
+    <b>pthread_setname_np</b>(3) and retrieved using
+    <b>pthread_getname_np</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>name</i> is an invalid address.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/self/task/</i>tid<i>/comm</i></dt>
+  <dd>The attribute is likewise accessible via this file (see
+      <b>proc_pid_comm</b>(5)), where <i>tid</i> is the thread ID of the calling
+      thread, as returned by <b>gettid</b>(2).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="PR_SET_NAME~2"><a class="permalink" href="#PR_SET_NAME~2"><b>PR_SET_NAME</b></a></dt>
+  <dd>Linux 2.6.9.</dd>
+  <dt id="PR_GET_NAME~2"><a class="permalink" href="#PR_GET_NAME~2"><b>PR_GET_NAME</b></a></dt>
+  <dd>Linux 2.6.11.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>pthread_setname_np</b>(3),
+    <b>pthread_getname_np</b>(3), <b>proc_pid_comm</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

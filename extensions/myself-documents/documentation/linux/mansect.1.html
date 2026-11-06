@@ -1,0 +1,79 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">mansect(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">mansect(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">mansect - print the source code of sections of manual pages</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">mansect</code></td>
+    <td><i>section</i> [<i>file</i>&#x00A0;...]</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>mansect</b> command prints the source code of the
+    <i>section</i> of the given manual-page files.</p>
+<p class="Pp">The <b>TH</b> line is unconditionally printed.</p>
+<p class="Pp">The output of this program is suitable for piping to the
+    <b>groff</b>(1) pipeline.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="PARAMETERS"><a class="permalink" href="#PARAMETERS">PARAMETERS</a></h1>
+<dl class="Bl-tag">
+  <dt id="section"><a class="permalink" href="#section"><i>section</i></a></dt>
+  <dd>A PCRE2 regular expression.</dd>
+  <dt id="file"><a class="permalink" href="#file"><i>file</i></a></dt>
+  <dd>If no files are specified, the standard input is used.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>$&#x00A0;<b>man -w strtol strtoul | xargs mansect 'NAME|SEE ALSO'</b>;
+.lf 1 /usr/local/man/man3/strtol.3
+.TH strtol 3 2024-07-23 &quot;Linux man-pages 6.9.1&quot;
+.SH NAME
+strtol, strtoll, strtoq - convert a string to a long integer
+.SH SEE ALSO
+.BR atof (3),
+.BR atoi (3),
+.BR atol (3),
+.BR strtod (3),
+.BR strtoimax (3),
+.BR strtoul (3)
+.lf 1 /usr/local/man/man3/strtoul.3
+.TH strtoul 3 2024-07-23 &quot;Linux man-pages 6.9.1&quot;
+.SH NAME
+strtoul, strtoull, strtouq - convert a string to an unsigned long integer
+.SH SEE ALSO
+.BR a64l (3),
+.BR atof (3),
+.BR atoi (3),
+.BR atol (3),
+.BR strtod (3),
+.BR strtol (3),
+.BR strtoumax (3)
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>lexgrog</b>(1), <b>groff</b>(1), <b>pcre2grep</b>(1),
+    <b>mandb</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-30</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

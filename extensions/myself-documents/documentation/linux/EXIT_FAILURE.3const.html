@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">EXIT_SUCCESS(3const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">EXIT_SUCCESS(3const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">EXIT_SUCCESS, EXIT_FAILURE - termination status constants</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>#define EXIT_SUCCESS  </b>0
+<b>#define EXIT_FAILURE  </b>/* nonzero */</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>EXIT_SUCCESS</b> and <b>EXIT_FAILURE</b> represent a successful
+    and unsuccessful exit status respectively, and can be used as arguments to
+    the <b>exit</b>(3) function.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="EXIT_SUCCESS"><a class="permalink" href="#EXIT_SUCCESS"><b>EXIT_SUCCESS</b></a></dt>
+  <dd>C89, POSIX.1-1988.</dd>
+  <dt id="EXIT_FAILURE"><a class="permalink" href="#EXIT_FAILURE"><b>EXIT_FAILURE</b></a></dt>
+  <dd>C89, POSIX.1-1990.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    FILE *fp;
+<br/>
+    if (argc != 2) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s &lt;file&gt;\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fp = fopen(argv[1], &quot;r&quot;);
+<br/>
+    if (fp == NULL) {
+<br/>
+        perror(argv[1]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /* Other code omitted */
+<br/>
+    fclose(fp);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>exit</b>(3), <b>sysexits.h</b>(3head)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

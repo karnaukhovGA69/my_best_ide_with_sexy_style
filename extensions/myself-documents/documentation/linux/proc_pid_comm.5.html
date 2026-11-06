@@ -1,0 +1,47 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_comm(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_comm(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/comm - command name</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/comm</i> (since Linux 2.6.33)</dt>
+  <dd>This file exposes the process's <i>comm</i> value&#x2014;that is, the
+      command name associated with the process. Different threads in the same
+      process may have different <i>comm</i> values, accessible via
+      <i>/proc/</i>pid<i>/task/</i>tid<i>/comm</i>. A thread may modify its
+      <i>comm</i> value, or that of any of other thread in the same thread group
+      (see the discussion of <b>CLONE_THREAD</b> in <b>clone</b>(2)), by writing
+      to the file <i>/proc/self/task/</i>tid<i>/comm</i>. Strings longer than
+      <b>TASK_COMM_LEN</b> (16) characters (including the terminating null byte)
+      are silently truncated.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This file provides a superset of the <b>prctl</b>(2) <b>PR_SET_NAME</b>
+      and <b>PR_GET_NAME</b> operations, and is employed by
+      <b>pthread_setname_np</b>(3) when used to rename threads other than the
+      caller. The value in this file is used for the <i>%e</i> specifier in
+      <i>/proc/sys/kernel/core_pattern</i>; see <b>core</b>(5).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

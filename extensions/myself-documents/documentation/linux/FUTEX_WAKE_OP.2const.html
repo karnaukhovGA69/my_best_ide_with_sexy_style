@@ -1,0 +1,195 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FUTEX_WAKE_OP(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FUTEX_WAKE_OP(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FUTEX_WAKE_OP - fast user-space locking</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/futex.h&gt;</b>  /* Definition of <b>FUTEX_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_futex, uint32_t *</b><i>uaddr</i><b>, FUTEX_WAKE_OP, uint32_t </b><i>val</i><b>,</b>
+<b>             uint32_t </b><i>val2</i><b>, uint32_t *</b><i>uaddr2</i><b>,</b>
+<b>             uint32_t </b><i>val3</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This operation was added to support some user-space use cases
+    where more than one futex must be handled at the same time. The most notable
+    example is the implementation of <b>pthread_cond_signal</b>(3), which
+    requires operations on two futexes, the one used to implement the mutex and
+    the one used in the implementation of the wait queue associated with the
+    condition variable. <b>FUTEX_WAKE_OP</b> allows such cases to be implemented
+    without leading to high rates of contention and context switching.</p>
+<p class="Pp">The <b>FUTEX_WAKE_OP</b> operation is equivalent to executing the
+    following code atomically and totally ordered with respect to other futex
+    operations on any of the two supplied futex words:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>uint32_t oldval = *(uint32_t *) uaddr2;
+*(uint32_t *) uaddr2 = oldval <i>op</i> <i>oparg</i>;
+futex(uaddr, FUTEX_WAKE, val, 0, 0, 0);
+if (oldval <i>cmp</i> <i>cmparg</i>)
+<br/>
+    futex(uaddr2, FUTEX_WAKE, val2, 0, 0, 0);
+</pre>
+<br/>
+<p class="Pp">In other words, <b>FUTEX_WAKE_OP</b> does the following:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>saves the original value of the futex word at <i>uaddr2</i> and performs
+      an operation to modify the value of the futex at <i>uaddr2</i>; this is an
+      atomic read-modify-write memory access (i.e., using atomic machine
+      instructions of the respective architecture)</dd>
+  <dt>&#x2022;</dt>
+  <dd>wakes up a maximum of <i>val</i> waiters on the futex for the futex word
+      at <i>uaddr</i>; and</dd>
+  <dt>&#x2022;</dt>
+  <dd>dependent on the results of a test of the original value of the futex word
+      at <i>uaddr2</i>, wakes up a maximum of <i>val2</i> waiters on the futex
+      for the futex word at <i>uaddr2</i>.</dd>
+</dl>
+<p class="Pp">The operation and comparison that are to be performed are encoded
+    in the bits of the argument <i>val3</i>. Pictorially, the encoding is:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>+---+---+-----------+-----------+
+|op |cmp|   oparg   |  cmparg   |
++---+---+-----------+-----------+
+<br/>
+  4   4       12          12    &lt;== # of bits
+</pre>
+<br/>
+<p class="Pp">Expressed in code, the encoding is:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>#define FUTEX_OP(op, oparg, cmp, cmparg) \
+<br/>
+                (((op &amp; 0xf) &lt;&lt; 28) | \
+<br/>
+                ((cmp &amp; 0xf) &lt;&lt; 24) | \
+<br/>
+                ((oparg &amp; 0xfff) &lt;&lt; 12) | \
+<br/>
+                (cmparg &amp; 0xfff))
+</pre>
+<br/>
+<p class="Pp">In the above, <i>op</i> and <i>cmp</i> are each one of the codes
+    listed below. The <i>oparg</i> and <i>cmparg</i> components are literal
+    numeric values, except as noted below.</p>
+<p class="Pp">The <i>op</i> component has one of the following values:</p>
+<p class="Pp">
+  <br/>
+</p>
+<table class="tbl">
+  <tr>
+    <td>FUTEX_OP_SET</td>
+    <td>0</td>
+    <td>/* uaddr2 = oparg; */</td>
+  </tr>
+  <tr>
+    <td>FUTEX_OP_ADD</td>
+    <td>1</td>
+    <td>/* uaddr2 += oparg; */</td>
+  </tr>
+  <tr>
+    <td>FUTEX_OP_OR</td>
+    <td>2</td>
+    <td>/* uaddr2 |= oparg; */</td>
+  </tr>
+  <tr>
+    <td>FUTEX_OP_ANDN</td>
+    <td>3</td>
+    <td>/* uaddr2 &amp;= ~oparg; */</td>
+  </tr>
+  <tr>
+    <td>FUTEX_OP_XOR</td>
+    <td>4</td>
+    <td>/* uaddr2 ^= oparg; */</td>
+  </tr>
+</table>
+<br/>
+<p class="Pp">In addition, bitwise ORing the following value into <i>op</i>
+    causes <i>(1&#x00A0;&lt;&lt;&#x00A0;oparg)</i> to be used as the
+  operand:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>FUTEX_OP_ARG_SHIFT  8  /* Use (1 &lt;&lt; oparg) as operand */
+</pre>
+<br/>
+<p class="Pp">The <i>cmp</i> field is one of the following:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>FUTEX_OP_CMP_EQ     0  /* if (oldval == cmparg) wake */
+FUTEX_OP_CMP_NE     1  /* if (oldval != cmparg) wake */
+FUTEX_OP_CMP_LT     2  /* if (oldval &lt; cmparg) wake */
+FUTEX_OP_CMP_LE     3  /* if (oldval &lt;= cmparg) wake */
+FUTEX_OP_CMP_GT     4  /* if (oldval &gt; cmparg) wake */
+FUTEX_OP_CMP_GE     5  /* if (oldval &gt;= cmparg) wake */
+</pre>
+<br/>
+<p class="Pp">The return value of <b>FUTEX_WAKE_OP</b> is the sum of the number
+    of waiters woken on the futex <i>uaddr</i> plus the number of waiters woken
+    on the futex <i>uaddr2</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+<p class="Pp">On success, <b>FUTEX_WAKE_OP</b> Returns the total number of
+    waiters that were woken up. This is the sum of the woken waiters on the two
+    futexes for the futex words at <i>uaddr</i> and <i>uaddr2</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>futex</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>uaddr2</i> did not point to a valid user-space address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>uaddr2</i> does not point to a valid object&#x2014;that is, the address
+      is not four-byte-aligned.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The kernel detected an inconsistency between the user-space state at
+      <i>uaddr</i> and the kernel state&#x2014;that is, it detected a waiter
+      which waits in <b>FUTEX_LOCK_PI</b>(2const) or
+      <b>FUTEX_LOCK_PI2</b>(2const) on <i>uaddr</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.14.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>futex</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

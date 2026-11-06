@@ -1,0 +1,53 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_mounts(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_mounts(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/mounts - mounted filesystems</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/mounts</i> (since Linux 2.4.19)</dt>
+  <dd>This file lists all the filesystems currently mounted in the process's
+      mount namespace (see <b>mount_namespaces</b>(7)). The format of this file
+      is documented in <b>fstab</b>(5).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Since Linux 2.6.15, this file is pollable: after opening the file for
+      reading, a change in this file (i.e., a filesystem mount or unmount)
+      causes <b>select</b>(2) to mark the file descriptor as having an
+      exceptional condition, and <b>poll</b>(2) and <b>epoll_wait</b>(2) mark
+      the file as having a priority event (<b>POLLPRI</b>). (Before Linux
+      2.6.30, a change in this file was indicated by the file descriptor being
+      marked as readable for <b>select</b>(2), and being marked as having an
+      error condition for <b>poll</b>(2) and <b>epoll_wait</b>(2).)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><i>/proc/mounts</i></dt>
+  <dd>Before Linux 2.4.19, this file was a list of all the filesystems currently
+      mounted on the system. With the introduction of per-process mount
+      namespaces in Linux 2.4.19 (see <b>mount_namespaces</b>(7)), this file
+      became a link to <i>/proc/self/mounts</i>, which lists the mounts of the
+      process's own mount namespace. The format of this file is documented in
+      <b>fstab</b>(5).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,236 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">cfsetspeed(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">cfsetspeed(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">cfgetospeed, cfgetispeed, cfsetispeed, cfsetospeed, cfsetspeed -
+    get and set line speed</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;termios.h&gt;</b></pre>
+<pre><b>speed_t cfgetispeed(const struct termios *</b><i>termios_p</i><b>);</b>
+<b>speed_t cfgetospeed(const struct termios *</b><i>termios_p</i><b>);</b></pre>
+<pre><b>int cfsetispeed(struct termios *</b><i>termios_p</i><b>, speed_t </b><i>speed</i><b>);</b>
+<b>int cfsetospeed(struct termios *</b><i>termios_p</i><b>, speed_t </b><i>speed</i><b>);</b></pre>
+<pre><b>#define&#x00A0;_DEFAULT_SOURCE</b>  /* See feature_test_macros(7) */
+<b>#include &lt;termios.h&gt;</b></pre>
+<pre><b>int cfsetspeed(struct termios *</b><i>termios_p</i><b>, speed_t </b><i>speed</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The baud rate functions are provided for getting and setting the
+    values of the input and output baud rates in the <i>termios</i> structure.
+    The new values do not take effect until <b>tcsetattr</b>(3) is successfully
+    called.</p>
+<p class="Pp">Setting the speed to <b>B0</b> instructs the modem to &quot;hang
+    up&quot;. The actual bit rate corresponding to <b>B38400</b> may be altered
+    with <b>setserial</b>(8); doing so is discouraged as it may break other
+    applications later trying to use the same serial port.</p>
+<p class="Pp">The input and output baud rates are stored in the <i>termios</i>
+    structure.</p>
+<p class="Pp"><b>cfgetospeed</b>() returns the output baud rate stored in the
+    <i>termios</i> structure pointed to by <i>termios_p</i>.</p>
+<p class="Pp"><b>cfsetospeed</b>() sets the output baud rate stored in the
+    <i>termios</i> structure pointed to by <i>termios_p</i> to <i>speed</i>,
+    which must be one of these constants:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="B0"><a class="permalink" href="#B0"><b>B0</b></a></dt>
+  <dd></dd>
+  <dt id="B50"><a class="permalink" href="#B50"><b>B50</b></a></dt>
+  <dd></dd>
+  <dt id="B75"><a class="permalink" href="#B75"><b>B75</b></a></dt>
+  <dd></dd>
+  <dt id="B110"><a class="permalink" href="#B110"><b>B110</b></a></dt>
+  <dd></dd>
+  <dt id="B134"><a class="permalink" href="#B134"><b>B134</b></a></dt>
+  <dd></dd>
+  <dt id="B150"><a class="permalink" href="#B150"><b>B150</b></a></dt>
+  <dd></dd>
+  <dt id="B200"><a class="permalink" href="#B200"><b>B200</b></a></dt>
+  <dd></dd>
+  <dt id="B300"><a class="permalink" href="#B300"><b>B300</b></a></dt>
+  <dd></dd>
+  <dt id="B600"><a class="permalink" href="#B600"><b>B600</b></a></dt>
+  <dd></dd>
+  <dt id="B1200"><a class="permalink" href="#B1200"><b>B1200</b></a></dt>
+  <dd></dd>
+  <dt id="B1800"><a class="permalink" href="#B1800"><b>B1800</b></a></dt>
+  <dd></dd>
+  <dt id="B2400"><a class="permalink" href="#B2400"><b>B2400</b></a></dt>
+  <dd></dd>
+  <dt id="B4800"><a class="permalink" href="#B4800"><b>B4800</b></a></dt>
+  <dd></dd>
+  <dt id="B9600"><a class="permalink" href="#B9600"><b>B9600</b></a></dt>
+  <dd></dd>
+  <dt id="B19200"><a class="permalink" href="#B19200"><b>B19200</b></a></dt>
+  <dd></dd>
+  <dt id="B38400"><a class="permalink" href="#B38400"><b>B38400</b></a></dt>
+  <dd></dd>
+  <dt id="B57600"><a class="permalink" href="#B57600"><b>B57600</b></a></dt>
+  <dd></dd>
+  <dt id="B115200"><a class="permalink" href="#B115200"><b>B115200</b></a></dt>
+  <dd></dd>
+  <dt id="B230400"><a class="permalink" href="#B230400"><b>B230400</b></a></dt>
+  <dd></dd>
+  <dt id="B460800"><a class="permalink" href="#B460800"><b>B460800</b></a></dt>
+  <dd></dd>
+  <dt id="B500000"><a class="permalink" href="#B500000"><b>B500000</b></a></dt>
+  <dd></dd>
+  <dt id="B576000"><a class="permalink" href="#B576000"><b>B576000</b></a></dt>
+  <dd></dd>
+  <dt id="B921600"><a class="permalink" href="#B921600"><b>B921600</b></a></dt>
+  <dd></dd>
+  <dt id="B1000000"><a class="permalink" href="#B1000000"><b>B1000000</b></a></dt>
+  <dd></dd>
+  <dt id="B1152000"><a class="permalink" href="#B1152000"><b>B1152000</b></a></dt>
+  <dd></dd>
+  <dt id="B1500000"><a class="permalink" href="#B1500000"><b>B1500000</b></a></dt>
+  <dd></dd>
+  <dt id="B2000000"><a class="permalink" href="#B2000000"><b>B2000000</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<p class="Pp">These constants are additionally supported on the SPARC
+    architecture:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="B76800"><a class="permalink" href="#B76800"><b>B76800</b></a></dt>
+  <dd></dd>
+  <dt id="B153600"><a class="permalink" href="#B153600"><b>B153600</b></a></dt>
+  <dd></dd>
+  <dt id="B307200"><a class="permalink" href="#B307200"><b>B307200</b></a></dt>
+  <dd></dd>
+  <dt id="B614400"><a class="permalink" href="#B614400"><b>B614400</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<p class="Pp">These constants are additionally supported on non-SPARC
+    architectures:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="B2500000"><a class="permalink" href="#B2500000"><b>B2500000</b></a></dt>
+  <dd></dd>
+  <dt id="B3000000"><a class="permalink" href="#B3000000"><b>B3000000</b></a></dt>
+  <dd></dd>
+  <dt id="B3500000"><a class="permalink" href="#B3500000"><b>B3500000</b></a></dt>
+  <dd></dd>
+  <dt id="B4000000"><a class="permalink" href="#B4000000"><b>B4000000</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<p class="Pp">Due to differences between architectures, portable applications
+    should check if a particular <b>B</b><i>nnn</i> constant is defined prior to
+    using it.</p>
+<p class="Pp">The zero baud rate, <b>B0</b>, is used to terminate the
+    connection. If <b>B0</b> is specified, the modem control lines shall no
+    longer be asserted. Normally, this will disconnect the line. <b>CBAUDEX</b>
+    is a mask for the speeds beyond those defined in POSIX.1 (57600 and above).
+    Thus, <b>B57600</b> &amp; <b>CBAUDEX</b> is nonzero.</p>
+<p class="Pp">Setting the baud rate to a value other than those defined by
+    <b>B</b><i>nnn</i> constants is possible via the <b>TCSETS2</b> ioctl; see
+    <b>ioctl_tty</b>(2).</p>
+<p class="Pp"><b>cfgetispeed</b>() returns the input baud rate stored in the
+    <i>termios</i> structure.</p>
+<p class="Pp"><b>cfsetispeed</b>() sets the input baud rate stored in the
+    <i>termios</i> structure to <i>speed</i>, which must be specified as one of
+    the <b>B</b><i>nnn</i> constants listed above for <b>cfsetospeed</b>(). If
+    the input baud rate is set to the literal constant <b>0</b> (not the
+    symbolic constant <b>B0</b>), the input baud rate will be equal to the
+    output baud rate.</p>
+<p class="Pp"><b>cfsetspeed</b>() takes the same arguments as
+    <b>cfsetispeed</b>(), and sets both input and output speed.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>cfgetispeed</b>() returns the input baud rate stored in the
+    <i>termios</i> structure.</p>
+<p class="Pp"><b>cfgetospeed</b>() returns the output baud rate stored in the
+    <i>termios</i> structure.</p>
+<p class="Pp">All other functions return:</p>
+<dl class="Bl-tag">
+  <dt><b>0</b></dt>
+  <dd>on success.</dd>
+  <dt><b>-1</b></dt>
+  <dd>on failure and set <i>errno</i> to indicate the error.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>cfgetispeed (), cfgetospeed (), cfsetispeed (), cfsetospeed (),
+      cfsetspeed ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">UNIX&#x00A0;V7 and several later systems have a list of baud rates
+    where after the values <b>B0</b> through <b>B9600</b> one finds the two
+    constants <b>EXTA</b>, <b>EXTB</b> (&quot;External A&quot; and
+    &quot;External B&quot;). Many systems extend the list with much higher baud
+    rates.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="cfgetispeed"><a class="permalink" href="#cfgetispeed"><b>cfgetispeed</b>()</a></dt>
+  <dd></dd>
+  <dt id="cfgetospeed"><a class="permalink" href="#cfgetospeed"><b>cfgetospeed</b>()</a></dt>
+  <dd></dd>
+  <dt id="cfsetispeed"><a class="permalink" href="#cfsetispeed"><b>cfsetispeed</b>()</a></dt>
+  <dd></dd>
+  <dt id="cfsetospeed"><a class="permalink" href="#cfsetospeed"><b>cfsetospeed</b>()</a></dt>
+  <dd>POSIX.1-2008.</dd>
+  <dt id="cfsetspeed"><a class="permalink" href="#cfsetspeed"><b>cfsetspeed</b>()</a></dt>
+  <dd>BSD.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="cfgetispeed~2"><a class="permalink" href="#cfgetispeed~2"><b>cfgetispeed</b>()</a></dt>
+  <dd></dd>
+  <dt id="cfgetospeed~2"><a class="permalink" href="#cfgetospeed~2"><b>cfgetospeed</b>()</a></dt>
+  <dd></dd>
+  <dt id="cfsetispeed~2"><a class="permalink" href="#cfsetispeed~2"><b>cfsetispeed</b>()</a></dt>
+  <dd></dd>
+  <dt id="cfsetospeed~2"><a class="permalink" href="#cfsetospeed~2"><b>cfsetospeed</b>()</a></dt>
+  <dd>POSIX.1-2001.</dd>
+  <dt id="cfsetspeed~2"><a class="permalink" href="#cfsetspeed~2"><b>cfsetspeed</b>()</a></dt>
+  <dd>4.4BSD.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>speed_t</b>(3type), <b>termios</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

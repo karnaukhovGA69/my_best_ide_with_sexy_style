@@ -1,0 +1,219 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_vt(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_vt(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_vt - ioctls for console terminal and virtual consoles</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/vt.h&gt;</b>  /* Definition of <b>VT_*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, unsigned long </b><i>op</i><b>, void *</b><i>argp</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The following Linux-specific <b>ioctl</b>(2) operations are
+    supported for console terminals and virtual consoles.</p>
+<dl class="Bl-tag">
+  <dt id="VT_OPENQRY"><a class="permalink" href="#VT_OPENQRY"><b>VT_OPENQRY</b></a></dt>
+  <dd>Returns the first available (non-opened) console. <i>argp</i> points to an
+      <i>int</i> which is set to the number of the vt (1 &lt;= <i>*argp</i>
+      &lt;= MAX_NR_CONSOLES).</dd>
+  <dt id="VT_GETMODE"><a class="permalink" href="#VT_GETMODE"><b>VT_GETMODE</b></a></dt>
+  <dd>Get mode of active vt. <i>argp</i> points to a</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct vt_mode {
+<br/>
+    char  mode;    /* vt mode */
+<br/>
+    char  waitv;   /* if set, hang on writes if not active */
+<br/>
+    short relsig;  /* signal to raise on release op */
+<br/>
+    short acqsig;  /* signal to raise on acquisition */
+<br/>
+    short frsig;   /* unused (set to 0) */
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>which is set to the mode of the active vt. <i>mode</i> is set to one of
+      these values:
+    <table class="tbl">
+      <tr>
+        <td>VT_AUTO</td>
+        <td>auto vt switching</td>
+      </tr>
+      <tr>
+        <td>VT_PROCESS</td>
+        <td>process controls switching</td>
+      </tr>
+      <tr>
+        <td>VT_ACKACQ</td>
+        <td>acknowledge switch</td>
+      </tr>
+    </table>
+  </dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="VT_SETMODE"><a class="permalink" href="#VT_SETMODE"><b>VT_SETMODE</b></a></dt>
+  <dd>Set mode of active vt. <i>argp</i> points to a <i>struct vt_mode</i>.</dd>
+  <dt id="VT_GETSTATE"><a class="permalink" href="#VT_GETSTATE"><b>VT_GETSTATE</b></a></dt>
+  <dd>Get global vt state info. <i>argp</i> points to a</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct vt_stat {
+<br/>
+    unsigned short v_active;  /* active vt */
+<br/>
+    unsigned short v_signal;  /* signal to send */
+<br/>
+    unsigned short v_state;   /* vt bit mask */
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>For each vt in use, the corresponding bit in the <i>v_state</i> member is
+      set. (Linux 1.0 through Linux 1.1.92.)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="VT_RELDISP"><a class="permalink" href="#VT_RELDISP"><b>VT_RELDISP</b></a></dt>
+  <dd>Release a display.</dd>
+  <dt id="VT_ACTIVATE"><a class="permalink" href="#VT_ACTIVATE"><b>VT_ACTIVATE</b></a></dt>
+  <dd>Switch to vt <i>argp</i> (1 &lt;= <i>argp</i> &lt;= MAX_NR_CONSOLES).</dd>
+  <dt id="VT_WAITACTIVE"><a class="permalink" href="#VT_WAITACTIVE"><b>VT_WAITACTIVE</b></a></dt>
+  <dd>Wait until vt <i>argp</i> has been activated.</dd>
+  <dt id="VT_DISALLOCATE"><a class="permalink" href="#VT_DISALLOCATE"><b>VT_DISALLOCATE</b></a></dt>
+  <dd>Deallocate the memory associated with vt <i>argp</i>. (Since Linux
+      1.1.54.)</dd>
+  <dt id="VT_RESIZE"><a class="permalink" href="#VT_RESIZE"><b>VT_RESIZE</b></a></dt>
+  <dd>Set the kernel's idea of screensize. <i>argp</i> points to a</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct vt_sizes {
+<br/>
+    unsigned short v_rows;       /* # rows */
+<br/>
+    unsigned short v_cols;       /* # columns */
+<br/>
+    unsigned short v_scrollsize; /* no longer used */
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>Note that this does not change the videomode. See <b>resizecons</b>(8).
+      (Since Linux 1.1.54.)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="VT_RESIZEX"><a class="permalink" href="#VT_RESIZEX"><b>VT_RESIZEX</b></a></dt>
+  <dd>Set the kernel's idea of various screen parameters. <i>argp</i> points to
+      a</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct vt_consize {
+<br/>
+    unsigned short v_rows;  /* number of rows */
+<br/>
+    unsigned short v_cols;  /* number of columns */
+<br/>
+    unsigned short v_vlin;  /* number of pixel rows
+<br/>
+                               on screen */
+<br/>
+    unsigned short v_clin;  /* number of pixel rows
+<br/>
+                               per character */
+<br/>
+    unsigned short v_vcol;  /* number of pixel columns
+<br/>
+                               on screen */
+<br/>
+    unsigned short v_ccol;  /* number of pixel columns
+<br/>
+                               per character */
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>Any parameter may be set to zero, indicating &quot;no change&quot;, but if
+      multiple parameters are set, they must be self-consistent. Note that this
+      does not change the videomode. See <b>resizecons</b>(8). (Since Linux
+      1.3.3.)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="VT_GETCONSIZECSRPOS"><a class="permalink" href="#VT_GETCONSIZECSRPOS"><b>VT_GETCONSIZECSRPOS</b></a></dt>
+  <dd>Get console size and cursor position. <i>argp</i> points to a</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct vt_consizecsrpos {
+<br/>
+    __u16 con_rows;  /* number of console rows */
+<br/>
+    __u16 con_cols;  /* number of console columns */
+<br/>
+    __u16 csr_row;   /* current cursor's row */
+<br/>
+    __u16 csr_col;   /* current cursor's column */
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>(Since Linux 6.16.)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned (except where indicated). On failure, -1
+    is returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>argp</i> is invalid.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_console</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

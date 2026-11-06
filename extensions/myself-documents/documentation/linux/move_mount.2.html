@@ -1,0 +1,370 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">move_mount(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">move_mount(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">move_mount - move or attach mount object to filesystem</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b>          /* Definition of <b>AT_*</b> constants */
+<b>#include &lt;sys/mount.h&gt;</b></pre>
+<pre><b>int move_mount(int </b><i>from_dirfd</i><b>, const char *</b><i>from_path</i><b>,</b>
+<b>               int </b><i>to_dirfd</i><b>, const char *</b><i>to_path</i><b>,</b>
+<b>               unsigned int </b><i>flags</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>move_mount</b>() system call is part of the suite of
+    file-descriptor-based mount facilities in Linux.</p>
+<p class="Pp"><b>move_mount</b>() moves the mount object indicated by
+    <i>from_dirfd</i> and <i>from_path</i> to the path indicated by
+    <i>to_dirfd</i> and <i>to_path</i>. The mount object being moved can be an
+    existing mount point in the current mount namespace, or a detached mount
+    object created by <b>fsmount</b>(2) or <b>open_tree</b>(2) with
+    <b>OPEN_TREE_CLONE</b>.</p>
+<p class="Pp">To access the source mount object or the destination mount point,
+    no permissions are required on the object itself, but if either pathname is
+    supplied, execute (search) permission is required on all of the directories
+    specified in <i>from_path</i> or <i>to_path</i>.</p>
+<p class="Pp">The calling process must have the <b>CAP_SYS_ADMIN</b> capability
+    in order to move or attach a mount object.</p>
+<p class="Pp">As with &quot;*at()&quot; system calls, <b>move_mount</b>() uses
+    the <i>from_dirfd</i> and <i>to_dirfd</i> arguments in conjunction with the
+    <i>from_path</i> and <i>to_path</i> arguments to determine the source and
+    destination objects to operate on (respectively), as follows:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in *<i>_path</i> is absolute, then the corresponding
+      *<i>_dirfd</i> is ignored.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in *<i>_path</i> is relative and the corresponding
+      *<i>_dirfd</i> is the special value <b>AT_FDCWD</b>, then *<i>_path</i> is
+      interpreted relative to the current working directory of the calling
+      process (like <b>open</b>(2)).</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the pathname given in *<i>_path</i> is relative, then it is interpreted
+      relative to the directory referred to by the corresponding file descriptor
+      *<i>_dirfd</i> (rather than relative to the current working directory of
+      the calling process, as is done by <b>open</b>(2) for a relative
+      pathname). In this case, the corresponding *<i>_dirfd</i> must be a
+      directory that was opened for reading (<b>O_RDONLY</b>) or using the
+      <b>O_PATH</b> flag.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If *<i>_path</i> is an empty string, and <i>flags</i> contains the
+      appropriate <b>MOVE_MOUNT_</b><i>*</i><b>_EMPTY_PATH</b> flag, then the
+      corresponding file descriptor *<i>_dirfd</i> is operated on directly. In
+      this case, the corresponding *<i>_dirfd</i> may refer to any type of file,
+      not just a directory.</dd>
+</dl>
+<p class="Pp">See <b>openat</b>(2) for an explanation of why the *<i>_dirfd</i>
+    arguments are useful.</p>
+<p class="Pp"><i>flags</i> can be used to control aspects of the path lookup for
+    both the source and destination objects, as well as other properties of the
+    mount operation. A value for <i>flags</i> is constructed by bitwise ORing
+    zero or more of the following constants:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="MOVE_MOUNT_F_EMPTY_PATH"><a class="permalink" href="#MOVE_MOUNT_F_EMPTY_PATH"><b>MOVE_MOUNT_F_EMPTY_PATH</b></a></dt>
+  <dd>If <i>from_path</i> is an empty string, operate on the file referred to by
+      <i>from_dirfd</i> (which may have been obtained from <b>open</b>(2),
+      <b>fsmount</b>(2), or <b>open_tree</b>(2)). In this case,
+      <i>from_dirfd</i> may refer to any type of file, not just a directory. If
+      <i>from_dirfd</i> is <b>AT_FDCWD</b>, <b>move_mount</b>() will operate on
+      the current working directory of the calling process.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This is the most common mechanism used to attach detached mount objects
+      produced by <b>fsmount</b>(2) and <b>open_tree</b>(2) to a mount
+    point.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="MOVE_MOUNT_T_EMPTY_PATH"><a class="permalink" href="#MOVE_MOUNT_T_EMPTY_PATH"><b>MOVE_MOUNT_T_EMPTY_PATH</b></a></dt>
+  <dd>As with <b>MOVE_MOUNT_F_EMPTY_PATH</b>, except operating on
+      <i>to_dirfd</i> and <i>to_path</i>.</dd>
+  <dt id="MOVE_MOUNT_F_SYMLINKS"><a class="permalink" href="#MOVE_MOUNT_F_SYMLINKS"><b>MOVE_MOUNT_F_SYMLINKS</b></a></dt>
+  <dd>If <i>from_path</i> references a symbolic link, then dereference it. The
+      default behavior for <b>move_mount</b>() is to <i>not follow</i> symbolic
+      links.</dd>
+  <dt id="MOVE_MOUNT_T_SYMLINKS"><a class="permalink" href="#MOVE_MOUNT_T_SYMLINKS"><b>MOVE_MOUNT_T_SYMLINKS</b></a></dt>
+  <dd>As with <b>MOVE_MOUNT_F_SYMLINKS</b>, except operating on <i>to_dirfd</i>
+      and <i>to_path</i>.</dd>
+  <dt id="MOVE_MOUNT_F_NO_AUTOMOUNT"><a class="permalink" href="#MOVE_MOUNT_F_NO_AUTOMOUNT"><b>MOVE_MOUNT_F_NO_AUTOMOUNT</b></a></dt>
+  <dd>Do not automount the terminal (&quot;basename&quot;) component of
+      <i>from_path</i> if it is a directory that is an automount point. This
+      allows a mount object that has an automount point at its root to be moved
+      and prevents unintended triggering of an automount point. This flag has no
+      effect if the automount point has already been mounted over.</dd>
+  <dt id="MOVE_MOUNT_T_NO_AUTOMOUNT"><a class="permalink" href="#MOVE_MOUNT_T_NO_AUTOMOUNT"><b>MOVE_MOUNT_T_NO_AUTOMOUNT</b></a></dt>
+  <dd>As with <b>MOVE_MOUNT_F_NO_AUTOMOUNT</b>, except operating on
+      <i>to_dirfd</i> and <i>to_path</i>. This allows an automount point to be
+      manually mounted over.</dd>
+  <dt id="MOVE_MOUNT_SET_GROUP"><a class="permalink" href="#MOVE_MOUNT_SET_GROUP"><b>MOVE_MOUNT_SET_GROUP</b>
+    (since Linux 5.15)</a></dt>
+  <dd>Add the attached private-propagation mount object indicated by
+      <i>to_dirfd</i> and <i>to_path</i> into the mount propagation &quot;peer
+      group&quot; of the attached non-private-propagation mount object indicated
+      by <i>from_dirfd</i> and <i>from_path</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Unlike other <b>move_mount</b>() operations, this operation does not move
+      or attach any mount objects. Instead, it only updates the metadata of
+      attached mount objects. (Also, take careful note of the argument
+      order&#x2014;the mount object being modified by this operation is the one
+      specified by <i>to_dirfd</i> and <i>to_path</i>.)</dd>
+  <dt></dt>
+  <dd>This makes it possible to first create a mount tree consisting only of
+      private mounts and then configure the desired propagation layout
+      afterwards. (See the &quot;SHARED SUBTREES&quot; section of
+      <b>mount_namespaces</b>(7) for more information about mount propagation
+      and peer groups.)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="MOVE_MOUNT_BENEATH"><a class="permalink" href="#MOVE_MOUNT_BENEATH"><b>MOVE_MOUNT_BENEATH</b>
+    (since Linux 6.5)</a></dt>
+  <dd>If the path indicated by <i>to_dirfd</i> and <i>to_path</i> is an existing
+      mount object, rather than attaching or moving the mount object indicated
+      by <i>from_dirfd</i> and <i>from_path</i> on top of the mount stack,
+      attach or move it beneath the current top mount on the mount stack.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>After using <b>MOVE_MOUNT_BENEATH</b>, it is possible to <b>umount</b>(2)
+      the top mount in order to reveal the mount object which was attached
+      beneath it earlier. This allows for the seamless (and atomic) replacement
+      of intricate mount trees, which can further be used to &quot;upgrade&quot;
+      a mount tree with a newer version.</dd>
+  <dt></dt>
+  <dd>This operation has several restrictions:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>Mount objects cannot be attached beneath the filesystem root, including
+      cases where the filesystem root was configured by <b>chroot</b>(2) or
+      <b>pivot_root</b>(2). To mount beneath the filesystem root,
+      <b>pivot_root</b>(2) must be used.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The target path indicated by <i>to_dirfd</i> and <i>to_path</i> must not
+      be a detached mount object, such as those produced by <b>open_tree</b>(2)
+      with <b>OPEN_TREE_CLONE</b> or <b>fsmount</b>(2).</dd>
+  <dt>&#x2022;</dt>
+  <dd>The current top mount of the target path's mount stack and its parent
+      mount must be in the calling process's mount namespace.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The caller must have sufficient privileges to unmount the top mount of the
+      target path's mount stack, to prove they have privileges to reveal the
+      underlying mount.</dd>
+  <dt>&#x2022;</dt>
+  <dd>Mount propagation events triggered by this <b>move_mount</b>() operation
+      (as described in <b>mount_namespaces</b>(7)) are calculated based on the
+      parent mount of the current top mount of the target path's mount
+    stack.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The target path's mount cannot be an ancestor in the mount tree of the
+      source mount object.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The source mount object must not have any overmounts, otherwise it would
+      be possible to create &quot;shadow mounts&quot; (i.e., two mounts mounted
+      on the same parent mount at the same mount point).</dd>
+  <dt>&#x2022;</dt>
+  <dd>It is not possible to move a mount beneath a top mount if the parent mount
+      of the current top mount propagates to the top mount itself. Otherwise,
+      <b>MOVE_MOUNT_BENEATH</b> would cause the mount object to be propagated to
+      the top mount from the parent mount, defeating the purpose of using
+      <b>MOVE_MOUNT_BENEATH</b>.</dd>
+  <dt>&#x2022;</dt>
+  <dd>It is not possible to move a mount beneath a top mount if the parent mount
+      of the current top mount propagates to the mount object being mounted
+      beneath. Otherwise, this would cause a similar propagation issue to the
+      previous point, also defeating the purpose of using
+      <b>MOVE_MOUNT_BENEATH</b>.</dd>
+</dl>
+</div>
+</div>
+<p class="Pp">If <i>from_dirfd</i> is a mount object file descriptor and
+    <b>move_mount</b>() is operating on it directly, <i>from_dirfd</i> will
+    remain associated with the mount object after <b>move_mount</b>() succeeds,
+    so you may repeatedly use <i>from_dirfd</i> with <b>move_mount</b>(2) and/or
+    &quot;*at()&quot; system calls as many times as necessary.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>move_mount</b>() returns 0. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>Search permission is denied for one of the directories in the path prefix
+      of one of <i>from_path</i> or <i>to_path</i>. (See also
+      <b>path_resolution</b>(7).)</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd>One of <i>from_dirfd</i> or <i>to_dirfd</i> is not a valid file
+      descriptor.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>One of <i>from_path</i> or <i>to_path</i> is NULL or a pointer to a
+      location outside the calling process's accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid flag specified in <i>flags</i>.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The path indicated by <i>from_dirfd</i> and <i>from_path</i> is not a
+      mount object.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>The mount object type of the source mount object and target inode are not
+      compatible (i.e., the source is a file but the target is a directory, or
+      vice-versa).</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd>The source mount object or target path are not in the calling process's
+      mount namespace (or an anonymous mount namespace of the calling
+    process).</dd>
+  <dt id="EINVAL~5"><a class="permalink" href="#EINVAL~5"><b>EINVAL</b></a></dt>
+  <dd>The source mount object's parent mount has shared mount propagation, and
+      thus cannot be moved (as described in <b>mount_namespaces</b>(7)).</dd>
+  <dt id="EINVAL~6"><a class="permalink" href="#EINVAL~6"><b>EINVAL</b></a></dt>
+  <dd>The source mount has <b>MS_UNBINDABLE</b> child mounts but the target path
+      resides on a mount tree with shared mount propagation, which would
+      otherwise cause the unbindable mounts to be propagated (as described in
+      <b>mount_namespaces</b>(7)).</dd>
+  <dt id="EINVAL~7"><a class="permalink" href="#EINVAL~7"><b>EINVAL</b></a></dt>
+  <dd><b>MOVE_MOUNT_BENEATH</b> was attempted, but one of the listed
+      restrictions was violated.</dd>
+  <dt id="ELOOP"><a class="permalink" href="#ELOOP"><b>ELOOP</b></a></dt>
+  <dd>Too many symbolic links encountered when resolving one of <i>from_path</i>
+      or <i>to_path</i>.</dd>
+  <dt id="ENAMETOOLONG"><a class="permalink" href="#ENAMETOOLONG"><b>ENAMETOOLONG</b></a></dt>
+  <dd>One of <i>from_path</i> or <i>to_path</i> is longer than
+    <b>PATH_MAX</b>.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>A component of one of <i>from_path</i> or <i>to_path</i> does not
+    exist.</dd>
+  <dt id="ENOENT~2"><a class="permalink" href="#ENOENT~2"><b>ENOENT</b></a></dt>
+  <dd>One of <i>from_path</i> or <i>to_path</i> is an empty string, but the
+      corresponding <b>MOVE_MOUNT_</b><i>*</i><b>_EMPTY_PATH</b> flag is not
+      specified in <i>flags</i>.</dd>
+  <dt id="ENOTDIR"><a class="permalink" href="#ENOTDIR"><b>ENOTDIR</b></a></dt>
+  <dd>A component of the path prefix of one of <i>from_path</i> or
+      <i>to_path</i> is not a directory, or one of <i>from_path</i> or
+      <i>to_path</i> is relative and the corresponding <i>from_dirfd</i> or
+      <i>to_dirfd</i> is a file descriptor referring to a file other than a
+      directory.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate sufficient memory to complete the
+    operation.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The calling process does not have the required <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.2, glibc 2.36.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp"><b>move_mount</b>() can be used to move attached mounts like the
+    following:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>move_mount(AT_FDCWD, &quot;/a&quot;, AT_FDCWD, &quot;/b&quot;, 0);
+</pre>
+<br/>
+<p class="Pp">This would move the mount object mounted on <i>/a</i> to
+    <i>/b</i>. The above procedure is functionally equivalent to the following
+    mount operation using <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(&quot;/a&quot;, &quot;/b&quot;, NULL, MS_MOVE, NULL);
+</pre>
+<br/>
+<p class="Pp"><b>move_mount</b>() can also be used in conjunction with file
+    descriptors returned from <b>open_tree</b>(2) or <b>open</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int fd = open_tree(AT_FDCWD, &quot;/mnt&quot;, 0); /* open(&quot;/mnt&quot;, O_PATH); */
+move_mount(fd, &quot;&quot;, AT_FDCWD, &quot;/mnt2&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+move_mount(fd, &quot;&quot;, AT_FDCWD, &quot;/mnt3&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+move_mount(fd, &quot;&quot;, AT_FDCWD, &quot;/mnt4&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">This would move the mount object mounted at <i>/mnt</i> to
+    <i>/mnt2</i>, then <i>/mnt3</i>, and then <i>/mnt4</i>.</p>
+<p class="Pp">If the source mount object indicated by <i>from_dirfd</i> and
+    <i>from_path</i> is a detached mount object, <b>move_mount</b>() can be used
+    to attach it to a mount point:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int fsfd, mntfd;
+fsfd = fsopen(&quot;ext4&quot;, FSOPEN_CLOEXEC);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;source&quot;, &quot;/dev/sda1&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;user_xattr&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC, MOUNT_ATTR_NODEV);
+move_mount(mntfd, &quot;&quot;, AT_FDCWD, &quot;/home&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">This would create a new filesystem configuration context for ext4,
+    configure it, create a detached mount object, and then attach it to
+    <i>/home</i>. The above procedure is functionally equivalent to the
+    following mount operation using <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(&quot;/dev/sda1&quot;, &quot;/home&quot;, &quot;ext4&quot;, MS_NODEV, &quot;user_xattr&quot;);
+</pre>
+<br/>
+<p class="Pp">The same operation also works with detached bind-mounts created
+    with <b>open_tree</b>(2) with <b>OPEN_TREE_CLONE</b>:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int mntfd = open_tree(AT_FDCWD, &quot;/home/cyphar&quot;, OPEN_TREE_CLONE);
+move_mount(mntfd, &quot;&quot;, AT_FDCWD, &quot;/root&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">This would create a new bind-mount of <i>/home/cyphar</i> as a
+    detached mount object, and then attach it to <i>/root</i>. The above
+    procedure is functionally equivalent to the following mount operation using
+    <b>mount</b>(2):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mount(&quot;/home/cyphar&quot;, &quot;/root&quot;, NULL, MS_BIND, NULL);
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fsconfig</b>(2), <b>fsmount</b>(2), <b>fsopen</b>(2),
+    <b>fspick</b>(2), <b>mount</b>(2), <b>mount_setattr</b>(2),
+    <b>open_tree</b>(2), <b>mount_namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

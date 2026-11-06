@@ -1,0 +1,163 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">lgamma(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">lgamma(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">lgamma, lgammaf, lgammal, lgamma_r, lgammaf_r, lgammal_r, signgam
+    - log gamma function</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Math library (<i>libm</i>,&#x00A0;<i>-lm</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;math.h&gt;</b></pre>
+<pre><b>double lgamma(double </b><i>x</i><b>);</b>
+<b>float lgammaf(float </b><i>x</i><b>);</b>
+<b>long double lgammal(long double </b><i>x</i><b>);</b></pre>
+<pre><b>double lgamma_r(double </b><i>x</i><b>, int *</b><i>signp</i><b>);</b>
+<b>float lgammaf_r(float </b><i>x</i><b>, int *</b><i>signp</i><b>);</b>
+<b>long double lgammal_r(long double </b><i>x</i><b>, int *</b><i>signp</i><b>);</b></pre>
+<pre><b>extern int </b><i>signgam</i><b>;</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"></p>
+<pre><b>lgamma</b>():
+<br/>
+    _ISOC99_SOURCE || _POSIX_C_SOURCE &gt;= 200112L || _XOPEN_SOURCE
+<br/>
+        || /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+<p class="Pp"><b>lgammaf</b>(), <b>lgammal</b>():</p>
+<pre>
+<br/>
+    _ISOC99_SOURCE || _POSIX_C_SOURCE &gt;= 200112L
+<br/>
+        || /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+<p class="Pp"><b>lgamma_r</b>(), <b>lgammaf_r</b>(), <b>lgammal_r</b>():</p>
+<pre>
+<br/>
+    /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+<p class="Pp"><i>signgam</i>:</p>
+<pre>
+<br/>
+    _XOPEN_SOURCE
+<br/>
+        || /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">For the definition of the Gamma function, see
+  <b>tgamma</b>(3).</p>
+<p class="Pp">The <b>lgamma</b>(), <b>lgammaf</b>(), and <b>lgammal</b>()
+    functions return the natural logarithm of the absolute value of the Gamma
+    function. The sign of the Gamma function is returned in the external integer
+    <i>signgam</i> declared in <i>&lt;math.h&gt;</i>. It is 1 when the Gamma
+    function is positive or zero, -1 when it is negative.</p>
+<p class="Pp">Since using a constant location <i>signgam</i> is not thread-safe,
+    the functions <b>lgamma_r</b>(), <b>lgammaf_r</b>(), and <b>lgammal_r</b>()
+    have been introduced; they return the sign via the argument
+  <i>signp</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, these functions return the natural logarithm of
+    Gamma(x).</p>
+<p class="Pp">If <i>x</i> is a NaN, a NaN is returned.</p>
+<p class="Pp">If <i>x</i> is 1 or 2, +0 is returned.</p>
+<p class="Pp">If <i>x</i> is positive infinity or negative infinity, positive
+    infinity is returned.</p>
+<p class="Pp">If <i>x</i> is a nonpositive integer, a pole error occurs, and the
+    functions return +<b>HUGE_VAL</b>, +<b>HUGE_VALF</b>, or +<b>HUGE_VALL</b>,
+    respectively.</p>
+<p class="Pp">If the result overflows, a range error occurs, and the functions
+    return <b>HUGE_VAL</b>, <b>HUGE_VALF</b>, or <b>HUGE_VALL</b>, respectively,
+    with the correct mathematical sign.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>math_error</b>(7) for information on how to determine
+    whether an error has occurred when calling these functions.</p>
+<p class="Pp">The following errors can occur:</p>
+<dl class="Bl-tag">
+  <dt id="Pole"><a class="permalink" href="#Pole">Pole error: <i>x</i> is a
+    nonpositive integer</a></dt>
+  <dd><i>errno</i> is set to <b>ERANGE</b> (but see BUGS). A divide-by-zero
+      floating-point exception (<b>FE_DIVBYZERO</b>) is raised.</dd>
+  <dt id="Range"><a class="permalink" href="#Range">Range error: result
+    overflow</a></dt>
+  <dd><i>errno</i> is set to <b>ERANGE</b>. An overflow floating-point exception
+      (<b>FE_OVERFLOW</b>) is raised.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="lgamma"><a class="permalink" href="#lgamma"><b>lgamma</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammaf"><a class="permalink" href="#lgammaf"><b>lgammaf</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammal"><a class="permalink" href="#lgammal"><b>lgammal</b>()</a></dt>
+  <dd>C11, POSIX.1-2008.</dd>
+  <dt id="signgam"><a class="permalink" href="#signgam"><i>signgam</i></a></dt>
+  <dd>POSIX.1-2008.</dd>
+  <dt id="lgamma_r"><a class="permalink" href="#lgamma_r"><b>lgamma_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammaf_r"><a class="permalink" href="#lgammaf_r"><b>lgammaf_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammal_r"><a class="permalink" href="#lgammal_r"><b>lgammal_r</b>()</a></dt>
+  <dd>None.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="lgamma~2"><a class="permalink" href="#lgamma~2"><b>lgamma</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammaf~2"><a class="permalink" href="#lgammaf~2"><b>lgammaf</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammal~2"><a class="permalink" href="#lgammal~2"><b>lgammal</b>()</a></dt>
+  <dd>C99, POSIX.1-2001.</dd>
+  <dt id="signgam~2"><a class="permalink" href="#signgam~2"><i>signgam</i></a></dt>
+  <dd>POSIX.1-2001.</dd>
+  <dt id="lgamma_r~2"><a class="permalink" href="#lgamma_r~2"><b>lgamma_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammaf_r~2"><a class="permalink" href="#lgammaf_r~2"><b>lgammaf_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="lgammal_r~2"><a class="permalink" href="#lgammal_r~2"><b>lgammal_r</b>()</a></dt>
+  <dd>None.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">In glibc 2.9 and earlier, when a pole error occurs, <i>errno</i>
+    is set to <b>EDOM</b>; instead of the POSIX-mandated <b>ERANGE</b>. Since
+    glibc 2.10, glibc does the right thing.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>tgamma</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

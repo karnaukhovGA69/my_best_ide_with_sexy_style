@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioperm(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioperm(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioperm - set I/O port permissions</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/io.h&gt;</b></pre>
+<pre><b>int ioperm(unsigned long </b><i>from</i><b>, unsigned long </b><i>num</i><b>, int </b><i>turn_on</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>ioperm</b>() sets the calling thread's access permission for
+    <i>num</i> ports starting from port address <i>from</i>. If <i>turn_on</i>
+    is nonzero, then permission for the specified ports is enabled; otherwise it
+    is disabled. If <i>turn_on</i> is nonzero, the calling thread must be
+    privileged (<b>CAP_SYS_RAWIO</b>).</p>
+<p class="Pp">Before Linux 2.6.8, only the first 0x3ff I/O ports could be
+    specified in this manner. For more ports, the <b>iopl</b>(2) system call had
+    to be used (with a <i>level</i> argument of 3). Since Linux 2.6.8, 65,536
+    I/O ports can be specified.</p>
+<p class="Pp">Permissions are inherited by the child created by <b>fork</b>(2)
+    (but see HISTORY). Permissions are preserved across <b>execve</b>(2); this
+    is useful for giving port access permissions to unprivileged programs.</p>
+<p class="Pp">This call is mostly for the i386 architecture. On many other
+    architectures it does not exist or will always return an error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid values for <i>from</i> or <i>num</i>.</dd>
+  <dt id="EIO"><a class="permalink" href="#EIO"><b>EIO</b></a></dt>
+  <dd>(on PowerPC) This call is not supported.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>Out of memory.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The calling thread has insufficient privilege.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">glibc has an <b>ioperm</b>() prototype both in
+    <i>&lt;sys/io.h&gt;</i> and in <i>&lt;sys/perm.h&gt;</i>. Avoid the latter,
+    it is available on i386 only.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Before Linux 2.4, permissions were not inherited by a child
+    created by <b>fork</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The <i>/proc/ioports</i> file shows the I/O ports that are
+    currently allocated on the system.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>iopl</b>(2), <b>outb</b>(2), <b>capabilities</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-10-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

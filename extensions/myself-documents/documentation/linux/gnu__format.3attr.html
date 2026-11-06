@@ -1,0 +1,191 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">gnu::format(3attr)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">gnu::format(3attr)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">gnu::format - specify the style of format string</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>[[gnu::format(</b><i>style</i><b>,&#x00A0;</b><i>fmt-idx</i><b>,&#x00A0;</b><i>first-idx</i><b>)]]</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This attribute can be applied to a function. It specifies that a
+    function parameter is a format string, and specifies the style of the format
+    string. This allows checking the syntax of the format string, as well as the
+    types of the variadic arguments. The <i>style</i> can be one of the
+    following.</p>
+<dl class="Bl-tag">
+  <dt id="printf"><a class="permalink" href="#printf"><b>printf</b></a></dt>
+  <dd></dd>
+  <dt id="scanf"><a class="permalink" href="#scanf"><b>scanf</b></a></dt>
+  <dd></dd>
+  <dt id="strftime"><a class="permalink" href="#strftime"><b>strftime</b></a></dt>
+  <dd></dd>
+  <dt id="strfmon"><a class="permalink" href="#strfmon"><b>strfmon</b></a></dt>
+  <dd></dd>
+</dl>
+<p class="Pp"><i>fmt-idx</i> is a 1-based index that specifies the position of
+    the format string within the parameter list.</p>
+<p class="Pp"><i>first-idx</i> is a 1-based index that specifies the position of
+    the first argument that corresponds to the format string. If the first
+    argument is part of a <i>va_list</i> argument, it should be specified as
+    <b>0</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="GNU_syntax"><a class="permalink" href="#GNU_syntax">GNU
+  syntax</a></h2>
+<dl class="Bl-tag">
+  <dt><b>__attribute__((format(</b><i>style</i><b>,&#x00A0;</b><i>fmt-idx</i><b>,&#x00A0;</b><i>first-idx</i><b>)))</b></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Styles"><a class="permalink" href="#Styles">Styles</a></h2>
+<p class="Pp">On some targets, other styles are additionally supported.</p>
+<dl class="Bl-tag">
+  <dt id="MinGW"><a class="permalink" href="#MinGW">MinGW</a></dt>
+  <dd></dd>
+  <dt id="Microsoft"><a class="permalink" href="#Microsoft">Microsoft
+    Windows</a></dt>
+  <dd></dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="ms_printf"><a class="permalink" href="#ms_printf"><b>ms_printf</b></a></dt>
+  <dd></dd>
+  <dt id="ms_scanf"><a class="permalink" href="#ms_scanf"><b>ms_scanf</b></a></dt>
+  <dd></dd>
+  <dt id="ms_strftime"><a class="permalink" href="#ms_strftime"><b>ms_strftime</b></a></dt>
+  <dd></dd>
+</dl>
+<p class="Pp">These correspond to the formats supported by the <i>msvcrt.dll</i>
+    library.</p>
+<p class="Pp">GCC-only.</p>
+</div>
+<dl class="Bl-tag">
+  <dt id="Solaris"><a class="permalink" href="#Solaris">Solaris</a></dt>
+  <dd></dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="cmn_err"><a class="permalink" href="#cmn_err"><b>cmn_err</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="Darwin"><a class="permalink" href="#Darwin">Darwin</a></dt>
+  <dd></dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="CFString"><a class="permalink" href="#CFString"><b>CFString</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="OpenBSD"><a class="permalink" href="#OpenBSD">OpenBSD</a></dt>
+  <dd></dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="kprintf"><a class="permalink" href="#kprintf"><b>kprintf</b></a></dt>
+  <dd></dd>
+  <dt id="syslog"><a class="permalink" href="#syslog"><b>syslog</b></a></dt>
+  <dd></dd>
+  <dt id="syslog~2"><a class="permalink" href="#syslog~2"><b>syslog</b></a></dt>
+  <dd>Clang-only.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="FreeBSD"><a class="permalink" href="#FreeBSD">FreeBSD</a></dt>
+  <dd></dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="freebsd_kprintf"><a class="permalink" href="#freebsd_kprintf">freebsd_kprintf</a></dt>
+  <dd>Clang-only.</dd>
+</dl>
+</div>
+<p class="Pp">In some languages, other styles are additionally supported.</p>
+<dl class="Bl-tag">
+  <dt id="Objective_C"><a class="permalink" href="#Objective_C">Objective-C</a></dt>
+  <dd></dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="NSString"><a class="permalink" href="#NSString"><b>NSString</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Non-variadic_functions"><a class="permalink" href="#Non-variadic_functions">Non-variadic
+  functions</a></h2>
+<p class="Pp">Clang accepts the attribute on non-variadic functions as an
+    extension.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">gcc, g++, clang 2.8, clang++ 2.8.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<br/>
+<pre>[[gnu::format(printf, 3, 0)]]
+int
+vstprintf(int size;
+<br/>
+    char buf[restrict size], int size,
+<br/>
+    const char *restrict fmt, va_list args)
+{
+	int len;
+	if (size == 0) {
+		errno = EOVERFLOW;
+		return -1;
+	}
+	len = vsnprintf(buf, size, fmt, args);
+	if (len &gt;= size) {
+		errno = E2BIG;
+		return -1;
+	}
+	return len;
+}
+[[gnu::format(printf, 3, 4)]]
+int
+stprintf(int size;
+<br/>
+    char buf[restrict size], int size,
+<br/>
+    const char *restrict fmt, ...)
+{
+	int len;
+	va_list args;
+	va_start(args, fmt);
+	len = vstprintf(buf, size, fmt, args);
+	va_end(args);
+	return len;
+}
+</pre>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,78 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_pipe(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_pipe(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_pipe - ioctl() operations for general notification
+  mechanism</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/watch_queue.h&gt;</b>  /* Definition of <b>IOC_WATCH_QUEUE_</b>* */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>pipefd</i><b>, IOC_WATCH_QUEUE_SET_SIZE, int </b><i>size</i><b>);</b>
+<b>int ioctl(int </b><i>pipefd</i><b>, IOC_WATCH_QUEUE_SET_FILTER,</b>
+<b>          struct watch_notification_filter *</b><i>filter</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The following <b>ioctl</b>(2) operations are provided to set up
+    general notification queue parameters. The notification queue is built on
+    the top of a <b>pipe</b>(2) opened with the <b>O_NOTIFICATION_PIPE</b>
+  flag.</p>
+<dl class="Bl-tag">
+  <dt id="IOC_WATCH_QUEUE_SET_SIZE"><a class="permalink" href="#IOC_WATCH_QUEUE_SET_SIZE"><b>IOC_WATCH_QUEUE_SET_SIZE</b>
+    (since Linux 5.8)</a></dt>
+  <dd>Preallocates the pipe buffer memory so that it can fit <i>size</i>
+      notification messages. Currently, <i>size</i> must be between 1 and
+    512.</dd>
+  <dt id="IOC_WATCH_QUEUE_SET_FILTER"><a class="permalink" href="#IOC_WATCH_QUEUE_SET_FILTER"><b>IOC_WATCH_QUEUE_SET_FILTER</b>
+    (since Linux 5.8)</a></dt>
+  <dd>Watch queue filter can limit events that are received. Filters are passed
+      in a <i>struct watch_notification_filter</i> and each filter is described
+      by a <i>struct watch_notification_type_filter</i> structure.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct watch_notification_filter {
+<br/>
+        __u32   nr_filters;
+<br/>
+        __u32   __reserved;
+<br/>
+        struct watch_notification_type_filter filters[];
+};
+struct watch_notification_type_filter {
+<br/>
+        __u32   type;
+<br/>
+        __u32   info_filter;
+<br/>
+        __u32   info_mask;
+<br/>
+        __u32   subtype_filter[8];
+};
+    </pre>
+    <br/>
+  </dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>pipe</b>(2), <b>ioctl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

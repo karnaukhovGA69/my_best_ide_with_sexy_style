@@ -1,0 +1,41 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">securetty(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">securetty(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">securetty - list of terminals on which root is allowed to
+  login</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The file <i>/etc/securetty</i> contains the names of terminals
+    (one per line, without leading <i>/dev/</i>) which are considered secure for
+    the transmission of certain authentication tokens.</p>
+<p class="Pp">It is used by (some versions of) <b>login</b>(1) to restrict the
+    terminals on which root is allowed to login. See <b>login.defs</b>(5) if you
+    use the shadow suite.</p>
+<p class="Pp">On PAM enabled systems, it is used for the same purpose by
+    <b>pam_securetty</b>(8) to restrict the terminals on which empty passwords
+    are accepted.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/etc/securetty</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>login</b>(1), <b>login.defs</b>(5), <b>pam_securetty</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

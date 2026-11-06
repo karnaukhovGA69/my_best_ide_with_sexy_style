@@ -1,0 +1,108 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_SET_SECCOMP(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_SET_SECCOMP(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_SET_SECCOMP - set the secure computing mode</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>[[deprecated]]</b>
+<b>int prctl(PR_SET_SECCOMP, long </b><i>mode</i><b>, ...);</b></pre>
+<pre><b>[[deprecated]]</b>
+<b>int prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT);</b>
+<b>[[deprecated]]</b>
+<b>int prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER,</b>
+<b>          struct sock_fprog *</b><i>filter</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set the secure computing (seccomp) mode for the calling thread, to
+    limit the available system calls. The more recent <b>seccomp</b>(2) system
+    call provides a superset of the functionality of <b>PR_SET_SECCOMP</b>, and
+    is the preferred interface for new applications.</p>
+<p class="Pp">The seccomp mode is selected via <i>mode</i>. The seccomp
+    constants are defined in <i>&lt;linux/seccomp.h&gt;</i>. The following
+    values can be specified:</p>
+<dl class="Bl-tag">
+  <dt id="SECCOMP_MODE_STRICT"><a class="permalink" href="#SECCOMP_MODE_STRICT"><b>SECCOMP_MODE_STRICT</b>
+    (since Linux 2.6.23)</a></dt>
+  <dd>See the description of <b>SECCOMP_SET_MODE_STRICT</b> in
+      <b>seccomp</b>(2).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This operation is available only if the kernel is configured with
+      <b>CONFIG_SECCOMP</b> enabled.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="SECCOMP_MODE_FILTER"><a class="permalink" href="#SECCOMP_MODE_FILTER"><b>SECCOMP_MODE_FILTER</b>
+    (since Linux 3.5)</a></dt>
+  <dd>The allowed system calls are defined by a pointer to a Berkeley Packet
+      Filter passed in <i>filter</i>. It can be designed to filter arbitrary
+      system calls and system call arguments. See the description of
+      <b>SECCOMP_SET_MODE_FILTER</b> in <b>seccomp</b>(2).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This operation is available only if the kernel is configured with
+      <b>CONFIG_SECCOMP_FILTER</b> enabled.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd><i>mode</i> is <b>SECCOMP_MODE_FILTER</b>, but the process does not have
+      the <b>CAP_SYS_ADMIN</b> capability or has not set the <i>no_new_privs</i>
+      attribute (see <b>PR_SET_NO_NEW_PRIVS</b>(2const)).</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>mode</i> is <b>SECCOMP_MODE_FILTER</b>, and <i>filter</i> is an invalid
+      address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>mode</i> is not a valid value.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The kernel was not configured with <b>CONFIG_SECCOMP</b>.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd><i>mode</i> is <b>SECCOMP_MODE_FILTER</b>, and the kernel was not
+      configured with <b>CONFIG_SECCOMP_FILTER</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.23.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>PR_GET_SECCOMP</b>(2const),
+  <b>seccomp</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

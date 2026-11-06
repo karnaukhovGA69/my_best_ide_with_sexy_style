@@ -1,0 +1,50 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sys_bus(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">sys_bus(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/sys/bus/ - system buses</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><i>/sys/bus/</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This directory contains one subdirectory for each of the bus types
+    in the kernel. Inside each of these directories are two subdirectories:</p>
+<dl class="Bl-tag">
+  <dt id="devices"><a class="permalink" href="#devices"><i>devices</i></a></dt>
+  <dd>This subdirectory contains symbolic links to entries in
+      <i>/sys/devices</i> that correspond to the devices discovered on this
+    bus.</dd>
+  <dt id="drivers"><a class="permalink" href="#drivers"><i>drivers</i></a></dt>
+  <dd>This subdirectory contains one subdirectory for each device driver that is
+      loaded on this bus.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>sysfs</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-09</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

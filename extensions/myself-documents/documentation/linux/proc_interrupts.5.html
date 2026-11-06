@@ -1,0 +1,37 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_interrupts(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_interrupts(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/interrupts - number of interrupts</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/interrupts</i></dt>
+  <dd>This is used to record the number of interrupts per CPU per IO device.
+      Since Linux 2.6.24, for the i386 and x86-64 architectures, at least, this
+      also includes interrupts internal to the system (that is, not associated
+      with a device as such), such as NMI (nonmaskable interrupt), LOC (local
+      timer interrupt), and for SMP systems, TLB (TLB flush interrupt), RES
+      (rescheduling interrupt), CAL (remote function call interrupt), and
+      possibly others. Very easy to read formatting, done in ASCII.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

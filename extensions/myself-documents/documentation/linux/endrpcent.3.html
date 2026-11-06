@@ -1,0 +1,129 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getrpcent(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">getrpcent(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getrpcent, getrpcbyname, getrpcbynumber, setrpcent, endrpcent -
+    get RPC entry</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netdb.h&gt;</b></pre>
+<pre><b>struct rpcent *getrpcent(void);</b></pre>
+<pre><b>struct rpcent *getrpcbyname(const char *</b><i>name</i><b>);</b>
+<b>struct rpcent *getrpcbynumber(int </b><i>number</i><b>);</b></pre>
+<pre><b>void setrpcent(int </b><i>stayopen</i><b>);</b>
+<b>void endrpcent(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>getrpcent</b>(), <b>getrpcbyname</b>(), and
+    <b>getrpcbynumber</b>() functions each return a pointer to an object with
+    the following structure containing the broken-out fields of an entry in the
+    RPC program number data base.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct rpcent {
+<br/>
+    char  *r_name;     /* name of server for this RPC program */
+<br/>
+    char **r_aliases;  /* alias list */
+<br/>
+    long   r_number;   /* RPC program number */
+};
+</pre>
+<br/>
+<p class="Pp">The members of this structure are:</p>
+<dl class="Bl-tag">
+  <dt id="r_name"><a class="permalink" href="#r_name"><i>r_name</i></a></dt>
+  <dd>The name of the server for this RPC program.</dd>
+  <dt id="r_aliases"><a class="permalink" href="#r_aliases"><i>r_aliases</i></a></dt>
+  <dd>A NULL-terminated list of alternate names for the RPC program.</dd>
+  <dt id="r_number"><a class="permalink" href="#r_number"><i>r_number</i></a></dt>
+  <dd>The RPC program number for this service.</dd>
+</dl>
+<p class="Pp">The <b>getrpcent</b>() function reads the next entry from the
+    database. A connection is opened to the database if necessary.</p>
+<p class="Pp">The <b>setrpcent</b>() function opens a connection to the
+    database, and sets the next entry to the first entry. If <i>stayopen</i> is
+    nonzero, then the connection to the database will not be closed between
+    calls to one of the <b>getrpc*</b>() functions.</p>
+<p class="Pp">The <b>endrpcent</b>() function closes the connection to the
+    database.</p>
+<p class="Pp">The <b>getrpcbyname</b>() and <b>getrpcbynumber</b>() functions
+    sequentially search from the beginning of the file until a matching RPC
+    program name or program number is found, or until end-of-file is
+    encountered.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>getrpcent</b>(), <b>getrpcbyname</b>(), and
+    <b>getrpcbynumber</b>() return a pointer to a statically allocated
+    <i>rpcent</i> structure. NULL is returned on EOF or error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/etc/rpc</i></dt>
+  <dd>RPC program number database.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>getrpcent (), getrpcbyname (), getrpcbynumber ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe</td>
+  </tr>
+  <tr>
+    <td>setrpcent (), endrpcent ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">BSD, Solaris.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">All information is contained in a static area so it must be copied
+    if it is to be saved.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>getrpcent_r</b>(3), <b>rpc</b>(5), <b>rpcinfo</b>(8),
+    <b>ypserv</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

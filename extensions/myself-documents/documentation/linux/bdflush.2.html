@@ -1,0 +1,55 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">bdflush(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">bdflush(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">bdflush - start, flush, or tune buffer-dirty-flush daemon</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/kdaemon.h&gt;</b></pre>
+<pre><b>int bdflush(int </b><i>func</i><b>, long </b><i>data</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This system call used to turn the calling process into the
+    <i>bdflush</i> daemon, or tune it, or flush the &quot;old buffers&quot;. It
+    then progressively lost all of that functionality.</p>
+<p class="Pp">See <i>fs/buffer.c</i> in the kernel version you're interested in
+    to see what it actually does there.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp"><b>ENOSYS</b> (this system call is unimplemented)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">This system call was introduced in Linux 1.1.3, became effectively
+    obsolete in Linux 1.3.50, mostly useless in Linux 2.3.23, entirely useless
+    in Linux 2.5.12, officially deprecated in Linux 2.5.52, and removed outright
+    in Linux 5.15.</p>
+<p class="Pp">Sometimes, if <i>func</i> was even, <i>data</i> actually
+    represented a pointer.</p>
+<p class="Pp">The header and prototype were removed in glibc 2.23.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>sync</b>(1), <b>fsync</b>(2), <b>sync</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

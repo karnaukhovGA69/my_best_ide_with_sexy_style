@@ -1,0 +1,168 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_RISCV_SET_ICACHE_FLUSH_CTX(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_RISCV_SET_ICACHE_FLUSH_CTX(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_RISCV_SET_ICACHE_FLUSH_CTX - enable/disable icache flushing
+    instructions in userspace</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_RISCV_SET_ICACHE_FLUSH_CTX, unsigned long </b><i>ctx,</i>
+<b>          unsigned long </b><i>scope</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The context and the scope can be provided using <i>ctx</i> and
+    <i>scope</i> respectively.</p>
+<p class="Pp">When <i>scope</i> is set to <b>PR_RISCV_SCOPE_PER_PROCESS</b> all
+    threads in the process are permitted to emit icache flushing instructions.
+    Whenever any thread in the process is migrated, the corresponding hart's
+    icache will be guaranteed to be consistent with instruction storage. This
+    does not enforce any guarantees outside of migration. If a thread modifies
+    an instruction that another thread may attempt to execute, the other thread
+    must still emit an icache flushing instruction before attempting to execute
+    the potentially modified instruction. This must be performed by the
+    user-space program.</p>
+<p class="Pp">In per-thread context (i.e., <i>scope</i> is set to
+    <b>PR_RISCV_SCOPE_PER_THREAD</b>) only the thread calling this function is
+    permitted to emit icache flushing instructions. When the thread is migrated,
+    the corresponding hart's icache will be guaranteed to be consistent with
+    instruction storage.</p>
+<p class="Pp">On kernels configured without SMP, this prctl
+    <b>PR_RISCV_SET_ICACHE_FLUSH_CTX</b> is a nop as migrations across harts
+    will not occur.</p>
+<p class="Pp">The following values for <i>ctx</i> can be specified:</p>
+<dl class="Bl-tag">
+  <dt id="PR_RISCV_CTX_SW_FENCEI_ON"><a class="permalink" href="#PR_RISCV_CTX_SW_FENCEI_ON"><b>PR_RISCV_CTX_SW_FENCEI_ON</b>
+    (since Linux 6.10)</a></dt>
+  <dd>Allow fence.i in user space.</dd>
+  <dt id="PR_RISCV_CTX_SW_FENCEI_OFF"><a class="permalink" href="#PR_RISCV_CTX_SW_FENCEI_OFF"><b>PR_RISCV_CTX_SW_FENCEI_OFF</b>
+    (since Linux 6.10)</a></dt>
+  <dd>Disallow fence.i in user space. All threads in a process will be affected
+      when <i>scope</i> is set to <b>PR_RISCV_SCOPE_PER_PROCESS</b>. Therefore,
+      caution must be taken; use this flag only when you can guarantee that no
+      thread in the process will emit fence.i from this point onward.</dd>
+</dl>
+<p class="Pp">The following values for <i>scope</i> can be specified:</p>
+<dl class="Bl-tag">
+  <dt id="PR_RISCV_SCOPE_PER_PROCESS"><a class="permalink" href="#PR_RISCV_SCOPE_PER_PROCESS"><b>PR_RISCV_SCOPE_PER_PROCESS</b>
+    (since Linux 6.10)</a></dt>
+  <dd>Ensure the icache of any thread in this process is coherent with
+      instruction storage upon migration.</dd>
+  <dt id="PR_RISCV_SCOPE_PER_THREAD"><a class="permalink" href="#PR_RISCV_SCOPE_PER_THREAD"><b>PR_RISCV_SCOPE_PER_THREAD</b>
+    (since Linux 6.10)</a></dt>
+  <dd>Ensure the icache of the current thread is coherent with instruction
+      storage upon migration.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following files are meant to be compiled and linked with each
+    other. The modify_instruction() function replaces an add with zero with an
+    add with one, causing the instruction sequence in get_value() to change from
+    returning a zero to returning a one.</p>
+<section class="Ss">
+<h2 class="Ss" id="Program_source:_cmodx.c"><a class="permalink" href="#Program_source:_cmodx.c">Program
+  source: cmodx.c</a></h2>
+<pre>#include &lt;stdio.h&gt;
+#include &lt;sys/prctl.h&gt;
+extern int get_value(void);
+extern void modify_instruction(void);
+int
+main(void)
+{
+<br/>
+    int value = get_value();
+<br/>
+    printf(&quot;Value before cmodx: %d\n&quot;, value);
+<br/>
+    // Call prctl before first fence.i is called
+<br/>
+    prctl(PR_RISCV_SET_ICACHE_FLUSH_CTX, PR_RISCV_CTX_SW_FENCEI_ON,
+<br/>
+          PR_RISCV_SCOPE_PER_PROCESS);
+<br/>
+    modify_instruction();
+<br/>
+    // Call prctl after final fence.i is called in process
+<br/>
+    prctl(PR_RISCV_SET_ICACHE_FLUSH_CTX, PR_RISCV_CTX_SW_FENCEI_OFF,
+<br/>
+          PR_RISCV_SCOPE_PER_PROCESS);
+<br/>
+    value = get_value();
+<br/>
+    printf(&quot;Value after cmodx: %d\n&quot;, value);
+<br/>
+    return 0;
+}
+</pre>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Program_source:_cmodx.S"><a class="permalink" href="#Program_source:_cmodx.S">Program
+  source: cmodx.S</a></h2>
+<pre>.option norvc
+.text
+.global modify_instruction
+modify_instruction:
+lw a0, new_insn
+lui a5,%hi(old_insn)
+sw  a0,%lo(old_insn)(a5)
+fence.i
+ret
+.section modifiable, &quot;awx&quot;
+.global get_value
+get_value:
+li a0, 0
+old_insn:
+addi a0, a0, 0
+ret
+.data
+new_insn:
+addi a0, a0, 1
+</pre>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Expected_result"><a class="permalink" href="#Expected_result">Expected
+  result</a></h2>
+<pre>Value before cmodx: 0
+Value after cmodx: 1
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux. RISC-V only.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="Linux"><a class="permalink" href="#Linux">Linux 6.10
+    (RISC-V).</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

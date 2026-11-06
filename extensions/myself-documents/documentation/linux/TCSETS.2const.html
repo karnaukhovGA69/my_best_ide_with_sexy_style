@@ -1,0 +1,300 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TCSETS(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TCSETS(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TCGETS, TCSETS, TCSETSW, TCSETSF, TCGETS2, TCSETS2, TCSETSW2,
+    TCSETSF2, TCGETA, TCSETA, TCSETAW, TCSETAF - get and set terminal
+  attributes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of <b>TC*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TCGETS, struct termios *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCSETS, const struct termios *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCSETSW, const struct termios *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCSETSF, const struct termios *</b><i>argp</i><b>);</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TCGETS2, struct termios2 *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCSETS2, const struct termios2 *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCSETSW2, const struct termios2 *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCSETSF2, const struct termios2 *</b><i>argp</i><b>);</b></pre>
+<pre><b>[[deprecated]] int ioctl(int </b><i>fd</i><b>, TCGETA, struct termio *</b><i>argp</i><b>);</b>
+<b>[[deprecated]] int ioctl(int </b><i>fd</i><b>, TCSETA, const struct termio *</b><i>argp</i><b>);</b>
+<b>[[deprecated]] int ioctl(int </b><i>fd</i><b>, TCSETAW, const struct termio *</b><i>argp</i><b>);</b>
+<b>[[deprecated]] int ioctl(int </b><i>fd</i><b>, TCSETAF, const struct termio *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;asm/termbits.h&gt;</b></pre>
+<pre><b>struct termios;</b>
+<b>struct termios2;</b>
+<b>struct [[deprecated]] termio;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="TCGETS"><a class="permalink" href="#TCGETS"><b>TCGETS</b></a></dt>
+  <dd>Equivalent to <i>tcgetattr(fd, argp)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Get the current serial port settings.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TCSETS"><a class="permalink" href="#TCSETS"><b>TCSETS</b></a></dt>
+  <dd>Equivalent to <i>tcsetattr(fd, TCSANOW, argp)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Set the current serial port settings.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TCSETSW"><a class="permalink" href="#TCSETSW"><b>TCSETSW</b></a></dt>
+  <dd>Equivalent to <i>tcsetattr(fd, TCSADRAIN, argp)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Allow the output buffer to drain, and set the current serial port
+      settings.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TCSETSF"><a class="permalink" href="#TCSETSF"><b>TCSETSF</b></a></dt>
+  <dd>Equivalent to <i>tcsetattr(fd, TCSAFLUSH, argp)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Allow the output buffer to drain, discard pending input, and set the
+      current serial port settings.</dd>
+</dl>
+<p class="Pp">The following four ioctls are just like <b>TCGETS</b>,
+    <b>TCSETS</b>, <b>TCSETSW</b>, <b>TCSETSF</b>, except that they take a
+    <i>struct termios2&#x00A0;*</i> instead of a <i>struct termios&#x00A0;*</i>.
+    If the structure member <b>c_cflag</b> contains the flag <b>BOTHER</b>, then
+    the baud rate is stored in the structure members <b>c_ispeed</b> and
+    <b>c_ospeed</b> as integer values. These ioctls are not supported on all
+    architectures.</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="TCGETS2"><a class="permalink" href="#TCGETS2"><b>TCGETS2</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETS2"><a class="permalink" href="#TCSETS2"><b>TCSETS2</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETSW2"><a class="permalink" href="#TCSETSW2"><b>TCSETSW2</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETSF2"><a class="permalink" href="#TCSETSF2"><b>TCSETSF2</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<p class="Pp">The following four ioctls are just like <b>TCGETS</b>,
+    <b>TCSETS</b>, <b>TCSETSW</b>, <b>TCSETSF</b>, except that they take a
+    <i>struct termio&#x00A0;*</i> instead of a <i>struct
+  termios&#x00A0;*</i>.</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="TCGETA"><a class="permalink" href="#TCGETA"><b>TCGETA</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETA"><a class="permalink" href="#TCSETA"><b>TCSETA</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETAW"><a class="permalink" href="#TCSETAW"><b>TCSETAW</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETAF"><a class="permalink" href="#TCSETAF"><b>TCSETAF</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>Insufficient permission.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="TCGETS2~2"><a class="permalink" href="#TCGETS2~2"><b>TCGETS2</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETS2~2"><a class="permalink" href="#TCSETS2~2"><b>TCSETS2</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETSW2~2"><a class="permalink" href="#TCSETSW2~2"><b>TCSETSW2</b></a></dt>
+  <dd></dd>
+  <dt id="TCSETSF2~2"><a class="permalink" href="#TCSETSF2~2"><b>TCSETSF2</b></a></dt>
+  <dd>Linux 2.6.20.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp"><b>struct termios</b> from <i>&lt;asm/termbits.h&gt;</i> is
+    different and incompatible with <b>struct termios</b> from
+    <i>&lt;termios.h&gt;</i>. These ioctl calls require <b>struct termios</b>
+    from <i>&lt;asm/termbits.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">Get or set arbitrary baudrate on the serial port.</p>
+<p class="Pp"></p>
+<pre>/* SPDX-License-Identifier: GPL-2.0-or-later */
+#include &lt;asm/termbits.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;unistd.h&gt;
+int
+main(int argc, char *argv[])
+{
+#if !defined BOTHER
+<br/>
+    fprintf(stderr, &quot;BOTHER is unsupported\n&quot;);
+<br/>
+    /* Program may fallback to TCGETS/TCSETS with Bnnn constants */
+<br/>
+    exit(EXIT_FAILURE);
+#else
+<br/>
+    /* Declare tio structure, its type depends on supported ioctl */
+# if defined TCGETS2
+<br/>
+    struct termios2 tio;
+# else
+<br/>
+    struct termios tio;
+# endif
+<br/>
+    int fd, rc;
+<br/>
+    if (argc != 2 &amp;&amp; argc != 3 &amp;&amp; argc != 4) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s device [output [input] ]\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fd = open(argv[1], O_RDWR | O_NONBLOCK | O_NOCTTY);
+<br/>
+    if (fd &lt; 0) {
+<br/>
+        perror(&quot;open&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /* Get the current serial port settings via supported ioctl */
+# if defined TCGETS2
+<br/>
+    rc = ioctl(fd, TCGETS2, &amp;tio);
+# else
+<br/>
+    rc = ioctl(fd, TCGETS, &amp;tio);
+# endif
+<br/>
+    if (rc) {
+<br/>
+        perror(&quot;TCGETS&quot;);
+<br/>
+        close(fd);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /* Change baud rate when more arguments were provided */
+<br/>
+    if (argc == 3 || argc == 4) {
+<br/>
+        /* Clear the current output baud rate and fill a new value */
+<br/>
+        tio.c_cflag &amp;= ~CBAUD;
+<br/>
+        tio.c_cflag |= BOTHER;
+<br/>
+        tio.c_ospeed = atoi(argv[2]);
+<br/>
+        /* Clear the current input baud rate and fill a new value */
+<br/>
+        tio.c_cflag &amp;= ~(CBAUD &lt;&lt; IBSHIFT);
+<br/>
+        tio.c_cflag |= BOTHER &lt;&lt; IBSHIFT;
+<br/>
+        /* When 4th argument is not provided reuse output baud rate */
+<br/>
+        tio.c_ispeed = (argc == 4) ? atoi(argv[3]) : atoi(argv[2]);
+<br/>
+        /* Set new serial port settings via supported ioctl */
+# if defined TCSETS2
+<br/>
+        rc = ioctl(fd, TCSETS2, &amp;tio);
+# else
+<br/>
+        rc = ioctl(fd, TCSETS, &amp;tio);
+# endif
+<br/>
+        if (rc) {
+<br/>
+            perror(&quot;TCSETS&quot;);
+<br/>
+            close(fd);
+<br/>
+            exit(EXIT_FAILURE);
+<br/>
+        }
+<br/>
+        /* And get new values which were really configured */
+# if defined TCGETS2
+<br/>
+        rc = ioctl(fd, TCGETS2, &amp;tio);
+# else
+<br/>
+        rc = ioctl(fd, TCGETS, &amp;tio);
+# endif
+<br/>
+        if (rc) {
+<br/>
+            perror(&quot;TCGETS&quot;);
+<br/>
+            close(fd);
+<br/>
+            exit(EXIT_FAILURE);
+<br/>
+        }
+<br/>
+    }
+<br/>
+    close(fd);
+<br/>
+    printf(&quot;output baud rate: %u\n&quot;, tio.c_ospeed);
+<br/>
+    printf(&quot;input baud rate: %u\n&quot;, tio.c_ispeed);
+<br/>
+    exit(EXIT_SUCCESS);
+#endif
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2), <b>termios</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,116 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">size_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">size_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">size_t, ssize_t - count of bytes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stddef.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>size_t;</b></pre>
+<pre><b>#include &lt;sys/types.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>ssize_t;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="size_t"><a class="permalink" href="#size_t"><i>size_t</i></a></dt>
+  <dd>Used for a count of bytes. It is the result of the <i>sizeof</i>()
+      operator. It is an unsigned integer type capable of storing values in the
+      range [<b>0</b>, <b>SIZE_MAX</b>].</dd>
+  <dt id="ssize_t"><a class="permalink" href="#ssize_t"><i>ssize_t</i></a></dt>
+  <dd>Used for a count of bytes or an error indication. It is a signed integer
+      type capable of storing values at least in the range [<b>-1</b>,
+      <b>SSIZE_MAX</b>].</dd>
+</dl>
+<section class="Ss">
+<h2 class="Ss" id="Use_with_printf(3)_and_scanf(3)"><a class="permalink" href="#Use_with_printf(3)_and_scanf(3)">Use
+  with printf(3) and scanf(3)</a></h2>
+<dl class="Bl-tag">
+  <dt id="size_t~2"><a class="permalink" href="#size_t~2"><i>size_t</i></a></dt>
+  <dd>The length modifier for <i>size_t</i> for the <b>printf</b>(3) and the
+      <b>scanf</b>(3) families of functions is <b>z</b>, resulting commonly in
+      <b>%zu</b> or <b>%zx</b> for printing <i>size_t</i> values.</dd>
+  <dt id="ssize_t~2"><a class="permalink" href="#ssize_t~2"><i>ssize_t</i></a></dt>
+  <dd>glibc and most other implementations provide a length modifier for
+      <i>ssize_t</i> for the <b>printf</b>(3) and the <b>scanf</b>(3) families
+      of functions, which is <b>z</b>; resulting commonly in <b>%zd</b> or
+      <b>%zi</b> for printing <i>ssize_t</i> values. Although <b>z</b> works for
+      <i>ssize_t</i> on most implementations, portable POSIX programs should
+      avoid using it&#x2014;for example, by converting the value to
+      <i>intmax_t</i> and using its length modifier (<b>j</b>).</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="size_t~3"><a class="permalink" href="#size_t~3"><i>size_t</i></a></dt>
+  <dd>C11, POSIX.1-2024.</dd>
+  <dt id="ssize_t~3"><a class="permalink" href="#ssize_t~3"><i>ssize_t</i></a></dt>
+  <dd>POSIX.1-2024.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="size_t~4"><a class="permalink" href="#size_t~4"><i>size_t</i></a></dt>
+  <dd>C89, POSIX.1-1990.</dd>
+  <dt id="ssize_t~4"><a class="permalink" href="#ssize_t~4"><i>ssize_t</i></a></dt>
+  <dd>POSIX.1-1990.</dd>
+</dl>
+<p class="Pp"><i>&lt;aio.h&gt;</i>, <i>&lt;glob.h&gt;</i>, <i>&lt;grp.h&gt;</i>,
+    <i>&lt;iconv.h&gt;</i>, <i>&lt;mqueue.h&gt;</i>, <i>&lt;pwd.h&gt;</i>,
+    <i>&lt;signal.h&gt;</i>, and <i>&lt;sys/socket.h&gt;</i> define
+    <i>size_t</i> since POSIX.1-2008.</p>
+<p class="Pp"><i>&lt;aio.h&gt;</i>, <i>&lt;mqueue.h&gt;</i>, and
+    <i>&lt;sys/socket.h&gt;</i> define <i>ssize_t</i> since POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<dl class="Bl-tag">
+  <dt id="size_t~5"><a class="permalink" href="#size_t~5"><i>size_t</i></a></dt>
+  <dd>The following headers also provide <i>size_t</i>: <i>&lt;aio.h&gt;</i>,
+      <i>&lt;glob.h&gt;</i>, <i>&lt;grp.h&gt;</i>, <i>&lt;iconv.h&gt;</i>,
+      <i>&lt;monetary.h&gt;</i>, <i>&lt;mqueue.h&gt;</i>, <i>&lt;ndbm.h&gt;</i>,
+      <i>&lt;pwd.h&gt;</i>, <i>&lt;regex.h&gt;</i>, <i>&lt;search.h&gt;</i>,
+      <i>&lt;signal.h&gt;</i>, <i>&lt;stdio.h&gt;</i>, <i>&lt;stdlib.h&gt;</i>,
+      <i>&lt;string.h&gt;</i>, <i>&lt;strings.h&gt;</i>,
+      <i>&lt;sys/mman.h&gt;</i>, <i>&lt;sys/msg.h&gt;</i>,
+      <i>&lt;sys/sem.h&gt;</i>, <i>&lt;sys/shm.h&gt;</i>,
+      <i>&lt;sys/socket.h&gt;</i>, <i>&lt;sys/types.h&gt;</i>,
+      <i>&lt;sys/uio.h&gt;</i>, <i>&lt;time.h&gt;</i>, <i>&lt;unistd.h&gt;</i>,
+      <i>&lt;wchar.h&gt;</i>, and <i>&lt;wordexp.h&gt;</i>.</dd>
+  <dt id="ssize_t~5"><a class="permalink" href="#ssize_t~5"><i>ssize_t</i></a></dt>
+  <dd>The following headers also provide <i>ssize_t</i>: <i>&lt;aio.h&gt;</i>,
+      <i>&lt;monetary.h&gt;</i>, <i>&lt;mqueue.h&gt;</i>,
+      <i>&lt;stdio.h&gt;</i>, <i>&lt;sys/msg.h&gt;</i>,
+      <i>&lt;sys/socket.h&gt;</i>, <i>&lt;sys/uio.h&gt;</i>, and
+      <i>&lt;unistd.h&gt;</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>read</b>(2), <b>readlink</b>(2), <b>readv</b>(2),
+    <b>recv</b>(2), <b>send</b>(2), <b>write</b>(2), <b>fread</b>(3),
+    <b>fwrite</b>(3), <b>memcmp</b>(3), <b>memcpy</b>(3), <b>memset</b>(3),
+    <b>offsetof</b>(3), <b>ptrdiff_t</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,100 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_io(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_io(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/io - I/O statistics</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/io</i> (since Linux 2.6.20)</dt>
+  <dd>This file contains I/O statistics for the process and its waited-for
+      children, for example:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>#<b> cat /proc/3828/io</b>
+rchar: 323934931
+wchar: 323929600
+syscr: 632687
+syscw: 632675
+read_bytes: 0
+write_bytes: 323932160
+cancelled_write_bytes: 0
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The fields are as follows:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="rchar"><a class="permalink" href="#rchar"><i>rchar</i>: characters
+    read</a></dt>
+  <dd>The number of bytes returned by successful <b>read</b>(2) and similar
+      system calls.</dd>
+  <dt id="wchar"><a class="permalink" href="#wchar"><i>wchar</i>: characters
+    written</a></dt>
+  <dd>The number of bytes returned by successful <b>write</b>(2) and similar
+      system calls.</dd>
+  <dt id="syscr"><a class="permalink" href="#syscr"><i>syscr</i>: read
+    syscalls</a></dt>
+  <dd>The number of &quot;file read&quot; system calls&#x2014;those from the
+      <b>read</b>(2) family, <b>sendfile</b>(2), <b>copy_file_range</b>(2), and
+      <b>ioctl</b>(2) <b>BTRFS_IOC_ENCODED_READ</b>[<b>_32</b>] (including when
+      invoked by the kernel as part of other syscalls).</dd>
+  <dt id="syscw"><a class="permalink" href="#syscw"><i>syscw</i>: write
+    syscalls</a></dt>
+  <dd>The number of &quot;file write&quot; system calls&#x2014;those from the
+      <b>write</b>(2) family, <b>sendfile</b>(2), <b>copy_file_range</b>(2), and
+      <b>ioctl</b>(2) <b>BTRFS_IOC_ENCODED_WRITE</b>[<b>_32</b>] (including when
+      invoked by the kernel as part of other syscalls).</dd>
+  <dt id="read_bytes"><a class="permalink" href="#read_bytes"><i>read_bytes</i>:
+    bytes read</a></dt>
+  <dd>The number of bytes really fetched from the storage layer. This is
+      accurate for block-backed filesystems.</dd>
+  <dt id="write_bytes"><a class="permalink" href="#write_bytes"><i>write_bytes</i>:
+    bytes written</a></dt>
+  <dd>The number of bytes really sent to the storage layer.</dd>
+  <dt id="cancelled_write_bytes"><a class="permalink" href="#cancelled_write_bytes"><i>cancelled_write_bytes</i>:</a></dt>
+  <dd>The above statistics fail to account for truncation: if a process writes 1
+      MB to a regular file and then removes it, said 1 MB will not be written,
+      but <i>will</i> have nevertheless been accounted as a 1 MB write. This
+      field represents the number of bytes &quot;saved&quot; from I/O writeback.
+      This can yield to having done negative I/O if caches dirtied by another
+      process are truncated. <i>cancelled_write_bytes</i> applies to I/O already
+      accounted-for in <i>write_bytes</i>.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Permission to access this file is governed by <b>ptrace</b>(2) access mode
+      <b>PTRACE_MODE_READ_FSCREDS</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">These counters are not atomic: on systems where 64-bit integer
+    operations may tear, a counter could be updated simultaneously with a read,
+    yielding an incorrect intermediate value.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>getrusage</b>(2), <b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

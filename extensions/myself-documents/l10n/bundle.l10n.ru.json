@@ -34,5 +34,20 @@
   "Export cancelled.": "Экспорт отменён.",
   "PDF export is not available in this build. Your text is unchanged.": "В этой сборке нет экспорта PDF. Ваш текст не изменён.",
   "PDF export supports up to 2 MiB of text. Save your text or export a shorter document.": "Экспорт PDF поддерживает до 2 МиБ текста. Сохраните текст или сократите документ для экспорта.",
-  "The operation could not be completed. Your text is still available; try again or use the text editor.": "Не удалось завершить операцию. Текст сохранён в редакторе; повторите попытку или откройте текстовый редактор."
+  "The operation could not be completed. Your text is still available; try again or use the text editor.": "Не удалось завершить операцию. Текст сохранён в редакторе; повторите попытку или откройте текстовый редактор.",
+  "Add to Local Library": "Добавить в локальную библиотеку",
+  "Back": "Назад",
+  "Contents": "Содержание",
+  "Documentation": "Документация",
+  "Local documentation": "Локальная документация",
+  "My Documents": "Мои документы",
+  "Offline copy. Scripts, forms and external media are disabled. Use the Find control to search this page.": "Локальная копия. Скрипты, формы и внешние ресурсы отключены. Для поиска по странице используйте «Найти».",
+  "Open Original in Browser": "Открыть оригинал в браузере",
+  "Open in Browser": "Открыть в браузере",
+  "Search local documentation by title": "Найти локальную документацию по названию",
+  "The document could not be added. Choose a local UTF-8 file up to 16 MiB.": "Не удалось добавить документ. Выберите локальный файл UTF-8 не более 16 МиБ.",
+  "The documentation action could not be completed.": "Не удалось выполнить действие с документацией.",
+  "The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.": "Не удалось прочитать документ. Поддерживаются текст и HTML в UTF-8, не более 16 МиБ.",
+  "The local documentation catalog could not be loaded.": "Не удалось загрузить каталог локальной документации.",
+  "This link is not included in the local library.": "Эта страница отсутствует в локальной библиотеке."
 }

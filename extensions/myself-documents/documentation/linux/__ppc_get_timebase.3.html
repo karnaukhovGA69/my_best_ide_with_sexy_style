@@ -1,0 +1,123 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">__ppc_get_timebase(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">__ppc_get_timebase(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">__ppc_get_timebase, __ppc_get_timebase_freq - get the current
+    value of the Time Base Register on Power architecture and its frequency.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/platform/ppc.h&gt;</b></pre>
+<pre><b>uint64_t __ppc_get_timebase(void);</b>
+<b>uint64_t __ppc_get_timebase_freq(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>__ppc_get_timebase</b>() reads the current value of the Time
+    Base Register and returns its value, while <b>__ppc_get_timebase_freq</b>()
+    returns the frequency in which the Time Base Register is updated.</p>
+<p class="Pp">The Time Base Register is a 64-bit register provided by Power
+    Architecture processors. It stores a monotonically incremented value that is
+    updated at a system-dependent frequency that may be different from the
+    processor frequency.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>__ppc_get_timebase</b>() returns a 64-bit unsigned integer that
+    represents the current value of the Time Base Register.</p>
+<p class="Pp"><b>__ppc_get_timebase_freq</b>() returns a 64-bit unsigned integer
+    that represents the frequency at which the Time Base Register is
+  updated.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt><b>__ppc_get_timebase</b>()</dt>
+  <dd>glibc 2.16.</dd>
+  <dt><b>__ppc_get_timebase_freq</b>()</dt>
+  <dd>glibc 2.17.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following program will calculate the time, in microseconds,
+    spent between two calls to <b>__ppc_get_timebase</b>().</p>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>#include &lt;inttypes.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/platform/ppc.h&gt;
+/* Maximum value of the Time Base Register: 2^60 - 1.
+<br/>
+   Source: POWER ISA.  */
+#define MAX_TB 0xFFFFFFFFFFFFFFF
+int
+main(void)
+{
+<br/>
+    uint64_t tb1, tb2, diff;
+<br/>
+    uint64_t freq;
+<br/>
+    freq = __ppc_get_timebase_freq();
+<br/>
+    printf(&quot;Time Base frequency = %w64u Hz\n&quot;, freq);
+<br/>
+    tb1 = __ppc_get_timebase();
+<br/>
+    // Do some stuff...
+<br/>
+    tb2 = __ppc_get_timebase();
+<br/>
+    if (tb2 &gt; tb1) {
+<br/>
+        diff = tb2 - tb1;
+<br/>
+    } else {
+<br/>
+        /* Treat Time Base Register overflow.  */
+<br/>
+        diff = (MAX_TB - tb2) + tb1;
+<br/>
+    }
+<br/>
+    printf(&quot;Elapsed time  = %1.2f usecs\n&quot;,
+<br/>
+           (double) diff * 1000000 / freq);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>time</b>(2), <b>usleep</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-16</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

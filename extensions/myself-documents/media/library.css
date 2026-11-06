@@ -1,0 +1,25 @@
+/* Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. */
+body { color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0 auto; padding: 24px 32px 80px; max-width: 960px; line-height: 1.6; }
+header { display: flex; align-items: start; gap: 16px; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 16px; margin-bottom: 16px; }
+header > div { flex: 1; min-width: 0; }
+header h1 { font-size: 20px; margin: 0; overflow-wrap: anywhere; }
+#metadata, #notice { color: var(--vscode-descriptionForeground); font-size: 12px; }
+#metadata { margin: 4px 0 0; }
+button, select { font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, var(--vscode-panel-border)); padding: 5px 9px; border-radius: 3px; }
+button { cursor: pointer; font-size: 12px; }
+button:hover { background: var(--vscode-toolbar-hoverBackground); }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 2px; }
+#contents { max-width: 100%; width: 100%; margin: 4px 0; }
+#contents-label { font-size: 12px; }
+article { font-size: 15px; overflow-wrap: anywhere; }
+article pre { overflow: auto; padding: 12px; background: var(--vscode-textCodeBlock-background); border-radius: 4px; }
+article pre, article code { font-family: var(--vscode-editor-font-family); font-size: 13px; }
+article .plain-text { white-space: pre-wrap; }
+article h1 { font-size: 1.8em; } article h2 { font-size: 1.45em; margin-top: 1.8em; } article h3 { font-size: 1.15em; margin-top: 1.6em; }
+a { color: var(--vscode-textLink-foreground); } a:hover { color: var(--vscode-textLink-activeForeground); }
+table { border-collapse: collapse; display: block; overflow: auto; } th, td { padding: 6px 10px; border: 1px solid var(--vscode-panel-border); }
+blockquote { margin-left: 0; padding-left: 16px; border-left: 3px solid var(--vscode-textBlockQuote-border); }
+.image-description { color: var(--vscode-descriptionForeground); font-style: italic; }
+[hidden] { display: none !important; }
+@media (max-width: 550px) { body { padding: 16px 16px 48px; } header { flex-wrap: wrap; } #source { margin-left: auto; } }

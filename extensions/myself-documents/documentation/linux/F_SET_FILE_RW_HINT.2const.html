@@ -1,0 +1,114 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_GET_RW_HINT(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_GET_RW_HINT(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GET_RW_HINT, F_SET_RW_HINT, F_GET_FILE_RW_HINT,
+    F_SET_FILE_RW_HINT - get/set file read/write hints</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_GET_RW_HINT, uint64_t *</b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_SET_RW_HINT, uint64_t *</b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_GET_FILE_RW_HINT, uint64_t *</b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_GET_FILE_RW_HINT, uint64_t *</b><i>arg</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Write lifetime hints can be used to inform the kernel about the
+    relative expected lifetime of writes on a given inode or via a particular
+    open file description. (See <b>open</b>(2) for an explanation of open file
+    descriptions.) In this context, the term &quot;write lifetime&quot; means
+    the expected time the data will live on media, before being overwritten or
+    erased.</p>
+<p class="Pp">An application may use the different hint values specified below
+    to separate writes into different write classes, so that multiple users or
+    applications running on a single storage back-end can aggregate their I/O
+    patterns in a consistent manner. However, there are no functional semantics
+    implied by these flags, and different I/O classes can use the write lifetime
+    hints in arbitrary ways, so long as the hints are used consistently.</p>
+<p class="Pp">The following operations can be applied to the file descriptor,
+    <i>fd</i>:</p>
+<dl class="Bl-tag">
+  <dt id="F_GET_RW_HINT"><a class="permalink" href="#F_GET_RW_HINT"><b>F_GET_RW_HINT</b></a></dt>
+  <dd>Returns the value of the read/write hint associated with the underlying
+      inode referred to by <i>fd</i>.</dd>
+  <dt id="F_SET_RW_HINT"><a class="permalink" href="#F_SET_RW_HINT"><b>F_SET_RW_HINT</b></a></dt>
+  <dd>Sets the read/write hint value associated with the underlying inode
+      referred to by <i>fd</i>. This hint persists until either it is explicitly
+      modified or the underlying filesystem is unmounted.</dd>
+  <dt id="F_GET_FILE_RW_HINT"><a class="permalink" href="#F_GET_FILE_RW_HINT"><b>F_GET_FILE_RW_HINT</b></a></dt>
+  <dd>Returns the value of the read/write hint associated with the open file
+      description referred to by <i>fd</i>.</dd>
+  <dt id="F_SET_FILE_RW_HINT"><a class="permalink" href="#F_SET_FILE_RW_HINT"><b>F_SET_FILE_RW_HINT</b></a></dt>
+  <dd>Sets the read/write hint value associated with the open file description
+      referred to by <i>fd</i>.</dd>
+</dl>
+<p class="Pp">If an open file description has not been assigned a read/write
+    hint, then it shall use the value assigned to the inode, if any.</p>
+<p class="Pp">The following read/write hints are supported:</p>
+<dl class="Bl-tag">
+  <dt id="RWH_WRITE_LIFE_NOT_SET"><a class="permalink" href="#RWH_WRITE_LIFE_NOT_SET"><b>RWH_WRITE_LIFE_NOT_SET</b></a></dt>
+  <dd>No specific hint has been set. This is the default value.</dd>
+  <dt id="RWH_WRITE_LIFE_NONE"><a class="permalink" href="#RWH_WRITE_LIFE_NONE"><b>RWH_WRITE_LIFE_NONE</b></a></dt>
+  <dd>No specific write lifetime is associated with this file or inode.</dd>
+  <dt id="RWH_WRITE_LIFE_SHORT"><a class="permalink" href="#RWH_WRITE_LIFE_SHORT"><b>RWH_WRITE_LIFE_SHORT</b></a></dt>
+  <dd>Data written to this inode or via this open file description is expected
+      to have a short lifetime.</dd>
+  <dt id="RWH_WRITE_LIFE_MEDIUM"><a class="permalink" href="#RWH_WRITE_LIFE_MEDIUM"><b>RWH_WRITE_LIFE_MEDIUM</b></a></dt>
+  <dd>Data written to this inode or via this open file description is expected
+      to have a lifetime longer than data written with
+      <b>RWH_WRITE_LIFE_SHORT</b>.</dd>
+  <dt id="RWH_WRITE_LIFE_LONG"><a class="permalink" href="#RWH_WRITE_LIFE_LONG"><b>RWH_WRITE_LIFE_LONG</b></a></dt>
+  <dd>Data written to this inode or via this open file description is expected
+      to have a lifetime longer than data written with
+      <b>RWH_WRITE_LIFE_MEDIUM</b>.</dd>
+  <dt id="RWH_WRITE_LIFE_EXTREME"><a class="permalink" href="#RWH_WRITE_LIFE_EXTREME"><b>RWH_WRITE_LIFE_EXTREME</b></a></dt>
+  <dd>Data written to this inode or via this open file description is expected
+      to have a lifetime longer than data written with
+      <b>RWH_WRITE_LIFE_LONG</b>.</dd>
+</dl>
+<p class="Pp">All the write-specific hints are relative to each other, and no
+    individual absolute meaning should be attributed to them.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Zero.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.13.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-07-20</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,434 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fsconfig(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">fsconfig(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fsconfig - configure new or existing filesystem context</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/mount.h&gt;</b></pre>
+<pre><b>int fsconfig(int </b><i>fd</i><b>, unsigned int </b><i>cmd</i><b>,</b>
+<b>             const char *_Nullable </b><i>key</i><b>,</b>
+<b>             const void *_Nullable </b><i>value</i><b>, int </b><i>aux</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>fsconfig</b>() system call is part of the suite of
+    file-descriptor-based mount facilities in Linux.</p>
+<p class="Pp"><b>fsconfig</b>() is used to supply parameters to and issue
+    commands against the filesystem configuration context associated with the
+    file descriptor <i>fd</i>. Filesystem configuration contexts can be created
+    with <b>fsopen</b>(2) or be instantiated from an extant filesystem instance
+    with <b>fspick</b>(2).</p>
+<p class="Pp">The <i>cmd</i> argument indicates the command to be issued. Some
+    commands supply parameters to the context (equivalent to mount options
+    specified with <b>mount</b>(8)), while others are meta-operations on the
+    filesystem context. The list of valid <i>cmd</i> values are:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="FSCONFIG_SET_FLAG"><a class="permalink" href="#FSCONFIG_SET_FLAG"><b>FSCONFIG_SET_FLAG</b></a></dt>
+  <dd>Set the flag parameter named by <i>key</i>. <i>value</i> must be NULL, and
+      <i>aux</i> must be 0.</dd>
+  <dt id="FSCONFIG_SET_STRING"><a class="permalink" href="#FSCONFIG_SET_STRING"><b>FSCONFIG_SET_STRING</b></a></dt>
+  <dd>Set the string parameter named by <i>key</i> to the value specified by
+      <i>value</i>. <i>value</i> points to a null-terminated string, and
+      <i>aux</i> must be 0.</dd>
+  <dt id="FSCONFIG_SET_BINARY"><a class="permalink" href="#FSCONFIG_SET_BINARY"><b>FSCONFIG_SET_BINARY</b></a></dt>
+  <dd>Set the blob parameter named by <i>key</i> to the contents of the binary
+      blob specified by <i>value</i>. <i>value</i> points to the start of a
+      buffer that is <i>aux</i> bytes in length.</dd>
+  <dt id="FSCONFIG_SET_FD"><a class="permalink" href="#FSCONFIG_SET_FD"><b>FSCONFIG_SET_FD</b></a></dt>
+  <dd>Set the file parameter named by <i>key</i> to the open file description
+      referenced by the file descriptor <i>aux</i>. <i>value</i> must be
+    NULL.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>You may also use <b>FSCONFIG_SET_STRING</b> for file parameters, with
+      <i>value</i> set to a null-terminated string containing a base-10
+      representation of the file descriptor number. This mechanism is primarily
+      intended for compatibility with older <b>mount</b>(2)-based programs, and
+      only works for parameters that <i>only</i> accept file descriptor
+      arguments.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="FSCONFIG_SET_PATH"><a class="permalink" href="#FSCONFIG_SET_PATH"><b>FSCONFIG_SET_PATH</b></a></dt>
+  <dd>Set the path parameter named by <i>key</i> to the object at a provided
+      path, resolved in a similar manner to <b>openat</b>(2). <i>value</i>
+      points to a null-terminated pathname string, and <i>aux</i> is equivalent
+      to the <i>dirfd</i> argument to <b>openat</b>(2). See <b>openat</b>(2) for
+      an explanation of the need for <b>FSCONFIG_SET_PATH</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>You may also use <b>FSCONFIG_SET_STRING</b> for path parameters, the
+      behavior of which is equivalent to <b>FSCONFIG_SET_PATH</b> with
+      <i>aux</i> set to <b>AT_FDCWD</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="FSCONFIG_SET_PATH_EMPTY"><a class="permalink" href="#FSCONFIG_SET_PATH_EMPTY"><b>FSCONFIG_SET_PATH_EMPTY</b></a></dt>
+  <dd>As with <b>FSCONFIG_SET_PATH</b>, except that if <i>value</i> is an empty
+      string, the file descriptor specified by <i>aux</i> is operated on
+      directly and may be any type of file (not just a directory). This is
+      equivalent to the behavior of <b>AT_EMPTY_PATH</b> with most
+      &quot;*at()&quot; system calls. If <i>aux</i> is <b>AT_FDCWD</b>, the
+      parameter will be set to the current working directory of the calling
+      process.</dd>
+  <dt id="FSCONFIG_CMD_CREATE"><a class="permalink" href="#FSCONFIG_CMD_CREATE"><b>FSCONFIG_CMD_CREATE</b></a></dt>
+  <dd>This command instructs the filesystem driver to instantiate an instance of
+      the filesystem in the kernel with the parameters specified in the
+      filesystem configuration context. <i>key</i> and <i>value</i> must be
+      NULL, and <i>aux</i> must be 0.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This command can only be issued once in the lifetime of a filesystem
+      context. If the operation succeeds, the filesystem context associated with
+      file descriptor <i>fd</i> now references the created filesystem instance,
+      and is placed into a special &quot;awaiting-mount&quot; mode that allows
+      you to use <b>fsmount</b>(2) to create a mount object from the filesystem
+      instance. If the operation fails, in most cases the filesystem context is
+      placed in a failed mode and cannot be used for any further
+      <b>fsconfig</b>() operations (though you may still retrieve diagnostic
+      messages through the message retrieval interface, as described in the
+      corresponding subsection of <b>fsopen</b>(2)).</dd>
+  <dt></dt>
+  <dd>This command can only be issued against filesystem configuration contexts
+      that were created with <b>fsopen</b>(2). In order to create a filesystem
+      instance, the calling process must have the <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+  <dt></dt>
+  <dd>An important thing to be aware of is that the Linux kernel will
+      <i>silently</i> reuse extant filesystem instances depending on the
+      filesystem type and the configured parameters (each filesystem driver has
+      its own policy for how filesystem instances are reused). This means that
+      the filesystem instance &quot;created&quot; by <b>FSCONFIG_CMD_CREATE</b>
+      may, in fact, be a reference to an extant filesystem instance in the
+      kernel. (For reference, this behavior also applies to
+    <b>mount</b>(2).)</dd>
+  <dt></dt>
+  <dd>One side-effect of this behavior is that if an extant filesystem instance
+      is reused, <i>all</i> parameters configured for this filesystem
+      configuration context are <i>silently ignored</i> (with the exception of
+      the <i>ro</i> and <i>rw</i> flag parameters; if the state of the read-only
+      flag in the extant filesystem instance and the filesystem configuration
+      context do not match, this operation will return <b>EBUSY</b>). This also
+      means that <b>FSCONFIG_CMD_RECONFIGURE</b> commands issued against the
+      &quot;created&quot; filesystem instance will also affect any mount objects
+      associated with the extant filesystem instance.</dd>
+  <dt></dt>
+  <dd>Programs that need to ensure that they create a new filesystem instance
+      with specific parameters (notably, security-related parameters such as
+      <i>acl</i> to enable POSIX ACLs&#x2014;as described in <b>acl</b>(5))
+      should use <b>FSCONFIG_CMD_CREATE_EXCL</b> instead.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="FSCONFIG_CMD_CREATE_EXCL"><a class="permalink" href="#FSCONFIG_CMD_CREATE_EXCL"><b>FSCONFIG_CMD_CREATE_EXCL</b>
+    (since Linux 6.6)</a></dt>
+  <dd>As with <b>FSCONFIG_CMD_CREATE</b>, except that the kernel is instructed
+      to not reuse extant filesystem instances. If the operation would be forced
+      to reuse an extant filesystem instance, this operation will return
+      <b>EBUSY</b> instead.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>As a result (unlike <b>FSCONFIG_CMD_CREATE</b>), if this operation
+      succeeds then the calling process can be sure that all of the parameters
+      successfully configured with <b>fsconfig</b>() will actually be applied to
+      the created filesystem instance.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="FSCONFIG_CMD_RECONFIGURE"><a class="permalink" href="#FSCONFIG_CMD_RECONFIGURE"><b>FSCONFIG_CMD_RECONFIGURE</b></a></dt>
+  <dd>This command instructs the filesystem driver to apply the parameters
+      specified in the filesystem configuration context to the extant filesystem
+      instance referenced by the filesystem configuration context. <i>key</i>
+      and <i>value</i> must be NULL, and <i>aux</i> must be 0.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This is primarily intended for use with <b>fspick</b>(2), but may also be
+      used to modify the parameters of a filesystem instance after
+      <b>FSCONFIG_CMD_CREATE</b> was used to create it and a mount object was
+      created using <b>fsmount</b>(2). In order to reconfigure an extant
+      filesystem instance, the calling process must have the
+      <b>CAP_SYS_ADMIN</b> capability.</dd>
+  <dt></dt>
+  <dd>If the operation succeeds, the filesystem context is reset but remains in
+      reconfiguration mode and thus can be reused for subsequent
+      <b>FSCONFIG_CMD_RECONFIGURE</b> commands. If the operation fails, in most
+      cases the filesystem context is placed in a failed mode and cannot be used
+      for any further <b>fsconfig</b>() operations (though you may still
+      retrieve diagnostic messages through the message retrieval interface, as
+      described in the corresponding subsection of <b>fsopen</b>(2)).</dd>
+</dl>
+</div>
+<p class="Pp">Parameters specified with <b>FSCONFIG_SET_</b><i>*</i> do not take
+    effect until a corresponding <b>FSCONFIG_CMD_CREATE</b> or
+    <b>FSCONFIG_CMD_RECONFIGURE</b> command is issued.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>fsconfig</b>() returns 0. On error, -1 is returned,
+    and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">If an error occurs, the filesystem driver may provide additional
+    information about the error through the message retrieval interface for
+    filesystem configuration contexts. This additional information can be
+    retrieved at any time by calling <b>read</b>(2) on the filesystem instance
+    or filesystem configuration context referenced by the file descriptor
+    <i>fd</i>. (See the &quot;Message retrieval interface&quot; subsection in
+    <b>fsopen</b>(2) for more details on the message format.)</p>
+<p class="Pp">Even after an error occurs, the filesystem configuration context
+    is <i>not</i> invalidated, and thus can still be used with other
+    <b>fsconfig</b>() commands. This means that users can probe support for
+    filesystem parameters on a per-parameter basis, and adjust which parameters
+    they wish to set.</p>
+<p class="Pp">The error values given below result from filesystem type
+    independent errors. Each filesystem type may have its own special errors and
+    its own special behavior. See the Linux kernel source code for details.</p>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>A component of a path provided as a path parameter was not searchable.
+      (See also <b>path_resolution</b>(7).)</dd>
+  <dt id="EACCES~2"><a class="permalink" href="#EACCES~2"><b>EACCES</b></a></dt>
+  <dd><b>FSCONFIG_CMD_CREATE</b> was attempted for a read-only filesystem
+      without specifying the '<b>ro</b>' flag parameter.</dd>
+  <dt id="EACCES~3"><a class="permalink" href="#EACCES~3"><b>EACCES</b></a></dt>
+  <dd>A specified block device parameter is located on a filesystem mounted with
+      the <b>MS_NODEV</b> option.</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd>The file descriptor given by <i>fd</i> (or possibly by <i>aux</i>,
+      depending on the command) is invalid.</dd>
+  <dt id="EBUSY"><a class="permalink" href="#EBUSY"><b>EBUSY</b></a></dt>
+  <dd>The filesystem context associated with <i>fd</i> is in the wrong state for
+      the given command.</dd>
+  <dt id="EBUSY~2"><a class="permalink" href="#EBUSY~2"><b>EBUSY</b></a></dt>
+  <dd>The filesystem instance cannot be reconfigured as read-only with
+      <b>FSCONFIG_CMD_RECONFIGURE</b> because some programs still hold files
+      open for writing.</dd>
+  <dt id="EBUSY~3"><a class="permalink" href="#EBUSY~3"><b>EBUSY</b></a></dt>
+  <dd>A new filesystem instance was requested with
+      <b>FSCONFIG_CMD_CREATE_EXCL</b> but a matching superblock already
+    existed.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>One of the pointer arguments points to a location outside the calling
+      process's accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>fd</i> does not refer to a filesystem configuration context or
+      filesystem instance.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>One of the values of <i>key</i>, <i>value</i>, and/or <i>aux</i> were set
+      to a non-zero value when <i>cmd</i> required that they be zero (or
+    NULL).</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>The parameter named by <i>key</i> cannot be set using the type specified
+      with <i>cmd</i>.</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd>One of the source parameters referred to an invalid superblock.</dd>
+  <dt id="ELOOP"><a class="permalink" href="#ELOOP"><b>ELOOP</b></a></dt>
+  <dd>Too many links encountered during pathname resolution of a path
+    argument.</dd>
+  <dt id="ENAMETOOLONG"><a class="permalink" href="#ENAMETOOLONG"><b>ENAMETOOLONG</b></a></dt>
+  <dd>A path argument was longer than <b>PATH_MAX</b>.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>A path argument had a non-existent component.</dd>
+  <dt id="ENOENT~2"><a class="permalink" href="#ENOENT~2"><b>ENOENT</b></a></dt>
+  <dd>A path argument is an empty string, but <i>cmd</i> is not
+      <b>FSCONFIG_SET_PATH_EMPTY</b>.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate sufficient memory to complete the
+    operation.</dd>
+  <dt id="ENOTBLK"><a class="permalink" href="#ENOTBLK"><b>ENOTBLK</b></a></dt>
+  <dd>The parameter named by <i>key</i> must be a block device, but the provided
+      parameter value was not a block device.</dd>
+  <dt id="ENOTDIR"><a class="permalink" href="#ENOTDIR"><b>ENOTDIR</b></a></dt>
+  <dd>A component of the path prefix of a path argument was not a
+    directory.</dd>
+  <dt id="EOPNOTSUPP"><a class="permalink" href="#EOPNOTSUPP"><b>EOPNOTSUPP</b></a></dt>
+  <dd>The command given by <i>cmd</i> is not valid.</dd>
+  <dt id="ENXIO"><a class="permalink" href="#ENXIO"><b>ENXIO</b></a></dt>
+  <dd>The major number of a block device parameter is out of range.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The command given by <i>cmd</i> was <b>FSCONFIG_CMD_CREATE</b>,
+      <b>FSCONFIG_CMD_CREATE_EXCL</b>, or <b>FSCONFIG_CMD_RECONFIGURE</b>, but
+      the calling process does not have the required <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.2. glibc 2.36.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Generic_filesystem_parameters"><a class="permalink" href="#Generic_filesystem_parameters">Generic
+  filesystem parameters</a></h2>
+<p class="Pp">Each filesystem driver is responsible for parsing most parameters
+    specified with <b>fsconfig</b>(), meaning that individual filesystems may
+    have very different behavior when encountering parameters with the same
+    name. In general, you should not assume that the behavior of
+    <b>fsconfig</b>() when specifying a parameter to one filesystem type will
+    match the behavior of the same parameter with a different filesystem
+  type.</p>
+<p class="Pp">However, the following generic parameters apply to all filesystems
+    and have unified behavior. They are set using the listed
+    <b>FSCONFIG_SET_</b><i>*</i> command.</p>
+<dl class="Bl-tag">
+  <dt id="ro"><a class="permalink" href="#ro"><b>ro</b>&#x00A0;and&#x00A0;<b>rw</b>&#x00A0;(<b>FSCONFIG_SET_FLAG</b>)</a></dt>
+  <dd>Configure whether the filesystem instance is read-only.</dd>
+  <dt id="dirsync"><a class="permalink" href="#dirsync"><b>dirsync</b>&#x00A0;(<b>FSCONFIG_SET_FLAG</b>)</a></dt>
+  <dd>Make directory changes on this filesystem instance synchronous.</dd>
+  <dt id="sync"><a class="permalink" href="#sync"><b>sync</b>&#x00A0;and&#x00A0;<b>async</b>&#x00A0;(<b>FSCONFIG_SET_FLAG</b>)</a></dt>
+  <dd>Configure whether writes on this filesystem instance will be made
+      synchronous (as though the <b>O_SYNC</b> flag to <b>open</b>(2) was
+      specified for all file opens in this filesystem instance).</dd>
+  <dt id="lazytime"><a class="permalink" href="#lazytime"><b>lazytime</b>&#x00A0;and&#x00A0;<b>nolazytime</b>&#x00A0;(<b>FSCONFIG_SET_FLAG</b>)</a></dt>
+  <dd>Configure whether to reduce on-disk updates of inode timestamps on this
+      filesystem instance (as described in the <b>MS_LAZYTIME</b> section of
+      <b>mount</b>(2)).</dd>
+  <dt id="mand"><a class="permalink" href="#mand"><b>mand</b>&#x00A0;and&#x00A0;<b>nomand</b>&#x00A0;(<b>FSCONFIG_SET_FLAG</b>)</a></dt>
+  <dd>Configure whether the filesystem instance should permit mandatory locking.
+      Since Linux 5.15, mandatory locking has been deprecated and setting this
+      flag is a no-op.</dd>
+  <dt id="source"><a class="permalink" href="#source"><b>source</b>&#x00A0;(<b>FSCONFIG_SET_STRING</b>)</a></dt>
+  <dd>This parameter is equivalent to the <i>source</i> parameter passed to
+      <b>mount</b>(2) for the same filesystem type, and is usually the pathname
+      of a block device containing the filesystem. This parameter may only be
+      set once per filesystem configuration context transaction.</dd>
+</dl>
+<p class="Pp">In addition, any filesystem parameters associated with Linux
+    Security Modules (LSMs) are also generic with respect to the underlying
+    filesystem. See the documentation for the LSM you wish to configure for more
+    details.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Mount_attributes_and_filesystem_parameters"><a class="permalink" href="#Mount_attributes_and_filesystem_parameters">Mount
+  attributes and filesystem parameters</a></h2>
+<p class="Pp">Some filesystem parameters (traditionally associated with
+    <b>mount</b>(8)-style options) have a sibling mount attribute with
+    superficially similar user-facing behavior.</p>
+<p class="Pp">For a description of the distinction between mount attributes and
+    filesystem parameters, see the &quot;Mount attributes and filesystem
+    parameters&quot; subsection of <b>mount_setattr</b>(2).</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Filesystem_parameter_types"><a class="permalink" href="#Filesystem_parameter_types">Filesystem
+  parameter types</a></h2>
+<p class="Pp">As a result of each filesystem driver being responsible for
+    parsing most parameters specified with <b>fsconfig</b>(), some filesystem
+    drivers may have unintuitive behavior with regards to which
+    <b>FSCONFIG_SET_</b><i>*</i> commands are permitted to configure a given
+    parameter.</p>
+<p class="Pp">In order for filesystem parameters to be backwards compatible with
+    <b>mount</b>(2), they must be parseable as strings; this almost universally
+    means that <b>FSCONFIG_SET_STRING</b> can also be used to configure them.
+    However, other <b>FSCONFIG_SET_</b><i>*</i> commands need to be opted into
+    by each filesystem driver's parameter parser.</p>
+<p class="Pp">One of the most user-visible instances of this inconsistency is
+    that many filesystems do not support configuring path parameters with
+    <b>FSCONFIG_SET_PATH</b> (despite the name), which can lead to somewhat
+    confusing <b>EINVAL</b> errors. (For example, the generic <i>source</i>
+    parameter&#x2014;which is usually a path&#x2014;can only be configured with
+    <b>FSCONFIG_SET_STRING</b>.)</p>
+<p class="Pp">When writing programs that use <b>fsconfig</b>() to configure
+    parameters with commands other than <b>FSCONFIG_SET_STRING</b>, users should
+    verify that the <b>FSCONFIG_SET_</b><i>*</i> commands used to configure each
+    parameter are supported by the corresponding filesystem driver.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">To illustrate the different kinds of flags that can be configured
+    with <b>fsconfig</b>(), here are a few examples of some different
+    filesystems being created:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int fsfd, mntfd;
+fsfd = fsopen(&quot;tmpfs&quot;, FSOPEN_CLOEXEC);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;inode64&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;uid&quot;, &quot;1234&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;huge&quot;, &quot;never&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;casefold&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC, MOUNT_ATTR_NOEXEC);
+move_mount(mntfd, &quot;&quot;, AT_FDCWD, &quot;/tmp&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+fsfd = fsopen(&quot;erofs&quot;, FSOPEN_CLOEXEC);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;source&quot;, &quot;/dev/loop0&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;acl&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_SET_FLAG, &quot;user_xattr&quot;, NULL, 0);
+fsconfig(fsfd, FSCONFIG_CMD_CREATE_EXCL, NULL, NULL, 0);
+mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC, MOUNT_ATTR_NOSUID);
+move_mount(mntfd, &quot;&quot;, AT_FDCWD, &quot;/mnt&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">Usually, specifying the same parameter named by <i>key</i>
+    multiple times with <b>fsconfig</b>() causes the parameter value to be
+    replaced. However, some filesystems may have unique behavior:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>
+int fsfd, mntfd;
+int lowerdirfd = open(&quot;/o/ctr/lower1&quot;, O_DIRECTORY | O_CLOEXEC);
+fsfd = fsopen(&quot;overlay&quot;, FSOPEN_CLOEXEC);
+/* &quot;lowerdir+&quot; appends to the lower dir stack each time */
+fsconfig(fsfd, FSCONFIG_SET_FD, &quot;lowerdir+&quot;, NULL, lowerdirfd);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;lowerdir+&quot;, &quot;/o/ctr/lower2&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;lowerdir+&quot;, &quot;/o/ctr/lower3&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;lowerdir+&quot;, &quot;/o/ctr/lower4&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;xino&quot;, &quot;auto&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;nfs_export&quot;, &quot;off&quot;, 0);
+fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC, 0);
+move_mount(mntfd, &quot;&quot;, AT_FDCWD, &quot;/mnt&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+<p class="Pp">And here is an example of how <b>fspick</b>(2) can be used with
+    <b>fsconfig</b>() to reconfigure the parameters of an extant filesystem
+    instance attached to <i>/proc</i>:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>int fsfd = fspick(AT_FDCWD, &quot;/proc&quot;, FSPICK_CLOEXEC);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;hidepid&quot;, &quot;ptraceable&quot;, 0);
+fsconfig(fsfd, FSCONFIG_SET_STRING, &quot;subset&quot;, &quot;pid&quot;, 0);
+fsconfig(fsfd, FSCONFIG_CMD_RECONFIGURE, NULL, NULL, 0);
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fsmount</b>(2), <b>fsopen</b>(2), <b>fspick</b>(2),
+    <b>mount</b>(2), <b>mount_setattr</b>(2), <b>move_mount</b>(2),
+    <b>open_tree</b>(2), <b>mount_namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

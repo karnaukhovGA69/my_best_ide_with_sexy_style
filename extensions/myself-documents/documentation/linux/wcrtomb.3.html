@@ -1,0 +1,105 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">wcrtomb(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">wcrtomb(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">wcrtomb - convert a wide character to a multibyte sequence</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;wchar.h&gt;</b></pre>
+<pre><b>size_t wcrtomb(char *restrict </b><i>s</i><b>, wchar_t </b><i>wc</i><b>, mbstate_t *restrict </b><i>ps</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The main case for this function is when <i>s</i> is not NULL and
+    <i>wc</i> is not a null wide character (L'\0'). In this case, the
+    <b>wcrtomb</b>() function converts the wide character <i>wc</i> to its
+    multibyte representation and stores it at the beginning of the character
+    array pointed to by <i>s</i>. It updates the shift state <i>*ps</i>, and
+    returns the length of said multibyte representation, that is, the number of
+    bytes written at <i>s</i>.</p>
+<p class="Pp">A different case is when <i>s</i> is not NULL, but <i>wc</i> is a
+    null wide character (L'\0'). In this case, the <b>wcrtomb</b>() function
+    stores at the character array pointed to by <i>s</i> the shift sequence
+    needed to bring <i>*ps</i> back to the initial state, followed by a '\0'
+    byte. It updates the shift state <i>*ps</i> (i.e., brings it into the
+    initial state), and returns the length of the shift sequence plus one, that
+    is, the number of bytes written at <i>s</i>.</p>
+<p class="Pp">A third case is when <i>s</i> is NULL. In this case, <i>wc</i> is
+    ignored, and the function effectively returns</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>wcrtomb(buf, L'\0', ps)
+</pre>
+<br/>
+<p class="Pp">where <i>buf</i> is an internal anonymous buffer.</p>
+<p class="Pp">In all of the above cases, if <i>ps</i> is NULL, a static
+    anonymous state known only to the <b>wcrtomb</b>() function is used
+  instead.</p>
+<p class="Pp">At most <b>MB_CUR_MAX</b> bytes will be written at <i>s</i>. The
+    programmer must ensure that there is enough room to store the multibyte
+    sequence at <i>s</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>wcrtomb</b>() function returns the number of bytes that
+    have been or would have been written to the byte array at <i>s</i>. If
+    <i>wc</i> can not be represented as a multibyte sequence (according to the
+    current locale), <i>(size_t)&#x00A0;-1</i> is returned, and <i>errno</i> set
+    to <b>EILSEQ</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>wcrtomb ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:wcrtomb/!ps</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C99.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The behavior of <b>wcrtomb</b>() depends on the <b>LC_CTYPE</b>
+    category of the current locale.</p>
+<p class="Pp">Passing NULL as <i>ps</i> is not multithread safe.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mbsinit</b>(3), <b>wcsrtombs</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

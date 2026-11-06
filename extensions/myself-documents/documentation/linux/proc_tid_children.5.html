@@ -1,0 +1,47 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_tid_children(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_tid_children(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/tid/children - child tasks</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>tid<i>/children</i> (since Linux 3.5)</dt>
+  <dd>A space-separated list of child tasks of this task. Each child task is
+      represented by its TID.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This option is intended for use by the checkpoint-restore (CRIU) system,
+      and reliably provides a list of children only if all of the child
+      processes are stopped or frozen. It does not work properly if children of
+      the target task exit while the file is being read! Exiting children may
+      cause non-exiting children to be omitted from the list. This makes this
+      interface even more unreliable than classic PID-based approaches if the
+      inspected task and its children aren't frozen, and most code should
+      probably not use this interface.</dd>
+  <dt></dt>
+  <dd>Until Linux 4.2, the presence of this file was governed by the
+      <b>CONFIG_CHECKPOINT_RESTORE</b> kernel configuration option. Since Linux
+      4.2, it is governed by the <b>CONFIG_PROC_CHILDREN</b> option.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

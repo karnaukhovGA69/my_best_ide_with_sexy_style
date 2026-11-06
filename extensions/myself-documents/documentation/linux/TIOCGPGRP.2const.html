@@ -1,0 +1,83 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TIOCSPGRP(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TIOCSPGRP(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TIOCGPGRP, TIOCSPGRP, TIOCGSID - process group and session ID</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of <b>TIOC*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TIOCGPGRP, pid_t *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCSPGRP, const pid_t *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCGSID, pid_t *</b><i>argp</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="TIOCGPGRP"><a class="permalink" href="#TIOCGPGRP"><b>TIOCGPGRP</b></a></dt>
+  <dd>When successful, equivalent to <i>*argp = tcgetpgrp(fd)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Get the process group ID of the foreground process group on this
+    terminal.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCSPGRP"><a class="permalink" href="#TIOCSPGRP"><b>TIOCSPGRP</b></a></dt>
+  <dd>Equivalent to <i>tcsetpgrp(fd, *argp)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Set the foreground process group ID of this terminal.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCGSID"><a class="permalink" href="#TIOCGSID"><b>TIOCGSID</b></a></dt>
+  <dd>When successful, equivalent to <i>*argp = tcgetsid(fd)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Get the session ID of the given terminal. This fails with the error
+      <b>ENOTTY</b> if the terminal is not a master pseudoterminal and not our
+      controlling terminal. Strange.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="ENOTTY"><a class="permalink" href="#ENOTTY"><b>ENOTTY</b></a></dt>
+  <dd>The terminal is not a master pseudoterminal and not our controlling
+      terminal.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>Insufficient permission.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2), <b>tcgetpgrp</b>(3),
+    <b>tcsetpgrp</b>(3), <b>tcgetsid</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

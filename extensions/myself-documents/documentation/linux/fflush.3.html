@@ -1,0 +1,98 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fflush(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">fflush(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fflush - flush a stream</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>int fflush(FILE *_Nullable </b><i>stream</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">For output streams, <b>fflush</b>() forces a write of all
+    user-space buffered data for the given output or update <i>stream</i> via
+    the stream's underlying write function.</p>
+<p class="Pp">For input streams associated with seekable files (e.g., disk
+    files, but not pipes or terminals), <b>fflush</b>() discards any buffered
+    data that has been fetched from the underlying file, but has not been
+    consumed by the application.</p>
+<p class="Pp">The open status of the stream is unaffected.</p>
+<p class="Pp">If the <i>stream</i> argument is NULL, <b>fflush</b>() flushes
+    <i>all</i> open output streams.</p>
+<p class="Pp">For a nonlocking counterpart, see <b>unlocked_stdio</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Upon successful completion 0 is returned. Otherwise, <b>EOF</b> is
+    returned and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>stream</i> is not an open stream, or is not open for writing.</dd>
+</dl>
+<p class="Pp">The function <b>fflush</b>() may also fail and set <i>errno</i>
+    for any of the errors specified for <b>write</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>fflush ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, POSIX.1-2001, POSIX.1-2008.</p>
+<p class="Pp">POSIX.1-2001 did not specify the behavior for flushing of input
+    streams, but the behavior is specified in POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">Note that <b>fflush</b>() flushes only the user-space buffers
+    provided by the C library. To ensure that the data is physically stored on
+    disk the kernel buffers must be flushed too, for example, with
+    <b>sync</b>(2) or <b>fsync</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fsync</b>(2), <b>sync</b>(2), <b>write</b>(2),
+    <b>fclose</b>(3), <b>fileno</b>(3), <b>fopen</b>(3), <b>fpurge</b>(3),
+    <b>setbuf</b>(3), <b>unlocked_stdio</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

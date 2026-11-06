@@ -1,0 +1,53 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">tty(4)</td>
+    <td class="head-vol">Device Drivers Manual</td>
+    <td class="head-rtitle">tty(4)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">tty - controlling terminal</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The file <i>/dev/tty</i> is a character file with major number 5
+    and minor number 0, usually with mode 0666 and ownership root:tty. It is a
+    synonym for the controlling terminal of a process, if any.</p>
+<p class="Pp">In addition to the <b>ioctl</b>(2) requests supported by the
+    device that <b>tty</b> refers to, the <b>ioctl</b>(2) request
+    <b>TIOCNOTTY</b> is supported.</p>
+<section class="Ss">
+<h2 class="Ss" id="TIOCNOTTY"><a class="permalink" href="#TIOCNOTTY">TIOCNOTTY</a></h2>
+<p class="Pp">Detach the calling process from its controlling terminal.</p>
+<p class="Pp">If the process is the session leader, then <b>SIGHUP</b> and
+    <b>SIGCONT</b> signals are sent to the foreground process group and all
+    processes in the current session lose their controlling tty.</p>
+<p class="Pp">This <b>ioctl</b>(2) call works only on file descriptors connected
+    to <i>/dev/tty</i>. It is used by daemon processes when they are invoked by
+    a user at a terminal. The process attempts to open <i>/dev/tty</i>. If the
+    open succeeds, it detaches itself from the terminal by using
+    <b>TIOCNOTTY</b>, while if the open fails, it is obviously not attached to a
+    terminal and does not need to detach itself.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/dev/tty</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>chown</b>(1), <b>mknod</b>(1), <b>ioctl</b>(2),
+    <b>ioctl_console</b>(2), <b>ioctl_tty</b>(2), <b>termios</b>(7),
+    <b>ttyS</b>(4), <b>vcs</b>(4), <b>pty</b>(7), <b>agetty</b>(8),
+    <b>mingetty</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,100 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">time_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">time_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">time_t, suseconds_t, useconds_t - integer time</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;time.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>time_t;</b></pre>
+<pre><b>#include &lt;sys/types.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>suseconds_t;</b>
+<b>typedef</b> /* ... */  <b>useconds_t;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="time_t"><a class="permalink" href="#time_t"><i>time_t</i></a></dt>
+  <dd>Used for time in seconds. According to POSIX, it is an integer type of at
+      least 64 bits.</dd>
+  <dt id="suseconds_t"><a class="permalink" href="#suseconds_t"><i>suseconds_t</i></a></dt>
+  <dd>Used for time in microseconds. It is a signed integer type capable of
+      storing values at least in the range [<b>-1</b>, <b>1000000</b>].</dd>
+  <dt id="useconds_t"><a class="permalink" href="#useconds_t"><i>useconds_t</i></a></dt>
+  <dd>Used for time in microseconds. It is an unsigned integer type capable of
+      storing values at least in the range [<b>0</b>, <b>1000000</b>].</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="time_t~2"><a class="permalink" href="#time_t~2"><i>time_t</i></a></dt>
+  <dd>C11, POSIX.1-2024.</dd>
+  <dt id="suseconds_t~2"><a class="permalink" href="#suseconds_t~2"><i>suseconds_t</i></a></dt>
+  <dd>POSIX.1-2024.</dd>
+  <dt id="useconds_t~2"><a class="permalink" href="#useconds_t~2"><i>useconds_t</i></a></dt>
+  <dd>None.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="time_t~3"><a class="permalink" href="#time_t~3"><i>time_t</i></a></dt>
+  <dd>C89, POSIX.1-1988.</dd>
+  <dt id="suseconds_t~3"><a class="permalink" href="#suseconds_t~3"><i>suseconds_t</i></a></dt>
+  <dd>SUSv2, POSIX.1-2001 XSI, POSIX.1-2024.</dd>
+  <dt id="useconds_t~3"><a class="permalink" href="#useconds_t~3"><i>useconds_t</i></a></dt>
+  <dd>SUSv1, POSIX.1-2001 XSI. Removed in POSIX.1-2008.</dd>
+</dl>
+<section class="Ss">
+<h2 class="Ss" id="Header_files"><a class="permalink" href="#Header_files">Header
+  files</a></h2>
+<p class="Pp"><i>&lt;sched.h&gt;</i> defines <i>time_t</i> since
+  POSIX.1-2008.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="time_t~4"><a class="permalink" href="#time_t~4">time_t</a></h2>
+<p class="Pp">POSIX.1-2024 requires that the width of <i>time_t</i> is at least
+    64 bits; however, some systems still use 32 bits by default.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">On some architectures, the width of <i>time_t</i> can be
+    controlled with the feature test macro <b>_TIME_BITS</b>. See
+    <b>feature_test_macros</b>(7).</p>
+<p class="Pp">The following headers also provide <i>time_t</i>:
+    <i>&lt;sched.h&gt;</i>, <i>&lt;sys/msg.h&gt;</i>,
+    <i>&lt;sys/select.h&gt;</i>, <i>&lt;sys/sem.h&gt;</i>,
+    <i>&lt;sys/shm.h&gt;</i>, <i>&lt;sys/stat.h&gt;</i>,
+    <i>&lt;sys/time.h&gt;</i>, <i>&lt;sys/types.h&gt;</i>, and
+    <i>&lt;utime.h&gt;</i>.</p>
+<p class="Pp">The following headers also provide <i>suseconds_t</i>:
+    <i>&lt;sys/select.h&gt;</i> and <i>&lt;sys/time.h&gt;</i>.</p>
+<p class="Pp">The following headers also provided <i>useconds_t</i>:
+    <i>&lt;unistd.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>stime</b>(2), <b>time</b>(2), <b>ctime</b>(3),
+    <b>difftime</b>(3), <b>usleep</b>(3), <b>timeval</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

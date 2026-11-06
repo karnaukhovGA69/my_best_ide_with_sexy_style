@@ -1,0 +1,86 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">outb(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">outb(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">outb, outw, outl, outsb, outsw, outsl, inb, inw, inl, insb, insw,
+    insl, outb_p, outw_p, outl_p, inb_p, inw_p, inl_p - port I/O</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/io.h&gt;</b></pre>
+<pre><b>unsigned char inb(unsigned short </b><i>port</i><b>);</b>
+<b>unsigned char inb_p(unsigned short </b><i>port</i><b>);</b>
+<b>unsigned short inw(unsigned short </b><i>port</i><b>);</b>
+<b>unsigned short inw_p(unsigned short </b><i>port</i><b>);</b>
+<b>unsigned int inl(unsigned short </b><i>port</i><b>);</b>
+<b>unsigned int inl_p(unsigned short </b><i>port</i><b>);</b></pre>
+<pre><b>void outb(unsigned char </b><i>value</i><b>, unsigned short </b><i>port</i><b>);</b>
+<b>void outb_p(unsigned char </b><i>value</i><b>, unsigned short </b><i>port</i><b>);</b>
+<b>void outw(unsigned short </b><i>value</i><b>, unsigned short </b><i>port</i><b>);</b>
+<b>void outw_p(unsigned short </b><i>value</i><b>, unsigned short </b><i>port</i><b>);</b>
+<b>void outl(unsigned int </b><i>value</i><b>, unsigned short </b><i>port</i><b>);</b>
+<b>void outl_p(unsigned int </b><i>value</i><b>, unsigned short </b><i>port</i><b>);</b></pre>
+<pre><b>void insb(</b>unsigned long count;
+<b>           unsigned short </b><i>port</i><b>, void </b><i>addr</i><b>[</b><i>count</i><b>],</b>
+<b>           unsigned long </b><i>count</i><b>);</b>
+<b>void insw(</b>unsigned long count;
+<b>           unsigned short </b><i>port</i><b>, void </b><i>addr</i><b>[</b><i>count</i><b>],</b>
+<b>           unsigned long </b><i>count</i><b>);</b>
+<b>void insl(</b>unsigned long count;
+<b>           unsigned short </b><i>port</i><b>, void </b><i>addr</i><b>[</b><i>count</i><b>],</b>
+<b>           unsigned long </b><i>count</i><b>);</b>
+<b>void outsb(</b>unsigned long count;
+<b>           unsigned short </b><i>port</i><b>, const void </b><i>addr</i><b>[</b><i>count</i><b>],</b>
+<b>           unsigned long </b><i>count</i><b>);</b>
+<b>void outsw(</b>unsigned long count;
+<b>           unsigned short </b><i>port</i><b>, const void </b><i>addr</i><b>[</b><i>count</i><b>],</b>
+<b>           unsigned long </b><i>count</i><b>);</b>
+<b>void outsl(</b>unsigned long count;
+<b>           unsigned short </b><i>port</i><b>, const void </b><i>addr</i><b>[</b><i>count</i><b>],</b>
+<b>           unsigned long </b><i>count</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This family of functions is used to do low-level port input and
+    output. The out* functions do port output, the in* functions do port input;
+    the b-suffix functions are byte-width and the w-suffix functions word-width;
+    the _p-suffix functions pause until the I/O completes.</p>
+<p class="Pp">They are primarily designed for internal kernel use, but can be
+    used from user space.</p>
+<p class="Pp">You use <b>ioperm</b>(2) or alternatively <b>iopl</b>(2) to tell
+    the kernel to allow the user space application to access the I/O ports in
+    question. Failure to do this will cause the application to receive a
+    segmentation fault.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp"><b>outb</b>() and friends are hardware-specific. The <i>value</i>
+    argument is passed first and the <i>port</i> argument is passed second,
+    which is the opposite order from most DOS implementations.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux (x86, alpha).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioperm</b>(2), <b>iopl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

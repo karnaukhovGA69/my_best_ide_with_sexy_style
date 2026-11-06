@@ -1,0 +1,144 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ipv6(7)</td>
+    <td class="head-vol">Miscellaneous Information Manual</td>
+    <td class="head-rtitle">ipv6(7)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ipv6 - Linux IPv6 protocol implementation</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/socket.h&gt;</b>
+<b>#include &lt;netinet/in.h&gt;</b></pre>
+<pre><i>tcp6_socket</i><b> = socket(AF_INET6, SOCK_STREAM, 0);</b>
+<i>raw6_socket</i><b> = socket(AF_INET6, SOCK_RAW, </b><i>protocol</i><b>);</b>
+<i>udp6_socket</i><b> = socket(AF_INET6, SOCK_DGRAM, </b><i>protocol</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Linux 2.2 optionally implements the Internet Protocol, version 6.
+    This man page contains a description of the IPv6 basic API as implemented by
+    the Linux kernel and glibc 2.1. The interface is based on the BSD sockets
+    interface; see <b>socket</b>(7).</p>
+<p class="Pp">The IPv6 API aims to be mostly compatible with the IPv4 API (see
+    <b>ip</b>(7)). Only differences are described in this man page.</p>
+<p class="Pp">To bind an <b>AF_INET6</b> socket to any process, the local
+    address should be copied from the <i>in6addr_any</i> variable which has
+    <i>in6_addr</i> type. In static initializations, <b>IN6ADDR_ANY_INIT</b> may
+    also be used, which expands to a constant expression. Both of them are in
+    network byte order.</p>
+<p class="Pp">The IPv6 loopback address (::1) is available in the global
+    <i>in6addr_loopback</i> variable. For initializations,
+    <b>IN6ADDR_LOOPBACK_INIT</b> should be used.</p>
+<p class="Pp">IPv4 connections can be handled with the v6 API by using the
+    v4-mapped-on-v6 address type; thus a program needs to support only this API
+    type to support both protocols. This is handled transparently by the address
+    handling functions in the C library.</p>
+<p class="Pp">IPv4 and IPv6 share the local port space. When you get an IPv4
+    connection or packet to an IPv6 socket, its source address will be mapped to
+    v6.</p>
+<section class="Ss">
+<h2 class="Ss" id="Address_format"><a class="permalink" href="#Address_format">Address
+  format</a></h2>
+<br/>
+<pre>struct sockaddr_in6 {
+<br/>
+    sa_family_t     sin6_family;   /* AF_INET6 */
+<br/>
+    in_port_t       sin6_port;     /* port number */
+<br/>
+    uint32_t        sin6_flowinfo; /* IPv6 flow information */
+<br/>
+    struct in6_addr sin6_addr;     /* IPv6 address */
+<br/>
+    uint32_t        sin6_scope_id; /* Scope ID (new in Linux 2.4) */
+};
+struct in6_addr {
+<br/>
+    unsigned char   s6_addr[16];   /* IPv6 address */
+};
+</pre>
+<br/>
+<p class="Pp"><i>sin6_family</i> is always set to <b>AF_INET6</b>;
+    <i>sin6_port</i> is the protocol port (see <i>sin_port</i> in <b>ip</b>(7));
+    <i>sin6_flowinfo</i> is the IPv6 flow identifier; <i>sin6_addr</i> is the
+    128-bit IPv6 address. <i>sin6_scope_id</i> is an ID depending on the scope
+    of the address. It is new in Linux 2.4. Linux supports it only for
+    link-local addresses, in that case <i>sin6_scope_id</i> contains the
+    interface index (see <b>netdevice</b>(7))</p>
+<p class="Pp">IPv6 supports several address types: unicast to address a single
+    host, multicast to address a group of hosts, anycast to address the nearest
+    member of a group of hosts (not implemented in Linux), IPv4-on-IPv6 to
+    address an IPv4 host, and other reserved address types.</p>
+<p class="Pp">The address notation for IPv6 is a group of 8 4-digit hexadecimal
+    numbers, separated with a ':'. &quot;::&quot; stands for a string of 0 bits.
+    Special addresses are ::1 for loopback and ::FFFF:&lt;IPv4 address&gt; for
+    IPv4-mapped-on-IPv6.</p>
+<p class="Pp">The port space of IPv6 is shared with IPv4.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Socket_options"><a class="permalink" href="#Socket_options">Socket
+  options</a></h2>
+<p class="Pp">See <b>IPPROTO_IPV6</b>(2const).</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="ENODEV"><a class="permalink" href="#ENODEV"><b>ENODEV</b></a></dt>
+  <dd>The user tried to <b>bind</b>(2) to a link-local IPv6 address, but the
+      <i>sin6_scope_id</i> in the supplied <i>sockaddr_in6</i> structure is not
+      a valid interface index.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">Linux 2.4 will break binary compatibility for the
+    <i>sockaddr_in6</i> for 64-bit hosts by changing the alignment of
+    <i>in6_addr</i> and adding an additional <i>sin6_scope_id</i> field. The
+    kernel interfaces stay compatible, but a program including
+    <i>sockaddr_in6</i> or <i>in6_addr</i> into other structures may not be.
+    This is not a problem for 32-bit hosts like i386.</p>
+<p class="Pp">The <i>sin6_flowinfo</i> field is new in Linux 2.4. It is
+    transparently passed/read by the kernel when the passed address length
+    contains it. Some programs that pass a longer address buffer and then check
+    the outgoing address length may break.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The <i>sockaddr_in6</i> structure is bigger than the generic
+    <i>sockaddr</i>. Programs that assume that all address types can be stored
+    safely in a <i>struct sockaddr</i> need to be changed to use <i>struct
+    sockaddr_storage</i> for that instead.</p>
+<p class="Pp"><b>SOL_IP</b>, <b>SOL_IPV6</b>, <b>SOL_ICMPV6</b>, and other
+    <b>SOL_*</b> socket options are nonportable variants of <b>IPPROTO_*</b>.
+    See also <b>ip</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">The IPv6 extended API as in RFC&#x00A0;2292 is currently only
+    partly implemented; although the 2.2 kernel has near complete support for
+    receiving options, the macros for generating IPv6 options are missing in
+    glibc 2.1.</p>
+<p class="Pp">IPSec support for EH and AH headers is missing.</p>
+<p class="Pp">Flow label management is not complete and not documented here.</p>
+<p class="Pp">This man page is not complete.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IPV6</b>(2const), <b>ip</b>(7)</p>
+<p class="Pp">RFC&#x00A0;2553: IPv6 BASIC API; Linux tries to be compliant to
+    this. RFC&#x00A0;2460: IPv6 specification.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

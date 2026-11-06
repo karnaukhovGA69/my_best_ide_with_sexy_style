@@ -1,0 +1,48 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">pthread_once(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">pthread_once(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">pthread_once - once-only initialization</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><b>#include &lt;pthread.h&gt;</b></p>
+<p class="Pp"><b>pthread_once_t </b><i>once_control</i><b> =
+    PTHREAD_ONCE_INIT;</b></p>
+<p class="Pp"><b>int pthread_once(pthread_once_t *</b><i>once_control</i><b>,
+    typeof(void (void)) *</b><i>init_routine</i><b>;</b></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The purpose of <b>pthread_once</b>() is to ensure that a piece of
+    initialization code is executed at most once. The <i>once_control</i>
+    argument points to a static or extern variable statically initialized to
+    <b>PTHREAD_ONCE_INIT</b>.</p>
+<p class="Pp">The first time <b>pthread_once</b>() is called with a given
+    <i>once_control</i> argument, it calls <i>init_routine</i> with no argument
+    and changes the value of the <i>once_control</i> variable to record that
+    initialization has been performed. Subsequent calls to <b>pthread_once</b>()
+    with the same <i>once_control</i> argument do nothing.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>pthread_once</b>() always returns 0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">None.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

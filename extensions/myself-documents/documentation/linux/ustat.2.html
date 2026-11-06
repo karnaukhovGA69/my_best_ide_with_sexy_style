@@ -1,0 +1,93 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ustat(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ustat(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ustat - get filesystem statistics</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/types.h&gt;</b>
+<b>#include &lt;unistd.h&gt;</b>    /* libc[45] */
+<b>#include &lt;ustat.h&gt;</b>     /* glibc2 */</pre>
+<pre><b>[[deprecated]] int ustat(dev_t </b><i>dev</i><b>, struct ustat *</b><i>ubuf</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>ustat</b>() returns information about a mounted filesystem.
+    <i>dev</i> is a device number identifying a device containing a mounted
+    filesystem. <i>ubuf</i> is a pointer to a <i>ustat</i> structure that
+    contains the following members:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>daddr_t f_tfree;      /* Total free blocks */
+ino_t   f_tinode;     /* Number of free inodes */
+char    f_fname[6];   /* Filsys name */
+char    f_fpack[6];   /* Filsys pack name */
+</pre>
+<br/>
+<p class="Pp">The last two fields, <i>f_fname</i> and <i>f_fpack</i>, are not
+    implemented and will always be filled with null bytes ('\0').</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned and the <i>ustat</i> structure
+    pointed to by <i>ubuf</i> will be filled in. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>ubuf</i> points outside of your accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>dev</i> does not refer to a device containing a mounted
+    filesystem.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd>The mounted filesystem referenced by <i>dev</i> does not support this
+      operation, or any version of Linux before Linux 1.3.16.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SVr4. Removed in glibc 2.28.</p>
+<p class="Pp"><b>ustat</b>() is deprecated and has been provided only for
+    compatibility. All new programs should use <b>statfs</b>(2) instead.</p>
+<section class="Ss">
+<h2 class="Ss" id="HP-UX_notes"><a class="permalink" href="#HP-UX_notes">HP-UX
+  notes</a></h2>
+<p class="Pp">The HP-UX version of the <i>ustat</i> structure has an additional
+    field, <i>f_blksize</i>, that is unknown elsewhere. HP-UX warns: For some
+    filesystems, the number of free inodes does not change. Such filesystems
+    will return -1 in the field <i>f_tinode</i>. For some filesystems, inodes
+    are dynamically allocated. Such filesystems will return the current number
+    of free inodes.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>stat</b>(2), <b>statfs</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,104 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">tzselect(8)</td>
+    <td class="head-vol">System Manager's Manual</td>
+    <td class="head-rtitle">tzselect(8)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">tzselect - select a timezone</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><b>tzselect</b> [ <b>-c</b> <i>coord</i> ] [ <b>-n</b>
+    <i>limit</i> ] [ <b>--help</b> ] [ <b>--version</b> ]</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>tzselect</b> program asks the user for information about
+    the current location, and outputs the resulting timezone to standard output.
+    The output is suitable as a value for the TZ environment variable.</p>
+<p class="Pp">All interaction with the user is done via standard input and
+    standard error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt id="c"><a class="permalink" href="#c"><b>-c </b><i>coord</i></a></dt>
+  <dd>Instead of asking for continent and then country and then city, ask for
+      selection from time zones whose largest cities are closest to the location
+      with geographical coordinates <i>coord.</i> Use ISO 6709 notation for
+      <i>coord,</i> that is, a latitude immediately followed by a longitude. The
+      latitude and longitude should be signed integers followed by an optional
+      decimal point and fraction: positive numbers represent north and east,
+      negative south and west. Latitudes with two and longitudes with three
+      integer digits are treated as degrees; latitudes with four or six and
+      longitudes with five or seven integer digits are treated as <i>DDMM,
+      DDDMM, DDMMSS,</i> or <i>DDDMMSS</i> representing <i>DD</i> or <i>DDD</i>
+      degrees, <i>MM</i> minutes, and zero or <i>SS</i> seconds, with any
+      trailing fractions represent fractional minutes or (if <i>SS</i> is
+      present) seconds. The decimal point is that of the current locale. For
+      example, in the (default) C locale, <b>-c&#x00A0;+40.689-074.045</b>
+      specifies 40.689 degrees N, 74.045 degrees W,
+      <b>-c&#x00A0;+4041.4-07402.7</b> specifies 40 degrees 41.4 minutes N, 74
+      degrees 2.7 minutes W, and <b>-c&#x00A0;+404121-0740240</b> specifies 40
+      degrees 41 minutes 21 seconds N, 74 degrees 2 minutes 40 seconds W. If
+      <i>coord</i> is not one of the documented forms, the resulting behavior is
+      unspecified.</dd>
+  <dt id="n"><a class="permalink" href="#n"><b>-n </b><i>limit</i></a></dt>
+  <dd>When <b>-c</b> is used, display the closest <i>limit</i> locations
+      (default 10).</dd>
+  <dt id="help"><a class="permalink" href="#help"><b>--help</b></a></dt>
+  <dd>Output help information and exit.</dd>
+  <dt id="version"><a class="permalink" href="#version"><b>--version</b></a></dt>
+  <dd>Output version information and exit.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ENVIRONMENT_VARIABLES"><a class="permalink" href="#ENVIRONMENT_VARIABLES">ENVIRONMENT
+  VARIABLES</a></h1>
+<dl class="Bl-tag">
+  <dt id="AWK"><a class="permalink" href="#AWK"><b>AWK</b></a></dt>
+  <dd>Name of a POSIX-compliant <b>awk</b> program (default: <b>awk</b>).</dd>
+  <dt id="TZDIR"><a class="permalink" href="#TZDIR"><b>TZDIR</b></a></dt>
+  <dd>Name of the directory containing timezone data files (default:
+      <b>/usr/share/zoneinfo</b>).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt id="TZDIR~2"><a class="permalink" href="#TZDIR~2"><i>TZDIR</i><b>/iso3166.tab</b></a></dt>
+  <dd>Table of ISO 3166 2-letter country codes and country names.</dd>
+  <dt id="TZDIR~3"><a class="permalink" href="#TZDIR~3"><i>TZDIR</i><b>/zone1970.tab</b></a></dt>
+  <dd>Table of country codes, latitude and longitude, timezones, and descriptive
+      comments.</dd>
+  <dt id="TZDIR~4"><a class="permalink" href="#TZDIR~4"><i>TZDIR</i><b>/</b><i>TZ</i></a></dt>
+  <dd>Timezone data file for timezone <i>TZ</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXIT_STATUS"><a class="permalink" href="#EXIT_STATUS">EXIT
+  STATUS</a></h1>
+<p class="Pp">The exit status is zero if a timezone was successfully obtained
+    from the user, nonzero otherwise.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp">newctime(3), tzfile(5), zdump(8), zic(8)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">Applications should not assume that <b>tzselect</b>'s output
+    matches the user's political preferences.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date"></td>
+    <td class="foot-os">Time Zone Database</td>
+  </tr>
+</table>

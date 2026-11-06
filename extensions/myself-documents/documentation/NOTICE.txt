@@ -1,0 +1,9 @@
+Official documentation snapshot for Myself IDE, prepared 2026-11-06.
+
+The documents retain their original copyrights. This is a local copy, not a translation or a replacement for upstream documentation. URLs and original download SHA-256 values are recorded in sources.json. HTML is stored unchanged except Linux man-pages, which are rendered using mandoc; the complete, unchanged Linux source archive is included under licenses/ with all per-page license notices. The viewer suppresses scripts, forms, styles, images and other active resources. Text, code, tables and headings are retained. No automatic downloads or updates occur in the application.
+
+Go: Copyright The Go Authors; source license BSD-3-Clause, site content CC BY 4.0. Both licenses are included under licenses/.
+Rust: Copyright The Rust Project Developers; MIT or Apache-2.0, both included under licenses/.
+PostgreSQL: Copyright 1996-2026 The PostgreSQL Global Development Group; see postgresql/legalnotice.html for the complete PostgreSQL License.
+Bash: Copyright 1988-2025 Free Software Foundation, Inc.; GNU Free Documentation License 1.3 or later, no invariant sections or cover texts. The complete license is included in bash/bash.html.
+Linux man-pages: multiple authors and per-page licenses; see the exact original archive licenses/linux-man-pages-6.20.tar.gz, especially LICENSES/ and source headers.

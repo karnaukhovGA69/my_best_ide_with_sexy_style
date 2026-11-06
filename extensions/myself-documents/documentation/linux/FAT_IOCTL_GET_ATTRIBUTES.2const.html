@@ -1,0 +1,222 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FAT_IOCTL_SET_ATTRIBUTES(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FAT_IOCTL_SET_ATTRIBUTES(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FAT_IOCTL_GET_ATTRIBUTES, FAT_IOCTL_SET_ATTRIBUTES - get and set
+    file attributes in a FAT filesystem</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/msdos_fs.h&gt;</b>  /* Definition of <b>FAT_*</b> and
+                                <b>ATTR_*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, FAT_IOCTL_GET_ATTRIBUTES, uint32_t *</b><i>attr</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, FAT_IOCTL_SET_ATTRIBUTES, uint32_t *</b><i>attr</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Files and directories in the FAT filesystem possess an attribute
+    bit mask that can be read with <b>FAT_IOCTL_GET_ATTRIBUTES</b> and written
+    with <b>FAT_IOCTL_SET_ATTRIBUTES</b>.</p>
+<p class="Pp">The <i>fd</i> argument contains a file descriptor for a file or
+    directory. It is sufficient to create the file descriptor by calling
+    <b>open</b>(2) with the <b>O_RDONLY</b> flag.</p>
+<p class="Pp">The <i>attr</i> argument contains a pointer to a bit mask. The
+    bits of the bit mask are:</p>
+<dl class="Bl-tag">
+  <dt id="ATTR_RO"><a class="permalink" href="#ATTR_RO"><b>ATTR_RO</b></a></dt>
+  <dd>This bit specifies that the file or directory is read-only.</dd>
+  <dt id="ATTR_HIDDEN"><a class="permalink" href="#ATTR_HIDDEN"><b>ATTR_HIDDEN</b></a></dt>
+  <dd>This bit specifies that the file or directory is hidden.</dd>
+  <dt id="ATTR_SYS"><a class="permalink" href="#ATTR_SYS"><b>ATTR_SYS</b></a></dt>
+  <dd>This bit specifies that the file is a system file.</dd>
+  <dt id="ATTR_VOLUME"><a class="permalink" href="#ATTR_VOLUME"><b>ATTR_VOLUME</b></a></dt>
+  <dd>This bit specifies that the file is a volume label. This attribute is
+      read-only.</dd>
+  <dt id="ATTR_DIR"><a class="permalink" href="#ATTR_DIR"><b>ATTR_DIR</b></a></dt>
+  <dd>This bit specifies that this is a directory. This attribute is
+    read-only.</dd>
+  <dt id="ATTR_ARCH"><a class="permalink" href="#ATTR_ARCH"><b>ATTR_ARCH</b></a></dt>
+  <dd>This bit indicates that this file or directory should be archived. It is
+      set when a file is created or modified. It is reset by an archiving
+      system.</dd>
+</dl>
+<p class="Pp">The zero value <b>ATTR_NONE</b> can be used to indicate that no
+    attribute bit is set.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.12.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following program demonstrates the usage of <b>ioctl</b>(2) to
+    manipulate file attributes. The program reads and displays the archive
+    attribute of a file. After inverting the value of the attribute, the program
+    reads and displays the attribute again.</p>
+<p class="Pp">The following was recorded when applying the program for the file
+    <i>/mnt/user/foo</i>:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre># ./toggle_fat_archive_flag /mnt/user/foo
+Archive flag is set
+Toggling archive flag
+Archive flag is not set
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source_(toggle_fat_archive_flag.c)"><a class="permalink" href="#Program_source_(toggle_fat_archive_flag.c)">Program
+  source (toggle_fat_archive_flag.c)</a></h2>
+<p class="Pp"></p>
+<pre>#include &lt;fcntl.h&gt;
+#include &lt;linux/msdos_fs.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;unistd.h&gt;
+/*
+<br/>
+ * Read file attributes of a file on a FAT filesystem.
+<br/>
+ * Output the state of the archive flag.
+<br/>
+ */
+static uint32_t
+readattr(int fd)
+{
+<br/>
+    int       ret;
+<br/>
+    uint32_t  attr;
+<br/>
+    ret = ioctl(fd, FAT_IOCTL_GET_ATTRIBUTES, &amp;attr);
+<br/>
+    if (ret == -1) {
+<br/>
+        perror(&quot;ioctl&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    if (attr &amp; ATTR_ARCH)
+<br/>
+        printf(&quot;Archive flag is set\n&quot;);
+<br/>
+    else
+<br/>
+        printf(&quot;Archive flag is not set\n&quot;);
+<br/>
+    return attr;
+}
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int       fd;
+<br/>
+    int       ret;
+<br/>
+    uint32_t  attr;
+<br/>
+    if (argc != 2) {
+<br/>
+        printf(&quot;Usage: %s FILENAME\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fd = open(argv[1], O_RDONLY);
+<br/>
+    if (fd == -1) {
+<br/>
+        perror(&quot;open&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /*
+<br/>
+     * Read and display the FAT file attributes.
+<br/>
+     */
+<br/>
+    attr = readattr(fd);
+<br/>
+    /*
+<br/>
+     * Invert archive attribute.
+<br/>
+     */
+<br/>
+    printf(&quot;Toggling archive flag\n&quot;);
+<br/>
+    attr ^= ATTR_ARCH;
+<br/>
+    /*
+<br/>
+     * Write the changed FAT file attributes.
+<br/>
+     */
+<br/>
+    ret = ioctl(fd, FAT_IOCTL_SET_ATTRIBUTES, &amp;attr);
+<br/>
+    if (ret == -1) {
+<br/>
+        perror(&quot;ioctl&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /*
+<br/>
+     * Read and display the FAT file attributes.
+<br/>
+     */
+<br/>
+    readattr(fd);
+<br/>
+    close(fd);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_fat</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,105 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_SET_DUMPABLE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_SET_DUMPABLE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_SET_DUMPABLE - set the &quot;dumpable&quot; attribute of the
+    calling process</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_SET_DUMPABLE, long </b><i>dumpable</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set the state of the &quot;dumpable&quot; attribute, which
+    determines whether core dumps are produced for the calling process upon
+    delivery of a signal whose default behavior is to produce a core dump.</p>
+<p class="Pp"><i>dumpable</i> must be either <b>0L</b>
+    (<b>SUID_DUMP_DISABLE</b>, process is not dumpable) or <b>1L</b>
+    (<b>SUID_DUMP_USER</b>, process is dumpable).</p>
+<p class="Pp">Normally, the &quot;dumpable&quot; attribute is set to 1. However,
+    it is reset to the current value contained in the file
+    <i>/proc/sys/fs/suid_dumpable</i> (which by default has the value 0), in the
+    following circumstances:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>The process's effective user or group ID is changed.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The process's filesystem user or group ID is changed (see
+      <b>credentials</b>(7)).</dd>
+  <dt>&#x2022;</dt>
+  <dd>The process executes (<b>execve</b>(2)) a set-user-ID or set-group-ID
+      program, resulting in a change of either the effective user ID or the
+      effective group ID.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The process executes (<b>execve</b>(2)) a program that has file
+      capabilities (see <b>capabilities</b>(7)), but only if the permitted
+      capabilities gained exceed those already permitted for the process.</dd>
+</dl>
+<p class="Pp">Processes that are not dumpable can not be attached via
+    <b>ptrace</b>(2) <b>PTRACE_ATTACH</b>; see <b>ptrace</b>(2) for further
+    details.</p>
+<p class="Pp">If a process is not dumpable, the ownership of files in the
+    process's <i>/proc/</i>pid directory is affected as described in
+    <b>proc_pid</b>(5).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>arg2</i> is neither <b>SUID_DUMP_DISABLE</b> nor
+    <b>SUID_DUMP_USER</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/fs/suid_dumpable</i></dt>
+  <dd></dd>
+  <dt><i>/proc/</i>pid<i>/</i></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.3.20.</p>
+<p class="Pp">Between Linux 2.6.13 and Linux 2.6.17, the value <b>2L</b> was
+    also permitted, which caused any binary which normally would not be dumped
+    to be dumped readable by root only; for security reasons, this feature has
+    been removed. (See also the description of <i>/proc/sys/fs/suid_dumpable</i>
+    in <b>proc_sys_fs</b>(5).)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>PR_SET_DUMPABLE</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

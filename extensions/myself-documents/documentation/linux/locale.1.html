@@ -1,0 +1,210 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">locale(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">locale(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">locale - get locale-specific information</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">locale</code></td>
+    <td>[<i>option</i>]</td>
+  </tr>
+</table>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">locale</code></td>
+    <td>[<i>option</i>] <b>-a</b></td>
+  </tr>
+</table>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">locale</code></td>
+    <td>[<i>option</i>] <b>-m</b></td>
+  </tr>
+</table>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">locale</code></td>
+    <td>[<i>option</i>] <i>name</i>&#x00A0;...</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>locale</b> command displays information about the current
+    locale, or all locales, on standard output.</p>
+<p class="Pp">When invoked without arguments, <b>locale</b> displays the current
+    locale settings for each locale category (see <b>locale</b>(5)), based on
+    the settings of the environment variables that control the locale (see
+    <b>locale</b>(7)). Values for variables set in the environment are printed
+    without double quotes, implied values are printed with double quotes.</p>
+<p class="Pp">If either the <b>-a</b> or the <b>-m</b> option (or one of their
+    long-format equivalents) is specified, the behavior is as follows:</p>
+<dl class="Bl-tag">
+  <dt id="all"><a class="permalink" href="#all"><b>--all-locales</b></a></dt>
+  <dd></dd>
+  <dt id="a"><a class="permalink" href="#a"><b>-a</b></a></dt>
+  <dd>Display a list of all available locales. The <b>-v</b> option causes the
+      <b>LC_IDENTIFICATION</b> metadata about each locale to be included in the
+      output.</dd>
+  <dt id="charmaps"><a class="permalink" href="#charmaps"><b>--charmaps</b></a></dt>
+  <dd></dd>
+  <dt id="m"><a class="permalink" href="#m"><b>-m</b></a></dt>
+  <dd>Display the available charmaps (character set description files). To
+      display the current character set for the locale, use
+      <i>locale&#x00A0;-c&#x00A0;charmap</i>.</dd>
+</dl>
+<p class="Pp">The <b>locale</b> command can also be provided with one or more
+    arguments, which are the names of locale keywords (for example,
+    <i>date_fmt</i>, <i>ctype-class-names</i>, <i>yesexpr</i>, or
+    <i>decimal_point</i>) or locale categories (for example, <b>LC_CTYPE</b> or
+    <b>LC_TIME</b>). For each argument, the following is displayed:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>For a locale keyword, the value of that keyword to be displayed.</dd>
+  <dt>&#x2022;</dt>
+  <dd>For a locale category, the values of all keywords in that category are
+      displayed.</dd>
+</dl>
+<p class="Pp">When arguments are supplied, the following options are
+  meaningful:</p>
+<dl class="Bl-tag">
+  <dt id="category"><a class="permalink" href="#category"><b>--category-name</b></a></dt>
+  <dd></dd>
+  <dt id="c"><a class="permalink" href="#c"><b>-c</b></a></dt>
+  <dd>For a category name argument, write the name of the locale category on a
+      separate line preceding the list of keyword values for that category.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>For a keyword name argument, write the name of the locale category for
+      this keyword on a separate line preceding the keyword value.</dd>
+  <dt></dt>
+  <dd>This option improves readability when multiple name arguments are
+      specified. It can be combined with the <b>-k</b> option.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="keyword"><a class="permalink" href="#keyword"><b>--keyword-name</b></a></dt>
+  <dd></dd>
+  <dt id="k"><a class="permalink" href="#k"><b>-k</b></a></dt>
+  <dd>For each keyword whose value is being displayed, include also the name of
+      that keyword, so that the output has the format:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre><i>keyword</i>=&quot;<i>value</i>&quot;
+    </pre>
+    <br/>
+  </dd>
+</dl>
+<p class="Pp">The <b>locale</b> command also knows about the following
+  options:</p>
+<dl class="Bl-tag">
+  <dt id="verbose"><a class="permalink" href="#verbose"><b>--verbose</b></a></dt>
+  <dd></dd>
+  <dt id="v"><a class="permalink" href="#v"><b>-v</b></a></dt>
+  <dd>Display additional information for some command-line option and argument
+      combinations.</dd>
+  <dt id="help"><a class="permalink" href="#help"><b>--help</b></a></dt>
+  <dd></dd>
+  <dt><b>-?</b></dt>
+  <dd>Display a summary of command-line options and arguments and exit.</dd>
+  <dt id="usage"><a class="permalink" href="#usage"><b>--usage</b></a></dt>
+  <dd>Display a short usage message and exit.</dd>
+  <dt id="version"><a class="permalink" href="#version"><b>--version</b></a></dt>
+  <dd></dd>
+  <dt id="V"><a class="permalink" href="#V"><b>-V</b></a></dt>
+  <dd>Display the program version and exit.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/usr/lib/locale/locale-archive</i></dt>
+  <dd>Usual default locale archive location.</dd>
+  <dt><i>/usr/share/i18n/locales</i></dt>
+  <dd>Usual default path for locale definition files.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>$<b> locale</b>;
+LANG=en_US.UTF-8
+LC_CTYPE=&quot;en_US.UTF-8&quot;
+LC_NUMERIC=&quot;en_US.UTF-8&quot;
+LC_TIME=&quot;en_US.UTF-8&quot;
+LC_COLLATE=&quot;en_US.UTF-8&quot;
+LC_MONETARY=&quot;en_US.UTF-8&quot;
+LC_MESSAGES=&quot;en_US.UTF-8&quot;
+LC_PAPER=&quot;en_US.UTF-8&quot;
+LC_NAME=&quot;en_US.UTF-8&quot;
+LC_ADDRESS=&quot;en_US.UTF-8&quot;
+LC_TELEPHONE=&quot;en_US.UTF-8&quot;
+LC_MEASUREMENT=&quot;en_US.UTF-8&quot;
+LC_IDENTIFICATION=&quot;en_US.UTF-8&quot;
+LC_ALL=</pre>
+<pre>$<b> locale date_fmt</b>;
+%a %b %e %H:%M:%S %Z %Y</pre>
+<pre>$<b> locale -k date_fmt</b>;
+date_fmt=&quot;%a %b %e %H:%M:%S %Z %Y&quot;</pre>
+<pre>$<b> locale -ck date_fmt</b>;
+LC_TIME
+date_fmt=&quot;%a %b %e %H:%M:%S %Z %Y&quot;</pre>
+<pre>$<b> locale LC_TELEPHONE</b>;
++%c (%a) %l
+(%a) %l
+11
+1
+UTF-8</pre>
+<pre>$<b> locale -k LC_TELEPHONE</b>;
+tel_int_fmt=&quot;+%c (%a) %l&quot;
+tel_dom_fmt=&quot;(%a) %l&quot;
+int_select=&quot;11&quot;
+int_prefix=&quot;1&quot;
+telephone-codeset=&quot;UTF-8&quot;
+</pre>
+<p class="Pp">The following example compiles a custom locale from the
+    <i>./wrk</i> directory with the <b>localedef</b>(1) utility under the
+    <i>$HOME/.locale</i> directory, then tests the result with the
+    <b>date</b>(1) command, and then sets the environment variables
+    <b>LOCPATH</b> and <b>LANG</b> in the shell profile file so that the custom
+    locale will be used in the subsequent user sessions:</p>
+<p class="Pp"></p>
+<pre>$<b> mkdir -p $HOME/.locale</b>;
+$<b> I18NPATH=./wrk/ localedef -f UTF-8 -i fi_SE $HOME/.locale/fi_SE.UTF-8</b>;
+$<b> LOCPATH=$HOME/.locale LC_ALL=fi_SE.UTF-8 date</b>;
+$<b> echo &quot;export LOCPATH=\$HOME/.locale&quot; &gt;&gt; $HOME/.bashrc</b>;
+$<b> echo &quot;export LANG=fi_SE.UTF-8&quot; &gt;&gt; $HOME/.bashrc</b>;
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>localedef</b>(1), <b>charmap</b>(5), <b>locale</b>(5),
+    <b>locale</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

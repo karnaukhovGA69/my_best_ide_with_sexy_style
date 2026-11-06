@@ -1,0 +1,127 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getenv(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">getenv(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getenv, secure_getenv - get an environment variable</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>char *getenv(const char *</b><i>name</i><b>);</b>
+<b>char *secure_getenv(const char *</b><i>name</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>secure_getenv</b>():</p>
+<pre>
+<br/>
+    _GNU_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>getenv</b>() function searches the environment list to find
+    the environment variable <i>name</i>, and returns a pointer to the
+    corresponding <i>value</i> string.</p>
+<p class="Pp">The <b>secure_getenv</b>() function is just like <b>getenv</b>()
+    except that it returns NULL in cases where &quot;secure execution&quot; is
+    required. Secure execution is required if one of the following conditions
+    was true when the program run by the calling process was loaded:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>the process's effective user ID did not match its real user ID or the
+      process's effective group ID did not match its real group ID (typically
+      this is the result of executing a set-user-ID or set-group-ID
+    program);</dd>
+  <dt>&#x2022;</dt>
+  <dd>the effective capability bit was set on the executable file; or</dd>
+  <dt>&#x2022;</dt>
+  <dd>the process has a nonempty permitted capability set.</dd>
+</dl>
+<p class="Pp">Secure execution may also be required if triggered by some Linux
+    security modules.</p>
+<p class="Pp">The <b>secure_getenv</b>() function is intended for use in
+    general-purpose libraries to avoid vulnerabilities that could occur if
+    set-user-ID or set-group-ID programs accidentally trusted the
+  environment.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>getenv</b>() function returns a pointer to the value in the
+    environment, or NULL if there is no match.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>getenv (), secure_getenv ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe env</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="getenv"><a class="permalink" href="#getenv"><b>getenv</b>()</a></dt>
+  <dd>C11, POSIX.1-2008.</dd>
+  <dt id="secure_getenv"><a class="permalink" href="#secure_getenv"><b>secure_getenv</b>()</a></dt>
+  <dd>POSIX.1-2024.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="getenv~2"><a class="permalink" href="#getenv~2"><b>getenv</b>()</a></dt>
+  <dd>POSIX.1-2001, C89, C99, SVr4, 4.3BSD.</dd>
+  <dt id="secure_getenv~2"><a class="permalink" href="#secure_getenv~2"><b>secure_getenv</b>()</a></dt>
+  <dd>POSIX.1-2024, glibc 2.17.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The strings in the environment list are of the form
+    <i>name=value</i>.</p>
+<p class="Pp">As typically implemented, <b>getenv</b>() returns a pointer to a
+    string within the environment list. The caller must take care not to modify
+    this string, since that would change the environment of the process.</p>
+<p class="Pp">The implementation of <b>getenv</b>() is not required to be
+    reentrant. The string pointed to by the return value of <b>getenv</b>() may
+    be statically allocated, and can be modified by a subsequent call to
+    <b>getenv</b>(), <b>putenv</b>(3), <b>setenv</b>(3), or
+  <b>unsetenv</b>(3).</p>
+<p class="Pp">The &quot;secure execution&quot; mode of <b>secure_getenv</b>() is
+    controlled by the <b>AT_SECURE</b> flag contained in the auxiliary vector
+    passed from the kernel to user space.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>clearenv</b>(3), <b>getauxval</b>(3), <b>putenv</b>(3),
+    <b>setenv</b>(3), <b>unsetenv</b>(3), <b>capabilities</b>(7),
+    <b>environ</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

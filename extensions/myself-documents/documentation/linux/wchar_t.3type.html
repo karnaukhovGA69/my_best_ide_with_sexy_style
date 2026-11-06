@@ -1,0 +1,66 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">wchar_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">wchar_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">wchar_t - wide-character type</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stddef.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>wchar_t;</b></pre>
+<pre><b>#include &lt;stdint.h&gt;</b></pre>
+<pre><b>#define WCHAR_WIDTH  </b>/* ... */
+<b>#define WCHAR_MAX    </b>/* ... */
+<b>#define WCHAR_MIN    </b>/* ... */</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>wchar_t</i> is a type used for storing a wide character. It is
+    an integer type.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="wchar_t"><a class="permalink" href="#wchar_t"><i>wchar_t</i></a></dt>
+  <dd>SUSv1, C99, POSIX.1-2001.</dd>
+  <dt id="WCHAR_MAX"><a class="permalink" href="#WCHAR_MAX"><b>WCHAR_MAX</b></a></dt>
+  <dd></dd>
+  <dt id="WCHAR_MIN"><a class="permalink" href="#WCHAR_MIN"><b>WCHAR_MIN</b></a></dt>
+  <dd>SUSv2, C99, POSIX.1-2001.</dd>
+</dl>
+<p class="Pp">The <b>WCHAR_WIDTH</b> macro was added in C23.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following headers also provide this type:
+    <i>&lt;inttypes.h&gt;</i>, <i>&lt;stdlib.h&gt;</i>, <i>&lt;wchar.h&gt;</i>,
+    <i>&lt;wctype.h&gt;</i>.</p>
+<p class="Pp">The following header also provides these macros:
+    <i>&lt;wchar.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>wint_t</b>(3type), <b>fputwc</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-09</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

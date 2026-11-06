@@ -1,0 +1,90 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">id_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">id_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">pid_t, uid_t, gid_t, id_t - process/user/group identifier</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/types.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */ <b>pid_t;</b>
+<b>typedef</b> /* ... */ <b>uid_t;</b>
+<b>typedef</b> /* ... */ <b>gid_t;</b>
+<b>typedef</b> /* ... */ <b>id_t;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>pid_t</i> is a type used for storing process IDs, process group
+    IDs, and session IDs. It is a signed integer type.</p>
+<p class="Pp"><i>uid_t</i> is a type used to hold user IDs. It is an integer
+    type.</p>
+<p class="Pp"><i>gid_t</i> is a type used to hold group IDs. It is an integer
+    type.</p>
+<p class="Pp"><i>id_t</i> is a type used to hold a general identifier. It is an
+    integer type that can be used to contain a <i>pid_t</i>, <i>uid_t</i>, or
+    <i>gid_t</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="pid_t"><a class="permalink" href="#pid_t"><i>pid_t</i></a></dt>
+  <dd></dd>
+  <dt id="uid_t"><a class="permalink" href="#uid_t"><i>uid_t</i></a></dt>
+  <dd></dd>
+  <dt id="gid_t"><a class="permalink" href="#gid_t"><i>gid_t</i></a></dt>
+  <dd>POSIX.1-1988.</dd>
+  <dt id="id_t"><a class="permalink" href="#id_t"><i>id_t</i></a></dt>
+  <dd>SUSv1, POSIX.1-2001 XSI, POSIX.1-2008.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following headers also provide <i>pid_t</i>:
+    <i>&lt;fcntl.h&gt;</i>, <i>&lt;sched.h&gt;</i>, <i>&lt;signal.h&gt;</i>,
+    <i>&lt;spawn.h&gt;</i>, <i>&lt;sys/msg.h&gt;</i>, <i>&lt;sys/sem.h&gt;</i>,
+    <i>&lt;sys/shm.h&gt;</i>, <i>&lt;sys/wait.h&gt;</i>,
+    <i>&lt;termios.h&gt;</i>, <i>&lt;time.h&gt;</i>, <i>&lt;unistd.h&gt;</i>,
+    and <i>&lt;utmpx.h&gt;</i>.</p>
+<p class="Pp">The following headers also provide <i>uid_t</i>:
+    <i>&lt;pwd.h&gt;</i>, <i>&lt;signal.h&gt;</i>, <i>&lt;stropts.h&gt;</i>,
+    <i>&lt;sys/ipc.h&gt;</i>, <i>&lt;sys/stat.h&gt;</i>, and
+    <i>&lt;unistd.h&gt;</i>.</p>
+<p class="Pp">The following headers also provide <i>gid_t</i>:
+    <i>&lt;grp.h&gt;</i>, <i>&lt;pwd.h&gt;</i>, <i>&lt;signal.h&gt;</i>,
+    <i>&lt;stropts.h&gt;</i>, <i>&lt;sys/ipc.h&gt;</i>,
+    <i>&lt;sys/stat.h&gt;</i>, and <i>&lt;unistd.h&gt;</i>.</p>
+<p class="Pp">The following header also provides <i>id_t</i>:
+    <i>&lt;sys/resource.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>chown</b>(2), <b>fork</b>(2), <b>getegid</b>(2),
+    <b>geteuid</b>(2), <b>getgid</b>(2), <b>getgroups</b>(2), <b>getpgid</b>(2),
+    <b>getpid</b>(2), <b>getppid</b>(2), <b>getpriority</b>(2),
+    <b>getpwnam</b>(3), <b>getresgid</b>(2), <b>getresuid</b>(2),
+    <b>getsid</b>(2), <b>gettid</b>(2), <b>getuid</b>(2), <b>kill</b>(2),
+    <b>pidfd_open</b>(2), <b>sched_setscheduler</b>(2), <b>waitid</b>(2),
+    <b>getgrnam</b>(3), <b>sigqueue</b>(3), <b>credentials</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

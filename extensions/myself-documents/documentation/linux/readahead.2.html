@@ -1,0 +1,98 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">readahead(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">readahead(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">readahead - initiate file readahead into page cache</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>             /* See feature_test_macros(7) */
+<b>#define _FILE_OFFSET_BITS 64</b>
+<b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>ssize_t readahead(int </b><i>fd</i><b>, off_t </b><i>offset</i><b>, size_t </b><i>count</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>readahead</b>() initiates readahead on a file so that
+    subsequent reads from that file will be satisfied from the cache, and not
+    block on disk I/O (assuming the readahead was initiated early enough and
+    that other activity on the system did not in the meantime flush pages from
+    the cache).</p>
+<p class="Pp">The <i>fd</i> argument is a file descriptor identifying the file
+    which is to be read. The <i>offset</i> argument specifies the starting point
+    from which data is to be read and <i>count</i> specifies the number of bytes
+    to be read. I/O is performed in whole pages, so that <i>offset</i> is
+    effectively rounded down to a page boundary and bytes are read up to the
+    next page boundary greater than or equal to <i>(offset+count)</i>.
+    <b>readahead</b>() does not read beyond the end of the file. The file offset
+    of the open file description referred to by the file descriptor <i>fd</i> is
+    left unchanged.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>readahead</b>() returns 0; on failure, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>fd</i> is not a valid file descriptor or is not open for reading.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>fd</i> does not refer to a file type to which <b>readahead</b>() can be
+      applied.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">On some 32-bit architectures, the calling signature for this
+    system call differs, for the reasons described in <b>syscall</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.13, glibc 2.3.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp"><b>_FILE_OFFSET_BITS</b> should be defined to be 64 in code that
+    uses a pointer to <b>readahead</b>, if the code is intended to be portable
+    to traditional 32-bit x86 and ARM platforms where <b>off_t</b>'s width
+    defaults to 32 bits.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp"><b>readahead</b>() attempts to schedule the reads in the
+    background and return immediately. However, it may block while it reads the
+    filesystem metadata needed to locate the requested blocks. This occurs
+    frequently with ext[234] on large files using indirect blocks instead of
+    extents, giving the appearance that the call blocks until the requested data
+    has been read.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>lseek</b>(2), <b>madvise</b>(2), <b>mmap</b>(2),
+    <b>posix_fadvise</b>(2), <b>read</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

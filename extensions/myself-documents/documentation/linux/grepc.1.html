@@ -1,0 +1,95 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">grepc(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">grepc(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">grepc - find declarations, definitions, and uses in source
+  code</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><b>grepc</b> [<i>option&#x00A0;</i>...] <i>pattern</i>
+    [<i>file&#x00A0;</i>...]</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>grepc</b>(1) searches for declarations, definitions, and/or
+    uses of <i>pattern</i> in each source <i>file</i>.</p>
+<p class="Pp"><i>pattern</i> is a PCRE pattern. It normally represents an
+    identifier, and word boundaries are implicitly added to it in most
+  cases.</p>
+<p class="Pp">If no <i>file</i> is given, this program reads standard input.
+    Otherwise, it reads all files specified, and searches under any specified
+    directories, recursively, without following symbolic links.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt id="A"><a class="permalink" href="#A"><b>-A</b><i>&#x00A0;n</i></a></dt>
+  <dd>Print <i>n</i> lines of trailing context after a match.</dd>
+  <dt id="B"><a class="permalink" href="#B"><b>-B</b><i>&#x00A0;n</i></a></dt>
+  <dd>Print <i>n</i> lines of leading context before a match.</dd>
+  <dt id="C"><a class="permalink" href="#C"><b>-C</b><i>&#x00A0;n</i></a></dt>
+  <dd>Print <i>n</i> lines of context surrounding a match.</dd>
+  <dt id="c"><a class="permalink" href="#c"><b>-c</b></a></dt>
+  <dd>Do not print matches, and instead print a count of them.</dd>
+  <dt id="h"><a class="permalink" href="#h"><b>-h</b></a></dt>
+  <dd>Suppress the prefixing of file names on output.</dd>
+  <dt id="i"><a class="permalink" href="#i"><b>-i</b></a></dt>
+  <dd>Ignore case distinctions in <i>pattern</i>.</dd>
+  <dt id="l"><a class="permalink" href="#l"><b>-l</b></a></dt>
+  <dd>Suppress normal output; instead print the name of each input file from
+      which output would normally have been printed. Each file is only printed
+      once.</dd>
+  <dt id="m"><a class="permalink" href="#m"><b>-m</b><i>&#x00A0;n</i></a></dt>
+  <dd>Stop processing after finding <i>n</i> matches.</dd>
+  <dt id="n"><a class="permalink" href="#n"><b>-n</b></a></dt>
+  <dd>Prefix each line of output with the 1-based line number within its input
+      file.</dd>
+  <dt id="t"><a class="permalink" href="#t"><b>-t</b><i>&#x00A0;type</i></a></dt>
+  <dd>Restrict the search to a specific <i>type</i> of code. This option can be
+      passed multiple times to search for various types of code. The acceptable
+      values depend on the driver used for the language. See <b>grepc_c</b>(1),
+      which is the default driver.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Crashes"><a class="permalink" href="#Crashes">Crashes</a></h2>
+<p class="Pp">In some cases, internal calls to <b>pcre2grep</b>(1) may fail
+    after consuming too much resources. To solve that, use <b>-t</b> to restrict
+    the types of code of your search.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Seekable_files"><a class="permalink" href="#Seekable_files">Seekable
+  files</a></h2>
+<p class="Pp">Files specified in the command line must be seekable and able to
+    be opened twice. If you need to read a non-seekable file, redirect it to the
+    standard input.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>alx@devuan:/usr/lib/gcc$<b> grepc -n alignof .</b>;
+./x86_64-linux-gnu/15/include/stdalign.h:33:#define alignof _Alignof
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>grepc_c</b>(1), <b>pcre2grep</b>(1), <b>pcre2syntax</b>(3),
+    <b>pcre2pattern</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-09</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

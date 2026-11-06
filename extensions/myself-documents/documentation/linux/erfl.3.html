@@ -1,0 +1,117 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">erf(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">erf(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">erf, erff, erfl - error function</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Math library (<i>libm</i>,&#x00A0;<i>-lm</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;math.h&gt;</b></pre>
+<pre><b>double erf(double </b><i>x</i><b>);</b>
+<b>float erff(float </b><i>x</i><b>);</b>
+<b>long double erfl(long double </b><i>x</i><b>);</b></pre>
+<pre></pre>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>erf</b>():</p>
+<pre>
+<br/>
+    _ISOC99_SOURCE || _POSIX_C_SOURCE &gt;= 200112L || _XOPEN_SOURCE
+<br/>
+        || /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+<p class="Pp"><b>erff</b>(), <b>erfl</b>():</p>
+<pre>
+<br/>
+    _ISOC99_SOURCE || _POSIX_C_SOURCE &gt;= 200112L
+<br/>
+        || /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions return the error function of <i>x</i>, defined
+  as</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>erf(x) = 2/sqrt(pi) * integral from 0 to x of exp(-t*t) dt
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, these functions return the value of the error function
+    of <i>x</i>, a value in the range [-1,&#x00A0;1].</p>
+<p class="Pp">If <i>x</i> is a NaN, a NaN is returned.</p>
+<p class="Pp">If <i>x</i> is +0 (-0), +0 (-0) is returned.</p>
+<p class="Pp">If <i>x</i> is positive infinity (negative infinity), +1 (-1) is
+    returned.</p>
+<p class="Pp">If <i>x</i> is subnormal, a range error occurs, and the return
+    value is 2*x/sqrt(pi).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>math_error</b>(7) for information on how to determine
+    whether an error has occurred when calling these functions.</p>
+<p class="Pp">The following errors can occur:</p>
+<dl class="Bl-tag">
+  <dt id="Range"><a class="permalink" href="#Range">Range error: result
+    underflow (<i>x</i> is subnormal)</a></dt>
+  <dd>An underflow floating-point exception (<b>FE_UNDERFLOW</b>) is
+    raised.</dd>
+</dl>
+<p class="Pp">These functions do not set <i>errno</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>erf (), erff (), erfl ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C99, POSIX.1-2001.</p>
+<p class="Pp">The variant returning <i>double</i> also conforms to SVr4,
+  4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>cerf</b>(3), <b>erfc</b>(3), <b>exp</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

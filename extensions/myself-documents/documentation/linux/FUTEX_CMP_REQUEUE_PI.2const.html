@@ -1,0 +1,131 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FUTEX_CMP_REQUEUE_PI(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FUTEX_CMP_REQUEUE_PI(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FUTEX_CMP_REQUEUE_PI - compare a priority-inheritance futex, wake
+    a waiter, and requeue others</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/futex.h&gt;</b>  /* Definition of <b>FUTEX_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_futex, uint32_t *</b><i>uaddr</i><b>, FUTEX_CMP_REQUEUE_PI, 1,</b>
+<b>             uint32_t </b><i>val2</i><b>, uint32_t *</b><i>uaddr2</i><b>,</b>
+<b>             uint32_t </b><i>val3</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This operation is a PI-aware variant of
+    <b>FUTEX_CMP_REQUEUE</b>(2const). It requeues waiters that are blocked via
+    <b>FUTEX_WAIT_REQUEUE_PI</b>(2const) on <i>uaddr</i> from a non-PI source
+    futex (<i>uaddr</i>) to a PI target futex (<i>uaddr2</i>).</p>
+<p class="Pp">Unlike with <b>FUTEX_CMP_REQUEUE</b>(2const), this operation wakes
+    up a maximum of 1 waiter that is waiting on the futex at <i>uaddr</i> (since
+    the main point is to avoid a thundering herd). The remaining waiters are
+    removed from the wait queue of the source futex at <i>uaddr</i> and added to
+    the wait queue of the target futex at <i>uaddr2</i>.</p>
+<p class="Pp">The <i>val2</i> and <i>val3</i> arguments serve the same purposes
+    as for <b>FUTEX_CMP_REQUEUE</b>(2const).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+<p class="Pp">On success, <b>FUTEX_CMP_REQUEUE_PI</b> Returns the total number
+    of waiters that were woken up or requeued to the futex for the futex word at
+    <i>uaddr2</i>. If this value is greater than 1, then difference is the
+    number of waiters requeued to the futex for the futex word at
+  <i>uaddr2</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>futex</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The value pointed to by <i>uaddr</i> is not equal to the expected value
+      <i>val3</i>.</dd>
+  <dt id="EAGAIN~2"><a class="permalink" href="#EAGAIN~2"><b>EAGAIN</b></a></dt>
+  <dd>The futex owner thread ID of <i>uaddr2</i> is about to exit, but has not
+      yet handled the internal state cleanup. Try again.</dd>
+  <dt id="EDEADLK"><a class="permalink" href="#EDEADLK"><b>EDEADLK</b></a></dt>
+  <dd>The futex word at <i>uaddr</i> is already locked by the caller.</dd>
+  <dt id="EDEADLK~2"><a class="permalink" href="#EDEADLK~2"><b>EDEADLK</b></a></dt>
+  <dd>While requeueing a waiter to the PI futex for the futex word at
+      <i>uaddr2</i>, the kernel detected a deadlock.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>uaddr2</i> did not point to a valid user-space address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>uaddr2</i> does not point to a valid object&#x2014;that is, the address
+      is not four-byte-aligned.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>uaddr</i> equals <i>uaddr2</i> (i.e., an attempt was made to requeue to
+      the same futex).</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>The kernel detected an inconsistency between the user-space state at
+      <i>uaddr2</i> and the kernel state; that is, the kernel detected a waiter
+      which waits via <b>FUTEX_WAIT</b>(2const) or
+      <b>FUTEX_WAIT_BITSET</b>(2const) on <i>uaddr2</i>.</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd>The kernel detected an inconsistency between the user-space state at
+      <i>uaddr</i> and the kernel state; that is, the kernel detected a waiter
+      which waits via <b>FUTEX_WAIT</b>(2const) or
+      <b>FUTEX_WAIT_BITSET</b>(2const) on <i>uaddr</i>.</dd>
+  <dt id="EINVAL~5"><a class="permalink" href="#EINVAL~5"><b>EINVAL</b></a></dt>
+  <dd>The kernel detected an inconsistency between the user-space state at
+      <i>uaddr</i> and the kernel state; that is, the kernel detected a waiter
+      which waits on <i>uaddr</i> via <b>FUTEX_LOCK_PI</b>(2const) or
+      <b>FUTEX_LOCK_PI2</b>(2const) (instead of
+    <b>FUTEX_WAIT_REQUEUE_PI</b>).</dd>
+  <dt id="EINVAL~6"><a class="permalink" href="#EINVAL~6"><b>EINVAL</b></a></dt>
+  <dd>An attempt was made to requeue a waiter to a futex other than that
+      specified by the matching <b>FUTEX_WAIT_REQUEUE_PI</b> call for that
+      waiter.</dd>
+  <dt id="EINVAL~7"><a class="permalink" href="#EINVAL~7"><b>EINVAL</b></a></dt>
+  <dd>The fourth argument is not 1.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate memory to hold state information.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd>A run-time check determined that the operation is not available. The
+      PI-futex operations are not implemented on all architectures and are not
+      supported on some CPU variants.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The caller is not allowed to attach itself to the futex at <i>uaddr2</i>.
+      (This may be caused by a state corruption in user space.)</dd>
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b></a></dt>
+  <dd>The thread ID in the futex word at <i>uaddr</i> does not exist.</dd>
+  <dt id="ESRCH~2"><a class="permalink" href="#ESRCH~2"><b>ESRCH</b></a></dt>
+  <dd>The thread ID in the futex word at <i>uaddr2</i> does not exist.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.31.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>futex</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

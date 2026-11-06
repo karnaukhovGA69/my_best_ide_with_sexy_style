@@ -1,0 +1,114 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">alloca(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">alloca(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">alloca - allocate memory that is automatically freed</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;alloca.h&gt;</b></pre>
+<pre><b>void *alloca(size_t </b><i>size</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>alloca</b>() function allocates <i>size</i> bytes of space
+    in the stack frame of the caller. This temporary space is automatically
+    freed when the function that called <b>alloca</b>() returns to its
+  caller.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>alloca</b>() function returns a pointer to the beginning of
+    the allocated space. If the allocation causes stack overflow, program
+    behavior is undefined.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>alloca ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">PWB, 32V.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The <b>alloca</b>() function is machine- and compiler-dependent.
+    Because it allocates from the stack, it's faster than <b>malloc</b>(3) and
+    <b>free</b>(3). In certain cases, it can also simplify memory deallocation
+    in applications that use <b>longjmp</b>(3) or <b>siglongjmp</b>(3).
+    Otherwise, its use is discouraged.</p>
+<p class="Pp">Because the space allocated by <b>alloca</b>() is allocated within
+    the stack frame, that space is automatically freed if the function return is
+    jumped over by a call to <b>longjmp</b>(3) or <b>siglongjmp</b>(3).</p>
+<p class="Pp">The space allocated by <b>alloca</b>() is <i>not</i> automatically
+    deallocated if the pointer that refers to it simply goes out of scope; it is
+    automatically deallocated when the caller function returns.</p>
+<p class="Pp">Do not attempt to <b>free</b>(3) space allocated by
+    <b>alloca</b>()!</p>
+<p class="Pp">By necessity, <b>alloca</b>() is a compiler built-in, also known
+    as <b>__builtin_alloca</b>(). By default, modern compilers automatically
+    translate all uses of <b>alloca</b>() into the built-in, but this is
+    forbidden if standards conformance is requested (<i>-ansi</i>,
+    <i>-std=c*</i>), in which case <i>&lt;alloca.h&gt;</i> is required, lest a
+    symbol dependency be emitted.</p>
+<p class="Pp">The fact that <b>alloca</b>() is a built-in means it is impossible
+    to take its address or to change its behavior by linking with a different
+    library.</p>
+<p class="Pp">Variable length arrays (VLAs) are part of the C99 standard,
+    optional since C11, and can be used for a similar purpose. However, they do
+    not port to standard C++, and, being variables, live in their block scope
+    and don't have an allocator-like interface, making them unfit for
+    implementing functionality like <b>strdupa</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp"><b>alloca</b>() does not query the system for available stack
+    memory, and does not fall back to using heap if stack storage is
+    unavailable. It therefore cannot indicate an error if the allocation fails.
+    If the allocation fails, the program is likely to receive a <b>SIGSEGV</b>
+    signal.</p>
+<p class="Pp">On many systems <b>alloca</b>() cannot be used inside the list of
+    arguments of a function call, because the stack space reserved by
+    <b>alloca</b>() would appear on the stack in the middle of the space for the
+    function arguments.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>brk</b>(2), <b>longjmp</b>(3), <b>malloc</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-29</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

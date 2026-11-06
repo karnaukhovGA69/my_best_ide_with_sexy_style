@@ -1,0 +1,114 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">usleep(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">usleep(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">usleep - suspend execution for microsecond intervals</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int usleep(useconds_t </b><i>usec</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>usleep</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.12:
+<br/>
+        (_XOPEN_SOURCE &gt;= 500) &amp;&amp; ! (_POSIX_C_SOURCE &gt;= 200809L)
+<br/>
+            || /* glibc &gt;= 2.19: */ _DEFAULT_SOURCE
+<br/>
+            || /* glibc &lt;= 2.19: */ _BSD_SOURCE
+<br/>
+    Before glibc 2.12:
+<br/>
+        _BSD_SOURCE || _XOPEN_SOURCE &gt;= 500</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>usleep</b>() function suspends execution of the calling
+    thread for (at least) <i>usec</i> microseconds. The sleep may be lengthened
+    slightly by any system activity or by the time spent processing the call or
+    by the granularity of system timers.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>usleep</b>() function returns 0 on success. On error, -1 is
+    returned, with <i>errno</i> set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINTR"><a class="permalink" href="#EINTR"><b>EINTR</b></a></dt>
+  <dd>Interrupted by a signal; see <b>signal</b>(7).</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>usec</i> is greater than or equal to <b>1000000</b>. (On systems where
+      that is considered an error.)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>usleep ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.3BSD, POSIX.1-2001. POSIX.1-2001 declares it obsolete,
+    suggesting <b>nanosleep</b>(2) instead. Removed in POSIX.1-2008.</p>
+<p class="Pp">On the original BSD implementation, and before glibc 2.2.2, the
+    return type of this function is <i>void</i>. The POSIX version returns
+    <i>int</i>, and this is also the prototype used since glibc 2.2.2.</p>
+<p class="Pp">Only the <b>EINVAL</b> error return is documented by SUSv2 and
+    POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">The interaction of this function with the <b>SIGALRM</b> signal,
+    and with other timer functions such as <b>alarm</b>(2), <b>sleep</b>(3),
+    <b>nanosleep</b>(2), <b>setitimer</b>(2), <b>timer_create</b>(2),
+    <b>timer_delete</b>(2), <b>timer_getoverrun</b>(2), <b>timer_gettime</b>(2),
+    <b>timer_settime</b>(2), <b>ualarm</b>(3) is unspecified.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>alarm</b>(2), <b>getitimer</b>(2), <b>nanosleep</b>(2),
+    <b>select</b>(2), <b>setitimer</b>(2), <b>sleep</b>(3), <b>ualarm</b>(3),
+    <b>useconds_t</b>(3type), <b>time</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

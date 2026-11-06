@@ -1,0 +1,167 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_console(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_console(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_console - ioctls for console terminal and virtual
+  consoles</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, unsigned long </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The following Linux-specific <b>ioctl</b>(2) operations are
+    supported for console terminals and virtual consoles.</p>
+<dl class="Bl-tag">
+  <dt id="KDGETLED"><a class="permalink" href="#KDGETLED"><b>KDGETLED</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSETLED"><a class="permalink" href="#KDSETLED"><b>KDSETLED</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGKBLED"><a class="permalink" href="#KDGKBLED"><b>KDGKBLED</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSKBLED"><a class="permalink" href="#KDSKBLED"><b>KDSKBLED</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGKBTYPE"><a class="permalink" href="#KDGKBTYPE"><b>KDGKBTYPE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDADDIO"><a class="permalink" href="#KDADDIO"><b>KDADDIO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDDELIO"><a class="permalink" href="#KDDELIO"><b>KDDELIO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDENABIO"><a class="permalink" href="#KDENABIO"><b>KDENABIO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDDISABIO"><a class="permalink" href="#KDDISABIO"><b>KDDISABIO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSETMODE"><a class="permalink" href="#KDSETMODE"><b>KDSETMODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGETMODE"><a class="permalink" href="#KDGETMODE"><b>KDGETMODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDMKTONE"><a class="permalink" href="#KDMKTONE"><b>KDMKTONE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KIOCSOUND"><a class="permalink" href="#KIOCSOUND"><b>KIOCSOUND</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="GIO_CMAP"><a class="permalink" href="#GIO_CMAP"><b>GIO_CMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_CMAP"><a class="permalink" href="#PIO_CMAP"><b>PIO_CMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="GIO_FONT"><a class="permalink" href="#GIO_FONT"><b>GIO_FONT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="GIO_FONTX"><a class="permalink" href="#GIO_FONTX"><b>GIO_FONTX</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_FONT"><a class="permalink" href="#PIO_FONT"><b>PIO_FONT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_FONTX"><a class="permalink" href="#PIO_FONTX"><b>PIO_FONTX</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_FONTRESET"><a class="permalink" href="#PIO_FONTRESET"><b>PIO_FONTRESET</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="GIO_SCRNMAP"><a class="permalink" href="#GIO_SCRNMAP"><b>GIO_SCRNMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="GIO_UNISCRNMAP"><a class="permalink" href="#GIO_UNISCRNMAP"><b>GIO_UNISCRNMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_SCRNMAP"><a class="permalink" href="#PIO_SCRNMAP"><b>PIO_SCRNMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_UNISCRNMAP"><a class="permalink" href="#PIO_UNISCRNMAP"><b>PIO_UNISCRNMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="GIO_UNIMAP"><a class="permalink" href="#GIO_UNIMAP"><b>GIO_UNIMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_UNIMAP"><a class="permalink" href="#PIO_UNIMAP"><b>PIO_UNIMAP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="PIO_UNIMAPCLR"><a class="permalink" href="#PIO_UNIMAPCLR"><b>PIO_UNIMAPCLR</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGKBMODE"><a class="permalink" href="#KDGKBMODE"><b>KDGKBMODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSKBMODE"><a class="permalink" href="#KDSKBMODE"><b>KDSKBMODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGKBMETA"><a class="permalink" href="#KDGKBMETA"><b>KDGKBMETA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSKBMETA"><a class="permalink" href="#KDSKBMETA"><b>KDSKBMETA</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGKBENT"><a class="permalink" href="#KDGKBENT"><b>KDGKBENT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSKBENT"><a class="permalink" href="#KDSKBENT"><b>KDSKBENT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGKBSENT"><a class="permalink" href="#KDGKBSENT"><b>KDGKBSENT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSKBSENT"><a class="permalink" href="#KDSKBSENT"><b>KDSKBSENT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGKBDIACR"><a class="permalink" href="#KDGKBDIACR"><b>KDGKBDIACR</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDGETKEYCODE"><a class="permalink" href="#KDGETKEYCODE"><b>KDGETKEYCODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSETKEYCODE"><a class="permalink" href="#KDSETKEYCODE"><b>KDSETKEYCODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KDSIGACCEPT"><a class="permalink" href="#KDSIGACCEPT"><b>KDSIGACCEPT</b>(2const)</a></dt>
+  <dd>See <b>ioctl_kd</b>(2).</dd>
+  <dt id="TIOCLINUX"><a class="permalink" href="#TIOCLINUX"><b>TIOCLINUX</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_OPENQRY"><a class="permalink" href="#VT_OPENQRY"><b>VT_OPENQRY</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_GETMODE"><a class="permalink" href="#VT_GETMODE"><b>VT_GETMODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_SETMODE"><a class="permalink" href="#VT_SETMODE"><b>VT_SETMODE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_GETSTATE"><a class="permalink" href="#VT_GETSTATE"><b>VT_GETSTATE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_RELDISP"><a class="permalink" href="#VT_RELDISP"><b>VT_RELDISP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_ACTIVATE"><a class="permalink" href="#VT_ACTIVATE"><b>VT_ACTIVATE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_WAITACTIVE"><a class="permalink" href="#VT_WAITACTIVE"><b>VT_WAITACTIVE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_DISALLOCATE"><a class="permalink" href="#VT_DISALLOCATE"><b>VT_DISALLOCATE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_RESIZE"><a class="permalink" href="#VT_RESIZE"><b>VT_RESIZE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="VT_RESIZEX"><a class="permalink" href="#VT_RESIZEX"><b>VT_RESIZEX</b>(2const)</a></dt>
+  <dd>See <b>ioctl_vt</b>(2).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned (except where indicated). On failure, -1
+    is returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Do not regard this man page as documentation of the Linux console
+    ioctls. This is provided for the curious only, as an alternative to reading
+    the source. Ioctl's are undocumented Linux internals, liable to be changed
+    without warning. (And indeed, this page more or less describes the situation
+    as of kernel version 1.1.94; there are many minor and not-so-minor
+    differences with earlier versions.)</p>
+<p class="Pp">Very often, ioctls are introduced for communication between the
+    kernel and one particular well-known program (fdisk, hdparm, setserial,
+    tunelp, loadkeys, selection, setfont, etc.), and their behavior will be
+    changed when required by this particular program.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>TIOCLINUX</b>(2const), <b>ioctl_kd</b>(2),
+    <b>ioctl_vt</b>(2), <b>dumpkeys</b>(1), <b>kbd_mode</b>(1),
+    <b>loadkeys</b>(1), <b>mknod</b>(1), <b>setleds</b>(1),
+    <b>setmetamode</b>(1), <b>execve</b>(2), <b>fcntl</b>(2),
+    <b>ioctl_tty</b>(2), <b>ioperm</b>(2), <b>console_codes</b>(4),
+    <b>mt</b>(4), <b>sd</b>(4), <b>tty</b>(4), <b>ttyS</b>(4), <b>vcs</b>(4),
+    <b>vcsa</b>(4), <b>charsets</b>(7), <b>termios</b>(7), <b>mapscrn</b>(8),
+    <b>resizecons</b>(8), <b>setfont</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,90 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_GET_SECURITY(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_GET_SECURITY(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_GET_SECURITY - manipulate the kernel's key management
+    facility</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(</b>size_t n;
+<b>             SYS_keyctl, KEYCTL_GET_SECURITY, key_serial_t </b><i>key</i><b>,</b>
+<b>             char </b><i>buf</i><b>[_Nullable </b><i>n</i><b>], size_t </b><i>n</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="KEYCTL_GET_SECURITY"><a class="permalink" href="#KEYCTL_GET_SECURITY"><b>KEYCTL_GET_SECURITY</b>
+    (since Linux 2.6.26)</a></dt>
+  <dd>Get the LSM (Linux Security Module) security label of the specified
+    key.</dd>
+</dl>
+<p class="Pp">The ID of the key whose security label is to be fetched is
+    specified in <i>key</i>. The security label (terminated by a null byte) will
+    be placed in the buffer pointed to by <i>buf</i> argument; the size of the
+    buffer must be provided in <i>n</i>.</p>
+<p class="Pp">If <i>buf</i> is specified as NULL or the buffer size specified in
+    <i>n</i> is too small, the full size of the security label string (including
+    the terminating null byte) is returned as the function result, and nothing
+    is copied to the buffer.</p>
+<p class="Pp">The caller must have <i>view</i> permission on the specified
+  key.</p>
+<p class="Pp">The returned security label string will be rendered in a form
+    appropriate to the LSM in force. For example, with SELinux, it may look
+    like:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+</pre>
+<br/>
+<p class="Pp">If no LSM is currently in force, then an empty string is placed in
+    the buffer.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the size of the LSM security label string (including
+    the terminating null byte), irrespective of the provided buffer size.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_get_security</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.26.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_get_security</b>(3),
+    <b>keyctl_get_security_alloc</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

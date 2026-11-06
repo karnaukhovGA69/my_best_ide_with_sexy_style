@@ -1,0 +1,242 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">tzset(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">tzset(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">tzset, tzname, timezone, daylight - initialize time conversion
+    information</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;time.h&gt;</b></pre>
+<pre><b>void tzset(void);</b></pre>
+<pre><b>extern char *</b><i>tzname</i><b>[2];</b>
+<b>extern long </b><i>timezone</i><b>;</b>
+<b>extern int </b><i>daylight</i><b>;</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>tzset</b>():</p>
+<pre>
+<br/>
+    _POSIX_C_SOURCE</pre>
+<p class="Pp"><i>tzname</i>:</p>
+<pre>
+<br/>
+    _POSIX_C_SOURCE</pre>
+<p class="Pp"><i>timezone</i>, <i>daylight</i>:</p>
+<pre>
+<br/>
+    _XOPEN_SOURCE
+<br/>
+        || /* glibc &gt;= 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>tzset</b>() function initializes the <i>tzname</i> variable
+    from the <b>TZ</b> environment variable. This function is automatically
+    called by the other time conversion functions that depend on the timezone.
+    In a System-V-like environment, it will also set the variables
+    <i>timezone</i> (seconds West of UTC) and <i>daylight</i> (to 0 if this
+    timezone does not have any daylight saving time rules, or to nonzero if
+    there is a time, past, present, or future when daylight saving time
+    applies).</p>
+<p class="Pp">The <b>tzset</b>() function initializes these variables to
+    unspecified values if this timezone is a geographical timezone like
+    &quot;America/New_York&quot; (see below).</p>
+<p class="Pp">If the <b>TZ</b> variable does not appear in the environment, the
+    system timezone is used. The system timezone is configured by copying, or
+    linking, a file in the <b>tzfile</b>(5) format to <i>/etc/localtime</i>. A
+    timezone database of these files may be located in the system timezone
+    directory (see the <b>FILES</b> section below).</p>
+<p class="Pp">If the <b>TZ</b> variable does appear in the environment, but its
+    value is empty, or its value cannot be interpreted using any of the formats
+    specified below, then Coordinated Universal Time (UTC) is used.</p>
+<p class="Pp">A nonempty value of <b>TZ</b> can be one of two formats, either of
+    which can be preceded by a colon which is ignored. The first format is a
+    string of characters that directly represent the timezone to be used:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre><i>std offset</i>[<i>dst</i>[<i>offset</i>][,<i>start</i>[<i>/time</i>],<i>end</i>[<i>/time</i>]]]
+</pre>
+<br/>
+<p class="Pp">There are no spaces in the specification. The <i>std</i> string
+    specifies an abbreviation for the timezone and must be three or more
+    alphabetic characters. When enclosed between the less-than (&lt;) and
+    greater-than (&gt;) signs, the character set is expanded to include the plus
+    (+) sign, the minus (-) sign, and digits. The <i>offset</i> string
+    immediately follows <i>std</i> and specifies the time value to be added to
+    the local time to get Coordinated Universal Time (UTC). The <i>offset</i> is
+    positive if the local timezone is west of the Prime Meridian and negative if
+    it is east. The hour must be between 0 and 24, and the minutes and seconds
+    00 and 59:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>[<i>+</i>|<i>-</i>]<i>hh</i>[<i>:mm</i>[<i>:ss</i>]]
+</pre>
+<br/>
+<p class="Pp">The <i>dst</i> string and <i>offset</i> specify the name and
+    offset for the corresponding daylight saving timezone. If the offset is
+    omitted, it defaults to one hour ahead of standard time.</p>
+<p class="Pp">The <i>start</i> field specifies when daylight saving time goes
+    into effect and the <i>end</i> field specifies when the change is made back
+    to standard time. These fields may have the following formats:</p>
+<dl class="Bl-tag">
+  <dt>J<i>n</i></dt>
+  <dd>This specifies the Julian day with <i>n</i> between 1 and 365. Leap days
+      are not counted. In this format, February 29 can't be represented;
+      February 28 is day 59, and March 1 is always day 60.</dd>
+  <dt id="n"><a class="permalink" href="#n"><i>n</i></a></dt>
+  <dd>This specifies the zero-based Julian day with <i>n</i> between 0 and 365.
+      February 29 is counted in leap years.</dd>
+  <dt>M<i>m</i>.<i>w</i>.<i>d</i></dt>
+  <dd>This specifies day <i>d</i>
+      (0&#x00A0;&lt;=&#x00A0;<i>d</i>&#x00A0;&lt;=&#x00A0;6) of week <i>w</i>
+      (1&#x00A0;&lt;=&#x00A0;<i>w</i>&#x00A0;&lt;=&#x00A0;5) of month <i>m</i>
+      (1&#x00A0;&lt;=&#x00A0;<i>m</i>&#x00A0;&lt;=&#x00A0;12). Week 1 is the
+      first week in which day <i>d</i> occurs and week 5 is the last week in
+      which day <i>d</i> occurs. Day 0 is a Sunday.</dd>
+</dl>
+<p class="Pp">The <i>time</i> fields specify when, in the local time currently
+    in effect, the change to the other time occurs. They use the same format as
+    <i>offset</i> except that the hour can be in the range [<b>-167</b>,&#x00A0;
+    <b>167</b>] to represent times before and after the named day. If omitted,
+    the default is 02:00:00.</p>
+<p class="Pp">Here is an example for New Zealand, where the standard time (NZST)
+    is 12 hours ahead of UTC, and daylight saving time (NZDT), 13 hours ahead of
+    UTC, runs from September's last Sunday, at the default time 02:00:00, to
+    April's first Sunday at 03:00:00.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>TZ=&quot;NZST-12:00:00NZDT-13:00:00,M9.5.0,M4.1.0/3&quot;
+</pre>
+<br/>
+<p class="Pp">The second &#x2014;or &quot;geographical&quot;&#x2014; format
+    specifies that the timezone information should be read from a file:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>filespec
+</pre>
+<br/>
+<p class="Pp">The <i>filespec</i> specifies a <b>tzfile</b>(5)-format file to
+    read the timezone information from. If <i>filespec</i> does not begin with a
+    '<b>/</b>', the file specification is relative to the system timezone
+    directory. If the specified file cannot be read or interpreted, Coordinated
+    Universal Time (UTC) is used; however, applications should not depend on
+    random <i>filespec</i> values standing for UTC, as <b>TZ</b> formats may be
+    extended in the future.</p>
+<p class="Pp">Here's an example, once more for New Zealand:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>TZ=&quot;Pacific/Auckland&quot;
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ENVIRONMENT"><a class="permalink" href="#ENVIRONMENT">ENVIRONMENT</a></h1>
+<dl class="Bl-tag">
+  <dt id="TZ"><a class="permalink" href="#TZ"><b>TZ</b></a></dt>
+  <dd>If this variable is set its value takes precedence over the system
+      configured timezone.</dd>
+  <dt id="TZDIR"><a class="permalink" href="#TZDIR"><b>TZDIR</b></a></dt>
+  <dd>If this variable is set its value takes precedence over the system
+      configured timezone database directory path.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/etc/localtime</i></dt>
+  <dd>The system timezone file.</dd>
+  <dt><i>/usr/share/zoneinfo/</i></dt>
+  <dd>The system timezone database directory.</dd>
+  <dt><i>/usr/share/zoneinfo/posixrules</i></dt>
+  <dd>When a TZ string includes a dst timezone without anything following it,
+      then this file is used for the start/end rules. It is in the
+      <b>tzfile</b>(5) format. By default, the zoneinfo Makefile hard links it
+      to the <i>America/New_York</i> tzfile.</dd>
+</dl>
+<p class="Pp">Above are the current standard file locations, but they are
+    configurable when glibc is compiled.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>tzset ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe env locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="tzset"><a class="permalink" href="#tzset"><b>tzset</b>()</a></dt>
+  <dd></dd>
+  <dt id="tzname"><a class="permalink" href="#tzname"><i>tzname</i></a></dt>
+  <dd>POSIX.1-1988, SVr4, 4.3BSD.</dd>
+  <dt id="timezone"><a class="permalink" href="#timezone"><i>timezone</i></a></dt>
+  <dd></dd>
+  <dt id="daylight"><a class="permalink" href="#daylight"><i>daylight</i></a></dt>
+  <dd>POSIX.1-2001 (XSI), SVr4, 4.3BSD.</dd>
+</dl>
+<p class="Pp">4.3BSD had a function <b>char *timezone(</b><i>zone</i><b>,
+    </b><i>dst</i><b>)</b> that returned the name of the timezone corresponding
+    to its first argument (minutes West of UTC). If the second argument was 0,
+    the standard name was used, otherwise the daylight saving time version.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Because the values of <i>tzname</i>, <i>timezone</i>, and
+    <i>daylight</i> are often unspecified, and accessing them can lead to
+    undefined behavior in multithreaded applications, code should instead obtain
+    time zone offset and abbreviations from the <i>tm_gmtoff</i> and
+    <i>tm_zone</i> members of the broken-down time structure
+  <b>tm</b>(3type).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">Since this function does not report errors, there's no way to know
+    if the value of TZ represents a valid time zone.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>date</b>(1), <b>gettimeofday</b>(2), <b>time</b>(2),
+    <b>ctime</b>(3), <b>getenv</b>(3), <b>tzfile</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,60 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sockaddr_in6(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">sockaddr_in6(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">sockaddr_in6, in6_addr - IPv6 socket address</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b></pre>
+<pre><b>struct sockaddr_in6 {</b>
+<b>    sa_family_t     sin6_family;</b>    /* <b>AF_INET6</b> */
+<b>    in_port_t       sin6_port;</b>      /* Port number */
+<b>    uint32_t        sin6_flowinfo;</b>  /* IPv6 flow info */
+<b>    struct in6_addr sin6_addr;</b>      /* IPv6 address */
+<b>    uint32_t        sin6_scope_id;</b>  /* Set of interfaces for a scope */
+<b>};</b></pre>
+<pre><b>struct in6_addr {</b>
+<b>    uint8_t   s6_addr[16];</b>
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="sockaddr_in6"><a class="permalink" href="#sockaddr_in6"><i>sockaddr_in6</i></a></dt>
+  <dd>Describes an IPv6 Internet domain socket address.</dd>
+  <dt id="in6_addr"><a class="permalink" href="#in6_addr"><i>in6_addr</i></a></dt>
+  <dd>Contains a 128-bit IPv6 address, stored in network byte order.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>sockaddr_in</b>(3type), <b>sockaddr</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

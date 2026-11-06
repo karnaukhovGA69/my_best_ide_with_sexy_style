@@ -1,0 +1,49 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">shells(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">shells(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">shells - pathnames of valid login shells</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>/etc/shells</i> is a text file which contains the full
+    pathnames of valid login shells. This file is consulted by <b>chsh</b>(1)
+    and available to be queried by other programs.</p>
+<p class="Pp">Be aware that there are programs which consult this file to find
+    out if a user is a normal user; for example, FTP daemons traditionally
+    disallow access to users with shells not included in this file.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/etc/shells</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp"><i>/etc/shells</i> may contain the following paths:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre><i>/bin/sh</i>
+<i>/bin/bash</i>
+<i>/bin/csh</i>
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>chsh</b>(1), <b>getusershell</b>(3), <b>pam_shells</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,431 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">standards(7)</td>
+    <td class="head-vol">Miscellaneous Information Manual</td>
+    <td class="head-rtitle">standards(7)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">standards - C and UNIX Standards</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The STANDARDS section that appears in many manual pages identifies
+    various standards to which the documented interface conforms. The following
+    list briefly describes these standards.</p>
+<section class="Ss">
+<h2 class="Ss" id="Research_Unix"><a class="permalink" href="#Research_Unix">Research
+  Unix</a></h2>
+<dl class="Bl-tag">
+  <dt id="V7"><a class="permalink" href="#V7"><b>V7</b></a></dt>
+  <dd>Version 7 (also known as Seventh Edition) UNIX, released by AT&amp;T/Bell
+      Labs in 1979. After this point, UNIX systems diverged into two main
+      dialects: BSD and System V. Sources are
+      <a class="Lk" href="https://www.tuhs.org/cgi-bin/utree.pl?file=V7">available
+      online</a>.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="BSD"><a class="permalink" href="#BSD">BSD</a></h2>
+<dl class="Bl-tag">
+  <dt><b>4.2BSD</b></dt>
+  <dd>This is an implementation standard defined by the 4.2 release of the
+      <i>Berkeley Software Distribution</i>, released by the University of
+      California at Berkeley. This was the first Berkeley release that contained
+      a TCP/IP stack and the sockets API. 4.2BSD was released in 1983. Sources
+      are
+      <a class="Lk" href="https://www.tuhs.org/cgi-bin/utree.pl?file=4.2BSD">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Earlier major BSD releases included <i>3BSD</i> (1980), <i>4BSD</i>
+      (1980), and <i>4.1BSD</i> (1981).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><b>4.3BSD</b></dt>
+  <dd>The successor to 4.2BSD, released in 1986. Sources are
+      <a class="Lk" href="https://www.tuhs.org/cgi-bin/utree.pl?file=4.3BSD">available
+      online</a>.</dd>
+  <dt><b>4.4BSD</b></dt>
+  <dd>The successor to 4.3BSD, released in 1993. This was the last major
+      Berkeley release. Sources are
+      <a class="Lk" href="https://www.tuhs.org/cgi-bin/utree.pl?file=4.4BSD">available
+      online</a>.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Unix/TS"><a class="permalink" href="#Unix/TS">Unix/TS</a></h2>
+<dl class="Bl-tag">
+  <dt><b>Unix/TS 4</b></dt>
+  <dd>This was an internal release of Unix that was never released to the public
+      (in which case it would have been called System IV). The previous major
+      AT&amp;T release was <i>System III</i>, released in 1981.</dd>
+  <dt id="System"><a class="permalink" href="#System"><b>System V
+    (SVr1)</b></a></dt>
+  <dd>This is an implementation standard defined by AT&amp;T's milestone 1983
+      release of its commercial System V (five) release.</dd>
+  <dt id="System~2"><a class="permalink" href="#System~2"><b>System V release 2
+    (SVr2)</b></a></dt>
+  <dd>This was the next System V release, made in 1985. The SVr2 was formally
+      described in the <i>System V Interface Definition Issue 1</i> (<i>SVID
+      1</i>) published in 1985.</dd>
+  <dt id="System~3"><a class="permalink" href="#System~3"><b>System V release 3
+    (SVr3)</b></a></dt>
+  <dd>This was the successor to SVr2, released in 1986. This release was
+      formally described in the
+      <a class="Lk" href="https://bitsavers.org/pdf/att/unix/SVID/System_V_Interface_Definition_Issue_2_Volume_1_1986.pdf"><i>System
+      V Interface Definition Issue 2</i> (<i>SVID 2</i>)</a>.</dd>
+  <dt id="System~4"><a class="permalink" href="#System~4"><b>System V release 4
+    (SVr4)</b></a></dt>
+  <dd>This was the successor to SVr3, released in 1989. This version of System V
+      is described in the &quot;Programmer's Reference Manual: Operating System
+      API (Intel processors)&quot; (Prentice-Hall 1992, ISBN 0-13-951294-2) This
+      release was formally described in the
+      <a class="Lk" href="https://archive.org/details/systemvinterface0001unse/"><i>System
+      V Interface Definition Third Edition</i> (<i>SVID 3</i>)</a>, and is
+      considered the definitive System V release.</dd>
+  <dt id="SVID"><a class="permalink" href="#SVID"><b>SVID 4</b></a></dt>
+  <dd>System V Interface Definition version 4, issued in 1995. Available online
+      at
+      <a class="Lk" href="http://www.sco.com/developers/devspecs/">http://www.sco.com/developers/devspecs/</a>.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Standard_C"><a class="permalink" href="#Standard_C">Standard
+  C</a></h2>
+<dl class="Bl-tag">
+  <dt id="K&amp;R"><a class="permalink" href="#K&amp;R"><b>K&amp;R</b></a></dt>
+  <dd>This refers to the C language as specified in <i>&#x201C;The C Programming
+      Language&#x201D;</i> [Brian W. Kernighan and Dennis M. Ritchie; Prentice
+      Hall; 1st Ed., 1978].</dd>
+  <dt id="C89"><a class="permalink" href="#C89"><b>C89</b></a></dt>
+  <dd>This was the first C language standard, ratified by ANSI (American
+      National Standards Institute) in 1989 (<i>X3.159-1989</i>). Sometimes this
+      is known as <i>ANSI C</i>, but since C99 is also an ANSI standard, this
+      term is ambiguous. It is
+      <a class="Lk" href="https://nvlpubs.nist.gov/nistpubs/Legacy/FIPS/fipspub160.pdf">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The rationale for the C89 standard is also
+      <a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/C89Rationale.pdf">available
+      online</a>.</dd>
+  <dt></dt>
+  <dd>This standard was also ratified by ISO (International Standards
+      Organization) and IEC (International Electrotechnical Commision) in 1990
+      (<i>ISO/IEC&#x00A0;9899:1990</i>), and is thus occasionally referred to as
+      <i>ISO&#x00A0;C90</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="C94"><a class="permalink" href="#C94"><b>C94</b></a></dt>
+  <dd><a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/tc1.htm">Technical
+      Corrigendum 1</a> of C90 was ratified by ISO/IEC in 1994
+      (<i>ISO/IEC&#x00A0;9899:1990/Cor1:1994</i>).</dd>
+  <dt id="C95"><a class="permalink" href="#C95"><b>C95</b></a></dt>
+  <dd>This amendment of the C language standard was ratified by ISO/IEC in 1995
+      (<i>ISO/IEC&#x00A0;9899:1990/Amd1:1995</i>). A draft is
+      <a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n412.pdf">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The primary change in C95 was support for international character
+    sets.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="C96"><a class="permalink" href="#C96"><b>C96</b></a></dt>
+  <dd><a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/tc2.htm">Technical
+      Corrigendum 2</a> of C90 was ratified by ISO/IEC in 1996
+      (<i>ISO/IEC&#x00A0;9899:1990/Cor2:1996</i>). A draft is
+      <a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n457.pdf">available
+      online</a>.</dd>
+  <dt id="C99"><a class="permalink" href="#C99"><b>C99</b></a></dt>
+  <dd>This revision of the C language standard was ratified by ISO/IEC in 1999
+      (<i>ISO/IEC&#x00A0;9899:1999</i>).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd><a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/9899tc1/n32071.PDF">Technical
+      Corrigendum 1</a> of C99 was ratified by ISO/IEC in 2001
+      (<i>ISO/IEC&#x00A0;9899:1999/Cor1:2001</i>).</dd>
+  <dt></dt>
+  <dd><a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/9899-1999_cor_2-2004.pdf">Technical
+      Corrigendum 2</a> of C99 was ratified by ISO/IEC in 2004
+      (<i>ISO/IEC&#x00A0;9899:1999/Cor2:2004</i>).</dd>
+  <dt></dt>
+  <dd><a class="Lk" href="https://www.open-std.org/JTC1/SC22/WG14/www/docs/n1235.pdf">Technical
+      Corrigendum 3</a> of C99 was ratified by ISO/IEC in 2007
+      (<i>ISO/IEC&#x00A0;9899:1999/Cor3:2007</i>). A draft is
+      <a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf">available
+      online</a>.</dd>
+  <dt></dt>
+  <dd>The rationale for the C99 standard is also
+      <a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/C99RationaleV5.10.pdf">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="C11"><a class="permalink" href="#C11"><b>C11</b></a></dt>
+  <dd>This revision of the C language standard was ratified by ISO/IEC in 2011
+      (<i>ISO/IEC&#x00A0;9899:2011</i>). A draft is
+      <a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd><a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1606.pdf">Technical
+      Corrigendum 1</a> of C11 was ratified by ISO/IEC in 2012
+      (<i>ISO/IEC&#x00A0;9899:2011/Cor1:2012</i>).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="C17"><a class="permalink" href="#C17"><b>C17</b></a></dt>
+  <dd>This revision of the C language standard was ratified by ISO/IEC in 2018
+      (<i>ISO/IEC&#x00A0;9899:2018</i>). A draft is
+      <a class="Lk" href="https://web.archive.org/web/20181230041359if_/http://www.open-std.org/jtc1/sc22/wg14/www/abq/c17_updated_proposed_fdis.pdf">available
+      online</a>.</dd>
+  <dt id="C23"><a class="permalink" href="#C23"><b>C23</b></a></dt>
+  <dd>This revision of the C language standard was ratified by ISO/IEC in 2024
+      (<i>ISO/IEC&#x00A0;9899:2024</i>). A draft is
+      <a class="Lk" href="https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3220.pdf">available
+      online</a>.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="POSIX_and_SUS"><a class="permalink" href="#POSIX_and_SUS">POSIX
+  and SUS</a></h2>
+<dl class="Bl-tag">
+  <dt id="POSIX.1-1988"><a class="permalink" href="#POSIX.1-1988"><b>POSIX.1-1988</b></a></dt>
+  <dd>This was the first POSIX standard, ratified by IEEE in 1998
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1-1988</i>). The term &quot;POSIX&quot;
+      was coined by Richard Stallman. It is
+      <a class="Lk" href="https://nvlpubs.nist.gov/nistpubs/Legacy/FIPS/fipspub151-1.pdf">available
+      online</a>.</dd>
+  <dt id="POSIX.1-1990"><a class="permalink" href="#POSIX.1-1990"><b>POSIX.1-1990</b></a></dt>
+  <dd>Part 1, &quot;Portable Operating System Interface for Computing
+      Environments&quot;. Ratified by IEEE in 1990,
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1-1990</i>), and ratified by ISO/IEC in
+      1990 (<i>ISO/IEC&#x00A0;9945-1:1990</i>). It is
+      <a class="Lk" href="https://nvlpubs.nist.gov/nistpubs/Legacy/FIPS/fipspub151-2.pdf">available
+      online</a>.</dd>
+  <dt id="POSIX.2"><a class="permalink" href="#POSIX.2"><b>POSIX.2</b></a></dt>
+  <dd>Part 2, which describes commands and utilities. Ratified by IEEE in 1992
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.2-1992</i>), and ratified by ISO/IEC in
+      1993 (<i>ISO/IEC&#x00A0;9945-2:1993</i>).</dd>
+  <dt id="POSIX.1b"><a class="permalink" href="#POSIX.1b"><b>POSIX.1b</b>
+    (formerly known as <i>POSIX.4</i>)</a></dt>
+  <dd>Part 1b, which describes real-time facilities for portable operating
+      systems. Ratified by IEEE in 1993
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1b-1993</i>).</dd>
+  <dt id="POSIX.1c"><a class="permalink" href="#POSIX.1c"><b>POSIX.1c</b>
+    (formerly known as <i>POSIX.4a</i>)</a></dt>
+  <dd>Part 1c, which describes the POSIX threads interfaces. Ratified by IEEE in
+      1995 (<i>IEEE&#x00A0;Std&#x00A0;1003.1c-1995</i>).</dd>
+  <dt id="POSIX.1d"><a class="permalink" href="#POSIX.1d"><b>POSIX.1d</b></a></dt>
+  <dd>Part 1d, which describes additional real-time extensions. Ratified by IEEE
+      in 1999 (<i>IEEE&#x00A0;Std&#x00A0;1003.1d-1999</i>).</dd>
+  <dt id="POSIX.1g"><a class="permalink" href="#POSIX.1g"><b>POSIX.1g</b></a></dt>
+  <dd>Part 1g, which describes networking APIs (including sockets). Ratified by
+      IEEE in 2000 (<i>IEEE&#x00A0;Std&#x00A0;1003.1g-2000</i>).</dd>
+  <dt id="POSIX.1j"><a class="permalink" href="#POSIX.1j"><b>POSIX.1j</b></a></dt>
+  <dd>Part 1j, which describes advanced real-time extensions. Ratified by IEEE
+      in 2000 (<i>IEEE&#x00A0;Std&#x00A0;1003.1j-2000</i>).</dd>
+  <dt id="POSIX.1-1996"><a class="permalink" href="#POSIX.1-1996"><b>POSIX.1-1996</b></a></dt>
+  <dd>A revision of POSIX.1 which incorporated POSIX.1b and POSIX.1c. Ratified
+      by ISO/IEC in 1996 (<i>ISO/IEC&#x00A0;9945-1:1996</i>).</dd>
+  <dt id="XPG3"><a class="permalink" href="#XPG3"><b>XPG3</b></a></dt>
+  <dd>Released in 1989, this was the first release of the X/Open Portability
+      Guide to be based on a POSIX standard (POSIX.1-1988). It is also known as
+      <i>Issue&#x00A0;3</i>. This multivolume guide was developed by the X/Open
+      Group, a multivendor consortium.</dd>
+  <dt id="XPG4"><a class="permalink" href="#XPG4"><b>XPG4</b></a></dt>
+  <dd>A revision of the X/Open Portability Guide, released in 1992. It is also
+      known as <i>Issue&#x00A0;4</i>. This revision incorporated POSIX.2.</dd>
+  <dt id="XPG4v2"><a class="permalink" href="#XPG4v2"><b>XPG4v2</b></a></dt>
+  <dd>A 1994 revision of XPG4. This is also referred to as
+      <i>Spec&#x00A0;1170</i>, where 1170 referred to the number of interfaces
+      defined by this standard.</dd>
+  <dt id="SUS"><a class="permalink" href="#SUS"><b>SUS&#x00A0;(SUSv1)</b></a></dt>
+  <dd>Single UNIX Specification. This was a repackaging of XPG4v2 and other
+      X/Open standards (X/Open Curses Issue 4 version 2, X/Open Networking
+      Service (XNS) Issue 4). Systems conforming to this standard can be branded
+      <i>UNIX&#x00A0;95</i>.</dd>
+  <dt id="SUSv2"><a class="permalink" href="#SUSv2"><b>SUSv2</b></a></dt>
+  <dd>Single UNIX Specification version 2. Sometimes also referred to as
+      <i>Issue&#x00A0;5</i>. This standard appeared in 1997. Systems conforming
+      to this standard can be branded <i>UNIX&#x00A0;98</i>. See also
+      <a class="Lk" href="http://www.unix.org/version2/">http://www.unix.org/version2/</a>.)</dd>
+  <dt id="POSIX.1-2001"><a class="permalink" href="#POSIX.1-2001"><b>POSIX.1-2001</b></a></dt>
+  <dd></dd>
+  <dt id="SUSv3"><a class="permalink" href="#SUSv3"><b>SUSv3</b></a></dt>
+  <dd>This was a 2001 revision and consolidation of the POSIX.1, POSIX.2, and
+      SUS standards into a single document, conducted under the auspices of the
+      Austin Group
+      <a class="Lk" href="http://www.opengroup.org/austin/">http://www.opengroup.org/austin/</a>.
+      The standard is available online at
+      <a class="Lk" href="http://www.unix.org/version3/">http://www.unix.org/version3/</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The standard defines two levels of conformance: <i>POSIX conformance</i>,
+      which is a baseline set of interfaces required of a conforming system; and
+      <i>XSI Conformance</i>, which additionally mandates a set of interfaces
+      (the &quot;XSI extension&quot;) which are only optional for POSIX
+      conformance. XSI-conformant systems can be branded
+    <i>UNIX&#x00A0;03</i>.</dd>
+  <dt></dt>
+  <dd>The POSIX.1-2001 document is broken into four parts:</dd>
+  <dt></dt>
+  <dd><b>XBD</b>: Definitions, terms, and concepts, header file
+    specifications.</dd>
+  <dt></dt>
+  <dd><b>XSH</b>: Specifications of functions (i.e., system calls and library
+      functions in actual implementations).</dd>
+  <dt></dt>
+  <dd><b>XCU</b>: Specifications of commands and utilities (i.e., the area
+      formerly described by POSIX.2).</dd>
+  <dt></dt>
+  <dd><b>XRAT</b>: Informative text on the other parts of the standard.</dd>
+  <dt></dt>
+  <dd>POSIX.1-2001 is aligned with C99, so that all of the library functions
+      standardized in C99 are also standardized in POSIX.1-2001.</dd>
+  <dt></dt>
+  <dd>The Single UNIX Specification version 3 (SUSv3) comprises the Base
+      Specifications containing XBD, XSH, XCU, and XRAT as above, plus X/Open
+      Curses Issue 4 version 2 as an extra volume that is not in
+    POSIX.1-2001.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><b>POSIX.1-2001 2002 edition</b></dt>
+  <dd>Technical Corrigendum 1 of POSIX.1-2001 was ratified by IEEE in 2002
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1-2001/Cor1-2002</i>).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This is informally known as <i>POSIX.1-2002</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><b>POSIX.1-2001 2004 edition</b></dt>
+  <dd>Technical Corrigendum 2 of POSIX.1-2001 was ratified by IEEE in 2004
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1-2001/Cor2-2004</i>). It is
+      <a class="Lk" href="https://pubs.opengroup.org/onlinepubs/009695399/">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This is informally known as <i>POSIX.1-2004</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="POSIX.1-2008"><a class="permalink" href="#POSIX.1-2008"><b>POSIX.1-2008</b></a></dt>
+  <dd></dd>
+  <dt id="SUSv4"><a class="permalink" href="#SUSv4"><b>SUSv4</b></a></dt>
+  <dd>Work on the next revision of POSIX.1/SUS was completed and ratified in
+      2008. The standard is available online at
+      <a class="Lk" href="http://www.unix.org/version4/">http://www.unix.org/version4/</a>,
+      and also
+      <a class="Lk" href="https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/">here</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The changes in this revision are not as large as those that occurred for
+      POSIX.1-2001/SUSv3, but a number of new interfaces are added and various
+      details of existing specifications are modified. Many of the interfaces
+      that were optional in POSIX.1-2001 become mandatory in the 2008 revision
+      of the standard. A few interfaces that are present in POSIX.1-2001 are
+      marked as obsolete in POSIX.1-2008, or removed from the standard
+      altogether.</dd>
+  <dt></dt>
+  <dd>The revised standard is structured in the same way as its predecessor. The
+      Single UNIX Specification version 4 (SUSv4) comprises the Base
+      Specifications containing XBD, XSH, XCU, and XRAT, plus X/Open Curses
+      Issue 7 as an extra volume that is not in POSIX.1-2008.</dd>
+  <dt></dt>
+  <dd>Again there are two levels of conformance: the baseline <i>POSIX
+      Conformance</i>, and <i>XSI Conformance</i>, which mandates an additional
+      set of interfaces beyond those in the base specification.</dd>
+  <dt></dt>
+  <dd>In general, where the STANDARDS section of a manual page lists
+      POSIX.1-2001, it can be assumed that the interface also conforms to
+      POSIX.1-2008, unless otherwise noted.</dd>
+  <dt></dt>
+  <dd>Further information can be found on the Austin Group web site,
+      <a class="Lk" href="http://www.opengroup.org/austin/">http://www.opengroup.org/austin/</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><b>POSIX.1-2008 2013 edition</b></dt>
+  <dd>Technical Corrigendum 1 of POSIX.1-2008 was ratified by IEEE in 2013
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1-2008/Cor1-2013</i>). It is
+      <a class="Lk" href="https://pubs.opengroup.org/onlinepubs/9699919799.2013edition/">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This is informally known as <i>POSIX.1-2013</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><b>POSIX.1-2008 2016 edition</b></dt>
+  <dd>Technical Corrigendum 2 of POSIX.1-2008 was ratified by IEEE in 2016
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1-2008/Cor2-2016</i>). It is
+      <a class="Lk" href="https://pubs.opengroup.org/onlinepubs/9699919799.2016edition/">available
+      online</a>.</dd>
+  <dt><b>SUSv4 2016 edition</b></dt>
+  <dd>This is equivalent to POSIX.1-2008 2016 edition, with the addition of the
+      XCurses specification.</dd>
+  <dt id="POSIX.1-2017"><a class="permalink" href="#POSIX.1-2017"><b>POSIX.1-2017</b></a></dt>
+  <dd>This revision of POSIX is technically identical to POSIX.1-2008 2016
+      edition. Ratified by IEEE in 2017
+      (<i>IEEE&#x00A0;Std&#x00A0;1003.1-2017</i>). It is
+      <a class="Lk" href="https://pubs.opengroup.org/onlinepubs/9699919799/">available
+      online</a>.</dd>
+  <dt><b>SUSv4 2018 edition</b></dt>
+  <dd>This is equivalent to POSIX.1-2017, with the addition of the XCurses
+      specification.</dd>
+  <dt id="POSIX.1-2024"><a class="permalink" href="#POSIX.1-2024"><b>POSIX.1-2024</b></a></dt>
+  <dd></dd>
+  <dt id="SUSv5"><a class="permalink" href="#SUSv5"><b>SUSv5</b></a></dt>
+  <dd>Work on the next revision of POSIX.1/SUS was completed and ratified by
+      IEEE in 2024 (<i>IEEE&#x00A0;Std&#x00A0;1003.1-2024</i>). It is
+      <a class="Lk" href="https://pubs.opengroup.org/onlinepubs/9799919799/">available
+      online</a>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>POSIX.1-2024 is aligned with C17, so that all of the library functions
+      standardized in C17 are also standardized in POSIX.1-2024.</dd>
+  <dt></dt>
+  <dd>Further information can be found on the
+      <a class="Lk" href="http://www.opengroup.org/austin/">Austin Group web
+      site</a>.</dd>
+</dl>
+<p class="Pp">The interfaces documented in POSIX.1/SUS are available as manual
+    pages under sections 0p (header files), 1p (commands), and 3p (functions);
+    thus one can write <i>man&#x00A0;3p&#x00A0;open</i>.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Other_standards"><a class="permalink" href="#Other_standards">Other
+  standards</a></h2>
+<dl class="Bl-tag">
+  <dt id="LFS"><a class="permalink" href="#LFS"><b>LFS</b></a></dt>
+  <dd>The Large File Summit specification, completed in 1996. This specification
+      defined mechanisms that allowed 32-bit systems to support the use of large
+      files (i.e., 64-bit file offsets). See
+      <a class="Lk" href="https_//www.opengroup.org/platform/lfs.html">https://www.opengroup.org/platform/lfs.html</a>.</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>getconf</b>(1), <b>confstr</b>(3), <b>pathconf</b>(3),
+    <b>sysconf</b>(3), <b>attributes</b>(7), <b>feature_test_macros</b>(7),
+    <b>libc</b>(7), <b>posixoptions</b>(7), <b>system_data_types</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-03</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

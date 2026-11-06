@@ -1,0 +1,69 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">hd(4)</td>
+    <td class="head-vol">Device Drivers Manual</td>
+    <td class="head-rtitle">hd(4)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">hd - MFM/IDE hard disk devices</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>hd*</b> devices are block devices to access MFM/IDE hard
+    disk drives in raw mode. The master drive on the primary IDE controller
+    (major device number 3) is <b>hda</b>; the slave drive is <b>hdb</b>. The
+    master drive of the second controller (major device number 22) is <b>hdc</b>
+    and the slave is <b>hdd</b>.</p>
+<p class="Pp">General IDE block device names have the form <b>hd</b><i>X</i>, or
+    <b>hd</b><i>XP</i>, where <i>X</i> is a letter denoting the physical drive,
+    and <i>P</i> is a number denoting the partition on that physical drive. The
+    first form, <b>hd</b><i>X</i>, is used to address the whole drive. Partition
+    numbers are assigned in the order the partitions are discovered, and only
+    nonempty, nonextended partitions get a number. However, partition numbers
+    1&#x2013;4 are given to the four partitions described in the MBR (the
+    &quot;primary&quot; partitions), regardless of whether they are unused or
+    extended. Thus, the first logical partition will be
+    <b>hd</b><i>X</i><b>5</b>. Both DOS-type partitioning and BSD-disklabel
+    partitioning are supported. You can have at most 63 partitions on an IDE
+    disk.</p>
+<p class="Pp">For example, <i>/dev/hda</i> refers to all of the first IDE drive
+    in the system; and <i>/dev/hdb3</i> refers to the third DOS
+    &quot;primary&quot; partition on the second one.</p>
+<p class="Pp">They are typically created by:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>mknod -m 660 /dev/hda b 3 0
+mknod -m 660 /dev/hda1 b 3 1
+mknod -m 660 /dev/hda2 b 3 2
+...
+mknod -m 660 /dev/hda8 b 3 8
+mknod -m 660 /dev/hdb b 3 64
+mknod -m 660 /dev/hdb1 b 3 65
+mknod -m 660 /dev/hdb2 b 3 66
+...
+mknod -m 660 /dev/hdb8 b 3 72
+chown root:disk /dev/hd*
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/dev/hd*</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>chown</b>(1), <b>mknod</b>(1), <b>sd</b>(4),
+  <b>mount</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,207 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_DH_COMPUTE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_DH_COMPUTE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_DH_COMPUTE - compute a Diffie-Hellman shared secret or
+    public key</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(</b>size_t n;
+<b>             SYS_keyctl, KEYCTL_DH_COMPUTE,</b>
+<b>             struct keyctl_dh_params *</b><i>dh_params</i><b>,</b>
+<b>             char </b><i>buf</i><b>[</b><i>n</i><b>], size_t </b><i>n</i><b>,</b>
+<b>             struct keyctl_kdf_params *_Nullable </b><i>kdf_params</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Compute a Diffie-Hellman shared secret or public key, optionally
+    applying key derivation function (KDF) to the result.</p>
+<p class="Pp">The <i>dh_params</i> argument is a pointer to a set of parameters
+    containing serial numbers for three <i>&quot;user&quot;</i> keys used in the
+    Diffie-Hellman calculation, packaged in a structure of the following
+  form:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct keyctl_dh_params {
+<br/>
+    int32_t private; /* The local private key */
+<br/>
+    int32_t prime; /* The prime, known to both parties */
+<br/>
+    int32_t base;  /* The base integer: either a shared
+<br/>
+                      generator or the remote public key */
+};
+</pre>
+<br/>
+<p class="Pp">Each of the three keys specified in this structure must grant the
+    caller <i>read</i> permission. The payloads of these keys are used to
+    calculate the Diffie-Hellman result as:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>base ^ private mod prime
+</pre>
+<br/>
+<p class="Pp">If the base is the shared generator, the result is the local
+    public key. If the base is the remote public key, the result is the shared
+    secret.</p>
+<p class="Pp">The <i>buf</i> argument points to a buffer where the result of the
+    calculation is placed. The size of that buffer is specified in <i>n</i>.</p>
+<p class="Pp">The buffer must be large enough to accommodate the output data,
+    otherwise an error is returned. If <i>n</i> is specified zero, in which case
+    the buffer is not used and the operation returns the minimum required buffer
+    size (i.e., the length of the prime).</p>
+<p class="Pp">Diffie-Hellman computations can be performed in user space, but
+    require a multiple-precision integer (MPI) library. Moving the
+    implementation into the kernel gives access to the kernel MPI
+    implementation, and allows access to secure or acceleration hardware.</p>
+<p class="Pp">Adding support for DH computation to the <b>keyctl</b>() system
+    call was considered a good fit due to the DH algorithm's use for deriving
+    shared keys; it also allows the type of the key to determine which DH
+    implementation (software or hardware) is appropriate.</p>
+<p class="Pp">If the <i>kdf_params</i> argument is <b>NULL</b>, then the DH
+    result itself is returned. Otherwise (since Linux 4.12), it is a pointer to
+    a structure which specifies parameters of the KDF operation to be
+  applied:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct keyctl_kdf_params {
+<br/>
+    char *hashname;     /* Hash algorithm name */
+<br/>
+    char *otherinfo;    /* SP800-56A OtherInfo */
+<br/>
+    __u32 otherinfolen; /* Length of otherinfo data */
+<br/>
+    __u32 __spare[8];   /* Reserved */
+};
+</pre>
+<br/>
+<p class="Pp">The <i>hashname</i> field is a null-terminated string which
+    specifies a hash name (available in the kernel's crypto API; the list of the
+    hashes available is rather tricky to observe; please refer to the
+    <a class="Lk" href="https_//www.kernel.org/doc/html/latest/crypto/architecture.html">&quot;Kernel
+    Crypto API Architecture&quot;</a> documentation for the information
+    regarding how hash names are constructed and your kernel's source and
+    configuration regarding what ciphers and templates with type
+    <b>CRYPTO_ALG_TYPE_SHASH</b> are available) to be applied to DH result in
+    KDF operation.</p>
+<p class="Pp">The <i>otherinfo</i> field is an <i>OtherInfo</i> data as
+    described in SP800-56A section 5.8.1.2 and is algorithm-specific. This data
+    is concatenated with the result of DH operation and is provided as an input
+    to the KDF operation. Its size is provided in the <i>otherinfolen</i> field
+    and is limited by <b>KEYCTL_KDF_MAX_OI_LEN</b> constant that defined in
+    <i>security/keys/internal.h</i> to a value of 64.</p>
+<p class="Pp">The <b>__spare</b> field is currently unused. It was ignored until
+    Linux 4.13 (but still should be user-addressable since it is copied to the
+    kernel), and should contain zeros since Linux 4.13.</p>
+<p class="Pp">The KDF implementation complies with SP800-56A as well as with
+    SP800-108 (the counter KDF).</p>
+<p class="Pp">This operation is exposed by <i>libkeyutils</i> (from
+    <i>libkeyutils</i> 1.5.10 onwards) via the functions
+    <b>keyctl_dh_compute</b>(3) and <b>keyctl_dh_compute_alloc</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the number of bytes copied to the buffer, or, if
+    <i>n</i> is 0, the required buffer size.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>There was an error during crypto module initialization.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>One of the following has failed:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>copying of the <i>struct keyctl_dh_params</i>, provided in the
+      <i>dh_params</i> argument, from user space;</dd>
+  <dt>&#x2022;</dt>
+  <dd>copying of the <i>struct keyctl_kdf_params</i>, provided in the non-NULL
+      <i>kdf_params</i> argument, from user space (in case kernel supports
+      performing KDF operation on DH operation result);</dd>
+  <dt>&#x2022;</dt>
+  <dd>copying of data pointed by the <i>hashname</i> field of the <i>struct
+      keyctl_kdf_params</i> from user space;</dd>
+  <dt>&#x2022;</dt>
+  <dd>copying of data pointed by the <i>otherinfo</i> field of the <i>struct
+      keyctl_kdf_params</i> from user space if the <i>otherinfolen</i> field was
+      nonzero;</dd>
+  <dt>&#x2022;</dt>
+  <dd>copying of the result to user space.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b> (before
+    Linux 4.12)</a></dt>
+  <dd>Argument <i>kdf_params</i> was non-NULL.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The digest size of the hashing algorithm supplied is zero.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>The buffer size provided is not enough to hold the result. Provide 0 as a
+      buffer size in order to obtain the minimum buffer size.</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd>The hash name provided in the <i>hashname</i> field of the <i>struct
+      keyctl_kdf_params</i> pointed by <i>kdf_params</i> argument is too big
+      (the limit is implementation-specific and varies between kernel versions,
+      but it is deemed big enough for all valid algorithm names).</dd>
+  <dt id="EINVAL~5"><a class="permalink" href="#EINVAL~5"><b>EINVAL</b></a></dt>
+  <dd>The <i>__spare</i> field of the <i>struct keyctl_kdf_params</i> provided
+      in the <i>kdf_params</i> argument contains nonzero values.</dd>
+  <dt id="EMSGSIZE"><a class="permalink" href="#EMSGSIZE"><b>EMSGSIZE</b></a></dt>
+  <dd>The buffer length exceeds <b>KEYCTL_KDF_MAX_OUTPUT_LEN</b> (which is 1024
+      currently) or the <i>otherinfolen</i> field of the <i>struct
+      keyctl_kdf_parms</i> passed in <i>kdf_params</i> exceeds
+      <b>KEYCTL_KDF_MAX_OI_LEN</b> (which is 64 currently).</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>The hashing algorithm specified in the <i>hashname</i> field of the
+      <i>struct keyctl_kdf_params</i> pointed by <i>kdf_params</i> argument
+      hasn't been found.</dd>
+  <dt id="ETIMEDOUT"><a class="permalink" href="#ETIMEDOUT"><b>ETIMEDOUT</b></a></dt>
+  <dd>The initialization of crypto modules has timed out.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.7.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_dh_compute</b>(3),
+    <b>keyctl_dh_compute_alloc</b>(3), <b>keyctl_dh_compute_kdf</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

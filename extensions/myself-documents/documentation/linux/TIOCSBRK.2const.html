@@ -1,0 +1,75 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TCSBRK(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TCSBRK(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TCSBRK, TCSBRKP, TIOCSBRK, TIOCCBRK - sending a break</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of <b>T*BRK*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TCSBRK, int </b><i>arg</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCSBRKP, int </b><i>arg</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCSBRK);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCCBRK);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="TCSBRK"><a class="permalink" href="#TCSBRK"><b>TCSBRK</b></a></dt>
+  <dd>Equivalent to <i>tcsendbreak(fd, arg)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If the terminal is using asynchronous serial data transmission, and
+      <i>arg</i> is zero, then send a break (a stream of zero bits) for between
+      0.25 and 0.5 seconds. If the terminal is not using asynchronous serial
+      data transmission, then either a break is sent, or the function returns
+      without doing anything. When <i>arg</i> is nonzero, nobody knows what will
+      happen.</dd>
+  <dt></dt>
+  <dd>(SVr4, UnixWare, Solaris, and Linux treat <i>tcsendbreak(fd,arg)</i> with
+      nonzero <i>arg</i> like <i>tcdrain(fd)</i>. SunOS treats <i>arg</i> as a
+      multiplier, and sends a stream of bits <i>arg</i> times as long as done
+      for zero <i>arg</i>. DG/UX and AIX treat <i>arg</i> (when nonzero) as a
+      time interval measured in milliseconds. HP-UX ignores <i>arg</i>.)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TCSBRKP"><a class="permalink" href="#TCSBRKP"><b>TCSBRKP</b></a></dt>
+  <dd>So-called &quot;POSIX version&quot; of <b>TCSBRK</b>. It treats nonzero
+      <i>arg</i> as a time interval measured in deciseconds, and does nothing
+      when the driver does not support breaks.</dd>
+  <dt id="TIOCSBRK"><a class="permalink" href="#TIOCSBRK"><b>TIOCSBRK</b></a></dt>
+  <dd>Turn break on, that is, start sending zero bits.</dd>
+  <dt id="TIOCCBRK"><a class="permalink" href="#TIOCCBRK"><b>TIOCCBRK</b></a></dt>
+  <dd>Turn break off, that is, stop sending zero bits.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

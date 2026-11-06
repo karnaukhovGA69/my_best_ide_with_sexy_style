@@ -1,0 +1,58 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ld.so.conf(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">ld.so.conf(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ld.so.conf - ld.so configuration file</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>/etc/ld.so.conf</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This file contains a list of directories, one per line, in which
+    to search for libraries.</p>
+<p class="Pp">The file is parsed by <b>ldconfig</b>(8) and the results stored in
+    <i>/etc/ld.so.cache</i>.</p>
+<section class="Ss">
+<h2 class="Ss" id="Directives"><a class="permalink" href="#Directives">Directives</a></h2>
+<p class="Pp">The syntax allows lines to start with the keyword <b>include</b>
+    followed by a <b>glob</b>(7) pattern. Files matching that pattern will be
+    processed as if their contents were included at that point.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/etc/ld.so.conf</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">Example config file:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>/lib
+/usr/lib
+/usr/local/lib
+include /etc/ld.so.conf.d/*.conf
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ld.so</b>(8), <b>ldconfig</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-23</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

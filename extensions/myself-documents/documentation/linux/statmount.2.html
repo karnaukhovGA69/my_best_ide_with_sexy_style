@@ -1,0 +1,364 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">statmount(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">statmount(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">statmount - get a mount status</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/mount.h&gt;</b>  /* Definition of STATMOUNT_* constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(SYS_statmount, struct mnt_id_req *</b><i>req</i><b>,</b>
+<b>            struct statmount *</b><i>smbuf</i><b>, size_t </b><i>bufsize</i><b>,</b>
+<b>            unsigned int </b><i>flags</i><b>);</b></pre>
+<pre><b>#include &lt;linux/mount.h&gt;</b></pre>
+<p class="Pp"></p>
+<pre><b>struct mnt_id_req {</b>
+<b>    __u32  size;</b>        /* sizeof(struct mnt_id_req) */
+<b>    union {</b>
+<b>        __u32  mnt_ns_fd;</b>  /* fd of mnt_ns to query the mnt_id in */
+<b>        __u32  mnt_fd;</b>     /* fd on the mount being queried */
+<b>    };</b>
+<b>    __u64  mnt_id;</b>      /* The mnt_id being queried */
+<b>    __u64  param;</b>       /* ORed combination of the STATMOUNT_ constants */
+<b>    __u32  mnt_ns_id;</b>   /* The id of mnt_ns to query the mnt_id in */
+<b>};</b></pre>
+<pre><b>struct statmount {</b>
+<b>    __u32  size;</b>
+<b>    __u32  mnt_opts;</b>
+<b>    __u64  mask;</b>
+<b>    __u32  sb_dev_major;</b>
+<b>    __u32  sb_dev_minor;</b>
+<b>    __u64  sb_magic;</b>
+<b>    __u32  sb_flags;</b>
+<b>    __u32  fs_type;</b>
+<b>    __u64  mnt_id;</b>
+<b>    __u64  mnt_parent_id;</b>
+<b>    __u32  mnt_id_old;</b>
+<b>    __u32  mnt_parent_id_old;</b>
+<b>    __u64  mnt_attr;</b>
+<b>    __u64  mnt_propagation;</b>
+<b>    __u64  mnt_peer_group;</b>
+<b>    __u64  mnt_master;</b>
+<b>    __u64  propagate_from;</b>
+<b>    __u32  mnt_root;</b>
+<b>    __u32  mnt_point;</b>
+<b>    __u64  mnt_ns_id;</b>
+<b>    __u32  fs_subtype;</b>
+<b>    __u32  sb_source;</b>
+<b>    __u32  opt_num;</b>
+<b>    __u32  opt_array;</b>
+<b>    __u32  opt_sec_num;</b>
+<b>    __u32  opt_sec_array;</b>
+<b>    __u32  mnt_uidmap_num;</b>
+<b>    __u32  mnt_uidmap;</b>
+<b>    __u32  mnt_gidmap_num;</b>
+<b>    __u32  mnt_gidmap;</b>
+<b>    __u64  supported_mask;</b>
+<b>    char   str[];</b>
+<b>};</b>
+</pre>
+<p class="Pp"><i>Note</i>: glibc provides no wrapper for <b>statmount</b>(),
+    necessitating the use of <b>syscall</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">To access a mount's status, the caller must have CAP_SYS_ADMIN in
+    the user namespace. In case of accessing a mount in a foreign mount
+    namespace (specified via <i>req.mnt_ns_id</i> or <i>req.mnt_ns_fd</i>), the
+    foreign mount namespace should be child of the current namespace.</p>
+<p class="Pp">This function returns information about a mount, storing it in the
+    buffer pointed to by <i>smbuf</i>. The returned buffer is a <i>struct
+    statmount</i> which is of size <i>bufsize</i> with the fields filled in as
+    described below. <i>flags</i> must either be 0 or
+  <b>STATMOUNT_BY_FD</b>.</p>
+<p class="Pp">(Note that reserved space and padding is omitted.)</p>
+<section class="Ss">
+<h2 class="Ss" id="The_mnt_id_req_structure"><a class="permalink" href="#The_mnt_id_req_structure">The
+  mnt_id_req structure</a></h2>
+<p class="Pp"><i>req.size</i> is used by the kernel to determine which
+    <i>struct&#x00A0;mnt_id_req</i> is being passed in; it should always be set
+    to <i>sizeof(struct&#x00A0;mnt_id_req)</i>.</p>
+<p class="Pp"><i>req.mnt_ns_fd</i> can be obtained from
+    <b>PIDFD_GET_MNT_NAMESPACE</b> <b>ioctl</b>(2) operation or by opening a
+    file descriptor to <i>/proc/</i>pid<i>/ns/mnt</i> and is used to specify a
+    foreign mount namespace in which to query <i>req.mnt_id</i> (since Linux
+    6.18).</p>
+<p class="Pp"><i>req.mnt_fd</i> is a file descriptor on a mount. If
+    <b>STATMOUNT_BY_FD</b> flag is specified, <i>req.mnt_id</i> and
+    <i>req.mnt_ns_id</i> are zeroed, the function will return information about
+    the mount the file descriptor is on (since Linux 7.0).</p>
+<p class="Pp">The fd can also be on a mount that has been lazily unmounted (see
+    <b>umount2</b>(2) with <b>MNT_DETACH</b>). In this case,
+    <b>STATMOUNT_MNT_POINT</b> and <b>STATMOUNT_MNT_NS_ID</b> will be unset,
+    since an unmounted mount is no longer a part of the filesystem.</p>
+<p class="Pp"><i>req.mnt_id</i> can be obtained from either <b>statx</b>(2)
+    using <b>STATX_MNT_ID_UNIQUE</b> or from <b>listmount</b>(2) and is used as
+    the identifier to query the status of the desired mount point.</p>
+<p class="Pp"><i>req.param</i> is used to tell the kernel which fields the
+    caller is interested in. It is an ORed combination of the following
+    constants</p>
+<p class="Pp">
+  <br/>
+</p>
+<table class="tbl">
+  <tr>
+    <td><b>STATMOUNT_SB_BASIC</b></td>
+    <td>/* Want/got sb_* */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_MNT_BASIC</b></td>
+    <td>/* Want/got mnt_* */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_PROPAGATE_FROM</b></td>
+    <td>/* Want/got propagate_from */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_MNT_ROOT</b></td>
+    <td>/* Want/got mnt_root */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_MNT_POINT</b></td>
+    <td>/* Want/got mnt_point */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_FS_TYPE</b></td>
+    <td>/* Want/got fs_type */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_MNT_NS_ID</b></td>
+    <td>/* Want/got mnt_ns_id */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_MNT_OPTS</b></td>
+    <td>/* Want/got mnt_opts */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_FS_SUBTYPE</b></td>
+    <td>/* Want/got fs_subtype */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_SB_SOURCE</b></td>
+    <td>/* Want/got sb_source */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_OPT_ARRAY</b></td>
+    <td>/* Want/got opt_{num,array} */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_OPT_SEC_ARRAY</b></td>
+    <td>/* Want/got opt_sec_{num,array} */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_MNT_UIDMAP</b></td>
+    <td>/* Want/got uidmap{_num,} */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_MNT_GIDMAP</b></td>
+    <td>/* Want/got gidmap{_num,} */</td>
+  </tr>
+  <tr>
+    <td><b>STATMOUNT_SUPPORTED_MASK</b></td>
+    <td>/* Want/got supported mask flags */</td>
+  </tr>
+</table>
+<br/>
+<p class="Pp">In general, the kernel does <i>not</i> reject values in
+    <i>req.param</i> other than the above. (For an exception, see <b>EINVAL</b>
+    in errors.) Instead, it simply informs the caller which values are supported
+    by this kernel and filesystem via the <i>statmount.mask</i> field.
+    Therefore, <i>do not</i> simply set <i>req.param</i> to <b>UINT_MAX</b> (all
+    bits set), as one or more bits may, in the future, be used to specify an
+    extension to the buffer.</p>
+<p class="Pp"><i>req.mnt_ns_id</i> can be obtained from <b>NS_GET_MNTNS_ID</b>
+    <b>ioctl</b>(2) operation and is used to specify a foreign mount namespace
+    in which to query <i>req.mnt_id</i> (since Linux 6.11).</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="The_returned_information"><a class="permalink" href="#The_returned_information">The
+  returned information</a></h2>
+<p class="Pp">The status information for the target mount is returned in the
+    <i>statmount</i> structure pointed to by <i>smbuf</i>.</p>
+<p class="Pp">The fields in the <i>statmount</i> structure are:</p>
+<dl class="Bl-tag">
+  <dt id="smbuf.size"><a class="permalink" href="#smbuf.size"><i>smbuf.size</i></a></dt>
+  <dd>The size of the returned <i>smbuf</i> structure, including any of the
+      strings fields that were filled.</dd>
+  <dt id="smbuf.mnt_opts"><a class="permalink" href="#smbuf.mnt_opts"><i>smbuf.mnt_opts</i>
+    (since Linux 6.11)</a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains a
+      comma separated list of mount options, similiar to those in
+      <b>proc_pid_mountinfo</b>(5)<b>.</b> It is a null-terminated string.</dd>
+  <dt id="smbuf.mask"><a class="permalink" href="#smbuf.mask"><i>smbuf.mask</i></a></dt>
+  <dd>The ORed combination of <b>STATMOUNT_</b><i>*</i> flags indicating which
+      fields were filled in and thus valid. The kernel may return fields that
+      weren't requested, and may fail to return fields that were requested,
+      depending on what the backing file system and kernel supports. In either
+      case, <i>req.param</i> will not be equal to <i>mask</i>.</dd>
+  <dt id="smbuf.sb_dev_major"><a class="permalink" href="#smbuf.sb_dev_major"><i>smbuf.sb_dev_major</i></a></dt>
+  <dd></dd>
+  <dt id="smbuf.sb_dev_minor"><a class="permalink" href="#smbuf.sb_dev_minor"><i>smbuf.sb_dev_minor</i></a></dt>
+  <dd>The device that is mounted at this mount point.</dd>
+  <dt id="smbuf.sb_magic"><a class="permalink" href="#smbuf.sb_magic"><i>smbuf.sb_magic</i></a></dt>
+  <dd>The file system specific super block magic.</dd>
+  <dt id="smbuf.sb_flags"><a class="permalink" href="#smbuf.sb_flags"><i>smbuf.sb_flags</i></a></dt>
+  <dd>The flags that are set on the super block, an ORed combination of
+      <b>SB_RDONLY</b>, <b>SB_SYNCHRONOUS</b>, <b>SB_DIRSYNC</b>,
+      <b>SB_LAZYTIME</b>.</dd>
+  <dt id="smbuf.fs_type"><a class="permalink" href="#smbuf.fs_type"><i>smbuf.fs_type</i></a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      the string representation of the mounted file system. It is a
+      null-terminated string.</dd>
+  <dt id="smbuf.mnt_id"><a class="permalink" href="#smbuf.mnt_id"><i>smbuf.mnt_id</i></a></dt>
+  <dd>The unique mount ID of the mount.</dd>
+  <dt id="smbuf.mnt_parent_id"><a class="permalink" href="#smbuf.mnt_parent_id"><i>smbuf.mnt_parent_id</i></a></dt>
+  <dd>The unique mount ID of the parent mount point of this mount. If this is
+      the root mount point then
+      <i>smbuf.mnt_id&#x00A0;==&#x00A0;smbuf.parent_mount_id</i>.</dd>
+  <dt id="smbuf.mnt_id_old"><a class="permalink" href="#smbuf.mnt_id_old"><i>smbuf.mnt_id_old</i></a></dt>
+  <dd>This corresponds to the mount ID that is exported by
+      <i>/proc/</i>pid<i>/mountinfo</i>.</dd>
+  <dt id="smbuf.mnt_parent_id_old"><a class="permalink" href="#smbuf.mnt_parent_id_old"><i>smbuf.mnt_parent_id_old</i></a></dt>
+  <dd>This corresponds to the parent mount ID that is exported by
+      <i>/proc/</i>pid<i>/mountinfo</i>.</dd>
+  <dt id="smbuf.mnt_attr"><a class="permalink" href="#smbuf.mnt_attr"><i>smbuf.mnt_attr</i></a></dt>
+  <dd>The <b>MOUNT_ATTR_</b><i>*</i> flags set on this mount point.</dd>
+  <dt id="smbuf.mnt_propagation"><a class="permalink" href="#smbuf.mnt_propagation"><i>smbuf.mnt_propagation</i></a></dt>
+  <dd>The mount propagation flags, which can be one of <b>MS_SHARED</b>,
+      <b>MS_SLAVE</b>, <b>MS_PRIVATE</b>, <b>MS_UNBINDABLE</b>.</dd>
+  <dt id="smbuf.mnt_peer_group"><a class="permalink" href="#smbuf.mnt_peer_group"><i>smbuf.mnt_peer_group</i></a></dt>
+  <dd>The ID of the shared peer group.</dd>
+  <dt id="smbuf.mnt_master"><a class="permalink" href="#smbuf.mnt_master"><i>smbuf.mnt_master</i></a></dt>
+  <dd>The mount point receives its propagation from this mount ID.</dd>
+  <dt id="smbuf.propagate_from"><a class="permalink" href="#smbuf.propagate_from"><i>smbuf.propagate_from</i></a></dt>
+  <dd>The ID from the namespace we propagated from.</dd>
+  <dt id="smbuf.mnt_root"><a class="permalink" href="#smbuf.mnt_root"><i>smbuf.mnt_root</i></a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      the string representation of the mount relative to the root of the file
+      system. It is a null-terminated string.</dd>
+  <dt id="smbuf.mnt_point"><a class="permalink" href="#smbuf.mnt_point"><i>smbuf.mnt_point</i></a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      the string representation of the mount relative to the current root (ie if
+      you are in a <b>chroot</b>). It is a null-terminated string.</dd>
+  <dt id="smbuf.mnt_ns_id"><a class="permalink" href="#smbuf.mnt_ns_id"><i>smbuf.mnt_ns_id</i>
+    (since Linux 6.11)</a></dt>
+  <dd>The unique ID of the mount namespace the mount belongs to.</dd>
+  <dt id="smbuf.fs_subtype"><a class="permalink" href="#smbuf.fs_subtype"><i>smbuf.fs_subtype</i>
+    (since Linux 6.13)</a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      the string representation of the file system subtype. This is particularly
+      useful for disambiguating FUSE mounts. It is a null-terminated
+    string.</dd>
+  <dt id="smbuf.sb_source"><a class="permalink" href="#smbuf.sb_source"><i>smbuf.sb_source</i>
+    (since Linux 6.13)</a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> that contains the
+      source of the mount. It is a null-terminated string.</dd>
+  <dt id="smbuf.opt_num"><a class="permalink" href="#smbuf.opt_num"><i>smbuf.opt_num</i>
+    (since Linux 6.13)</a></dt>
+  <dd>The number of filesystem options set on the mount.</dd>
+  <dt id="smbuf.opt_array"><a class="permalink" href="#smbuf.opt_array"><i>smbuf.opt_array</i>
+    (since Linux 6.13)</a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      file system options separated by null bytes. They can be iterated over
+      with the help of <i>smbuf.opt_num</i>.</dd>
+  <dt id="smbuf.opt_sec_num"><a class="permalink" href="#smbuf.opt_sec_num"><i>smbuf.opt_sec_num</i>
+    (since Linux 6.13)</a></dt>
+  <dd>The number of security options set on the mount.</dd>
+  <dt id="smbuf.opt_sec_array"><a class="permalink" href="#smbuf.opt_sec_array"><i>smbuf.opt_sec_array</i>
+    (since Linux 6.13)</a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      security options separated by null bytes. They can be iterated over with
+      the help of <i>smbuf.opt_sec_num</i>.</dd>
+  <dt id="smbuf.mnt_uidmap_num"><a class="permalink" href="#smbuf.mnt_uidmap_num"><i>smbuf.mnt_uidmap_num</i>
+    (since Linux 6.15)</a></dt>
+  <dd>The number of uid mappings applied on the mount. If <i>smbuf.mask</i> has
+      STATMOUNT_MNT_UIDMAP set and this field is 0, then uid mappings applied on
+      the mount cannot be resolved in the user namespace of the caller.</dd>
+  <dt id="smbuf.mnt_uidmap"><a class="permalink" href="#smbuf.mnt_uidmap"><i>smbuf.mnt_uidmap</i>
+    (since Linux 6.15)</a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      uid mappings as consecutive null-terminated strings. They can be iterated
+      over with the help of <i>smbuf.mnt_uidmap_num</i>. The whole range of uid
+      mappings must be resolvable in the user namespace of the caller.</dd>
+  <dt id="smbuf.mnt_gidmap_num"><a class="permalink" href="#smbuf.mnt_gidmap_num"><i>smbuf.mnt_gidmap_num</i>
+    (since Linux 6.15)</a></dt>
+  <dd>The number of gid mappings applied on the mount. If <i>smbuf.mask</i> has
+      STATMOUNT_MNT_GIDMAP set and this field is 0, then gid mappings applied on
+      the mount cannot be resolved in the user namespace of the caller.</dd>
+  <dt id="smbuf.mnt_gidmap"><a class="permalink" href="#smbuf.mnt_gidmap"><i>smbuf.mnt_gidmap</i>
+    (since Linux 6.15)</a></dt>
+  <dd>The offset to the location in the <i>smbuf.str</i> buffer that contains
+      gid mappings as consecutive null-terminated strings. They can be iterated
+      over with the help of <i>smbuf.mnt_gidmap_num</i>. The whole range of gid
+      mappings must be resolvable in the user namespace of the caller.</dd>
+  <dt id="smbuf.supported_mask"><a class="permalink" href="#smbuf.supported_mask"><i>smbuf.supported_mask</i>
+    (since Linux 6.15)</a></dt>
+  <dd>The ORed combination of <b>STATMOUNT_</b><i>*</i> flags supported by the
+      current kernel.</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>Permission is denied for accessing this mount.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>req</i> or <i>smbuf</i> points to a location outside the process's
+      accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid flag specified in <i>flags</i>.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>req</i> is of insufficient size to be utilized.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>Both <i>req.mnt_ns_id</i> and <i>req.mnt_ns_fd</i> were set.</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd><i>req.mnt_id</i> or <i>req.mnt_ns_id</i> was specified alongside
+      <i>req.mnt_fd</i>.</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>req.mnt_fd</i> is an invalid file descriptor.</dd>
+  <dt id="E2BIG"><a class="permalink" href="#E2BIG"><b>E2BIG</b></a></dt>
+  <dd><i>req</i> is too large.</dd>
+  <dt id="EOVERFLOW"><a class="permalink" href="#EOVERFLOW"><b>EOVERFLOW</b></a></dt>
+  <dd>The size of <i>smbuf</i> is too small to contain either the
+      <i>smbuf.fs_type</i>, <i>smbuf.mnt_root</i>, or <i>smbuf.mnt_point</i>.
+      Allocate a larger buffer and retry the call.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>The specified <i>req.mnt_id</i> doesn't exist.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>Out of memory (i.e., kernel memory).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>listmount</b>(2), <b>statx</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-22</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,135 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">memory.h(3head)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">memory.h(3head)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">memory.h - memory operations</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;memory.h&gt;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Write"><a class="permalink" href="#Write">Write</a></h2>
+<dl class="Bl-tag">
+  <dt id="bzero"><a class="permalink" href="#bzero"><b>bzero</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="explicit_bzero"><a class="permalink" href="#explicit_bzero"><b>explicit_bzero</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="memset"><a class="permalink" href="#memset"><b>memset</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="memset_explicit"><a class="permalink" href="#memset_explicit"><b>memset_explicit</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Copy"><a class="permalink" href="#Copy">Copy</a></h2>
+<dl class="Bl-tag">
+  <dt id="memmove"><a class="permalink" href="#memmove"><b>memmove</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="memcpy"><a class="permalink" href="#memcpy"><b>memcpy</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="mempcpy"><a class="permalink" href="#mempcpy"><b>mempcpy</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="memccpy"><a class="permalink" href="#memccpy"><b>memccpy</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="strncpy"><a class="permalink" href="#strncpy"><b>strncpy</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="stpncpy"><a class="permalink" href="#stpncpy"><b>stpncpy</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Catenate"><a class="permalink" href="#Catenate">Catenate</a></h2>
+<dl class="Bl-tag">
+  <dt id="strncat"><a class="permalink" href="#strncat"><b>strncat</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Duplicate"><a class="permalink" href="#Duplicate">Duplicate</a></h2>
+<dl class="Bl-tag">
+  <dt id="strndup"><a class="permalink" href="#strndup"><b>strndup</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="strndupa"><a class="permalink" href="#strndupa"><b>strndupa</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Compare"><a class="permalink" href="#Compare">Compare</a></h2>
+<dl class="Bl-tag">
+  <dt id="memeq"><a class="permalink" href="#memeq"><b>memeq</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="memcmp"><a class="permalink" href="#memcmp"><b>memcmp</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="strncmp"><a class="permalink" href="#strncmp"><b>strncmp</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="strncasecmp"><a class="permalink" href="#strncasecmp"><b>strncasecmp</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Search"><a class="permalink" href="#Search">Search</a></h2>
+<dl class="Bl-tag">
+  <dt id="memchr"><a class="permalink" href="#memchr"><b>memchr</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="memrchr"><a class="permalink" href="#memrchr"><b>memrchr</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="memmem"><a class="permalink" href="#memmem"><b>memmem</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">In some systems (Illumos), <i>&lt;memory.h&gt;</i> contains only a
+    few of these functions, and thus <i>&lt;string.h&gt;</i> is needed.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">BSD.</p>
+<p class="Pp">These functions are also provided in <i>&lt;string.h&gt;</i>, as
+    specified by ISO C. This is a historic mistake maintained for compatibility
+    reasons; these functions aren't string APIs.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SVr1, 4.3BSD.</p>
+<p class="Pp">System V (1983) introduced an initial set of mem* functions in a
+    <i>&lt;memory.h&gt;</i> header file. 4.3BSD (1986) adopted them.</p>
+<p class="Pp">SVID Issue 1 (1985) standardized this header file, but stated that
+    the functions would be moved to <i>&lt;string.h&gt;</i>.</p>
+<p class="Pp">XPG Issue 3 (1989) listed <i>&lt;memory.h&gt;</i> as WITHDRAWN,
+    and stated that the functions had been moved to <i>&lt;string.h&gt;</i>.</p>
+<p class="Pp">C89 didn't standardize this header file and instead specified all
+    these functions in <i>&lt;string.h&gt;</i>.</p>
+<p class="Pp">This merge of header files has historically confused programmers
+    about the real purpose of these functions.</p>
+<p class="Pp">Most C libraries, including the BSDs, glibc, musl, Bionic, and
+    Illumos continue to provide <i>&lt;memory.h&gt;.</i></p>
+<p class="Pp">gnulib doesn't provide it, though, and instead uses
+    <i>&lt;string.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>string</b>(3), <b>string_copying</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,134 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_maps(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_maps(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/maps - mapped memory regions</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/maps</i></dt>
+  <dd>A file containing the currently mapped memory regions and their access
+      permissions. See <b>mmap</b>(2) for some further information about memory
+      mappings.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Permission to access this file is governed by <b>CAP_PERFMON</b> (since
+      Linux 6.15) or a ptrace access mode <b>PTRACE_MODE_READ_FSCREDS</b> check;
+      see <b>ptrace</b>(2).</dd>
+  <dt></dt>
+  <dd>The format of the file is:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre><i>address           perms offset  dev   inode       pathname</i>
+00400000-00452000 r-xp 00000000 08:02 173521      /usr/bin/dbus-daemon
+00651000-00652000 r--p 00051000 08:02 173521      /usr/bin/dbus-daemon
+00652000-00655000 rw-p 00052000 08:02 173521      /usr/bin/dbus-daemon
+00e03000-00e24000 rw-p 00000000 00:00 0           [heap]
+00e24000-011f7000 rw-p 00000000 00:00 0           [heap]
+...
+35b1800000-35b1820000 r-xp 00000000 08:02 135522  /usr/lib64/ld-2.15.so
+35b1a1f000-35b1a20000 r--p 0001f000 08:02 135522  /usr/lib64/ld-2.15.so
+35b1a20000-35b1a21000 rw-p 00020000 08:02 135522  /usr/lib64/ld-2.15.so
+35b1a21000-35b1a22000 rw-p 00000000 00:00 0
+35b1c00000-35b1dac000 r-xp 00000000 08:02 135870  /usr/lib64/libc-2.15.so
+35b1dac000-35b1fac000 ---p 001ac000 08:02 135870  /usr/lib64/libc-2.15.so
+35b1fac000-35b1fb0000 r--p 001ac000 08:02 135870  /usr/lib64/libc-2.15.so
+35b1fb0000-35b1fb2000 rw-p 001b0000 08:02 135870  /usr/lib64/libc-2.15.so
+...
+f2c6ff8c000-7f2c7078c000 rw-p 00000000 00:00 0    [stack:986]
+...
+7fffb2c0d000-7fffb2c2e000 rw-p 00000000 00:00 0   [stack]
+7fffb2d48000-7fffb2d49000 r-xp 00000000 00:00 0   [vdso]
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The <i>address</i> field is the address space in the process that the
+      mapping occupies. The <i>perms</i> field is a set of permissions:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>r = read
+w = write
+x = execute
+s = shared
+p = private (copy on write)
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The <i>offset</i> field is the offset into the file/whatever; <i>dev</i>
+      is the device (major:minor); <i>inode</i> is the inode on that device. 0
+      indicates that no inode is associated with the memory region, as would be
+      the case with BSS (uninitialized data).</dd>
+  <dt></dt>
+  <dd>The <i>pathname</i> field will usually be the file that is backing the
+      mapping. For ELF files, you can easily coordinate with the <i>offset</i>
+      field by looking at the Offset field in the ELF program headers
+      (<i>readelf&#x00A0;-l</i>).</dd>
+  <dt></dt>
+  <dd>There are additional helpful pseudo-paths:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><i>[stack]</i></dt>
+  <dd>The initial process's (also known as the main thread's) stack.</dd>
+  <dt><i>[stack:</i>tid<i>]</i> (from Linux 3.4 to Linux 4.4)</dt>
+  <dd>A thread's stack (where the <i>tid</i> is a thread ID). It corresponds to
+      the <i>/proc/</i>pid<i>/task/</i>tid<i>/</i> path. This field was removed
+      in Linux 4.5, since providing this information for a process with large
+      numbers of threads is expensive.</dd>
+  <dt><i>[vdso]</i></dt>
+  <dd>The virtual dynamically linked shared object. See <b>vdso</b>(7).</dd>
+  <dt><i>[heap]</i></dt>
+  <dd>The process's heap.</dd>
+  <dt><i>[anon:</i>name<i>]</i> (since Linux 5.17)</dt>
+  <dd>A named private anonymous mapping. Set with <b>prctl</b>(2)
+      <b>PR_SET_VMA_ANON_NAME</b>.</dd>
+  <dt><i>[anon_shmem:</i>name<i>]</i> (since Linux 6.2)</dt>
+  <dd>A named shared anonymous mapping. Set with <b>prctl</b>(2)
+      <b>PR_SET_VMA_ANON_NAME</b>.
+    <br/>
+  </dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If the <i>pathname</i> field is blank, this is an anonymous mapping as
+      obtained via <b>mmap</b>(2). There is no easy way to coordinate this back
+      to a process's source, short of running it through <b>gdb</b>(1),
+      <b>strace</b>(1), or similar.</dd>
+  <dt></dt>
+  <dd><i>pathname</i> is shown unescaped except for newline characters, which
+      are replaced with an octal escape sequence. As a result, it is not
+      possible to determine whether the original pathname contained a newline
+      character or the literal <i>\012</i> character sequence.</dd>
+  <dt></dt>
+  <dd>If the mapping is file-backed and the file has been deleted, the string
+      &quot; (deleted)&quot; is appended to the pathname. Note that this is
+      ambiguous too.</dd>
+  <dt></dt>
+  <dd>Under Linux 2.0, there is no field giving pathname.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

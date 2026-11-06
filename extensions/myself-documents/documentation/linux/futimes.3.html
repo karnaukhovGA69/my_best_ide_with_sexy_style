@@ -1,0 +1,116 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">futimes(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">futimes(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">futimes, lutimes - change file timestamps</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/time.h&gt;</b></pre>
+<pre><b>int futimes(int </b><i>fd</i><b>, const struct timeval </b><i>tv</i><b>[2]);</b>
+<b>int lutimes(const char *</b><i>path</i><b>, const struct timeval </b><i>tv</i><b>[2]);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>futimes</b>(), <b>lutimes</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.19:
+<br/>
+        _DEFAULT_SOURCE
+<br/>
+    glibc 2.19 and earlier:
+<br/>
+        _BSD_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>futimes</b>() changes the access and modification times of a
+    file in the same way as <b>utimes</b>(2), with the difference that the file
+    whose timestamps are to be changed is specified via a file descriptor,
+    <i>fd</i>, rather than via a pathname.</p>
+<p class="Pp"><b>lutimes</b>() changes the access and modification times of a
+    file in the same way as <b>utimes</b>(2), with the difference that if
+    <i>path</i> refers to a symbolic link, then the link is not dereferenced:
+    instead, the timestamps of the symbolic link are changed.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">Errors are as for <b>utimes</b>(2), with the following additions
+    for <b>futimes</b>():</p>
+<dl class="Bl-tag">
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>fd</i> is not a valid file descriptor.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd>The <i>/proc</i> filesystem could not be accessed.</dd>
+</dl>
+<p class="Pp">The following additional error may occur for <b>lutimes</b>():</p>
+<dl class="Bl-tag">
+  <dt id="ENOSYS~2"><a class="permalink" href="#ENOSYS~2"><b>ENOSYS</b></a></dt>
+  <dd>The kernel does not support this call; Linux 2.6.22 or later is
+    required.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>futimes (), lutimes ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux, BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="futimes"><a class="permalink" href="#futimes"><b>futimes</b>()</a></dt>
+  <dd>glibc 2.3.</dd>
+  <dt id="lutimes"><a class="permalink" href="#lutimes"><b>lutimes</b>()</a></dt>
+  <dd>glibc 2.6.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp"><b>lutimes</b>() is implemented using the <b>utimensat</b>(2)
+    system call.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>utime</b>(2), <b>utimensat</b>(2), <b>symlink</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

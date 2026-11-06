@@ -1,0 +1,63 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_mountstats(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_mountstats(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/mountstats - mount statistics</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/mountstats</i> (since Linux 2.6.17)</dt>
+  <dd>This file exports information (statistics, configuration information)
+      about the mounts in the process's mount namespace (see
+      <b>mount_namespaces</b>(7)). Lines in this file have the form:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>device /dev/sda7 mounted on /home with fstype ext3 [stats]
+(       1      )            ( 2 )             (3 ) (  4  )
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The fields in each line are:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>(1)</dt>
+  <dd>The name of the mounted device (or &quot;nodevice&quot; if there is no
+      corresponding device).</dd>
+  <dt>(2)</dt>
+  <dd>The mount point within the filesystem tree.</dd>
+  <dt>(3)</dt>
+  <dd>The filesystem type.</dd>
+  <dt>(4)</dt>
+  <dd>Optional statistics and configuration information. Currently (as at Linux
+      2.6.26), only NFS filesystems export information via this field.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This file is readable only by the owner of the process.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

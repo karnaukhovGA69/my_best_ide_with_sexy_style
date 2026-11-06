@@ -1,0 +1,78 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">stime(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">stime(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">stime - set time</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;time.h&gt;</b></pre>
+<pre><b>[[deprecated]] int stime(const time_t *</b><i>t</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>stime</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.19:
+<br/>
+        _DEFAULT_SOURCE
+<br/>
+    glibc 2.19 and earlier:
+<br/>
+        _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>NOTE</b>: This function is deprecated; use
+    <b>clock_settime</b>(2) instead.</p>
+<p class="Pp"><b>stime</b>() sets the system's idea of the time and date. The
+    time, pointed to by <i>t</i>, is measured in seconds since the Epoch,
+    1970-01-01 00:00:00 +0000 (UTC). <b>stime</b>() may be executed only by the
+    superuser.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>Error in getting information from user space.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The calling process has insufficient privilege. Under Linux, the
+      <b>CAP_SYS_TIME</b> privilege is required.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SVr4.</p>
+<p class="Pp">Starting with glibc 2.31, this function is no longer available to
+    newly linked applications and is no longer declared in
+    <i>&lt;time.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>date</b>(1), <b>settimeofday</b>(2), <b>capabilities</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,53 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_ide(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_ide(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/ide/ - IDE channels and attached devices</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/ide</i></dt>
+  <dd>This directory exists on systems with the IDE bus. There are directories
+      for each IDE channel and attached device. Files include:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>cache              buffer size in KB
+capacity           number of sectors
+driver             driver version
+geometry           physical and logical geometry
+identify           in hexadecimal
+media              media type
+model              manufacturer's model number
+settings           drive settings
+smart_thresholds   IDE disk management thresholds (in hex)
+smart_values       IDE disk management values (in hex)
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The <b>hdparm</b>(8) utility provides access to this information in a
+      friendly format.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

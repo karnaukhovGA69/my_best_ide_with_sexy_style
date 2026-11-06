@@ -1,0 +1,242 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">UFFDIO_API(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">UFFDIO_API(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">UFFDIO_API - enable operation of the userfaultfd and perform API
+    handshake</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b>  /* Definition of <b>UFFD*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, UFFDIO_API, struct uffdio_api *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b></pre>
+<pre></pre>
+<pre><b>struct uffdio_api {</b>
+<b>    __u64 api;</b>       /* Requested API version (input) */
+<b>    __u64 features;</b>  /* Requested features (input/output) */
+<b>    __u64 ioctls;</b>    /* Available ioctl() operations (output) */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Enable operation of the userfaultfd and perform API handshake.</p>
+<p class="Pp">The <i>api</i> field denotes the API version requested by the
+    application. The kernel verifies that it can support the requested API
+    version, and sets the <i>features</i> and <i>ioctls</i> fields to bit masks
+    representing all the available features and the generic <b>ioctl</b>(2)
+    operations available.</p>
+<p class="Pp">Before Linux 4.11, the <i>features</i> field must be initialized
+    to zero before the call to <b>UFFDIO_API</b>, and zero (i.e., no feature
+    bits) is placed in the <i>features</i> field by the kernel upon return from
+    <b>ioctl</b>(2).</p>
+<p class="Pp">Since Linux 4.11, userfaultfd supports features that need to be
+    enabled explicitly. To enable any of the features, one needs to set the
+    corresponding feature bits in <i>features</i> when issuing the
+    <b>UFFDIO_API</b> ioctl.</p>
+<p class="Pp">For historical reasons, a temporary userfaultfd is needed to probe
+    what userfaultfd features the kernel supports. The application needs to
+    create a temporary userfaultfd, issue an <b>UFFDIO_API</b> ioctl with
+    <i>features</i> set to zero. After the <b>UFFDIO_API</b> ioctl returns
+    successfully, <i>features</i> should contain all the userfaultfd features
+    that the kernel supports. The temporary userfaultfd can be safely closed
+    after the probe.</p>
+<p class="Pp">If the application sets unsupported feature bits, the kernel will
+    zero out the returned <i>uffdio_api</i> structure and return
+  <b>EINVAL</b>.</p>
+<p class="Pp">The following feature bits may be set:</p>
+<dl class="Bl-tag">
+  <dt id="UFFD_FEATURE_EVENT_FORK"><a class="permalink" href="#UFFD_FEATURE_EVENT_FORK"><b>UFFD_FEATURE_EVENT_FORK</b>
+    (since Linux 4.11)</a></dt>
+  <dd>When this feature is enabled, the userfaultfd objects associated with a
+      parent process are duplicated into the child process during <b>fork</b>(2)
+      and a <b>UFFD_EVENT_FORK</b> event is delivered to the userfaultfd
+    monitor</dd>
+  <dt id="UFFD_FEATURE_EVENT_REMAP"><a class="permalink" href="#UFFD_FEATURE_EVENT_REMAP"><b>UFFD_FEATURE_EVENT_REMAP</b>
+    (since Linux 4.11)</a></dt>
+  <dd>If this feature is enabled, when the faulting process invokes
+      <b>mremap</b>(2), the userfaultfd monitor will receive an event of type
+      <b>UFFD_EVENT_REMAP</b>.</dd>
+  <dt id="UFFD_FEATURE_EVENT_REMOVE"><a class="permalink" href="#UFFD_FEATURE_EVENT_REMOVE"><b>UFFD_FEATURE_EVENT_REMOVE</b>
+    (since Linux 4.11)</a></dt>
+  <dd>If this feature is enabled, when the faulting process calls
+      <b>madvise</b>(2) with the <b>MADV_DONTNEED</b> or <b>MADV_REMOVE</b>
+      advice value to free a virtual memory area the userfaultfd monitor will
+      receive an event of type <b>UFFD_EVENT_REMOVE</b>.</dd>
+  <dt id="UFFD_FEATURE_EVENT_UNMAP"><a class="permalink" href="#UFFD_FEATURE_EVENT_UNMAP"><b>UFFD_FEATURE_EVENT_UNMAP</b>
+    (since Linux 4.11)</a></dt>
+  <dd>If this feature is enabled, when the faulting process unmaps virtual
+      memory either explicitly with <b>munmap</b>(2), or implicitly during
+      either <b>mmap</b>(2) or <b>mremap</b>(2), the userfaultfd monitor will
+      receive an event of type <b>UFFD_EVENT_UNMAP</b>.</dd>
+  <dt id="UFFD_FEATURE_MISSING_HUGETLBFS"><a class="permalink" href="#UFFD_FEATURE_MISSING_HUGETLBFS"><b>UFFD_FEATURE_MISSING_HUGETLBFS</b>
+    (since Linux 4.11)</a></dt>
+  <dd>If this feature bit is set, the kernel supports registering userfaultfd
+      ranges on hugetlbfs virtual memory areas</dd>
+  <dt id="UFFD_FEATURE_MISSING_SHMEM"><a class="permalink" href="#UFFD_FEATURE_MISSING_SHMEM"><b>UFFD_FEATURE_MISSING_SHMEM</b>
+    (since Linux 4.11)</a></dt>
+  <dd>If this feature bit is set, the kernel supports registering userfaultfd
+      ranges on shared memory areas. This includes all kernel shared memory
+      APIs: System V shared memory, <b>tmpfs</b>(5), shared mappings of
+      <i>/dev/zero</i>, <b>mmap</b>(2) with the <b>MAP_SHARED</b> flag set,
+      <b>memfd_create</b>(2), and so on.</dd>
+  <dt id="UFFD_FEATURE_SIGBUS"><a class="permalink" href="#UFFD_FEATURE_SIGBUS"><b>UFFD_FEATURE_SIGBUS</b>
+    (since Linux 4.14)</a></dt>
+  <dd>If this feature bit is set, no page-fault events
+      (<b>UFFD_EVENT_PAGEFAULT</b>) will be delivered. Instead, a <b>SIGBUS</b>
+      signal will be sent to the faulting process. Applications using this
+      feature will not require the use of a userfaultfd monitor for processing
+      memory accesses to the regions registered with userfaultfd.</dd>
+  <dt id="UFFD_FEATURE_THREAD_ID"><a class="permalink" href="#UFFD_FEATURE_THREAD_ID"><b>UFFD_FEATURE_THREAD_ID</b>
+    (since Linux 4.14)</a></dt>
+  <dd>If this feature bit is set, <i>uffd_msg.pagefault.feat.ptid</i> will be
+      set to the faulted thread ID for each page-fault message.</dd>
+  <dt id="UFFD_FEATURE_PAGEFAULT_FLAG_WP"><a class="permalink" href="#UFFD_FEATURE_PAGEFAULT_FLAG_WP"><b>UFFD_FEATURE_PAGEFAULT_FLAG_WP</b>
+    (since Linux 5.10)</a></dt>
+  <dd>If this feature bit is set, userfaultfd supports write-protect faults for
+      anonymous memory. (Note that shmem / hugetlbfs support is indicated by a
+      separate feature.)</dd>
+  <dt id="UFFD_FEATURE_MINOR_HUGETLBFS"><a class="permalink" href="#UFFD_FEATURE_MINOR_HUGETLBFS"><b>UFFD_FEATURE_MINOR_HUGETLBFS</b>
+    (since Linux 5.13)</a></dt>
+  <dd>If this feature bit is set, the kernel supports registering userfaultfd
+      ranges in minor mode on hugetlbfs-backed memory areas.</dd>
+  <dt id="UFFD_FEATURE_MINOR_SHMEM"><a class="permalink" href="#UFFD_FEATURE_MINOR_SHMEM"><b>UFFD_FEATURE_MINOR_SHMEM</b>
+    (since Linux 5.14)</a></dt>
+  <dd>If this feature bit is set, the kernel supports registering userfaultfd
+      ranges in minor mode on shmem-backed memory areas.</dd>
+  <dt id="UFFD_FEATURE_EXACT_ADDRESS"><a class="permalink" href="#UFFD_FEATURE_EXACT_ADDRESS"><b>UFFD_FEATURE_EXACT_ADDRESS</b>
+    (since Linux 5.18)</a></dt>
+  <dd>If this feature bit is set, <i>uffd_msg.pagefault.address</i> will be set
+      to the exact page-fault address that was reported by the hardware, and
+      will not mask the offset within the page. Note that old Linux versions
+      might indicate the exact address as well, even though the feature bit is
+      not set.</dd>
+  <dt id="UFFD_FEATURE_WP_HUGETLBFS_SHMEM"><a class="permalink" href="#UFFD_FEATURE_WP_HUGETLBFS_SHMEM"><b>UFFD_FEATURE_WP_HUGETLBFS_SHMEM</b>
+    (since Linux 5.19)</a></dt>
+  <dd>If this feature bit is set, userfaultfd supports write-protect faults for
+      hugetlbfs and shmem / tmpfs memory.</dd>
+  <dt id="UFFD_FEATURE_WP_UNPOPULATED"><a class="permalink" href="#UFFD_FEATURE_WP_UNPOPULATED"><b>UFFD_FEATURE_WP_UNPOPULATED</b>
+    (since Linux 6.4)</a></dt>
+  <dd>If this feature bit is set, the kernel will handle anonymous memory the
+      same way as file memory, by allowing the user to write-protect unpopulated
+      page table entries.</dd>
+  <dt id="UFFD_FEATURE_POISON"><a class="permalink" href="#UFFD_FEATURE_POISON"><b>UFFD_FEATURE_POISON</b>
+    (since Linux 6.6)</a></dt>
+  <dd>If this feature bit is set, the kernel supports resolving faults with the
+      <b>UFFDIO_POISON</b> ioctl.</dd>
+  <dt id="UFFD_FEATURE_WP_ASYNC"><a class="permalink" href="#UFFD_FEATURE_WP_ASYNC"><b>UFFD_FEATURE_WP_ASYNC</b>
+    (since Linux 6.7)</a></dt>
+  <dd>If this feature bit is set, the write protection faults would be
+      asynchronously resolved by the kernel.</dd>
+  <dt id="UFFD_FEATURE_MOVE"><a class="permalink" href="#UFFD_FEATURE_MOVE"><b>UFFD_FEATURE_MOVE</b>
+    (since Linux 6.8)</a></dt>
+  <dd>If this feature bit is set, the kernel supports resolving faults with the
+      <b>UFFDIO_MOVE</b> ioctl.</dd>
+  <dt id="UFFD_FEATURE_RWP"><a class="permalink" href="#UFFD_FEATURE_RWP"><b>UFFD_FEATURE_RWP</b>
+    (since Linux 7.2)</a></dt>
+  <dd>If this feature bit is set, the kernel supports read-write-protection
+      tracking, and the <b>UFFDIO_REGISTER_MODE_RWP</b> registration mode and
+      the <b>UFFDIO_RWPROTECT</b> ioctl become available.</dd>
+  <dt id="UFFD_FEATURE_RWP_ASYNC"><a class="permalink" href="#UFFD_FEATURE_RWP_ASYNC"><b>UFFD_FEATURE_RWP_ASYNC</b>
+    (since Linux 7.2)</a></dt>
+  <dd>If this feature bit is set, the kernel will resolve read-write-protect
+      faults in place without delivering a notification, automatically restoring
+      page permissions and letting the faulted thread continue. This bit
+      requires <b>UFFD_FEATURE_RWP</b> to be set in the same <b>UFFDIO_API</b>
+      call. The async mode can also be toggled at runtime using the
+      <b>UFFDIO_SET_MODE</b>(2const) ioctl.</dd>
+</dl>
+<p class="Pp">The returned <i>argp-&gt;ioctls</i> field can contain the
+    following bits:</p>
+<dl class="Bl-tag">
+  <dt><b>1 &lt;&lt; _UFFDIO_API</b></dt>
+  <dd>The <b>UFFDIO_API</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_REGISTER</b></dt>
+  <dd>The <b>UFFDIO_REGISTER</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_UNREGISTER</b></dt>
+  <dd>The <b>UFFDIO_UNREGISTER</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_SET_MODE</b> (since Linux 7.2)</dt>
+  <dd>The <b>UFFDIO_SET_MODE</b> operation is supported. This is a
+      file-descriptor-level ioctl and is reported once per userfaultfd,
+      independent of any registered range.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned.</p>
+<p class="Pp">On error, -1 is returned and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>argp</i> refers to an address that is outside the calling process's
+      accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The API version requested in the <i>api</i> field is not supported by this
+      kernel, or the <i>features</i> field passed to the kernel includes feature
+      bits that are not supported by the current kernel version.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>A previous <b>UFFDIO_API</b> call already enabled one or more features for
+      this userfaultfd. Calling <b>UFFDIO_API</b> twice, the first time with no
+      features set, is explicitly allowed as per the two-step feature detection
+      handshake.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The <b>UFFD_FEATURE_EVENT_FORK</b> feature was enabled, but the calling
+      process doesn't have the <b>CAP_SYS_PTRACE</b> capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.3.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">If an error occurs, the kernel may zero the provided
+    <i>uffdio_api</i> structure. The caller should treat its contents as
+    unspecified, and reinitialize it before re-attempting another
+    <b>UFFDIO_API</b> call.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">In order to detect available userfault features and enable some
+    subset of those features the userfaultfd file descriptor must be closed
+    after the first <b>UFFDIO_API</b> operation that queries features
+    availability and reopened before the second <b>UFFDIO_API</b> operation that
+    actually enables the desired features.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>userfaultfd</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_userfaultfd</b>(2), <b>mmap</b>(2),
+    <b>userfaultfd</b>(2)</p>
+<p class="Pp"><i>linux.git/Documentation/admin-guide/mm/userfaultfd.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-04</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

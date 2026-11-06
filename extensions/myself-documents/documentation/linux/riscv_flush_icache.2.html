@@ -1,0 +1,54 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">__riscv_flush_icache(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">__riscv_flush_icache(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">__riscv_flush_icache - Flush icaches on RISC-V</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/cachectl.h&gt;</b></pre>
+<pre><b>int __riscv_flush_icache(void *start, void *end, unsigned long flags);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>__riscv_flush_icache</b>() enforces ordering between stores and
+    instruction cache fetches.</p>
+<p class="Pp">The range of addresses over which ordering is enforced is
+    specified by <i>start</i> and <i>end</i>.</p>
+<p class="Pp">The <i>flags</i> argument controls the extent of this ordering,
+    with the default behavior (a <i>flags</i> value of 0) being to enforce the
+    fence on all threads in the current process. Setting the
+    <b>SYS_RISCV_FLUSH_ICACHE_LOCAL</b> bit allows users to indicate that
+    enforcing ordering on only the current thread is necessary. All other bits
+    in <i>flags</i> are reserved.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux on RISC-V.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.15. glibc 2.27.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>syscall</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

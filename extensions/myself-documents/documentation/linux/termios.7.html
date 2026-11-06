@@ -1,0 +1,101 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">termios(7)</td>
+    <td class="head-vol">Miscellaneous Information Manual</td>
+    <td class="head-rtitle">termios(7)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">termios - terminal input/output settings</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;termios.h&gt;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The termios functions describe a general terminal interface that
+    is provided to control asynchronous communications ports.</p>
+<section class="Ss">
+<h2 class="Ss" id="Retrieving_and_changing_terminal_settings"><a class="permalink" href="#Retrieving_and_changing_terminal_settings">Retrieving
+  and changing terminal settings</a></h2>
+<dl class="Bl-tag">
+  <dt id="tcgetattr"><a class="permalink" href="#tcgetattr"><b>tcgetattr</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="tcsetattr"><a class="permalink" href="#tcsetattr"><b>tcsetattr</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Canonical_and_noncanonical_mode"><a class="permalink" href="#Canonical_and_noncanonical_mode">Canonical
+  and noncanonical mode</a></h2>
+<p class="Pp">See <b>termios</b>(3type).</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Raw_mode"><a class="permalink" href="#Raw_mode">Raw
+  mode</a></h2>
+<dl class="Bl-tag">
+  <dt id="cfmakeraw"><a class="permalink" href="#cfmakeraw"><b>cfmakeraw</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Line_control"><a class="permalink" href="#Line_control">Line
+  control</a></h2>
+<dl class="Bl-tag">
+  <dt id="tcsendbreak"><a class="permalink" href="#tcsendbreak"><b>tcsendbreak</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="tcdrain"><a class="permalink" href="#tcdrain"><b>tcdrain</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="tcflush"><a class="permalink" href="#tcflush"><b>tcflush</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="tcflow"><a class="permalink" href="#tcflow"><b>tcflow</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Line_speed"><a class="permalink" href="#Line_speed">Line
+  speed</a></h2>
+<dl class="Bl-tag">
+  <dt id="cfgetospeed"><a class="permalink" href="#cfgetospeed"><b>cfgetospeed</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="cfsetospeed"><a class="permalink" href="#cfsetospeed"><b>cfsetospeed</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="cfgetispeed"><a class="permalink" href="#cfgetispeed"><b>cfgetispeed</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="cfsetispeed"><a class="permalink" href="#cfsetispeed"><b>cfsetispeed</b>(3)</a></dt>
+  <dd></dd>
+  <dt id="cfsetspeed"><a class="permalink" href="#cfsetspeed"><b>cfsetspeed</b>(3)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>reset</b>(1), <b>setterm</b>(1), <b>stty</b>(1),
+    <b>tput</b>(1), <b>tset</b>(1), <b>tty</b>(1), <b>ioctl_console</b>(2),
+    <b>ioctl_tty</b>(2), <b>cc_t</b>(3type), <b>speed_t</b>(3type),
+    <b>tcflag_t</b>(3type), <b>setserial</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

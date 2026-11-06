@@ -1,0 +1,37 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_profile(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_profile(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/profile - kernel profiling</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/profile</i> (since Linux 2.4)</dt>
+  <dd>This file is present only if the kernel was booted with the
+      <i>profile=1</i> command-line option. It exposes kernel profiling
+      information in a binary format for use by <b>readprofile</b>(1). Writing
+      (e.g., an empty string) to this file resets the profiling counters; on
+      some architectures, writing a binary integer &quot;profiling
+      multiplier&quot; of size <i>sizeof(int)</i> sets the profiling interrupt
+      frequency.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

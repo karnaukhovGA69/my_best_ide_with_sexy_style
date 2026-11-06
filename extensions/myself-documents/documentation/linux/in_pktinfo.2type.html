@@ -1,0 +1,77 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">in_pktinfo(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">in_pktinfo(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">in_pktinfo - information about the incoming packet</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b></pre>
+<p class="Pp"></p>
+<pre>struct in_pktinfo {
+<br/>
+    unsigned int    ipi_ifindex;   /* Interface index */
+<br/>
+    struct in_addr  ipi_spec_dst;  /* Local address */
+<br/>
+    struct in_addr  ipi_addr;      /* Header Destination address */
+};
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="recvmsg(2)"><a class="permalink" href="#recvmsg(2)">recvmsg(2)</a></h2>
+<p class="Pp">When returned by <b>recvmsg</b>(2)<b>,</b> <i>.ipi_ifindex</i> is
+    the unique index of the interface the packet was received on.</p>
+<p class="Pp"><i>.ipi_spec_dst</i> is the preferred source address for replies
+    to the given packet.</p>
+<p class="Pp"><i>.ipi_addr</i> is the destination address in the packet
+  header.</p>
+<p class="Pp">These addresses are usually the same, but can differ for broadcast
+    or multicast packets. Depending on the configured routes,
+    <i>.ipi_spec_dst</i> might belong to a different interface from the one that
+    received the packet.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="sendmsg(2)"><a class="permalink" href="#sendmsg(2)">sendmsg(2)</a></h2>
+<p class="Pp">If <b>IP_PKTINFO</b> is passed to <b>sendmsg</b>(2) and
+    <i>.ipi_spec_dst</i> is not zero, then it is used as the local source
+    address, for the routing table lookup, and for setting up IP source route
+    options.</p>
+<p class="Pp">When <i>.ipi_ifindex</i> is not zero, the primary local address of
+    the interface specified by the index overwrites <i>.ipi_spec_dst</i> for the
+    routing table lookup.</p>
+<p class="Pp"><i>.ipi_addr</i> is ignored.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.2.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IP_PKTINFO</b>(2const), <b>setsockopt</b>(2), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-26</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,94 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sys_kernel_cgroup(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">sys_kernel_cgroup(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/sys/kernel/cgroup/ - Linux control groups</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><i>/sys/kernel/cgroup/</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/sys/kernel/cgroup/delegate</i> (since Linux 4.15)</dt>
+  <dd>This file exports a list of the cgroups v2 files (one per line) that are
+      delegatable (i.e., whose ownership should be changed to the user ID of the
+      delegatee). In the future, the set of delegatable files may change or
+      grow, and this file provides a way for the kernel to inform user-space
+      applications of which files must be delegated. As at Linux 4.15, one sees
+      the following when inspecting this file:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>$<b> cat /sys/kernel/cgroup/delegate</b>
+cgroup.procs
+cgroup.subtree_control
+cgroup.threads
+    </pre>
+    <br/>
+  </dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><i>/sys/kernel/cgroup/features</i> (since Linux 4.15)</dt>
+  <dd>Over time, the set of cgroups v2 features that are provided by the kernel
+      may change or grow, or some features may not be enabled by default. This
+      file provides a way for user-space applications to discover what features
+      the running kernel supports and has enabled. Features are listed one per
+      line:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>$<b> cat /sys/kernel/cgroup/features</b>
+nsdelegate
+memory_localevents
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The entries that can appear in this file are:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="memory_localevents"><a class="permalink" href="#memory_localevents"><i>memory_localevents</i>
+    (since Linux 5.2)</a></dt>
+  <dd>The kernel supports the <i>memory_localevents</i> mount option.</dd>
+  <dt id="nsdelegate"><a class="permalink" href="#nsdelegate"><i>nsdelegate</i>
+    (since Linux 4.15)</a></dt>
+  <dd>The kernel supports the <i>nsdelegate</i> mount option.</dd>
+  <dt id="memory_recursiveprot"><a class="permalink" href="#memory_recursiveprot"><i>memory_recursiveprot</i>
+    (since Linux 5.7)</a></dt>
+  <dd>The kernel supports the <i>memory_recursiveprot</i> mount option.</dd>
+</dl>
+</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>sys_kernel</b>(5), <b>cgroups</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-09</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

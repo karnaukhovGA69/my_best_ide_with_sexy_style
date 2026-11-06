@@ -1,6 +1,6 @@
 # nerded-profile-path-audit
 
-Статус: ПОДТВЕРЖДЁННЫЙ RELEASE BLOCKER, исправление требуется интегратору (владелец product/shared entrypoints). Владелец read-only проверки: release coordinator. Это обнаруженный дефект текущего переименования, не новая фича.
+Статус: ЗАКРЫТО — интегратор исправил в 3dbf0296716; default-profile native acceptance passed, проверенный пакет опубликован. Ниже сохранены исходные доказательства. Владелец read-only проверки: release coordinator. Это обнаруженный дефект текущего переименования, не новая фича.
 
 Доказательство: src/mainImpl.ts:60 вызывает getUserDataPath(args, product.nameShort ?? 'code-oss-dev'), затем app.setPath('userData', userDataPath). src/vs/platform/environment/node/environmentService.ts:20 независимо вызывает getUserDataPath(args, productService.nameShort). В src/vs/platform/environment/node/userDataPath.ts default и VSCODE_APPDATA добавляют productName к каталогу данных. Поэтому смена nameShort с Myself IDE на Nerded Code, несмотря на неизменный dataFolderName, меняет обычный user-data root (на macOS Library/Application Support/Myself IDE → Nerded Code). Это противоречит согласованному требованию сохранять пути профиля и не терять видимость настроек при брендинге. user-data-dir QA маскирует этот дефект.
 

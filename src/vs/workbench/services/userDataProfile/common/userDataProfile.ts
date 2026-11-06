@@ -20,6 +20,8 @@ import { IProductService } from '../../../../platform/product/common/productServ
 export interface DidChangeUserDataProfileEvent {
 	readonly previous: IUserDataProfile;
 	readonly profile: IUserDataProfile;
+	/** Resolves after all joined changes, false if any failed. Do not join this promise itself. */
+	readonly whenSettled?: Promise<boolean>;
 	join(promise: Promise<void>): void;
 }
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Promises } from '../../../../base/common/async.js';
+import { DeferredPromise, Promises } from '../../../../base/common/async.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { equals } from '../../../../base/common/objects.js';
@@ -34,13 +34,21 @@ export class UserDataProfileService extends Disposable implements IUserDataProfi
 		const previous = this._currentProfile;
 		this._currentProfile = userDataProfile;
 		const joiners: Promise<void>[] = [];
+		const settled = new DeferredPromise<boolean>();
 		this._onDidChangeCurrentProfile.fire({
 			previous,
 			profile: userDataProfile,
+			whenSettled: settled.p,
 			join(promise) {
 				joiners.push(promise);
 			}
 		});
-		await Promises.settled(joiners);
+		try {
+			await Promises.settled(joiners);
+			await settled.complete(true);
+		} catch (error) {
+			await settled.complete(false);
+			throw error;
+		}
 	}
 }

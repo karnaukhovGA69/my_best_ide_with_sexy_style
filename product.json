@@ -1,6 +1,7 @@
 {
 	"nameShort": "Nerded Code",
 	"nameLong": "Nerded Code",
+	"userDataFolderName": "Myself IDE",
 	"applicationName": "myself-ide",
 	"dataFolderName": ".myself-ide",
 	"sharedDataFolderName": ".myself-ide-shared",

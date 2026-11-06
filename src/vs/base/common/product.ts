@@ -103,6 +103,8 @@ export interface IProductConfiguration {
 	readonly commit?: string;
 
 	readonly nameShort: string;
+	/** Stable application-data directory name, independent of display branding. */
+	readonly userDataFolderName?: string;
 	readonly nameLong: string;
 
 	readonly win32AppUserModelId?: string;

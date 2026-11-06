@@ -4,15 +4,45 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { resolve } from '../../../../base/common/path.js';
 import { toDisposable } from '../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { OPTIONS, parseArgs } from '../../node/argv.js';
-import { getUserDataPath } from '../../node/userDataPath.js';
+import { getDefaultUserDataPath, getUserDataPath } from '../../node/userDataPath.js';
 import product from '../../../product/common/product.js';
+import { NativeEnvironmentService } from '../../node/environmentService.js';
 
 suite('User data path', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('branding preserves the existing profile and path override precedence', () => {
+		const keys = ['VSCODE_DEV', 'VSCODE_PORTABLE', 'VSCODE_APPDATA'];
+		const original = keys.map(key => process.env[key]);
+		store.add(toDisposable(() => keys.forEach((key, index) => {
+			if (original[index] === undefined) { delete process.env[key]; }
+			else { process.env[key] = original[index]; }
+		})));
+		keys.forEach(key => delete process.env[key]);
+		const args = parseArgs([], OPTIONS);
+		const renamed = { ...product, _serviceBrand: undefined, nameShort: 'Nerded Code', userDataFolderName: 'Myself IDE' };
+		const path = () => new NativeEnvironmentService(args, renamed).userDataPath;
+		assert.strictEqual(path(), getDefaultUserDataPath('Myself IDE'));
+		assert.strictEqual(path(), getUserDataPath(args, renamed.userDataFolderName));
+		assert.strictEqual(new NativeEnvironmentService(args, { ...renamed, userDataFolderName: undefined }).userDataPath, getDefaultUserDataPath('Nerded Code'));
+		args['user-data-dir'] = resolve('explicit-profile');
+		assert.strictEqual(path(), args['user-data-dir']);
+		process.env['VSCODE_APPDATA'] = resolve('custom-appdata');
+		assert.strictEqual(path(), resolve('custom-appdata', 'Myself IDE'));
+		process.env['VSCODE_PORTABLE'] = resolve('portable-root');
+		assert.strictEqual(path(), resolve('portable-root', 'user-data'));
+		delete process.env['VSCODE_PORTABLE'];
+		process.env['VSCODE_DEV'] = '1';
+		assert.strictEqual(path(), resolve('custom-appdata', 'code-oss-dev'));
+		delete process.env['VSCODE_APPDATA'];
+		args['user-data-dir'] = '';
+		assert.strictEqual(path(), getDefaultUserDataPath('code-oss-dev'));
+	});
 
 	test('getUserDataPath - default', () => {
 		const path = getUserDataPath(parseArgs(process.argv, OPTIONS), product.nameShort);

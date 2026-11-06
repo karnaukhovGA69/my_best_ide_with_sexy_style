@@ -1,0 +1,3 @@
+# ide-update-titlebar-orphan-delete
+
+Статус: ЗАНЯТО. Владелец: интегратор/documents agent. База: main ee6f4e41f92. Область: update/browser/updateTitleBarEntry.ts, media/updateTitleBarEntry.css, update/test/browser/updateTitleBarEntry.test.ts, этот отчёт. Удалить orphan contribution/view item и top-level update indicator registration. Сохранить menu placement/context helpers для существующего Sessions import и независимые tooltip/context tests. Общие entrypoints, auth, local release notes не менять. Проверки оставшихся tests, отсутствие command/menu side effect, scoped lint и пакетная типизация.

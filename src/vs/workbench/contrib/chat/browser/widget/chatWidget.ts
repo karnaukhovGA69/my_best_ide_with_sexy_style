@@ -66,7 +66,7 @@ import { applyingChatEditsFailedContextKey, decidedChatEditingResourceContextKey
 import { IChatLayoutService } from '../../common/widget/chatLayoutService.js';
 import { IChatModel, IChatModelInputState, IChatResponseModel, logChangesToStateModel } from '../../common/model/chatModel.js';
 import { isChatModelIdle } from '../../common/model/chatModelIdle.js';
-import { ChatMode, getModeNameForTelemetry, IChatMode } from '../../common/chatModes.js';
+import { ChatMode, getModeNameForTelemetry } from '../../common/chatModes.js';
 import { chatAgentLeader, ChatRequestAgentPart, ChatRequestDynamicVariablePart, ChatRequestSlashCommandPart, ChatRequestSlashPromptPart, ChatRequestToolPart, ChatRequestToolSetPart, chatSubcommandLeader, formatChatQuestion, IParsedChatRequest } from '../../common/requestParser/chatParserTypes.js';
 import { ChatRequestParser, IChatParserContext } from '../../common/requestParser/chatRequestParser.js';
 import { getDynamicVariablesForWidget, getSelectedToolAndToolSetsForWidget } from '../attachments/chatVariables.js';
@@ -243,18 +243,6 @@ type ChatHandoffClickClassification = {
 	toAgent: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The agent/mode specified in the handoff' };
 	hasPrompt: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the handoff includes a prompt' };
 	autoSend: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the handoff automatically submits the request' };
-};
-
-type ChatHandoffWidgetShownEvent = {
-	agent: string;
-	handoffCount: number;
-};
-
-type ChatHandoffWidgetShownClassification = {
-	owner: 'digitarald';
-	comment: 'Event fired when the suggest-next widget is shown with handoff prompts';
-	agent: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The current agent/mode that has handoffs defined' };
-	handoffCount: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Number of handoff options shown to the user' };
 };
 
 type ChatPromptRunEvent = {
@@ -1875,79 +1863,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 	}
 
 	private renderChatSuggestNextWidget(): void {
-		if (this.lifecycleService.willShutdown) {
-			return;
-		}
-
-		if (this._readOnly) {
-			this.chatSuggestNextWidget.hide();
-			return;
-		}
-
-		// Skip rendering in coding agent sessions unless the agent supports hand-offs
-		if (this.isLockedToCodingAgent && !this._attachmentCapabilities.supportsHandOffs) {
-			this.chatSuggestNextWidget.hide();
-			return;
-		}
-
-		const items = this.viewModel?.getItems() ?? [];
-		if (!items.length) {
-			return;
-		}
-
-		const lastItem = items[items.length - 1];
-		const lastResponseComplete = lastItem && isResponseVM(lastItem) && lastItem.isComplete;
-		if (!lastResponseComplete || lastItem.isCanceled) {
-			this.chatSuggestNextWidget.hide();
-			return;
-		}
-
-		// Derive handoffs from the mode that generated the last response, not the current UI selection.
-		// This ensures handoffs reflect what the response agent offers, regardless of mode picker state.
-		// Fall back to the current mode picker for old sessions where modeInfo was not persisted.
-		const modeInfo = lastItem.model.request?.modeInfo;
-		const modes = this.input.currentChatModesObs.get();
-		let responseMode: IChatMode | undefined;
-		if (modeInfo?.modeInstructions?.name) {
-			responseMode = modes.findModeByName(modeInfo.modeInstructions.name);
-		} else if (modeInfo?.kind) {
-			responseMode = modes.findModeById(modeInfo.kind);
-		} else {
-			responseMode = this.input.currentModeObs.get();
-		}
-
-		const handoffs = responseMode?.handOffs?.get();
-
-		if (responseMode && handoffs && handoffs.length > 0) {
-			// In Autopilot mode, automatically trigger the first auto-send handoff
-			// so the plan flows seamlessly into implementation without user interaction.
-			const permissionLevel = this.inputPart.currentModeInfo.permissionLevel;
-			if (permissionLevel === ChatPermissionLevel.Autopilot) {
-				const autoSendHandoff = handoffs.find(h => h.send);
-				if (autoSendHandoff) {
-					this.handleNextPromptSelection(autoSendHandoff);
-					return;
-				}
-			}
-
-			// Log telemetry only when widget transitions from hidden to visible
-			const wasHidden = this.chatSuggestNextWidget.domNode.style.display === 'none';
-			this.chatSuggestNextWidget.render(responseMode);
-
-			if (wasHidden) {
-				this.telemetryService.publicLog2<ChatHandoffWidgetShownEvent, ChatHandoffWidgetShownClassification>('chat.handoffWidgetShown', {
-					agent: getModeNameForTelemetry(responseMode),
-					handoffCount: handoffs.length
-				});
-			}
-		} else {
-			this.chatSuggestNextWidget.hide();
-		}
-
-		// Trigger layout update
-		if (this.bodyDimension) {
-			this.layout(this.bodyDimension.height, this.bodyDimension.width);
-		}
+		this.chatSuggestNextWidget.hide();
 	}
 
 	private handleNextPromptSelection(handoff: IHandOff, agentId?: string, withAutopilot?: boolean): void {

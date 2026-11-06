@@ -4,56 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
-import { Emitter, Event } from '../../../../../base/common/event.js';
-import { AnchorAlignment } from '../../../../../base/common/layout.js';
 import { isMacintosh, isWeb } from '../../../../../base/common/platform.js';
-import { IHoverOptions, IHoverWidget } from '../../../../../base/browser/ui/hover/hover.js';
-import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
-import { CommandsRegistry, ICommandEvent, ICommandService } from '../../../../../platform/commands/common/commands.js';
-import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { ContextKeyExpression } from '../../../../../platform/contextkey/common/contextkey.js';
-import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
-import { IProductService } from '../../../../../platform/product/common/productService.js';
-import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { IUpdateService, State } from '../../../../../platform/update/common/update.js';
 import { InEditorZenModeContext } from '../../../../common/contextkeys.js';
 import { getAdditionalUpdateTitleBarMenuWhen } from '../../browser/updateTitleBarEntry.js';
-import { UpdateTooltip } from '../../browser/updateTooltip.js';
 import { UpdateGlobalActivityBadgeVisibleContext, UpdateTitleBarChatInProgressContext, UpdateTitleBarContext, UpdateTitleBarEditorVisibleContext } from '../../common/update.js';
-
-class TestCommandService extends mock<ICommandService>() {
-	private readonly _onDidExecuteCommand = new Emitter<ICommandEvent>();
-	override readonly onDidExecuteCommand = this._onDidExecuteCommand.event;
-
-	fireDidExecuteCommand(commandId: string): void {
-		this._onDidExecuteCommand.fire({ commandId, args: [] });
-	}
-
-	dispose(): void {
-		this._onDidExecuteCommand.dispose();
-	}
-}
-
-class TestHoverWidget implements IHoverWidget {
-	isDisposed = false;
-
-	dispose(): void {
-		this.isDisposed = true;
-	}
-}
-
-class TestHoverService extends mock<IHoverService>() {
-	readonly showRequests: { readonly focus: boolean; readonly trapFocus: boolean; readonly anchorAlignment: AnchorAlignment | undefined }[] = [];
-
-	override showInstantHover(options: IHoverOptions, focus?: boolean): IHoverWidget {
-		this.showRequests.push({ focus: !!focus, trapFocus: !!options.trapFocus, anchorAlignment: options.position?.anchorAlignment });
-		return new TestHoverWidget();
-	}
-}
 
 class TestContextKeyService extends MockContextKeyService {
 	override contextMatchesRules(rules: ContextKeyExpression): boolean {
@@ -123,45 +82,5 @@ suite('UpdateTitleBarVisibleContexts', () => {
 			additional: true,
 			editor: false,
 		});
-	});
-});
-
-suite('UpdateTooltip', () => {
-	const store = ensureNoDisposablesAreLeakedInTestSuite();
-
-	function createTooltip(): UpdateTooltip {
-		const configurationService = new TestConfigurationService({ 'update.mode': 'default' });
-		store.add(configurationService.onDidChangeConfigurationEmitter);
-		return store.add(new UpdateTooltip(
-			new class extends mock<IClipboardService>() { },
-			store.add(new TestCommandService()),
-			configurationService,
-			new TestHoverService(),
-			new class extends mock<IProductService>() {
-				override readonly nameLong = 'Code - OSS Dev';
-				override readonly version = '1.134.0';
-				override readonly commit = 'current';
-			},
-		));
-	}
-
-	test('removes hidden actions from the tab order', () => {
-		const tooltip = createTooltip();
-
-		tooltip.renderState(State.Ready({ version: 'next', productVersion: '1.135.0' }, false, false));
-
-		assert.deepStrictEqual(
-			Array.from(tooltip.domNode.querySelectorAll<HTMLElement>('button, [tabindex]')).map(element => ({
-				className: element.className,
-				display: element.style.display,
-				tabIndex: element.tabIndex,
-			})),
-			[
-				{ className: 'copy-version-button', display: '', tabIndex: 0 },
-				{ className: 'copy-version-button', display: '', tabIndex: 0 },
-				{ className: 'release-notes-button', display: '', tabIndex: 0 },
-				{ className: 'action-button', display: 'none', tabIndex: -1 },
-			],
-		);
 	});
 });

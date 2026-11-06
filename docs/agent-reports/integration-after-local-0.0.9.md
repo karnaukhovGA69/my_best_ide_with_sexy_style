@@ -198,3 +198,9 @@ Common Markdown local media уже занят чатом упрощения; и�
 Двадцать первый срез — ЗАНЯТО интегратором: ide-update-titlebar-orphan-delete и готовые задачи:
 - `chat-active-harness-sync-disable` — `580936016e3bd1641b843567031162535df73ec4`
 - `chat-window-notifier-disable` — `1ff64c06c104e20f0467650e6a22b191f24ac952`
+
+Двадцать первый срез: общий client typecheck slot ЗАНЯТ; других full build/typecheck процессов нет. Update titlebar/disabled updater: 7 tests passed.
+
+Двадцать первый срез расширен: ide-update-tooltip-orphan-delete (зависимость от titlebar cleanup). Первый full typecheck выявил 3 unused test imports после удаления entry suite; они удаляются вместе с orphan tooltip-only fixture. Повторная общая типизация после финальных изменений.
+
+Двадцать первый срез ЗАВЕРШЁН: 4 implementation задачи, 6 updater tests + 19 harness/notifier tests passed, 1 platform skip, 0 page errors. Первый typecheck выявил 3 unused test imports; они удалены вместе с orphan tooltip fixture. Повторный полный client typecheck, scoped lint и diff --check passed. Общий слот освобождён. Всего после локального 0.0.9: 78 implementation задач, 1018 успешных browser tests в финальных проверках срезов. Удалены orphan titlebar updater UI/CSS и его import-time action; отключены активная AI harness synchronization и chat OS notifications. Shared menus/notifications и локальные release notes сохранены. Package/native не запускались.

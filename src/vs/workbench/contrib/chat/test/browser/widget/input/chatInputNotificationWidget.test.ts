@@ -707,7 +707,7 @@ suite('ChatInputNotificationWidget', () => {
 			shown,
 			sameContents: widget.domNode.firstChild === contents,
 			impressions: telemetryService.events.filter(event => event.name === 'chatInputNotificationShown').length,
-		}, { whileHidden: 0, shown: 1, sameContents: true, impressions: 1 });
+		}, { whileHidden: 0, shown: 1, sameContents: true, impressions: 0 });
 		assert.deepStrictEqual(shownContext, context({ inputUri, sessionResource, sessionType: 'remote-host-copilot' }));
 	});
 
@@ -729,6 +729,34 @@ suite('ChatInputNotificationWidget', () => {
 			...notification,
 		});
 	}
+
+	test('preserves show callbacks, mute, actions, and dismissal without analytics', async () => {
+		const commandService = new TestCommandService();
+		const telemetryService = new RecordingTelemetryService();
+		const { notificationService, widget } = createWidget({ commandService, telemetryService });
+		let shown = 0;
+		const notification = {
+			id: 'local-notice', message: 'Local notice', telemetryId: 'first', onDidShow: () => shown++,
+			mute: { tooltip: 'Mute local notice', commandId: 'test.mute', commandArgs: ['local'] },
+			actions: [{ kind: ChatInputNotificationActionKind.Command, label: 'Open', commandId: 'test.open', keepOpen: true }],
+		} satisfies Pick<IChatInputNotification, 'id' | 'message' | 'actions' | 'telemetryId' | 'onDidShow' | 'mute'>;
+		showNotification(notificationService, notification);
+		showNotification(notificationService, notification);
+		showNotification(notificationService, { ...notification, telemetryId: 'second' });
+		assert.strictEqual(shown, 2);
+		clickAction(widget);
+		widget.domNode.querySelector<HTMLElement>('[aria-label="Mute local notice"]')!.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		const didDismiss = Event.toPromise(notificationService.service.onDidDismiss);
+		widget.domNode.querySelector<HTMLElement>('.chat-input-notification-dismiss')!.click();
+		await didDismiss;
+		assert.deepStrictEqual({ commands: commandService.executed, dismissed: notificationService.dismissed, telemetry: telemetryService.events }, {
+			commands: [{ id: 'test.open', args: [] }, { id: 'test.mute', args: ['local'] }],
+			dismissed: ['local-notice'],
+			telemetry: [],
+		});
+	});
 
 	test('action commands execute with provided args', async () => {
 		const commandService = new TestCommandService();
@@ -988,7 +1016,7 @@ suite('ChatInputNotificationWidget', () => {
 		}, {
 			switchedModels: ['vendor/model'],
 			pickerOpenCount: 0,
-			actionEvents: [{ id: 'promo', telemetryId: undefined, actionKind: ChatInputNotificationActionKind.SwitchToModel, actionId: '' }],
+			actionEvents: [],
 		});
 	});
 

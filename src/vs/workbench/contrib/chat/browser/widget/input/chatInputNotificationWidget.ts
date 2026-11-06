@@ -8,7 +8,6 @@ import { Button } from '../../../../../../base/browser/ui/button/button.js';
 import { getDefaultHoverDelegate } from '../../../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { createPixelSpinner, IPixelSpinner } from '../../../../../../base/browser/ui/pixelSpinner/pixelSpinner.js';
 import { ProgressBar } from '../../../../../../base/browser/ui/progressbar/progressbar.js';
-import { WorkbenchActionExecutedClassification, WorkbenchActionExecutedEvent } from '../../../../../../base/common/actions.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { IStringDictionary } from '../../../../../../base/common/collections.js';
 import { isMarkdownString } from '../../../../../../base/common/htmlContent.js';
@@ -22,7 +21,6 @@ import { ICommandService } from '../../../../../../platform/commands/common/comm
 import { IHoverService } from '../../../../../../platform/hover/browser/hover.js';
 import { ILogService } from '../../../../../../platform/log/common/log.js';
 import { IMarkdownRendererService } from '../../../../../../platform/markdown/browser/markdownRenderer.js';
-import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { defaultButtonStyles, defaultProgressBarStyles } from '../../../../../../platform/theme/browser/defaultStyles.js';
 import { IChatInputNoticeFocusTarget } from './chatInputNoticeHost.js';
 import { ILanguageModelChatMetadataAndIdentifier } from '../../../common/languageModels.js';
@@ -33,32 +31,6 @@ import { ChatInputNotificationActionKind, ChatInputNotificationSeverity, getChat
 import './media/chatInputNotificationWidget.css';
 
 const $ = dom.$;
-
-type ChatInputNotificationTelemetryEvent = {
-	id: string;
-	telemetryId?: string;
-};
-
-type ChatInputNotificationTelemetryClassification = {
-	id: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The identifier of the chat input notification.' };
-	telemetryId?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The feature-provided identifier for the notification message that was shown or dismissed.' };
-	owner: 'rfeltis';
-	comment: 'Tracks chat input notification visibility and user dismissals.';
-};
-
-type ChatInputNotificationActionTelemetryEvent = ChatInputNotificationTelemetryEvent & {
-	actionKind: ChatInputNotificationActionKind;
-	actionId: string;
-};
-
-type ChatInputNotificationActionTelemetryClassification = {
-	id: ChatInputNotificationTelemetryClassification['id'];
-	telemetryId?: ChatInputNotificationTelemetryClassification['telemetryId'];
-	actionKind: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The kind of notification action selected by the user.' };
-	actionId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The feature-provided identifier of the notification action selected by the user.' };
-	owner: 'rfeltis';
-	comment: 'Tracks actions selected from chat input notifications.';
-};
 
 const severityToClass: Record<ChatInputNotificationSeverity, string> = {
 	[ChatInputNotificationSeverity.Info]: 'severity-info',
@@ -138,7 +110,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 	}
 
 	private readonly _contentDisposables = this._register(new DisposableStore());
-	private _lastShownTelemetryData: ChatInputNotificationTelemetryEvent | undefined;
+	private _lastShownIdentity: Pick<IChatInputNotification, 'id' | 'telemetryId'> | undefined;
 	private _modelTargetChatSessionType: string | undefined;
 	private _sessionResource: URI | undefined;
 	private _deferredNotificationsEnabled = true;
@@ -156,7 +128,6 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 		private readonly _delegate: IChatInputNotificationDelegate | undefined,
 		@IChatInputNotificationService private readonly _notificationService: IChatInputNotificationService,
 		@ICommandService private readonly _commandService: ICommandService,
-		@ITelemetryService private readonly _telemetryService: ITelemetryService,
 		@IMarkdownRendererService private readonly _markdownRendererService: IMarkdownRendererService,
 		@IHoverService private readonly _hoverService: IHoverService,
 		@ILogService private readonly _logService: ILogService,
@@ -232,7 +203,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 		this._announce(notification, body);
 		if (!notification || !body) {
 			setChatInputStackSlot(this._slot, ChatInputStackSlot.Empty);
-			this._lastShownTelemetryData = undefined;
+			this._lastShownIdentity = undefined;
 			if (hadFocus) {
 				this._delegate?.focusInput?.();
 			}
@@ -463,10 +434,6 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 					if (!mute) {
 						return;
 					}
-					this._telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
-						id: mute.commandId,
-						from: 'chatInputNotification',
-					});
 					this._commandService.executeCommand(mute.commandId, ...(mute.commandArgs ?? []));
 				}),
 			});
@@ -487,7 +454,6 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 				store: this._contentDisposables,
 				onActivate: () => queueMicrotask(() => {
 					const current = rendered.notification;
-					this._telemetryService.publicLog2<ChatInputNotificationTelemetryEvent, ChatInputNotificationTelemetryClassification>('chatInputNotificationDismissed', this._getTelemetryData(current));
 					this._notificationService.dismissNotification(current.id, current);
 				}),
 			});
@@ -570,11 +536,6 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 	}
 
 	private async _executeAction(notification: IChatInputNotification, action: IChatInputNotificationAction): Promise<void> {
-		this._telemetryService.publicLog2<ChatInputNotificationActionTelemetryEvent, ChatInputNotificationActionTelemetryClassification>('chatInputNotificationAction', {
-			...this._getTelemetryData(notification),
-			actionKind: action.kind,
-			actionId: action.telemetryActionId ?? '',
-		});
 		switch (action.kind) {
 			case ChatInputNotificationActionKind.Command:
 				try {
@@ -660,10 +621,6 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 	}
 
 	private async _executeCommandAction(action: IChatInputNotificationCommandAction): Promise<void> {
-		this._telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', {
-			id: action.commandId,
-			from: 'chatInputNotification',
-		});
 		await this._commandService.executeCommand(action.commandId, ...(action.commandArgs ?? []));
 	}
 
@@ -671,12 +628,11 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 		if (!this._hostVisible) {
 			return;
 		}
-		const data = this._getTelemetryData(notification);
-		if (this._lastShownTelemetryData?.id === data.id && this._lastShownTelemetryData.telemetryId === data.telemetryId) {
+		const data = this._getShownIdentity(notification);
+		if (this._lastShownIdentity?.id === data.id && this._lastShownIdentity.telemetryId === data.telemetryId) {
 			return;
 		}
-		this._lastShownTelemetryData = data;
-		this._telemetryService.publicLog2<ChatInputNotificationTelemetryEvent, ChatInputNotificationTelemetryClassification>('chatInputNotificationShown', data);
+		this._lastShownIdentity = data;
 		try {
 			notification.onDidShow?.(this._getContext());
 		} catch (error) {
@@ -684,7 +640,7 @@ export class ChatInputNotificationWidget extends Disposable implements IChatInpu
 		}
 	}
 
-	private _getTelemetryData(notification: IChatInputNotification): ChatInputNotificationTelemetryEvent {
+	private _getShownIdentity(notification: IChatInputNotification): Pick<IChatInputNotification, 'id' | 'telemetryId'> {
 		return {
 			id: notification.id,
 			telemetryId: notification.telemetryId,

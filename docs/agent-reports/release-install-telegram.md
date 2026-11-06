@@ -1,6 +1,6 @@
 # release-install-telegram
 
-Статус: ЗАНЯТО. Владелец: чат локальной библиотеки / release coordinator. Ветка: agent/release-install-telegram. База: main 41c3dd005c4.
+Статус: ЗАНЯТО. ПУБЛИКАЦИЯ БЛОКИРУЕТСЯ ПОДТВЕРЖДЁННОЙ СМЕНОЙ USER-DATA ROOT ПРИ ПЕРЕИМЕНОВАНИИ (см. nerded-profile-path-audit). Владелец: чат локальной библиотеки / release coordinator. Ветка: agent/release-install-telegram. База: main 41c3dd005c4.
 
 Новое прямое поручение владельца (6 ноября 2026) заменяет прежнее «не билд, а замержь»: проверить готовые/оставшиеся ветки, после завершения текущего согласованного пакета сделать релиз, изменить описание на GitHub, установить приложение пользователю, подготовить короткий текст Telegram и ОБЯЗАТЕЛЬНО реальные скриншоты IDE. Публикация релиза, изменение описания репозитория и установка явно разрешены. Публиковать Telegram-пост пользователь не просил: только текст и изображения.
 
@@ -29,3 +29,6 @@ Icon fix ГОТОВ: `6563c069472` на agent/release-install-telegram; отде
 Личный языковой набор из docs/project-plan.md (Rust, C++, F#, Lua, Go, Docker, YAML, JSON, SQL) установлен полностью: CLI подтвердил 9 vscode.*@10.0.0 grammar extensions в обычном default profile. Публичный пакет и изолированные QA extension directories не менялись. Это базовая подсветка/языковые декларации, не LSP/debugger/formatter. Для screenshot/native проверки использовать безопасный demo project; пользовательский реальный проект в открытом окне не публиковать.
 
 Текущий f44 candidate устраняет gallery lookup, но НЕ содержит 6563c069472 icon fix. Выпуск и установка финальной версии ожидают включения этой ветки; source snapshot должен включать оба исправления. Generator icon fallbacks проверен на идемпотентность, дерево чистое.
+
+
+Последний pre-install аудит выявил подтверждённый blocker, отдельный отчёт `nerded-profile-path-audit.md` (d355bee6351), скопирован в main. mainImpl.ts и NativeEnvironmentService используют product.nameShort для user-data root: Nerded Code меняет Library/Application Support/Myself IDE на новый Nerded Code вопреки требованию сохранять пути. Оба каталога существуют; ничего не перемещать/удалять. Нужны стабильное userDataFolderName (старое Myself IDE) и согласованный выбор в обоих callers, с сохранением CLI/portable/dev приоритетов. Это root/product/entrypoint scope интегратора. Проверки с --user-data-dir обходят этот default path и не доказывают сохранение существующего профиля. Перед окончательным handoff/publish просьба устранить; собственный publisher блокирует выпуск f13 до решения. Отчёт не утверждает готовую реализацию. Новая source правка потребует затронутой общей сборки/подписи и проверки запуска с обычным профилем, а не только QA --user-data-dir.

@@ -1,0 +1,3 @@
+# ide-update-orphan-contributions-delete
+
+Статус: ЗАНЯТО. Владелец: интегратор/documents agent. База: main fb280c746ed. Область: workbench/contrib/update/browser/update.ts и этот отчёт. Удалить неиспользуемые ProductContribution, UpdateContribution, SwitchProductQualityContribution, DefaultAccountUpdateContribution и приватные helpers (включая remote release-note fallback). Эти классы не регистрируются/не импортируются; perf-data историческая строка не consumer. Сохранить showReleaseNotesInEditor и appendUpdateMenuItems, импортируемый Sessions account menu, его context keys. Не менять авторизацию/общие sync/update services, release note renderer или чужие claims. Проверки existing release notes/disabled updater tests, lint и пакетный typecheck.

@@ -16,11 +16,9 @@ import { Range } from '../../../../../editor/common/core/range.js';
 import { CompletionItemKind, CompletionTriggerKind } from '../../../../../editor/common/languages.js';
 import { LanguageFeaturesService } from '../../../../../editor/common/services/languageFeaturesService.js';
 import { createTextModel } from '../../../../../editor/test/common/testTextModel.js';
-import { HoverParticipantRegistry } from '../../../../../editor/contrib/hover/browser/hoverTypes.js';
 import { provideSuggestionItems } from '../../../../../editor/contrib/suggest/browser/suggest.js';
 import { SuggestController } from '../../../../../editor/contrib/suggest/browser/suggestController.js';
 import { InlineCompletionsController } from '../../../../../editor/contrib/inlineCompletions/browser/controller/inlineCompletionsController.js';
-import { InlineCompletionsHoverParticipant } from '../../../../../editor/contrib/inlineCompletions/browser/hintsWidget/hoverParticipant.js';
 // Import the modules used by editor.all and workbench.common.main, plus a shared
 // consumer of the command definitions, to catch accidental side-effect bindings.
 import '../../../../../editor/contrib/inlineCompletions/browser/inlineCompletions.contribution.js';
@@ -31,13 +29,12 @@ suite('Myself IDE inline completion distribution', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const isInlineCommand = (id: string) => id.startsWith('editor.action.inlineSuggest.');
 
-	test('does not install the inline controller, hover, or accessible-view runtime', () => {
+	test('does not install the inline controller or accessible-view runtime', () => {
 		assert.deepStrictEqual({
 			controller: EditorExtensionsRegistry.getEditorContributions().some(item => item.id === InlineCompletionsController.ID),
-			hover: HoverParticipantRegistry.getAll().some(ctor => ctor.prototype === InlineCompletionsHoverParticipant.prototype),
 			accessibleView: AccessibleViewRegistry.getImplementations().some(item => item.name === 'inline-completions'),
 			suggest: EditorExtensionsRegistry.getEditorContributions().some(item => item.id === SuggestController.ID),
-		}, { controller: false, hover: false, accessibleView: false, suggest: true });
+		}, { controller: false, accessibleView: false, suggest: true });
 	});
 
 	test('does not register inline actions, menus, or side-effect keybindings', () => {

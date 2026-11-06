@@ -766,7 +766,7 @@ export class PluginMarketplaceService extends Disposable implements IPluginMarke
 		return [...cached.plugins];
 	}
 
-	private _loadPersistedGitHubMarketplaceCache(): Map<string, IGitHubMarketplaceCacheEntry> {
+	private _loadPersistedGitHubMarketplaceCache(includeExpired = false): Map<string, IGitHubMarketplaceCacheEntry> {
 		const cache = new Map<string, IGitHubMarketplaceCacheEntry>();
 		const now = Date.now();
 		const stored = this._storageService.getObject<IStoredGitHubMarketplaceCache>(GITHUB_MARKETPLACE_CACHE_STORAGE_KEY, StorageScope.APPLICATION);
@@ -777,7 +777,7 @@ export class PluginMarketplaceService extends Disposable implements IPluginMarke
 		const revived = revive<IStoredGitHubMarketplaceCache>(stored);
 
 		for (const [cacheKey, entry] of Object.entries(revived)) {
-			if (!entry || !Array.isArray(entry.plugins) || typeof entry.expiresAt !== 'number' || entry.expiresAt <= now || typeof entry.referenceRawValue !== 'string') {
+			if (!entry || !Array.isArray(entry.plugins) || typeof entry.expiresAt !== 'number' || (!includeExpired && entry.expiresAt <= now) || typeof entry.referenceRawValue !== 'string') {
 				continue;
 			}
 
@@ -962,7 +962,14 @@ export class PluginMarketplaceService extends Disposable implements IPluginMarke
 
 	private async _readPluginsForInstalledEntry(reference: IMarketplaceReference, token: CancellationToken): Promise<IMarketplacePlugin[]> {
 		if (reference.kind === MarketplaceReferenceKind.GitHubShorthand && reference.githubRepo) {
-			return this._fetchFromGitHubRepo(reference, reference.githubRepo, token);
+			// Startup hydration must not fetch or clone a repository. A stale
+			// local descriptor still identifies an installed plugin; its expiry
+			// applies only to explicit marketplace queries.
+			const cached = this._gitHubMarketplaceCache.value.get(reference.canonicalId)
+				?? this._loadPersistedGitHubMarketplaceCache(true).get(reference.canonicalId);
+			if (cached) {
+				return [...cached.plugins];
+			}
 		}
 
 		return this._readPluginsFromDirectory(this._pluginRepositoryService.getRepositoryUri(reference), reference, token);

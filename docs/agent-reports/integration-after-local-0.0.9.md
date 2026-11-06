@@ -118,3 +118,7 @@
 Двенадцатый срез — ЗАНЯТО интегратором: `chat-thinking-title-generation-disable` — `d2333c8ba039880aa9a2d23ea13521784bfcc81f`. appearance-style-menu уже закреплён за чатом упрощения; дубликат UI implementation не создавать.
 
 Двенадцатый срез расширен: ЗАНЯТО интегратором `utility-model-settings-population-disable` — `465d3316fded17362061fd9cfb25716af8a66b5e`. Read-only local-resource-loading-audit отдельно фиксирует остаточные пути загрузки; не заявляет сетевое ограничение реализованным.
+
+Двенадцатый срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет. Local-resource-loading-audit завершён как read-only исследование; запрет внешних Markdown resources ещё требует реализации.
+
+Двенадцатый срез ЗАВЕРШЁН: 2 implementation tasks и read-only local-resource-loading-audit; 10 browser tests passed, 0 page errors, полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 41 implementation задача, 203 целевых browser tests. Старый thinking-title cache читается без записи/удаления; обычный DefaultModelContribution сохранён. Аудит Markdown выявил оставшиеся external-resource разрешения, исправления ещё не выполнены. Package/native не запускались, готовый ZIP неизменён.

@@ -43,6 +43,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private payload: object | undefined;
 	private ready = false;
 	private generation = 0;
+	private disposed = false;
 	private readonly history: string[] = [];
 
 	constructor(private readonly context: vscode.ExtensionContext) {
@@ -53,6 +54,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private async load(): Promise<void> {
 		try {
 			const bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(this.root, 'catalog.json'));
+			if (this.disposed) { return; }
 			const catalog = parseCatalog(new TextDecoder().decode(bytes));
 			this.groups = catalog.groups;
 			this.entries = catalog.entries;
@@ -61,12 +63,13 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 				&& /^imports\/[a-f0-9-]+\.(html|md|txt)$/.test(entry.file) && typeof entry.id === 'string' && typeof entry.title === 'string'
 				&& (entry.format === 'html' || entry.format === 'text')) : [];
 		} catch {
-			void vscode.window.showErrorMessage(vscode.l10n.t('The local documentation catalog could not be loaded.'));
+			if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The local documentation catalog could not be loaded.')); }
 		}
 	}
 
 	async getChildren(node?: LibraryNode): Promise<LibraryNode[]> {
 		await this.loaded;
+		if (this.disposed) { return []; }
 		if (!node) {
 			return [...this.groups, { id: 'imported', title: vscode.l10n.t('My Documents'), version: '', license: '' }];
 		}
@@ -89,6 +92,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 
 	async search(): Promise<void> {
 		await this.loaded;
+		if (this.disposed) { return; }
 		const selected = await vscode.window.showQuickPick([...this.entries, ...this.imports].map(entry => ({ label: entry.title, description: entry.group, id: entry.id })),
 			{ placeHolder: vscode.l10n.t('Search local documentation by title'), matchOnDescription: true });
 		if (selected) { await this.open(selected.id); }
@@ -96,12 +100,14 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 
 	async open(id: string, fragment = '', addHistory = true): Promise<void> {
 		await this.loaded;
+		if (this.disposed) { return; }
 		const entry = [...this.entries, ...this.imports].find(entry => entry.id === id);
 		if (!entry) { return; }
 		const generation = ++this.generation;
 		try {
 			const uri = vscode.Uri.joinPath(entry.group === 'imported' ? this.context.globalStorageUri : this.root, entry.file);
 			if ((await vscode.workspace.fs.stat(uri)).size > maxDocumentBytes) { throw new Error('large'); }
+			if (generation !== this.generation) { return; }
 			const bytes = await vscode.workspace.fs.readFile(uri);
 			if (bytes.length > maxDocumentBytes) { throw new Error('large'); }
 			if (generation !== this.generation) { return; }
@@ -120,19 +126,21 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 				});
 				this.panel = panel;
 				const listener = panel.webview.onDidReceiveMessage(message => { void this.message(message).catch(() => vscode.window.showErrorMessage(vscode.l10n.t('The documentation action could not be completed.'))); });
-				panel.onDidDispose(() => { listener.dispose(); if (this.panel === panel) { this.panel = undefined; this.ready = false; } });
+				panel.onDidDispose(() => { listener.dispose(); if (this.panel === panel) { this.generation++; this.panel = undefined; this.ready = false; } });
 				panel.webview.html = libraryHtml(panel.webview, this.context.extensionUri);
 			}
 			this.panel.title = entry.title;
 			this.panel.reveal(vscode.ViewColumn.Beside);
 			if (this.ready) { await this.panel.webview.postMessage(this.payload); }
 		} catch {
-			void vscode.window.showErrorMessage(vscode.l10n.t('The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.'));
+			if (generation === this.generation) {
+				void vscode.window.showErrorMessage(vscode.l10n.t('The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.'));
+			}
 		}
 	}
 
 	private async message(message: unknown): Promise<void> {
-		if (!isRecord(message)) { return; }
+		if (this.disposed || !isRecord(message)) { return; }
 		if (message.type === 'ready') {
 			this.ready = true;
 			if (this.payload) { await this.panel?.webview.postMessage(this.payload); }
@@ -196,5 +204,5 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		await vscode.workspace.fs.delete(vscode.Uri.joinPath(this.context.globalStorageUri, entry.file)).then(undefined, () => undefined);
 	}
 
-	dispose(): void { this.generation++; this.panel?.dispose(); this.changes.dispose(); }
+	dispose(): void { this.disposed = true; this.generation++; this.panel?.dispose(); this.changes.dispose(); }
 }

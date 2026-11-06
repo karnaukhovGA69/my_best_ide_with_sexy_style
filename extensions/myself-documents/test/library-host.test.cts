@@ -7,10 +7,10 @@ const assert = require('node:assert/strict');
 const { loadWithVscode, emitter, viewApi } = require('./helpers.cts');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const uri = value => ({ path: value, scheme: 'file', authority: '', toString: () => value });
-async function fixture() {
+async function fixture(options = {}) {
 	const actions = new Map(), files = new Map(), reads = [], writes = [], notices = [], external = [], sent = [];
 	const events = emitter(), disposed = emitter(); const state = { imports: [] };
-	let provider, panel, selection, beforeRead;
+	let provider, panel, selection; let beforeRead = options.beforeRead;
 	const catalog = { groups: [{ id: 'test', title: 'Test', version: '1', license: 'MIT' }], entries: [
 		{ id: 'one', group: 'test', title: 'One', file: 'test/one.html', source: 'https://example.invalid/one.html', format: 'html' },
 		{ id: 'two', group: 'test', title: 'Two', file: 'test/two.html', source: 'https://example.invalid/two.html', format: 'html' },
@@ -44,7 +44,7 @@ async function fixture() {
 	};
 	const context = { subscriptions: [], extensionUri: uri('/extension'), globalStorageUri: uri('/profile'), globalState: { get: () => state.imports, update: async (_key, value) => { state.imports = value; } } };
 	loadWithVscode('library.js', vscode).registerLibrary(context);
-	await provider.getChildren();
+	if (!options.deferCatalog) { await provider.getChildren(); }
 	return { actions, provider, files, reads, writes, notices, external, sent, state, panel: () => panel, select: value => { selection = value; }, delay: handler => { beforeRead = handler; },
 		message: async value => { events.fire(value); await tick(); }, dispose: () => context.subscriptions.forEach(d => d.dispose()) };
 }
@@ -107,5 +107,47 @@ test('a slower earlier read never replaces the newly selected document', async (
 		await f.actions.get('myself.documentation.open')('two'); await f.message({ type: 'ready' });
 		release(); await first;
 		assert.equal(f.sent.at(-1).title, 'Two');
+	} finally { release?.(); f.dispose(); }
+});
+
+
+test('closing the reader cancels a pending navigation without reopening it', async () => {
+	const f = await fixture(); let release;
+	try {
+		await f.actions.get('myself.documentation.open')('one');
+		const originalPanel = f.panel();
+		const gate = new Promise(resolve => { release = resolve; });
+		f.delay(file => file.endsWith('two.html') ? gate : undefined);
+		const pending = f.actions.get('myself.documentation.open')('two'); await tick();
+		originalPanel.dispose(); release(); await pending;
+		assert.equal(f.panel(), originalPanel, 'completed navigation must not create another panel');
+		assert.deepEqual(f.notices, []);
+		await f.actions.get('myself.documentation.open')('two');
+		assert.notEqual(f.panel(), originalPanel, 'a later explicit open still works');
+	} finally { release?.(); f.dispose(); }
+});
+
+test('disposal while the catalog loads prevents pending commands from opening a reader', async () => {
+	let release;
+	const gate = new Promise(resolve => { release = resolve; });
+	const f = await fixture({ deferCatalog: true, beforeRead: file => file.endsWith('catalog.json') ? gate : undefined });
+	try {
+		const pending = f.actions.get('myself.documentation.open')('one');
+		f.dispose(); release(); await pending;
+		assert.equal(f.panel(), undefined);
+		assert.deepEqual(f.reads, ['/extension/documentation/catalog.json']);
+		assert.deepEqual(f.notices, []);
+	} finally { release?.(); f.dispose(); }
+});
+
+test('a failed read completed after closing the reader does not show a stale error', async () => {
+	const f = await fixture(); let release;
+	try {
+		await f.actions.get('myself.documentation.open')('one');
+		const gate = new Promise(resolve => { release = resolve; });
+		f.delay(file => file.endsWith('two.html') ? gate : undefined);
+		const pending = f.actions.get('myself.documentation.open')('two'); await tick();
+		f.panel().dispose(); f.files.delete('/extension/documentation/test/two.html'); release(); await pending;
+		assert.deepEqual(f.notices, []);
 	} finally { release?.(); f.dispose(); }
 });

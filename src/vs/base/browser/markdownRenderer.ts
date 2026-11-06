@@ -70,6 +70,7 @@ export interface MarkdownSanitizerConfig {
 	readonly allowedMediaSchemes?: {
 		readonly augment: readonly string[];
 	};
+	/** May further restrict workspace/custom filesystem media; cannot enable external network resources. */
 	readonly remoteImageIsAllowed?: (uri: URI) => boolean;
 }
 
@@ -449,38 +450,40 @@ function replaceChildrenPreservingCodeBlocks(target: HTMLElement, source: HTMLEl
 function rewriteRenderedLinks(markdown: IMarkdownString, options: MarkdownRenderOptions, root: HTMLElement, disposables: DisposableStore) {
 	// eslint-disable-next-line no-restricted-syntax
 	for (const el of root.querySelectorAll('img, audio, video, source')) {
-		const src = el.getAttribute('src'); // Get the raw 'src' attribute value as text, not the resolved 'src'
-		if (src) {
-			let href = src;
-			try {
-				if (markdown.baseUri) { // absolute or relative local path, or file: uri
-					href = resolveWithBaseUri(URI.from(markdown.baseUri), href);
-				}
-			} catch (err) { }
+		for (const attribute of ['src', 'poster']) {
+			const src = el.getAttribute(attribute);
+			if (src) {
+				let href = src;
+				try {
+					if (markdown.baseUri) { // absolute or relative local path, or file: uri
+						href = resolveWithBaseUri(URI.from(markdown.baseUri), href);
+					}
+				} catch (err) { }
 
-			const uri = URI.revive(markdown.uris?.[href]) ?? URI.parse(href);
-			if (!matchesSomeScheme(uri, Schemas.http, Schemas.https, Schemas.data)) {
-				// The browser loads other resources through a transport URL, so keep the resource the element shows
-				el.setAttribute('data-src', uri.toString());
-			}
-			const resolved = FileAccess.resolveBrowserUri(uri);
-			if (resolved) {
-				el.removeAttribute('src');
-				void resolved.then(ref => {
-					if (disposables.isDisposed) {
-						ref.dispose();
-						return;
-					}
-					disposables.add(ref);
-					el.setAttribute('src', ref.object.toString(true));
-				}, error => {
-					if (!disposables.isDisposed) {
-						el.dispatchEvent(new ErrorEvent('error', { error }));
-						options.asyncRenderCallback?.();
-					}
-				});
-			} else {
-				el.setAttribute('src', massageHref(markdown, href, true));
+				const uri = (href.startsWith(`${Schemas.data}:`) ? undefined : URI.revive(markdown.uris?.[href])) ?? URI.parse(href);
+				if (!matchesSomeScheme(uri, Schemas.http, Schemas.https, Schemas.data)) {
+					// The browser loads other resources through a transport URL, so keep the resource the element shows
+					el.setAttribute(`data-${attribute}`, uri.toString());
+				}
+				const resolved = FileAccess.resolveBrowserUri(uri);
+				if (resolved) {
+					el.removeAttribute(attribute);
+					void resolved.then(ref => {
+						if (disposables.isDisposed) {
+							ref.dispose();
+							return;
+						}
+						disposables.add(ref);
+						el.setAttribute(attribute, ref.object.toString(true));
+					}, error => {
+						if (!disposables.isDisposed) {
+							el.dispatchEvent(new ErrorEvent('error', { error }));
+							options.asyncRenderCallback?.();
+						}
+					});
+				} else {
+					el.setAttribute(attribute, massageHref(markdown, href, true));
+				}
 			}
 		}
 	}
@@ -663,10 +666,14 @@ function postProcessCodeBlockLanguageId(lang: string | undefined): string {
 type MdStrConfig = Pick<IMarkdownString, 'isTrusted' | 'baseUri' | 'uris'>;
 
 function isLocalFileUri(uri: URI): boolean {
-	return uri.scheme === Schemas.file && !uri.authority && !isUNC(uri.fsPath);
+	return uri.scheme === Schemas.file && !uri.authority && !/^[\\/]{2}/.test(uri.path) && !isUNC(uri.fsPath);
 }
 
-function isMediaSourceAllowed(mdStrConfig: MdStrConfig, source: string, remoteImageIsAllowed: (uri: URI) => boolean, customSchemes: readonly string[]): boolean {
+function isMediaSourceAllowed(mdStrConfig: MdStrConfig, source: string, remoteImageIsAllowed: ((uri: URI) => boolean) | undefined, customSchemes: readonly string[]): boolean {
+	// A network-path reference can be activated by the DOM before URI rewriting.
+	if (/^[\\/]{2}/.test(source.replace(/[\t\r\n]/g, '').trim())) {
+		return false;
+	}
 	let uri: URI;
 	let mappedUri: URI | undefined;
 	try {
@@ -678,14 +685,25 @@ function isMediaSourceAllowed(mdStrConfig: MdStrConfig, source: string, remoteIm
 		const href = baseUri ? resolveWithBaseUri(baseUri, source) : source;
 		uri = URI.parse(href);
 		mappedUri = href.startsWith(`${Schemas.data}:`) ? undefined : URI.revive(mdStrConfig.uris?.[href]);
-		if (customSchemes.includes(uri.scheme)) {
-			return remoteImageIsAllowed(mappedUri ?? uri);
-		}
 	} catch {
 		return false;
 	}
 
-	const isAllowed = (uri: URI) => isLocalFileUri(uri) || uri.scheme === Schemas.data || remoteImageIsAllowed(uri);
+	const isAllowed = (uri: URI): boolean => {
+		if (uri.scheme === Schemas.file || uri.scheme === Schemas.vscodeFileResource) {
+			return isLocalFileUri(FileAccess.uriToFileUri(uri));
+		}
+		if (uri.scheme === Schemas.data) {
+			return true;
+		}
+		// Browser transport URLs are produced only after validating the filesystem URI.
+		// An allow-all editor option must not enable arbitrary HTTP(S) or UNC downloads.
+		if (matchesSomeScheme(uri, Schemas.http, Schemas.https, Schemas.vscodeRemoteResource)) {
+			return false;
+		}
+		return (uri.scheme === Schemas.vscodeRemote || customSchemes.includes(uri.scheme))
+			&& (remoteImageIsAllowed?.(uri) ?? true);
+	};
 	// Remote extension host RPC maps local files to the same file on its remote authority.
 	const isRemoteFileMapping = isLocalFileUri(uri) && mappedUri?.scheme === Schemas.vscodeRemote
 		&& mappedUri.path === uri.path && mappedUri.query === uri.query && mappedUri.fragment === uri.fragment;
@@ -801,7 +819,9 @@ function getDomSanitizerConfig(mdStrConfig: MdStrConfig, options: MarkdownSaniti
 			override: options.allowedTags?.override ?? allowedMarkdownHtmlTags
 		},
 		allowedAttributes: {
-			override: options.allowedAttributes?.override ?? allowedMarkdownHtmlAttributes,
+			// srcset contains multiple URLs and bypasses the single-source validator.
+			override: (options.allowedAttributes?.override ?? allowedMarkdownHtmlAttributes).filter(attribute =>
+				(typeof attribute === 'string' ? attribute : attribute.attributeName).toLowerCase() !== 'srcset'),
 		},
 		allowedLinkProtocols: {
 			override: allowedLinkSchemes,
@@ -820,7 +840,7 @@ function getDomSanitizerConfig(mdStrConfig: MdStrConfig, options: MarkdownSaniti
 			]
 		},
 		allowRelativeMediaPaths: !!mdStrConfig.baseUri,
-		mediaSourceIsAllowed: remoteImageIsAllowed ? source => isMediaSourceAllowed(mdStrConfig, source, remoteImageIsAllowed, options.allowedMediaSchemes?.augment ?? []) : undefined,
+		mediaSourceIsAllowed: source => isMediaSourceAllowed(mdStrConfig, source, remoteImageIsAllowed, options.allowedMediaSchemes?.augment ?? []),
 		replaceWithPlaintext: options.replaceWithPlaintext,
 	};
 }

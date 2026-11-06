@@ -43,3 +43,5 @@ integration package; this resource extension alone is not the finished UI.
 Source, attribution, license distinctions and asset hashes are recorded in
 `THIRD_PARTY_NOTICES.txt` and `fileicons/provenance.json`. This is a pinned
 resource snapshot, not an automatically updating upstream extension.
+
+Common filename and extension associations are included directly, so Go, JSON, Rust, C/C++, F#, Lua, SQL, shell and other standard file icons work even when their language extensions are not installed. This does not install syntax grammars or language servers. Existing special filename mappings and light variants are preserved. The maintainer-only `scripts/add-file-icon-fallbacks.py` derives missing associations from this checkout's declarative language manifests; it is excluded from the installed extension.

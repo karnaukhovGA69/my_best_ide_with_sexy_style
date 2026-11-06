@@ -120,7 +120,7 @@ test('every referenced path resolves with exact case inside the local icon direc
 
 test('complete associations and light overrides have usable icon definitions', () => {
 	for (const [key, count] of Object.entries({ fileExtensions: 599, fileNames: 1922, languageIds: 558, folderNames: 524, folderNamesExpanded: 524 })) {
-		assert.equal(Object.keys(icons[key]).length, count, key);
+		assert.equal(Object.keys(icons[key]).length, count + Object.keys(provenance.languageIndependentFallbacks[key] ?? {}).length, key);
 	}
 	for (const variant of [icons, icons.light]) {
 		const ids = ['file', 'folder', 'folderExpanded', 'rootFolder', 'rootFolderExpanded'].map(key => variant[key]).filter(Boolean);

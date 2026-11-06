@@ -8,6 +8,8 @@ import { URI } from '../../../src/vs/base/common/uri.js';
 import { mock } from '../../../src/vs/base/test/common/mock.js';
 import { Color } from '../../../src/vs/base/common/color.js';
 import { IExtensionResourceLoaderService } from '../../../src/vs/platform/extensionResourceLoader/common/extensionResourceLoader.js';
+import { getIconClasses } from '../../../src/vs/editor/common/services/getIconClasses.js';
+import { IModelService } from '../../../src/vs/editor/common/services/model.js';
 import { ILanguageService } from '../../../src/vs/editor/common/languages/language.js';
 import { ColorThemeData } from '../../../src/vs/workbench/services/themes/common/colorThemeData.js';
 import { FileIconThemeData, FileIconThemeLoader } from '../../../src/vs/workbench/services/themes/browser/fileIconThemeData.js';
@@ -108,6 +110,22 @@ suite('Calmer Studio resources in workbench loaders', () => {
 			assert.ok(background(folder).includes('/assets/default_folder_opened.svg'));
 			file.classList.add('typescript-lang-file-icon');
 			assert.ok(background(file).includes('/assets/file_type_typescript.svg'));
+			// A minimal installation has no language registrations for these files.
+			const noLanguages = new class extends mock<ILanguageService>() {
+				override guessLanguageIdByFilepathOrFirstLine(): string | null { return null; }
+			};
+			const noModels = new class extends mock<IModelService>() {
+				override getModel() { return null; }
+			};
+			for (const [name, asset] of [
+				['main.go', 'go'], ['MAIN.GO', 'go'], ['data.json', 'json'], ['settings.jsonc', 'json'],
+				['main.rs', 'rust'], ['main.cpp', 'cpp'], ['main.fs', 'fsharp'], ['main.lua', 'lua'],
+				['query.sql', 'sql'], ['run.sh', 'shell'], ['config.yaml', 'yaml'], ['app.py', 'python'],
+				['app.ts', 'typescript'], ['app.js', 'js'], ['page.html', 'html'], ['style.css', 'css'],
+			]) {
+				file.className = getIconClasses(noModels, noLanguages, URI.file('/workspace/' + name)).join(' ');
+				assert.ok(background(file).includes('/assets/file_type_' + asset + '.svg'), name + ': ' + background(file));
+			}
 			container.className = 'vs';
 			file.className = 'file-icon';
 			assert.ok(background(file).includes('/assets/default_file.svg'), 'light placeholder inherits the base icon');

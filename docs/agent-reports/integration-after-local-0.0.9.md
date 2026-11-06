@@ -39,3 +39,9 @@
 - `chat-followup-renderer-disable` — `21c392ad9055b35ef48c04bdcbe0252746476643`
 - `customization-migration-analytics-disable` — `e4ca4aa78f6714a702b9780055eb072faf8f2b58`
 - `chat-input-inline-autotrigger-disable` — `18c1611e5fe5bb8e08568266eef786f0b5497c78`
+
+Третий срез: занят общий client typecheck slot; других package/typecheck процессов при запуске нет. Интегратор также резервирует AGENTS.md, docs/project-plan.md, docs/development-plan.md, docs/project-handoff.md для нового решения владельца: GitHub login/catalog/root-clone возвращаются, backup не возвращается; release-notes-local-only остаётся у текущего владельца.
+
+Третий срез ЗАВЕРШЁН: 4 задачи, 15 browser tests passed, 0 page errors, полный client typecheck passed (exit 0), diff --check чистый. Общий слот освобождён. Всего после локального 0.0.9: 16 задач, 39 целевых browser tests. Готовый ZIP не пересобирался.
+
+Новое решение владельца передано из параллельного чата: вход/каталог GitHub возвращаются. AGENTS и три общих плана синхронизированы. Не интегрировать github-native-adapters-delete в рамках прежнего удаления: auth/catalog/root-clone требуют новой реализации и отдельного claim владельца. Предложенный владелец — чат github-native-adapters-delete; назначение не считается принятым до его собственного отчёта. Release-notes-local-only остаётся у MCP/build agent.

@@ -68,3 +68,7 @@
 Пятый срез: занят общий client typecheck slot на шесть задач с зависимостями; других package/typecheck процессов при старте нет.
 
 Пятый срез ЗАВЕРШЁН: 6 задач с зависимостями, 41 browser tests passed, 0 page errors; полный client typecheck passed (exit 0), diff --check чистый. Аудит относительных ссылок src/build/test/extensions: 36 удалённых файлов, 0 оставшихся ссылок. Общий слот освобождён. Всего после локального 0.0.9: 25 задач, 84 целевых browser tests. Package/native не запускались; сохранение CLI status проверено service passthrough тестом, native smoke остаётся частью следующей пакетной сборки. Готовый ZIP неизменён.
+
+Шестой срез — ЗАНЯТО интегратором: native-issue-upload-rpc-delete и две готовые задачи:
+- `chat-experiment-notifications-disable` — `98db95a9eae07a1c7705174d24811fde0569db66`
+- `chat-tool-result-compression-disable` — `fa1a12c7bf791bb1cd34425c36c7322d6fa399de`

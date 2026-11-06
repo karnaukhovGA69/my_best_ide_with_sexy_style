@@ -60,3 +60,7 @@
 Пятый срез — ЗАНЯТО интегратором:
 - `chat-agent-recommendations-disable` — `63674c86bbb40096d576312d6a42ba2a9bf36869`
 - `chat-promo-notifications-disable` — `62150fa8baf6010a4fccaeb6734e30ae187f7001`
+
+Пятый срез расширен до проверки: ЗАНЯТО интегратором — issue-reporter-orphan-ui-delete с зависимостями service-disable/registrations-remove и github-issue-upload-disable. Это удаление Issue Reporter/upload, без изменения auth/catalog/root-clone.
+- `issue-reporter-orphan-ui-delete` — `b7aa12e15e48fad691c02a3a3c5f5133937ae813`
+- `github-issue-upload-disable` — `e5ff2f223cb78c3f061e21c2e36be96fdc7a131f`

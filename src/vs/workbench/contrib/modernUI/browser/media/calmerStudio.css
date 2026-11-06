@@ -1,0 +1,46 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Calmer Studio uses the classic grid: real sashes and persisted dimensions,
+ * without Modern UI's floating gutters, connected tabs or frosted material.
+ * Keep these structural heights in sync with CalmerStudioMetrics; browser
+ * tests compare the actual CSS with the part/tree layout constraints. */
+.calmer-studio.monaco-workbench .part.statusbar {
+	height: 32px;
+}
+
+.calmer-studio.monaco-workbench .part.statusbar > .items-container > .statusbar-item {
+	line-height: 32px;
+}
+
+.calmer-studio .explorer-folders-view .explorer-item,
+.calmer-studio .explorer-folders-view .explorer-item .monaco-icon-label {
+	height: 30px;
+	line-height: 30px;
+}
+
+.calmer-studio .explorer-folders-view .explorer-item {
+	align-items: center;
+}
+
+/* Keep the native labels, icon colors, tab overflow and action hit targets. */
+.calmer-studio.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.calmer-studio .monaco-inputbox,
+.calmer-studio .monaco-button,
+.calmer-studio .monaco-select-box,
+.calmer-studio .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small);
+}
+
+.calmer-studio .monaco-menu .monaco-action-bar.vertical {
+	border-radius: var(--vscode-cornerRadius-medium);
+}
+
+/* No new animation or font overrides. Native focus rings and high-contrast
+ * borders remain intact; backgrounds and foregrounds come from the theme. */

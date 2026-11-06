@@ -293,3 +293,26 @@ To try a smaller set of overrides in `settings.json`:
 CSS custom properties prefixed with `--modern-ui-` are internal implementation details, not public theme APIs. Use the registered color IDs above instead.
 
 The color registrations and canonical descriptions are defined in `src/vs/workbench/common/theme.ts`.
+
+
+## Calmer Studio layout
+
+`workbench.calmerStudio` enables the separate Calmer Studio geometry when
+`workbench.experimental.modernUI` is false. Modern remains the explicit winner
+if both are set, so its floating, connected/pill and glass behavior never mixes
+with Calmer. The preset action/defaults must choose Calmer **and** turn Modern
+off together. This contribution never rewrites user settings on startup.
+
+Calmer uses the existing classic grid, persistence, panel sashes and terminal.
+Its shared metrics are 48px title bar, 44px regular tabs (32px with the user's
+compact-tab preference), 32px status bar and 30px Explorer rows. Virtual tree
+row sizes and editor/title/status layout constraints change with their CSS;
+turning the mode off restores the normal metrics. Native titlebar zoom/window
+controls and tab wrapping remain managed by their existing parts.
+
+The contribution installs a scoped class in main and auxiliary
+workbench containers. It changes no fonts, icons, themes, language settings,
+activity-bar visibility, minimap, breadcrumbs or saved panel sizes. The full
+preset action, clean-profile defaults, file navigation controls, branding and
+native application verification belong to `nerded-calm-integration`. Use color
+ID `Nerded Calm` and icon ID `nerded-calm-file-icons` from the resource extension.

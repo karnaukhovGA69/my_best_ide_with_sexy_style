@@ -17,7 +17,7 @@ import { IActionViewItemService } from '../../../../platform/actions/browser/act
 import { BrowserTitlebarPart, BrowserTitleService, IAuxiliaryTitlebarPart } from '../../../browser/parts/titlebar/titlebarPart.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { isCalmerStudio, IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { INativeHostService } from '../../../../platform/native/common/native.js';
 import { hasNativeTitlebar, useWindowControlsOverlay, DEFAULT_CUSTOM_TITLEBAR_HEIGHT, hasNativeMenu } from '../../../../platform/window/common/window.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -35,7 +35,7 @@ export class NativeTitlebarPart extends BrowserTitlebarPart {
 	//#region IView
 
 	override get minimumHeight(): number {
-		if (!isMacintosh) {
+		if (!isMacintosh || isCalmerStudio(this.configurationService)) {
 			return super.minimumHeight;
 		}
 

@@ -19,7 +19,7 @@ import { contrastBorder, activeContrastBorder } from '../../../../platform/theme
 import { EventHelper, addDisposableListener, EventType, clearNode, getWindow, isHTMLElement, $ } from '../../../../base/browser/dom.js';
 import { createStyleSheet } from '../../../../base/browser/domStylesheets.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
-import { Parts, IWorkbenchLayoutService, LayoutSettings } from '../../../services/layout/browser/layoutService.js';
+import { CalmerStudioMetrics, isCalmerStudio, Parts, IWorkbenchLayoutService, LayoutSettings } from '../../../services/layout/browser/layoutService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { equals } from '../../../../base/common/arrays.js';
@@ -142,8 +142,8 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 
 	readonly minimumWidth: number = 0;
 	readonly maximumWidth: number = Number.POSITIVE_INFINITY;
-	get minimumHeight(): number { return StatusbarPart.HEIGHT + this.floatingBottomPadding; }
-	get maximumHeight(): number { return StatusbarPart.HEIGHT + this.floatingBottomPadding; }
+	get minimumHeight(): number { return (isCalmerStudio(this.configurationService) ? CalmerStudioMetrics.statusBarHeight : StatusbarPart.HEIGHT) + this.floatingBottomPadding; }
+	get maximumHeight(): number { return (isCalmerStudio(this.configurationService) ? CalmerStudioMetrics.statusBarHeight : StatusbarPart.HEIGHT) + this.floatingBottomPadding; }
 
 	//#endregion
 
@@ -242,7 +242,7 @@ class StatusbarPart extends Part implements IStatusbarEntryContainer {
 		// part height) for the main status bar only: signal the grid that the size
 		// constraint changed.
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (this.getId() === Parts.STATUSBAR_PART && (e.affectsConfiguration(LayoutSettings.MODERN_UI) || e.affectsConfiguration(LayoutSettings.MODERN_UI_DENSITY))) {
+			if (e.affectsConfiguration(LayoutSettings.CALMER_STUDIO) || e.affectsConfiguration(LayoutSettings.MODERN_UI) || (this.getId() === Parts.STATUSBAR_PART && e.affectsConfiguration(LayoutSettings.MODERN_UI_DENSITY))) {
 				this._onDidChange.fire(undefined);
 				if (this.element) {
 					this.updateStyles();

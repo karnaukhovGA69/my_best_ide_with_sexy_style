@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './textSizeActions.js';
+import { applyCalmerStudioPreset, CALMER_STUDIO_SETTING } from './calmerStudioPreset.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { LayoutDensityMenu } from '../../../browser/actions/layoutDensityActions.js';
 import { LayoutSettings } from '../../../services/layout/browser/layoutService.js';
 
@@ -24,17 +26,32 @@ for (const [index, option] of [
 			super({
 				id: `myself.appearance.${option.id}`,
 				title: option.title,
-				toggled: ContextKeyExpr.equals(`config.${LayoutSettings.MODERN_UI}`, option.enabled),
+				toggled: ContextKeyExpr.and(ContextKeyExpr.equals(`config.${LayoutSettings.MODERN_UI}`, option.enabled), option.enabled ? undefined : ContextKeyExpr.notEquals(`config.${CALMER_STUDIO_SETTING}`, true)),
 				menu: { id: styleMenu, order: index + 1 },
 			});
 		}
 
-		override run(accessor: ServicesAccessor): Promise<void> {
-			// Use the existing setting's target resolution; do not reset fonts, colors or density.
-			return accessor.get(IConfigurationService).updateValue(LayoutSettings.MODERN_UI, option.enabled);
+		override async run(accessor: ServicesAccessor): Promise<void> {
+			const configuration = accessor.get(IConfigurationService);
+			await configuration.updateValue(CALMER_STUDIO_SETTING, false);
+			await configuration.updateValue(LayoutSettings.MODERN_UI, option.enabled);
 		}
 	});
 }
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'myself.appearance.calmerStudio',
+			title: localize2('interfaceStyle.calmerStudio', "Calmer Studio"),
+			toggled: ContextKeyExpr.and(ContextKeyExpr.equals(`config.${CALMER_STUDIO_SETTING}`, true), ContextKeyExpr.notEquals(`config.${LayoutSettings.MODERN_UI}`, true)),
+			menu: { id: styleMenu, order: 3 },
+		});
+	}
+	override run(accessor: ServicesAccessor): Promise<void> {
+		return applyCalmerStudioPreset(accessor.get(IConfigurationService));
+	}
+});
 
 for (const menu of [MenuId.MenubarAppearanceMenu, MenuId.GlobalActivity]) {
 	MenuRegistry.appendMenuItem(menu, {
@@ -53,4 +70,18 @@ MenuRegistry.appendMenuItem(MenuId.MenubarAppearanceMenu, {
 	group: '2_configuration',
 	order: 8,
 	when: modernContext,
+});
+
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'myself.documentation.showLibrary',
+			title: localize2('showDocumentationLibrary', "Documentation Library"),
+			menu: { id: MenuId.MenubarViewMenu, group: '3_views', order: 5 },
+		});
+	}
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		await accessor.get(IViewsService).openView('myself.documentation.library', true);
+	}
 });

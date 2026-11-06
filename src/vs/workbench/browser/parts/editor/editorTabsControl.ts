@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { CalmerStudioMetrics, isCalmerStudio, LayoutSettings } from '../../../services/layout/browser/layoutService.js';
 import './media/editortabscontrol.css';
 import { localize } from '../../../../nls.js';
 import { DataTransfers } from '../../../../base/browser/dnd.js';
@@ -165,6 +167,7 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 		@IHostService protected readonly hostService: IHostService,
 		@IMenuService protected readonly menuService: IMenuService,
 		@IModelService private readonly modelService: IModelService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
 		super(themeService);
 
@@ -192,6 +195,19 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 		this.sideBySideEditorContext = SideBySideEditorActiveContext.bindTo(this.contextMenuContextKeyService);
 
 		this.groupLockedContext = ActiveEditorGroupLockedContext.bindTo(this.contextMenuContextKeyService);
+
+		this._register(configurationService.onDidChangeConfiguration(event => {
+			if (event.affectsConfiguration(LayoutSettings.CALMER_STUDIO) || event.affectsConfiguration(LayoutSettings.MODERN_UI)) {
+				// Modern UI updates its container classes in another configuration listener.
+				// Read those classes after this event finishes, before the next paint.
+				queueMicrotask(() => {
+					if (!this._store.isDisposed) {
+						this.updateTabHeight();
+						this.groupView.relayout();
+					}
+				});
+			}
+		}));
 	}
 
 	protected create(parent: HTMLElement): HTMLElement {
@@ -606,6 +622,9 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 
 	protected get tabHeight() {
 		const isCompact = this.groupsView.partOptions.tabHeight === 'compact';
+		if (isCalmerStudio(this.configurationService)) {
+			return isCompact ? CalmerStudioMetrics.compactTabHeight : CalmerStudioMetrics.tabHeight;
+		}
 		// In modern multi-tab mode the tabs-and-actions-container gains extra
 		// padding (tabs.css), so the total height differs from the base values.
 		// The `.tabs` class is present only when showTabs === 'multiple'; single-tab

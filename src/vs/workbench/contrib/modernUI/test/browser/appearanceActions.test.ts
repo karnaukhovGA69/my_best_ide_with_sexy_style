@@ -13,26 +13,38 @@ import { MockContextKeyService } from '../../../../../platform/keybinding/test/c
 import { LayoutDensityMenu } from '../../../../browser/actions/layoutDensityActions.js';
 import { LayoutSettings } from '../../../../services/layout/browser/layoutService.js';
 import '../../browser/appearanceActions.js';
+import { CALMER_STUDIO_SETTING } from '../../browser/calmerStudioPreset.js';
 
 suite('Myself IDE appearance controls', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('offers the same Classic/Modern submenu in Appearance and Settings', () => {
+	test('offers the same Classic/Modern/Calmer submenu in Appearance and Settings', () => {
 		for (const menu of [MenuId.MenubarAppearanceMenu, MenuId.GlobalActivity]) {
 			const entry = MenuRegistry.getMenuItems(menu).filter(isISubmenuItem).find(item => item.submenu.id === 'MyselfInterfaceStyle');
 			assert.ok(entry);
-			assert.deepStrictEqual(MenuRegistry.getMenuItems(entry.submenu).filter(isIMenuItem).map(item => item.command.id), ['myself.appearance.classic', 'myself.appearance.modern']);
+			assert.deepStrictEqual(MenuRegistry.getMenuItems(entry.submenu).filter(isIMenuItem).map(item => item.command.id), ['myself.appearance.classic', 'myself.appearance.modern', 'myself.appearance.calmerStudio']);
 		}
 	});
 
-	test('changes only the existing layout flag, preserving theme, fonts and density', async () => {
+	test('switches layout modes while preserving theme, fonts and density', async () => {
 		const instantiation = store.add(new TestInstantiationService(undefined, true));
 		const changes: [string, unknown][] = [];
 		instantiation.stub(IConfigurationService, { updateValue: async (key: string, value: unknown) => { changes.push([key, value]); } });
 		for (const id of ['myself.appearance.classic', 'myself.appearance.modern']) {
 			await instantiation.invokeFunction(CommandsRegistry.getCommand(id)!.handler);
 		}
-		assert.deepStrictEqual(changes, [[LayoutSettings.MODERN_UI, false], [LayoutSettings.MODERN_UI, true]]);
+		assert.deepStrictEqual(changes, [[CALMER_STUDIO_SETTING, false], [LayoutSettings.MODERN_UI, false], [CALMER_STUDIO_SETTING, false], [LayoutSettings.MODERN_UI, true]]);
+	});
+
+	test('the visible Calmer Studio command applies the complete preset', async () => {
+		const instantiation = store.add(new TestInstantiationService(undefined, true));
+		const changes: [string, unknown][] = [];
+		instantiation.stub(IConfigurationService, { updateValue: async (key: string, value: unknown) => { changes.push([key, value]); } });
+		await instantiation.invokeFunction(CommandsRegistry.getCommand('myself.appearance.calmerStudio')!.handler);
+		assert.deepStrictEqual(changes, [
+			['workbench.colorTheme', 'Nerded Calm'], ['workbench.iconTheme', 'nerded-calm-file-icons'],
+			[LayoutSettings.MODERN_UI, false], [CALMER_STUDIO_SETTING, true],
+		]);
 	});
 
 	test('shows density controls only for modern layout and reuses existing commands', () => {

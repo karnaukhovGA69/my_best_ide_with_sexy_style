@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../../nls.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 
 export interface IGitHubUploadResult {
@@ -20,11 +21,15 @@ export interface IGitHubUploadService {
 }
 
 /**
- * Browser fallback, upload not yet supported in web.
+ * Compatibility adapter for the disabled built-in GitHub upload feature.
  */
 export class BrowserGitHubUploadService implements IGitHubUploadService {
 	readonly _serviceBrand: undefined;
 
-	async resolveRepositoryId(): Promise<string> { throw new Error('Not supported in browser'); }
-	async uploadViaMobileApi(): Promise<IGitHubUploadResult[]> { throw new Error('Not supported in browser'); }
+	async resolveRepositoryId(_owner: string, _repo: string, _token?: string): Promise<string> {
+		throw new Error(localize('githubUploadUnavailable', "Built-in GitHub uploads are unavailable in Myself IDE."));
+	}
+	async uploadViaMobileApi(_token: string, _repoId: string, _files: { name: string; bytes: Uint8Array; contentType: string }[]): Promise<IGitHubUploadResult[]> {
+		throw new Error(localize('githubUploadUnavailable', "Built-in GitHub uploads are unavailable in Myself IDE."));
+	}
 }

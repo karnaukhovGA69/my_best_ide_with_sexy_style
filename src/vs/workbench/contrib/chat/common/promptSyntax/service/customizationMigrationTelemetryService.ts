@@ -14,63 +14,6 @@ import { CustomizationMigrationFailureReason, CustomizationMigrationType, ICusto
 
 export const ICustomizationMigrationTelemetryService = createDecorator<ICustomizationMigrationTelemetryService>('customizationMigrationTelemetryService');
 
-type CustomizationMigrationAction =
-	| 'hintShown'
-	| 'hintReviewClicked'
-	| 'hintDismissClicked'
-	| 'migrationOverviewShown'
-	| 'migrationCategoryShown'
-	| 'migrationOverviewClicked'
-	| 'migrationCategoryClicked'
-	| 'agentMigrationClicked'
-	| 'migrationClicked'
-	| 'migrationCompleted'
-	| 'backClicked'
-	| 'destinationsClicked'
-	| 'workspaceSkipped'
-	| 'workspaceIncluded'
-	| 'retryClicked';
-
-type CustomizationMigrationEvent = {
-	action: CustomizationMigrationAction;
-	category?: CustomizationMigrationType;
-	migrationFlowId?: string;
-	count?: number;
-	requestedCount?: number;
-	migratedCount?: number;
-	failedCount?: number;
-	cancelled?: boolean;
-	migrationFailedReasons?: string;
-};
-
-type CustomizationMigrationClassification = {
-	action: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The customization migration impression or action.' };
-	category?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The category of customization migration.' };
-	migrationFlowId?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'A random identifier that correlates events for one customization migration flow.' };
-	count?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The total number of customizations represented by the hint.' };
-	requestedCount?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The number of customizations selected for migration.' };
-	migratedCount?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The number of customizations successfully migrated.' };
-	failedCount?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The number of customizations that failed to migrate.' };
-	cancelled?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'Whether the customization migration flow was cancelled before completion.' };
-	migrationFailedReasons?: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'A semicolon-separated list of bounded failure reason identifiers. Does not contain customization names, paths, content, or error messages.' };
-	owner: 'digitarald';
-	comment: 'Tracks aggregate customization migration impressions, actions, and outcomes without collecting customization names, paths, or content.';
-};
-
-type CustomizationMigrationAssessmentEvent = {
-	migrationFlowId: string;
-	category: CustomizationMigrationType;
-	count: number;
-};
-
-type CustomizationMigrationAssessmentClassification = {
-	migrationFlowId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'A random identifier that correlates this finding with its customization migration flow.' };
-	category: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The category of customization migration finding.' };
-	count: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; isMeasurement: true; comment: 'The number of customizations in the finding.' };
-	owner: 'digitarald';
-	comment: 'Tracks aggregate customization migration findings without collecting customization names, paths, or content.';
-};
-
 export interface ICustomizationMigrationTelemetryService {
 	readonly _serviceBrand: undefined;
 
@@ -131,7 +74,7 @@ export class CustomizationMigrationTelemetryService extends Disposable implement
 	private readonly agentMigrationResults = new Map<string, IPendingCustomizationMigrationResult>();
 
 	constructor(
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
+		@ITelemetryService _telemetryService: ITelemetryService,
 		@ILogService private readonly logService: ILogService,
 		@IChatService private readonly chatService: IChatService,
 	) {
@@ -144,50 +87,19 @@ export class CustomizationMigrationTelemetryService extends Disposable implement
 		}));
 	}
 
-	hintComputed(hint: ICustomizationMigrationHint): void {
-		for (const { type, count } of hint.counts) {
-			this.telemetryService.publicLog2<CustomizationMigrationAssessmentEvent, CustomizationMigrationAssessmentClassification>('chat.customizationMigrationAssessment', { migrationFlowId: hint.migrationFlowId, category: type, count });
-		}
-	}
+	hintComputed(_hint: ICustomizationMigrationHint): void { }
 
-	hintShown(hint: ICustomizationMigrationHint): void {
-		this.sendHintAction('hintShown', hint);
-	}
+	hintShown(_hint: ICustomizationMigrationHint): void { }
 
-	hintClicked(hint: ICustomizationMigrationHint, action: 'review' | 'dismiss'): void {
-		this.sendHintAction(action === 'review' ? 'hintReviewClicked' : 'hintDismissClicked', hint);
-	}
+	hintClicked(_hint: ICustomizationMigrationHint, _action: 'review' | 'dismiss'): void { }
 
-	pageShown(category?: CustomizationMigrationType): void {
-		this.send({ action: category ? 'migrationCategoryShown' : 'migrationOverviewShown', category });
-	}
+	pageShown(_category?: CustomizationMigrationType): void { }
 
-	actionClicked(action: 'migrationOverviewClicked' | 'migrationCategoryClicked' | 'agentMigrationClicked' | 'backClicked' | 'destinationsClicked' | 'workspaceSkipped' | 'workspaceIncluded' | 'retryClicked', category?: CustomizationMigrationType): void {
-		this.send({ action, category });
-	}
+	actionClicked(_action: 'migrationOverviewClicked' | 'migrationCategoryClicked' | 'agentMigrationClicked' | 'backClicked' | 'destinationsClicked' | 'workspaceSkipped' | 'workspaceIncluded' | 'retryClicked', _category?: CustomizationMigrationType): void { }
 
-	migrationClicked(category: CustomizationMigrationType, requestedCount: number, migrationFlowId?: string): void {
-		this.send({
-			action: 'migrationClicked',
-			category,
-			requestedCount,
-			...(migrationFlowId ? { migrationFlowId } : {}),
-		});
-	}
+	migrationClicked(_category: CustomizationMigrationType, _requestedCount: number, _migrationFlowId?: string): void { }
 
-	migrationCompleted(category: CustomizationMigrationType, requestedCount: number, migratedCount: number, failedCount: number, failureReasons: readonly CustomizationMigrationFailureReason[], migrationFlowId?: string, cancelled?: boolean): void {
-		const migrationFailedReasons = Array.from(new Set(failureReasons)).sort().join(';');
-		this.send({
-			action: 'migrationCompleted',
-			category,
-			requestedCount,
-			migratedCount,
-			failedCount,
-			...(migrationFlowId ? { migrationFlowId } : {}),
-			...(cancelled ? { cancelled: true } : {}),
-			...(migrationFailedReasons ? { migrationFailedReasons } : {}),
-		});
-	}
+	migrationCompleted(_category: CustomizationMigrationType, _requestedCount: number, _migratedCount: number, _failedCount: number, _failureReasons: readonly CustomizationMigrationFailureReason[], _migrationFlowId?: string, _cancelled?: boolean): void { }
 
 	prepareAgentMigrationResult(migrationFlowId: string, inventoryCounts: ReadonlyMap<CustomizationMigrationType, number>, lifecycle: ICustomizationMigrationSessionLifecycle): IDisposable {
 		this.deleteAgentMigrationResult(migrationFlowId);
@@ -281,18 +193,6 @@ export class CustomizationMigrationTelemetryService extends Disposable implement
 			return true;
 		}
 		return false;
-	}
-
-	private send(event: CustomizationMigrationEvent): void {
-		this.telemetryService.publicLog2<CustomizationMigrationEvent, CustomizationMigrationClassification>('chat.customizationMigration', event);
-	}
-
-	private sendHintAction(action: 'hintShown' | 'hintReviewClicked' | 'hintDismissClicked', hint: ICustomizationMigrationHint): void {
-		this.send({
-			action,
-			migrationFlowId: hint.migrationFlowId,
-			count: hint.counts.reduce((total, { count }) => total + count, 0),
-		});
 	}
 
 }

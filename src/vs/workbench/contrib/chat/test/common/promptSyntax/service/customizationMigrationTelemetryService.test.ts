@@ -20,7 +20,7 @@ import { CustomizationMigrationTelemetryService, parseCustomizationMigrationAgen
 suite('CustomizationMigrationTelemetryService', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('reports migration impressions, actions, and outcomes', () => {
+	test('does not collect migration impressions, actions, or outcomes', () => {
 		const telemetryService = new TestTelemetryService();
 		const service = store.add(new CustomizationMigrationTelemetryService(telemetryService, new NullLogService(), new class extends mock<IChatService>() { }));
 		const hint = {
@@ -29,7 +29,7 @@ suite('CustomizationMigrationTelemetryService', () => {
 			counts: [{ type: CustomizationMigrationType.PromptFiles, count: 3 }],
 		};
 
-		service.hintComputed(hint);
+		service.hintComputed(new Proxy(hint, { get: () => { throw new Error('Hint must not be inspected for analytics'); } }));
 		service.hintShown(hint);
 		service.hintClicked(hint, 'review');
 		service.hintClicked(hint, 'dismiss');
@@ -45,19 +45,7 @@ suite('CustomizationMigrationTelemetryService', () => {
 		], hint.migrationFlowId);
 		service.migrationCompleted(CustomizationMigrationType.McpServers, 0, 0, 0, [], hint.migrationFlowId, true);
 
-		assert.deepStrictEqual(telemetryService.events, [
-			{ name: 'chat.customizationMigrationAssessment', data: { migrationFlowId: 'migration-flow-id', category: 'promptFiles', count: 3 } },
-			{ name: 'chat.customizationMigration', data: { action: 'hintShown', migrationFlowId: 'migration-flow-id', count: 3 } },
-			{ name: 'chat.customizationMigration', data: { action: 'hintReviewClicked', migrationFlowId: 'migration-flow-id', count: 3 } },
-			{ name: 'chat.customizationMigration', data: { action: 'hintDismissClicked', migrationFlowId: 'migration-flow-id', count: 3 } },
-			{ name: 'chat.customizationMigration', data: { action: 'migrationOverviewShown', category: undefined } },
-			{ name: 'chat.customizationMigration', data: { action: 'migrationCategoryShown', category: 'promptFiles' } },
-			{ name: 'chat.customizationMigration', data: { action: 'migrationCategoryClicked', category: 'promptFiles' } },
-			{ name: 'chat.customizationMigration', data: { action: 'agentMigrationClicked', category: undefined } },
-			{ name: 'chat.customizationMigration', data: { action: 'migrationClicked', category: 'promptFiles', migrationFlowId: 'migration-flow-id', requestedCount: 3 } },
-			{ name: 'chat.customizationMigration', data: { action: 'migrationCompleted', category: 'promptFiles', migrationFlowId: 'migration-flow-id', requestedCount: 3, migratedCount: 2, failedCount: 1, migrationFailedReasons: 'rollbackFailed;targetWriteFailed' } },
-			{ name: 'chat.customizationMigration', data: { action: 'migrationCompleted', category: 'mcpServers', migrationFlowId: 'migration-flow-id', requestedCount: 0, migratedCount: 0, failedCount: 0, cancelled: true } },
-		]);
+		assert.deepStrictEqual(telemetryService.events, []);
 	});
 
 	test('parses aggregate outcomes from an agent migration result', () => {
@@ -83,7 +71,7 @@ suite('CustomizationMigrationTelemetryService', () => {
 		});
 	});
 
-	test('accepts one validated tool result and updates lifecycle and telemetry', async () => {
+	test('accepts one validated tool result and updates lifecycle without telemetry', async () => {
 		const telemetryService = new TestTelemetryService();
 		const service = store.add(new CustomizationMigrationTelemetryService(telemetryService, new NullLogService(), new class extends mock<IChatService>() { }));
 		const statuses: string[] = [];
@@ -126,17 +114,7 @@ suite('CustomizationMigrationTelemetryService', () => {
 			events: telemetryService.events,
 		}, {
 			statuses: ['completed'],
-			events: [{
-				name: 'chat.customizationMigration',
-				data: {
-					action: 'migrationCompleted',
-					category: 'promptFiles',
-					requestedCount: 2,
-					migratedCount: 1,
-					failedCount: 1,
-					migrationFlowId: 'migration-flow-id',
-				},
-			}],
+			events: [],
 		});
 	});
 
@@ -248,17 +226,7 @@ suite('CustomizationMigrationTelemetryService', () => {
 			events: telemetryService.events,
 		}, {
 			attempt: 2,
-			events: [{
-				name: 'chat.customizationMigration',
-				data: {
-					action: 'migrationCompleted',
-					category: 'promptFiles',
-					requestedCount: 1,
-					migratedCount: 1,
-					failedCount: 0,
-					migrationFlowId: 'migration-flow-id',
-				},
-			}],
+			events: [],
 		});
 	});
 });

@@ -1,0 +1,76 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">diffman-git(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">diffman-git(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">diffman-git - compare changes to manual pages line by line</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">diffman-git</code></td>
+    <td>[<i>diff-options</i>&#x00A0;...] [[<i>base-commit</i>] <i>commit</i>]
+      [<b>--</b> [<i>path</i>&#x00A0;...]]</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>diffman-git</b> command formats a manual page at two
+    <b>git</b>(1) commits, and then runs <b>diff</b>(1) on the formatted
+    outputs.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="PARAMETERS"><a class="permalink" href="#PARAMETERS">PARAMETERS</a></h1>
+<p class="Pp">If the <i>commit</i> is not specified, it diffs the working
+    directory against HEAD.</p>
+<p class="Pp">If the <i>base-commit</i> is not specified, the comparison is done
+    against the previous commit.</p>
+<p class="Pp"><i>path</i> restricts the files that are compared.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt id="s"><a class="permalink" href="#s"><b>-s</b></a></dt>
+  <dd>Report when two files are the same.</dd>
+  <dt id="U"><a class="permalink" href="#U"><b>-U</b><i>n</i></a></dt>
+  <dd>output <i>n</i> (default 3) lines of unified context.</dd>
+  <dt id="w"><a class="permalink" href="#w"><b>-w</b></a></dt>
+  <dd>Ignore all white space.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ENVIRONMENT"><a class="permalink" href="#ENVIRONMENT">ENVIRONMENT</a></h1>
+<p class="Pp">See <b>man</b>(1).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>$&#x00A0;<b>MAN_KEEP_FORMATTING= diffman-git 437e4afec6ca | less -R</b>;
+--- 437e4afec6ca^:man/man3/sem_open.3
++++ 437e4afec6ca:man/man3/sem_open.3
+@@ -14,3 +14,2 @@
+-     sem_t *sem_open(const char *name, int oflag);
+-     sem_t *sem_open(const char *name, int oflag,
+-                     mode_t mode, unsigned int value);
++     sem_t *sem_open(const char *name, int oflag, ...
++                     /* mode_t mode, unsigned int value */ );
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>diff</b>(1), <b>man</b>(1), <b>git</b>(1), <b>less</b>(1)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-26</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

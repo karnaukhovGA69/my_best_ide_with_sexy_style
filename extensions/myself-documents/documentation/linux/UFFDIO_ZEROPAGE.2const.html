@@ -1,0 +1,99 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">UFFDIO_ZEROPAGE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">UFFDIO_ZEROPAGE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">UFFDIO_ZEROPAGE - zero out a memory range registered with
+    userfaultfd</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b>  /* Definition of <b>UFFD*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, UFFDIO_ZEROPAGE, struct uffdio_zeropage *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b></pre>
+<pre></pre>
+<pre><b>struct uffdio_zeropage {</b>
+<b>    struct uffdio_range  range;</b>
+<b>    __u64                mode;</b>      /* Flags controlling behavior */
+<b>    __s64                zeropage;</b>  /* Number of bytes zeroed */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Zero out a memory range registered with userfaultfd.</p>
+<p class="Pp">The following value may be bitwise ORed in <i>mode</i> to change
+    the behavior of the <b>UFFDIO_ZEROPAGE</b> operation:</p>
+<dl class="Bl-tag">
+  <dt id="UFFDIO_ZEROPAGE_MODE_DONTWAKE"><a class="permalink" href="#UFFDIO_ZEROPAGE_MODE_DONTWAKE"><b>UFFDIO_ZEROPAGE_MODE_DONTWAKE</b></a></dt>
+  <dd>Do not wake up the thread that waits for page-fault resolution.</dd>
+</dl>
+<p class="Pp">The <i>zeropage</i> field is used by the kernel to return the
+    number of bytes that was actually zeroed, or an error in the same manner as
+    <b>UFFDIO_COPY</b>. If the value returned in the <i>zeropage</i> field
+    doesn't match the value that was specified in <i>range.len</i>, the
+    operation fails with the error <b>EAGAIN</b>. The <i>zeropage</i> field is
+    output-only; it is not read by the <b>UFFDIO_ZEROPAGE</b> operation.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">This <b>ioctl</b>(2) operation returns 0 on success. In this case,
+    the entire area was zeroed. On error, -1 is returned and <i>errno</i> is set
+    to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The number of bytes zeroed (i.e., the value returned in the
+      <i>zeropage</i> field) does not equal the value that was specified in the
+      <i>range.len</i> field.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Either <i>range.start</i> or <i>range.len</i> was not a multiple of the
+      system page size; or <i>range.len</i> was zero; or the range specified was
+      invalid.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>An invalid bit was specified in the <i>mode</i> field.</dd>
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b> (since Linux
+    4.13)</a></dt>
+  <dd>The faulting process has exited at the time of a <b>UFFDIO_ZEROPAGE</b>
+      operation.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.3.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>userfaultfd</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_userfaultfd</b>(2),
+    <b>userfaultfd</b>(2)</p>
+<p class="Pp"><i>linux.git/Documentation/admin-guide/mm/userfaultfd.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

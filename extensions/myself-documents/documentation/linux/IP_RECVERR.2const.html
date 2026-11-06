@@ -1,0 +1,132 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IP_RECVERR(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IP_RECVERR(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IP_RECVERR - extended reliable error message passing</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_RECVERR,</b>
+<b>               const&#x00A0;int&#x00A0;*</b><i>enable</i><b>,&#x00A0;sizeof(int));</b>
+<b>int&#x00A0;getsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_RECVERR,</b>
+<b>               int&#x00A0;*</b><i>enabled</i><b>,&#x00A0;sizeof(int));</b></pre>
+<p class="Pp"></p>
+<pre>struct sock_extended_err {
+<br/>
+    uint32_t  ee_errno;   /* error number */
+<br/>
+    uint8_t   ee_origin;  /* where the error originated */
+<br/>
+    uint8_t   ee_type;    /* type */
+<br/>
+    uint8_t   ee_code;    /* code */
+<br/>
+    uint8_t   ee_pad;
+<br/>
+    uint32_t  ee_info;    /* additional information */
+<br/>
+    uint32_t  ee_data;    /* other data */
+<br/>
+    /* More data may follow */
+};
+</pre>
+<p class="Pp"></p>
+<pre>#define SO_EE_ORIGIN_NONE    0
+#define SO_EE_ORIGIN_LOCAL   1
+#define SO_EE_ORIGIN_ICMP    2
+#define SO_EE_ORIGIN_ICMP6   3</pre>
+<pre><b>struct&#x00A0;sockaddr&#x00A0;*SO_EE_OFFENDER(struct&#x00A0;sock_extended_err&#x00A0;*);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Enable extended reliable error message passing (default:
+    disabled).</p>
+<p class="Pp">When enabled on a datagram socket, all generated errors will be
+    queued in a per-socket error queue. When the user receives an error from a
+    socket operation, the errors can be received by calling <b>recvmsg</b>(2)
+    with the <b>MSG_ERRQUEUE</b> flag set. The <i>sock_extended_err</i>
+    structure describing the error will be passed in an ancillary message with
+    the type <b>IP_RECVERR</b> and the level <b>IPPROTO_IP</b>. This is useful
+    for reliable error handling on unconnected sockets. The received data
+    portion of the error queue contains the error packet.</p>
+<p class="Pp">The <b>IP_RECVERR</b> control message contains a
+    <i>sock_extended_err</i> structure.</p>
+<dl class="Bl-tag">
+  <dt><i>.ee_errno</i></dt>
+  <dd>contains the <i>errno</i> number of the queued error.</dd>
+  <dt><i>.ee_origin</i></dt>
+  <dd>is the origin code of where the error originated.</dd>
+</dl>
+<p class="Pp">The other fields are protocol-specific.</p>
+<p class="Pp">The macro <b>SO_EE_OFFENDER</b>() returns a pointer to the address
+    of the network object where the error originated from given a pointer to the
+    ancillary message. If this address is not known, the <i>.sa_family</i>
+    member of the <i>sockaddr</i> contains <b>AF_UNSPEC</b> and the other fields
+    of the <i>sockaddr</i> are undefined.</p>
+<p class="Pp">IP uses the <i>sock_extended_err</i> structure as follows:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd><i>.ee_origin</i> is set to <b>SO_EE_ORIGIN_ICMP</b> for errors received
+      as an ICMP packet, or <b>SO_EE_ORIGIN_LOCAL</b> for locally generated
+      errors. Unknown values should be ignored.</dd>
+  <dt>&#x2022;</dt>
+  <dd><i>.ee_type</i> and <i>.ee_code</i> are set from the type and code fields
+      of the ICMP header.</dd>
+  <dt>&#x2022;</dt>
+  <dd><i>.ee_info</i> contains the discovered MTU for <b>EMSGSIZE</b>
+    errors.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The message also contains the <i>sockaddr_in</i> of the node caused that
+      the error, which can be accessed with the <b>SO_EE_OFFENDER</b>()
+    macro.</dd>
+</dl>
+<p class="Pp">The <i>.sin_family</i> field of the <b>SO_EE_OFFENDER</b>()
+    address is <b>AF_UNSPEC</b> when the source was unknown. When the error
+    originated from the network, all IP options (<b>IP_OPTIONS</b>(2const),
+    <b>IP_TTL</b>(2const), etc.) enabled on the socket and contained in the
+    error packet are passed as control messages. The payload of the packet
+    causing the error is returned as normal payload.</p>
+<p class="Pp">TCP has no error queue; <b>MSG_ERRQUEUE</b> is not permitted on
+    <b>SOCK_STREAM</b> sockets. <b>IP_RECVERR</b> is valid for TCP, but all
+    errors are returned by socket function return or <b>SO_ERROR</b> only.</p>
+<p class="Pp">For raw sockets, <b>IP_RECVERR</b> enables passing of all received
+    ICMP errors to the application, otherwise errors are reported only on
+    connected sockets</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>IPPROTO_IP</b>(2const). See <b>setsockopt</b>(2). See
+    <b>ip</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.2.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IP</b>(2const), <b>setsockopt</b>(2), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

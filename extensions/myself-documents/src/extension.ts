@@ -6,10 +6,12 @@
 import * as vscode from 'vscode';
 import { defaultPage, exportCommand, exportDocument, isPageOptions, isRecord, normalizeText, textChange } from './document';
 import { editorHtml } from './view';
+import { registerLibrary } from './library';
 
 const viewType = 'myself.documents.editor';
 
 export function activate(context: vscode.ExtensionContext): void {
+	registerLibrary(context);
 	context.subscriptions.push(vscode.window.registerCustomEditorProvider(viewType, new DocumentEditor(context.extensionUri), {
 		webviewOptions: { retainContextWhenHidden: true }, supportsMultipleEditorsPerDocument: false
 	}));

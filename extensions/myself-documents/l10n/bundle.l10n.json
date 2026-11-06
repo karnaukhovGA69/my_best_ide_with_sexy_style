@@ -34,5 +34,20 @@
   "Unsaved Changes": "Unsaved Changes",
   "Untitled Document": "Untitled Document",
   "Updating…": "Updating…",
-  "Use File Version": "Use File Version"
+  "Use File Version": "Use File Version",
+  "Add to Local Library": "Add to Local Library",
+  "Back": "Back",
+  "Contents": "Contents",
+  "Documentation": "Documentation",
+  "Local documentation": "Local documentation",
+  "My Documents": "My Documents",
+  "Offline copy. Scripts, forms and external media are disabled. Use the Find control to search this page.": "Offline copy. Scripts, forms and external media are disabled. Use the Find control to search this page.",
+  "Open Original in Browser": "Open Original in Browser",
+  "Open in Browser": "Open in Browser",
+  "Search local documentation by title": "Search local documentation by title",
+  "The document could not be added. Choose a local UTF-8 file up to 16 MiB.": "The document could not be added. Choose a local UTF-8 file up to 16 MiB.",
+  "The documentation action could not be completed.": "The documentation action could not be completed.",
+  "The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.": "The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.",
+  "The local documentation catalog could not be loaded.": "The local documentation catalog could not be loaded.",
+  "This link is not included in the local library.": "This link is not included in the local library."
 }

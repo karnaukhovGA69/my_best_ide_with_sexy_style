@@ -1,0 +1,54 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">va_list(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">va_list(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">va_list - variable argument list</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdarg.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>va_list;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Used by functions with a varying number of arguments of varying
+    types. The function must declare an object of type <i>va_list</i> which is
+    used by the macros <b>va_start</b>(3), <b>va_arg</b>(3), <b>va_copy</b>(3),
+    and <b>va_end</b>(3) to traverse the list of arguments.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, SUSv1, POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following headers also provide <i>va_list</i>:
+    <i>&lt;stdio.h&gt;</i> and <i>&lt;wchar.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>va_start</b>(3), <b>va_arg</b>(3), <b>va_copy</b>(3),
+    <b>va_end</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

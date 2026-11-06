@@ -1,0 +1,69 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IP_OPTIONS(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IP_OPTIONS(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IP_OPTIONS - options to be sent with every packet</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_OPTIONS,</b>
+<b>               const&#x00A0;void&#x00A0;</b><i>buf</i><b>[</b><i>size</i><b>],&#x00A0;size_t&#x00A0;</b><i>size</i><b>);</b>
+<b>int&#x00A0;getsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_OPTIONS,</b>
+<b>               void&#x00A0;</b><i>buf</i><b>[</b><i>size</i><b>],&#x00A0;size_t&#x00A0;</b><i>size</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set or get the IP options to be sent with every packet from this
+    socket.</p>
+<p class="Pp">The arguments are a pointer to a memory buffer containing the
+    options and the buffer length.</p>
+<p class="Pp">The <b>setsockopt</b>(2) call sets the IP options associated with
+    a socket. The maximum option size for IPv4 is 40 bytes. See RFC&#x00A0;791
+    for the allowed options.</p>
+<p class="Pp">When the initial connection request packet for a
+    <b>SOCK_STREAM</b> socket contains IP options, the IP options will be set
+    automatically to the options from the initial packet with routing headers
+    reversed.</p>
+<p class="Pp">Incoming packets are not allowed to change options after the
+    connection is established.</p>
+<p class="Pp">The processing of all incoming source routing options is disabled
+    by default and can be enabled by using the <i>accept_source_route</i>
+    <i>/proc</i> interface. Other options like timestamps are still handled.</p>
+<p class="Pp">For datagram sockets, IP options can be set only by the local
+    user.</p>
+<p class="Pp">Calling <b>getsockopt</b>(2) with <b>IP_OPTIONS</b> puts the
+    current IP options used for sending into the supplied buffer.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>IPPROTO_IP</b>(2const). See <b>setsockopt</b>(2). See
+    <b>ip</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IP</b>(2const), <b>setsockopt</b>(2), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

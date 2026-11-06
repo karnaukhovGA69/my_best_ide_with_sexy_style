@@ -1,0 +1,78 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">__setfpucw(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">__setfpucw(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">__setfpucw - set FPU control word on i386 architecture
+  (obsolete)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;i386/fpu_control.h&gt;</b></pre>
+<pre><b>[[deprecated]] void __setfpucw(unsigned short </b><i>control_word</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>__setfpucw</b>() transfers <i>control_word</i> to the registers
+    of the FPU (floating-point unit) on the i386 architecture. This was used to
+    control floating-point precision, rounding and floating-point
+  exceptions.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Removed in glibc 2.1.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">There are new functions from C99, with prototypes in
+    <i>&lt;fenv.h&gt;</i>, to control FPU rounding modes, like
+    <b>fegetround</b>(3), <b>fesetround</b>(3), and the floating-point
+    environment, like <b>fegetenv</b>(3), <b>feholdexcept</b>(3),
+    <b>fesetenv</b>(3), <b>feupdateenv</b>(3), and FPU exception handling, like
+    <b>feclearexcept</b>(3), <b>fegetexceptflag</b>(3), <b>feraiseexcept</b>(3),
+    <b>fesetexceptflag</b>(3), and <b>fetestexcept</b>(3).</p>
+<p class="Pp">If direct access to the FPU control word is still needed, the
+    <b>_FPU_GETCW</b> and <b>_FPU_SETCW</b> macros from
+    <i>&lt;fpu_control.h&gt;</i> can be used.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp"><b>__setfpucw(0x1372)</b></p>
+<p class="Pp">Set FPU control word on the i386 architecture to</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>extended precision</dd>
+  <dt>&#x2022;</dt>
+  <dd>rounding to nearest</dd>
+  <dt>&#x2022;</dt>
+  <dd>exceptions on overflow, zero divide and NaN</dd>
+</dl>
+</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>feclearexcept</b>(3)</p>
+<p class="Pp"><i>&lt;fpu_control.h&gt;</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

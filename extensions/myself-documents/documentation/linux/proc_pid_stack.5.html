@@ -1,0 +1,38 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_stack(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_stack(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/stack - kernel stack</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/stack</i> (since Linux 2.6.29)</dt>
+  <dd>This file provides a symbolic trace of the function calls in this
+      process's kernel stack. This file is provided only if the kernel was built
+      with the <b>CONFIG_STACKTRACE</b> configuration option.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Permission to access this file is governed by a ptrace access mode
+      <b>PTRACE_MODE_ATTACH_FSCREDS</b> check; see <b>ptrace</b>(2).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

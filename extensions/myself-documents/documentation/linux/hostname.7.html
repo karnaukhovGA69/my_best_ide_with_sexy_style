@@ -1,0 +1,71 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">hostname(7)</td>
+    <td class="head-vol">Miscellaneous Information Manual</td>
+    <td class="head-rtitle">hostname(7)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">hostname - hostname resolution description</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Hostnames are domains, where a domain is a hierarchical
+    dot-separated list of subdomains; for example, the machine
+    &quot;monet&quot;, in the &quot;example&quot; subdomain of the
+    &quot;com&quot; domain, would be represented as
+    &quot;monet.example.com&quot;.</p>
+<p class="Pp">Each element of the hostname must be from 1 to 63 characters long
+    and the entire hostname, including the dots, can be at most 253 characters
+    long. Valid characters for hostnames are <b>ASCII</b>(7) letters from
+    <i>a</i> to <i>z</i>, the digits from <i>0</i> to <i>9</i>, and the hyphen
+    (-). A hostname may not start nor end with a hyphen.</p>
+<p class="Pp">Hostnames are often used with network client and server programs,
+    which must generally translate the name to an address for use. (This task is
+    generally performed by either <b>getaddrinfo</b>(3) or the obsolete
+    <b>gethostbyname</b>(3).)</p>
+<p class="Pp">Hostnames are resolved by the NSS framework in glibc according to
+    the <b>hosts</b> configuration in <b>nsswitch.conf</b>(5). The DNS-based
+    name resolver (in the <b>dns</b> NSS service module) resolves them in the
+    following fashion.</p>
+<p class="Pp">If the name consists of a single component (that is, contains no
+    dot), and if the environment variable <b>HOSTALIASES</b> is set to the name
+    of a file, that file is searched for any string matching the input hostname.
+    The file should consist of lines made up of two white-space separated
+    strings, the first of which is the hostname alias, and the second of which
+    is the complete hostname to be substituted for that alias. If a
+    case-insensitive match is found between the hostname to be resolved and the
+    first field of a line in the file, the substituted name is looked up with no
+    further processing.</p>
+<p class="Pp">If the input name ends with a trailing dot, the trailing dot is
+    removed, and the remaining name is looked up with no further processing.</p>
+<p class="Pp">If the input name does not end with a trailing dot, it is looked
+    up by searching through a list of domains until a match is found. The
+    default search list includes first the local domain, then its parent domains
+    with at least 2 name components (longest first). For example, in the domain
+    cs.example.com, the name lithium.cchem will be checked first as
+    lithium.cchem.cs.example and then as lithium.cchem.example.com.
+    lithium.cchem.com will not be tried, as there is only one component
+    remaining from the local domain. The search path can be changed from the
+    default by a system-wide configuration file (see <b>resolver</b>(5)).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>getaddrinfo</b>(3), <b>gethostbyname</b>(3),
+    <b>nsswitch.conf</b>(5), <b>resolver</b>(5), <b>mailaddr</b>(7),
+    <b>named</b>(8)</p>
+<p class="Pp"><a class="Lk" href="http://www.ietf.org/rfc/rfc1123.txt">IETF
+    RFC&#x00A0;1123</a></p>
+<p class="Pp"><a class="Lk" href="http://www.ietf.org/rfc/rfc1178.txt">IETF
+    RFC&#x00A0;1178</a></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-04-07</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

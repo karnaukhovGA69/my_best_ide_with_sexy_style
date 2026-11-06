@@ -1,0 +1,137 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">kill(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">kill(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">kill - send signal to a process</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;signal.h&gt;</b></pre>
+<pre><b>int kill(pid_t </b><i>pid</i><b>, int </b><i>sig</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>kill</b>():</p>
+<pre>
+<br/>
+    _POSIX_C_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>kill</b>() system call can be used to send any signal to
+    any process group or process.</p>
+<p class="Pp">If <i>pid</i> is positive, then signal <i>sig</i> is sent to the
+    process with the ID specified by <i>pid</i>.</p>
+<p class="Pp">If <i>pid</i> equals 0, then <i>sig</i> is sent to every process
+    in the process group of the calling process.</p>
+<p class="Pp">If <i>pid</i> equals -1, then <i>sig</i> is sent to every process
+    for which the calling process has permission to send signals, except for
+    process 1 (<i>init</i>), but see below.</p>
+<p class="Pp">If <i>pid</i> is less than -1, then <i>sig</i> is sent to every
+    process in the process group whose ID is <i>-pid</i>.</p>
+<p class="Pp">If <i>sig</i> is 0, then no signal is sent, but existence and
+    permission checks are still performed; this can be used to check for the
+    existence of a process ID or process group ID that the caller is permitted
+    to signal.</p>
+<p class="Pp">For a process to have permission to send a signal, it must either
+    be privileged (under Linux: have the <b>CAP_KILL</b> capability in the user
+    namespace of the target process), or the real or effective user ID of the
+    sending process must equal the real or saved set-user-ID of the target
+    process. In the case of <b>SIGCONT</b>, it suffices when the sending and
+    receiving processes belong to the same session. (Historically, the rules
+    were different; see HISTORY.)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned. If signals were sent to a process
+    group, success means that at least one signal was delivered. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>An invalid signal was specified.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The calling process does not have permission to send the signal to any of
+      the target processes.</dd>
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b></a></dt>
+  <dd>The target process or process group does not exist. Note that an existing
+      process might be a zombie, a process that has terminated execution, but
+      has not yet been <b>wait</b>(2)ed for.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.3BSD, SVr4, POSIX.1-1988.</p>
+<section class="Ss">
+<h2 class="Ss" id="Linux_notes"><a class="permalink" href="#Linux_notes">Linux
+  notes</a></h2>
+<p class="Pp">Across different kernel versions, Linux has enforced different
+    rules for the permissions required for an unprivileged process to send a
+    signal to another process. In Linux 1.0 to 1.2.2, a signal could be sent if
+    the effective user ID of the sender matched effective user ID of the target,
+    or the real user ID of the sender matched the real user ID of the target.
+    From Linux 1.2.3 until 1.3.77, a signal could be sent if the effective user
+    ID of the sender matched either the real or effective user ID of the target.
+    The current rules, which conform to POSIX.1, were adopted in Linux
+  1.3.78.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The only signals that can be sent to process ID 1, the <i>init</i>
+    process, are those for which <i>init</i> has explicitly installed signal
+    handlers. This is done to assure the system is not brought down
+    accidentally.</p>
+<p class="Pp">POSIX.1 requires that <i>kill(-1,sig)</i> send <i>sig</i> to all
+    processes that the calling process may send signals to, except possibly for
+    some implementation-defined system processes. Linux allows a process to
+    signal itself, but on Linux the call <i>kill(-1,sig)</i> does not signal the
+    calling process.</p>
+<p class="Pp">POSIX.1 requires that if a process sends a signal to itself, and
+    the sending thread does not have the signal blocked, and no other thread has
+    it unblocked or is waiting for it in <b>sigwait</b>(3), at least one
+    unblocked signal must be delivered to the sending thread before the
+    <b>kill</b>() returns.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">In Linux 2.6 up to and including Linux 2.6.7, there was a bug that
+    meant that when sending signals to a process group, <b>kill</b>() failed
+    with the error <b>EPERM</b> if the caller did not have permission to send
+    the signal to <i>any</i> (rather than <i>all</i>) of the members of the
+    process group. Notwithstanding this error return, the signal was still
+    delivered to all of the processes for which the caller had permission to
+    signal.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>kill</b>(1), <b>pidfd_send_signal</b>(2), <b>signal</b>(2),
+    <b>tkill</b>(2), <b>_exit</b>(3), <b>exit</b>(3), <b>killpg</b>(3),
+    <b>sigqueue</b>(3), <b>capabilities</b>(7), <b>credentials</b>(7),
+    <b>signal</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,212 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">landlock_add_rule(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">landlock_add_rule(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">landlock_add_rule - add a new Landlock rule to a ruleset</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/landlock.h&gt;</b>  /* Definition of <b>LANDLOCK_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>     /* Definition of <b>SYS_*</b> constants */</pre>
+<pre><b>int syscall(SYS_landlock_add_rule, int </b><i>ruleset_fd</i><b>,</b>
+<b>            enum landlock_rule_type </b><i>rule_type</i><b>,</b>
+<b>            const void *</b><i>rule_attr</i><b>, uint32_t </b><i>flags</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">A Landlock rule describes an action on an object which the process
+    intends to perform. A set of rules is aggregated in a ruleset, which can
+    then restrict the thread enforcing it, and its future children.</p>
+<p class="Pp">The <b>landlock_add_rule</b>() system call adds a new Landlock
+    rule to an existing ruleset. See <b>landlock</b>(7) for a global
+  overview.</p>
+<p class="Pp"><i>ruleset_fd</i> is a Landlock ruleset file descriptor obtained
+    with <b>landlock_create_ruleset</b>(2).</p>
+<p class="Pp"><i>rule_type</i> identifies the structure type pointed to by
+    <i>rule_attr</i>. Currently, Linux supports the following <i>rule_type</i>
+    values:</p>
+<dl class="Bl-tag">
+  <dt id="LANDLOCK_RULE_PATH_BENEATH"><a class="permalink" href="#LANDLOCK_RULE_PATH_BENEATH"><b>LANDLOCK_RULE_PATH_BENEATH</b></a></dt>
+  <dd>For these rules, the object is a file hierarchy, and the related
+      filesystem actions are defined with <i>filesystem access rights</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>In this case, <i>rule_attr</i> points to the following structure:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct landlock_path_beneath_attr {
+<br/>
+    __u64 allowed_access;
+<br/>
+    __s32 parent_fd;
+} __attribute__((packed));
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd><i>allowed_access</i> contains a bitmask of allowed filesystem actions,
+      which can be applied on the given <i>parent_fd</i> (see <b>Filesystem
+      actions</b> in <b>landlock</b>(7)).</dd>
+  <dt></dt>
+  <dd><i>parent_fd</i> is an opened file descriptor, preferably with the
+      <i>O_PATH</i> flag, which identifies the parent directory of the file
+      hierarchy or just a file.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="LANDLOCK_RULE_NET_PORT"><a class="permalink" href="#LANDLOCK_RULE_NET_PORT"><b>LANDLOCK_RULE_NET_PORT</b>
+    (since Landlock ABI version 4)</a></dt>
+  <dd>For these rules, the object is a TCP port, and the related actions are
+      defined with <i>network access rights</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>In this case, <i>rule_attr</i> points to the following structure:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct landlock_net_port_attr {
+<br/>
+    __u64 allowed_access;
+<br/>
+    __u64 port;
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd><i>allowed_access</i> contains a bitmask of allowed network actions, which
+      can be applied on the given port.</dd>
+  <dt></dt>
+  <dd><i>port</i> is the network port in host endianness.</dd>
+  <dt></dt>
+  <dd>It should be noted that port 0 passed to <b>bind</b>(2) will bind to an
+      available port from the ephemeral port range. This can be configured in
+      the <i>/proc/sys/net/ipv4/ip_local_port_range</i> sysctl (also used for
+      IPv6).</dd>
+  <dt></dt>
+  <dd>A Landlock rule with port 0 and the <b>LANDLOCK_ACCESS_NET_BIND_TCP</b>
+      right means that requesting to bind on port 0 is allowed and it will
+      automatically translate to binding on the related port range.</dd>
+</dl>
+<p class="Pp"><i>flags</i> is a bit mask of the following optional flags:</p>
+<dl class="Bl-tag">
+  <dt id="LANDLOCK_ADD_RULE_QUIET"><a class="permalink" href="#LANDLOCK_ADD_RULE_QUIET"><b>LANDLOCK_ADD_RULE_QUIET</b>
+    (since Landlock ABI version 10)</a></dt>
+  <dd>Together with the <i>quiet_</i>* fields in
+      <i>struct&#x00A0;landlock_ruleset_attr</i>, this flag controls whether
+      Landlock will log audit messages when access to the objects covered by
+      this rule is denied by this layer.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If logging is enabled, when Landlock denies an access, it will suppress
+      the log if all of the following are true:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>this layer is the innermost layer that denied the access;</dd>
+  <dt>&#x2022;</dt>
+  <dd>all accesses denied by this layer are part of the <i>quiet_</i>* fields in
+      the related <i>struct&#x00A0;landlock_ruleset_attr</i>;</dd>
+  <dt>&#x2022;</dt>
+  <dd>the object (or one of its parents, for filesystem rules) is marked as
+      &quot;quiet&quot; via <b>LANDLOCK_ADD_RULE_QUIET</b>.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Because logging is only suppressed by a layer if the layer denies access,
+      a sandboxed program cannot use this flag to &quot;hide&quot; access
+      denials, without denying itself the access in the first place.</dd>
+  <dt></dt>
+  <dd>The effect of this flag does not depend on the value of
+      <i>allowed_access</i> in the passed in <i>rule_attr</i>. When this flag is
+      present, the caller is also allowed to pass in an empty
+      <i>allowed_access</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>landlock_add_rule</b>() returns 0. On error, -1 is
+    returned and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp"><b>landlock_add_rule</b>() can fail for the following reasons:</p>
+<dl class="Bl-tag">
+  <dt id="EAFNOSUPPORT"><a class="permalink" href="#EAFNOSUPPORT"><b>EAFNOSUPPORT</b></a></dt>
+  <dd><i>rule_type</i> is <b>LANDLOCK_RULE_NET_PORT</b>, but TCP is not
+      supported by the running kernel.</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>ruleset_fd</i> is not a file descriptor for the current thread, or a
+      member of <i>rule_attr</i> is not a file descriptor as expected.</dd>
+  <dt id="EBADFD"><a class="permalink" href="#EBADFD"><b>EBADFD</b></a></dt>
+  <dd><i>ruleset_fd</i> is not a ruleset file descriptor, or a member of
+      <i>rule_attr</i> is not the expected file descriptor type.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>rule_attr</i> was not a valid address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>flags</i> is not valid.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The rule accesses are inconsistent (i.e.,
+      <i>rule_attr-&gt;allowed_access</i> is not a subset of the ruleset handled
+      accesses).</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>In <i>struct&#x00A0;landlock_path_beneath_attr</i>, the rule accesses are
+      not applicable to the file (i.e., some access rights in
+      <i>rule_attr-&gt;allowed_access</i> are only applicable to directories,
+      but <i>rule_attr-&gt;parent_fd</i> does not refer to a directory).</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd>In <i>struct&#x00A0;landlock_net_port_attr</i>, the port number is greater
+      than 65535.</dd>
+  <dt id="EINVAL~5"><a class="permalink" href="#EINVAL~5"><b>EINVAL</b></a></dt>
+  <dd><b>LANDLOCK_ADD_RULE_QUIET</b> is passed but the ruleset has no quiet
+      access bits set for the corresponding rule type.</dd>
+  <dt id="ENOMSG"><a class="permalink" href="#ENOMSG"><b>ENOMSG</b></a></dt>
+  <dd>Empty accesses (i.e., <i>rule_attr-&gt;allowed_access</i> is 0) and no
+      flags.</dd>
+  <dt id="EOPNOTSUPP"><a class="permalink" href="#EOPNOTSUPP"><b>EOPNOTSUPP</b></a></dt>
+  <dd>Landlock is supported by the kernel but disabled at boot time.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd><i>ruleset_fd</i> has no write access to the underlying ruleset.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.13.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>landlock</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>landlock_create_ruleset</b>(2),
+    <b>landlock_restrict_self</b>(2), <b>landlock</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

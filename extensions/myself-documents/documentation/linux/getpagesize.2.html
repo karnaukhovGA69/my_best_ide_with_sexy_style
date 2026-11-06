@@ -1,0 +1,76 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getpagesize(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">getpagesize(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getpagesize - get memory page size</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int getpagesize(void);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>getpagesize</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.20:
+<br/>
+        _DEFAULT_SOURCE || ! (_POSIX_C_SOURCE &gt;= 200112L)
+<br/>
+    glibc 2.12 to glibc 2.19:
+<br/>
+        _BSD_SOURCE || ! (_POSIX_C_SOURCE &gt;= 200112L)
+<br/>
+    Before glibc 2.12:
+<br/>
+        _BSD_SOURCE || _XOPEN_SOURCE &gt;= 500</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The function <b>getpagesize</b>() returns the number of bytes in a
+    memory page, where &quot;page&quot; is a fixed-length block, the unit for
+    memory allocation and file mapping performed by <b>mmap</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A user program should not hard-code a page size, neither as a
+    literal nor using the <b>PAGE_SIZE</b> macro, because some architectures
+    support multiple page sizes.</p>
+<p class="Pp">This manual page is in section 2 because Alpha, SPARC, and SPARC64
+    all have a Linux system call <b>getpagesize</b>() though other architectures
+    do not, and use the ELF auxiliary vector instead.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.2BSD, SVr4, SUSv1. In SUSv2 the <b>getpagesize</b>() call was
+    labeled LEGACY, and it was removed in POSIX.1-2001.</p>
+<p class="Pp">glibc 2.0 returned a constant even on architectures with multiple
+    page sizes.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mmap</b>(2), <b>sysconf</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

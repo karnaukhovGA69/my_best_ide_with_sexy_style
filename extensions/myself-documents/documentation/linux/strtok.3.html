@@ -1,0 +1,121 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strtok(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strtok(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strtok - string tokenize</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;string.h&gt;</b></pre>
+<pre><b>char *strtok(char *_Nullable restrict </b><i>str</i><b>, const char *restrict </b><i>delim</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>strtok</b>() function breaks a string into a sequence of
+    zero or more nonempty tokens. On the first call to <b>strtok</b>(), the
+    string to be parsed should be specified in <i>str</i>. In each subsequent
+    call that should parse the same string, <i>str</i> must be NULL.</p>
+<p class="Pp">The <i>delim</i> argument specifies a set of bytes that delimit
+    the tokens in the parsed string. The caller may specify different strings in
+    <i>delim</i> in successive calls that parse the same string.</p>
+<p class="Pp">Each call to <b>strtok</b>() returns a pointer to a
+    null-terminated string containing the next token. This string does not
+    include the delimiting byte. If no more tokens are found, <b>strtok</b>()
+    returns NULL.</p>
+<p class="Pp">A sequence of calls to <b>strtok</b>() that operate on the same
+    string maintains a pointer that determines the point from which to start
+    searching for the next token. The first call to <b>strtok</b>() sets this
+    pointer to point to the first byte of the string. The start of the next
+    token is determined by scanning forward for the next nondelimiter byte in
+    <i>str</i>. If such a byte is found, it is taken as the start of the next
+    token. If no such byte is found, then there are no more tokens, and
+    <b>strtok</b>() returns NULL. (A string that is empty or that contains only
+    delimiters will thus cause <b>strtok</b>() to return NULL on the first
+    call.)</p>
+<p class="Pp">The end of each token is found by scanning forward until either
+    the next delimiter byte is found or until the terminating null byte ('\0')
+    is encountered. If a delimiter byte is found, it is overwritten with a null
+    byte to terminate the current token, and <b>strtok</b>() saves a pointer to
+    the following byte; that pointer will be used as the starting point when
+    searching for the next token. In this case, <b>strtok</b>() returns a
+    pointer to the start of the found token.</p>
+<p class="Pp">From the above description, it follows that a sequence of two or
+    more contiguous delimiter bytes in the parsed string is considered to be a
+    single delimiter, and that delimiter bytes at the start or end of the string
+    are ignored. Put another way: the tokens returned by <b>strtok</b>() are
+    always nonempty strings. Thus, for example, given the string
+    &quot;<i>aaa;;bbb,</i>&quot;, successive calls to <b>strtok</b>() that
+    specify the delimiter string &quot;<i>;,</i>&quot; would return the strings
+    &quot;<i>aaa</i>&quot; and &quot;<i>bbb</i>&quot;, and then a null
+  pointer.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>strtok</b>() returns a pointer to the next token, or NULL if
+    there are no more tokens.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strtok ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:strtok</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Be cautious when using this function. If you do use it, note
+  that:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>The identity of the delimiting byte is lost.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The <b>strtok</b>() function uses a static buffer while parsing, so it's
+      not thread safe. Use <b>strtok_r</b>(3) if this matters to you.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>getaddrinfo_a</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>string</b>(3), <b>strsep</b>(3), <b>strtok_r</b>(3),
+    <b>wcstok</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

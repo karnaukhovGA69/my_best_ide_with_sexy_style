@@ -1,0 +1,80 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">netlink(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">netlink(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">netlink - Netlink macros</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/types.h&gt;</b>
+<b>#include &lt;linux/netlink.h&gt;</b></pre>
+<pre><b>int NLMSG_ALIGN(size_t </b><i>size</i><b>);</b>
+<b>int NLMSG_LENGTH(size_t </b><i>size</i><b>);</b>
+<b>int NLMSG_SPACE(size_t </b><i>size</i><b>);</b>
+<b>void *NLMSG_DATA(struct nlmsghdr *</b><i>nlh</i><b>);</b>
+<b>struct nlmsghdr *NLMSG_NEXT(struct nlmsghdr *</b><i>nlh</i><b>, int </b><i>size</i><b>);</b>
+<b>int NLMSG_OK(struct nlmsghdr *</b><i>nlh</i><b>, int </b><i>size</i><b>);</b>
+<b>int NLMSG_PAYLOAD(struct nlmsghdr *</b><i>nlh</i><b>, int </b><i>size</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>&lt;linux/netlink.h&gt;</i> defines several standard macros to
+    access or create a netlink datagram. They are similar in spirit to the
+    macros defined in <b>cmsg</b>(3) for auxiliary data. The buffer passed to
+    and from a netlink socket should be accessed using only these macros.</p>
+<dl class="Bl-tag">
+  <dt id="NLMSG_ALIGN"><a class="permalink" href="#NLMSG_ALIGN"><b>NLMSG_ALIGN</b>()</a></dt>
+  <dd>Round the size of a netlink message up to align it properly.</dd>
+  <dt id="NLMSG_LENGTH"><a class="permalink" href="#NLMSG_LENGTH"><b>NLMSG_LENGTH</b>()</a></dt>
+  <dd>Given the payload size, <i>size</i>, this macro returns the aligned size
+      to store in the <i>nlmsg_len</i> field of the <i>nlmsghdr</i>.</dd>
+  <dt id="NLMSG_SPACE"><a class="permalink" href="#NLMSG_SPACE"><b>NLMSG_SPACE</b>()</a></dt>
+  <dd>Return the number of bytes that a netlink message with payload of
+      <i>size</i> would occupy.</dd>
+  <dt id="NLMSG_DATA"><a class="permalink" href="#NLMSG_DATA"><b>NLMSG_DATA</b>()</a></dt>
+  <dd>Return a pointer to the payload associated with the passed
+      <i>nlmsghdr</i>.</dd>
+  <dt id="NLMSG_NEXT"><a class="permalink" href="#NLMSG_NEXT"><b>NLMSG_NEXT</b>()</a></dt>
+  <dd>Get the next <i>nlmsghdr</i> in a multipart message. The caller must check
+      if the current <i>nlmsghdr</i> didn't have the <b>NLMSG_DONE</b>
+      set&#x2014;this function doesn't return NULL on end. The <i>size</i>
+      argument is an lvalue containing the remaining size of the message buffer.
+      This macro decrements it by the size of the message header.</dd>
+  <dt id="NLMSG_OK"><a class="permalink" href="#NLMSG_OK"><b>NLMSG_OK</b>()</a></dt>
+  <dd>Return true if the netlink message is not truncated and is in a form
+      suitable for parsing.</dd>
+  <dt id="NLMSG_PAYLOAD"><a class="permalink" href="#NLMSG_PAYLOAD"><b>NLMSG_PAYLOAD</b>()</a></dt>
+  <dd>Return the size of the payload associated with the <i>nlmsghdr</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">It is often better to use netlink via <i>libnetlink</i> than via
+    the low-level kernel interface.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>libnetlink</b>(3), <b>netlink</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

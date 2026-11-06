@@ -1,0 +1,130 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">pldd(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">pldd(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">pldd - display dynamic shared objects linked into a process</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">pldd</code></td>
+    <td><i>pid</i></td>
+  </tr>
+</table>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">pldd</code></td>
+    <td><i>option</i></td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>pldd</b> command displays a list of the dynamic shared
+    objects (DSOs) that are linked into the process with the specified process
+    ID (PID). The list includes the libraries that have been dynamically loaded
+    using <b>dlopen</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt id="help"><a class="permalink" href="#help"><b>--help</b></a></dt>
+  <dd></dd>
+  <dt><b>-?</b></dt>
+  <dd>Display a help message and exit.</dd>
+  <dt id="usage"><a class="permalink" href="#usage"><b>--usage</b></a></dt>
+  <dd>Display a short usage message and exit.</dd>
+  <dt id="version"><a class="permalink" href="#version"><b>--version</b></a></dt>
+  <dd></dd>
+  <dt id="V"><a class="permalink" href="#V"><b>-V</b></a></dt>
+  <dd>Display program version information and exit.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXIT_STATUS"><a class="permalink" href="#EXIT_STATUS">EXIT
+  STATUS</a></h1>
+<p class="Pp">On success, <b>pldd</b> exits with the status 0. If the specified
+    process does not exist, the user does not have permission to access its
+    dynamic shared object list, or no command-line arguments are supplied,
+    <b>pldd</b> exists with a status of 1. If given an invalid option, it exits
+    with the status 64.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">Some other systems have a similar command.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">glibc 2.15.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The command</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>lsof -p PID
+</pre>
+<br/>
+<p class="Pp">also shows output that includes the dynamic shared objects that
+    are linked into a process.</p>
+<p class="Pp">The <b>gdb</b>(1) <i>info shared</i> command also shows the shared
+    libraries being used by a process, so that one can obtain similar output to
+    <b>pldd</b> using a command such as the following (to monitor the process
+    with the specified <i>pid</i>):</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> gdb -ex &quot;set confirm off&quot; \</b>
+<b>      -ex &quot;set height 0&quot; \</b>
+<b>      -ex &quot;info shared&quot; \</b>
+<b>      -ex &quot;quit&quot; \</b>
+<b>      -p $pid \</b>
+<b>| grep '^0x.*0x'</b>;
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">From glibc 2.19 to glibc 2.29, <b>pldd</b> was broken: it just
+    hung when executed. This problem was fixed in glibc 2.30, and the fix has
+    been backported to earlier glibc versions in some distributions.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>$<b> echo $$</b>;               # Display PID of shell
+1143
+$<b> pldd $$</b>;               # Display DSOs linked into the shell
+1143:   /usr/bin/bash
+linux-vdso.so.1
+/lib64/libtinfo.so.5
+/lib64/libdl.so.2
+/lib64/libc.so.6
+/lib64/ld-linux-x86-64.so.2
+/lib64/libnss_files.so.2
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ldd</b>(1), <b>lsof</b>(1), <b>dlopen</b>(3),
+  <b>ld.so</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

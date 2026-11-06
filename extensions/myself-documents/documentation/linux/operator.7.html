@@ -1,0 +1,118 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">operator(7)</td>
+    <td class="head-vol">Miscellaneous Information Manual</td>
+    <td class="head-rtitle">operator(7)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">operator - C operator precedence and order of evaluation</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This manual page lists C operators and their precedence in
+    evaluation.</p>
+<p class="Pp"></p>
+<table class="tbl">
+  <tr>
+    <td><b>Operator</b></td>
+    <td><b>Associativity</b></td>
+    <td><b>Notes</b></td>
+  </tr>
+  <tr>
+    <td>() _Generic()</td>
+    <td>-</td>
+    <td>[1]</td>
+  </tr>
+  <tr>
+    <td>[] () . -&gt; ++ -- (type){}</td>
+    <td>left to right</td>
+    <td>[2] [3]</td>
+  </tr>
+  <tr>
+    <td>++ -- &amp; * + - ~ ! _Countof sizeof alignof _Maxof _Minof</td>
+    <td>right to left</td>
+    <td>[4]</td>
+  </tr>
+  <tr>
+    <td>(type)</td>
+    <td>right to left</td>
+  </tr>
+  <tr>
+    <td>* / %</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>+ -</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>&lt;&lt; &gt;&gt;</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>&lt; &gt; &lt;= &gt;=</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>== !=</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>&amp;</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>^</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>|</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>&amp;&amp;</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>||</td>
+    <td>left to right</td>
+  </tr>
+  <tr>
+    <td>?:</td>
+    <td>right to left</td>
+  </tr>
+  <tr>
+    <td>= *= /= %= += -= &lt;&lt;= &gt;&gt;= &amp;= ^= |=</td>
+    <td>right to left</td>
+  </tr>
+  <tr>
+    <td>,</td>
+    <td>left to right</td>
+  </tr>
+</table>
+<p class="Pp">The following notes provide further information to the above
+    table:</p>
+<p class="Pp"></p>
+<dl class="Bl-tag">
+  <dt>[1]</dt>
+  <dd>The () at this precedence is the parenthesized expression.</dd>
+  <dt>[2]</dt>
+  <dd>The () at this precedence is the function call operator.</dd>
+  <dt>[3]</dt>
+  <dd>The ++ and -- operators at this precedence level are the postfix flavors
+      of the operators.</dd>
+  <dt>[4]</dt>
+  <dd>The ++ and -- operators at this precedence level are the prefix flavors of
+      the operators.</dd>
+</dl>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-01</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

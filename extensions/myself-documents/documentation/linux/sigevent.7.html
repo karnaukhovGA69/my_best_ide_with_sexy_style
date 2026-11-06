@@ -1,0 +1,136 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sigevent(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">sigevent(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">sigevent, sigval - structure for notification from asynchronous
+    routines</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;signal.h&gt;</b></pre>
+<pre><b>struct sigevent {</b>
+<b>    int             sigev_notify;</b>  /* Notification type */
+<b>    int             sigev_signo;</b>   /* Signal number */
+<b>    union sigval    sigev_value;</b>   /* Data passed with notification */
+<b>    typeof(void (union sigval))  *sigev_notify_function;</b>
+<b>                                </b>   /* Notification function
+<b>                                </b>      (SIGEV_THREAD) */
+<b>    pthread_attr_t *sigev_notify_attributes;</b>
+<b>                                </b>   /* Notification attributes */
+<b>    </b>/* Linux only: */
+<b>    pid_t           sigev_notify_thread_id;</b>
+<b>                                </b>   /* ID of thread to signal
+<b>                                </b>      (SIGEV_THREAD_ID) */
+<b>};</b></pre>
+<pre><b>union sigval {</b>                     /* Data passed with notification */
+<b>    int             sival_int;</b>     /* Integer value */
+<b>    void           *sival_ptr;</b>     /* Pointer value */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="sigevent"><a class="permalink" href="#sigevent">sigevent</a></h2>
+<p class="Pp">The <i>sigevent</i> structure is used by various APIs to describe
+    the way a process is to be notified about an event (e.g., completion of an
+    asynchronous request, expiration of a timer, or the arrival of a
+  message).</p>
+<p class="Pp">The definition shown in the SYNOPSIS is approximate: some of the
+    fields in the <i>sigevent</i> structure may be defined as part of a union.
+    Programs should employ only those fields relevant to the value specified in
+    <i>sigev_notify</i>.</p>
+<p class="Pp">The <i>sigev_notify</i> field specifies how notification is to be
+    performed. This field can have one of the following values:</p>
+<dl class="Bl-tag">
+  <dt id="SIGEV_NONE"><a class="permalink" href="#SIGEV_NONE"><b>SIGEV_NONE</b></a></dt>
+  <dd>A &quot;null&quot; notification: don't do anything when the event
+    occurs.</dd>
+  <dt id="SIGEV_SIGNAL"><a class="permalink" href="#SIGEV_SIGNAL"><b>SIGEV_SIGNAL</b></a></dt>
+  <dd>Notify the process by sending the signal specified in
+    <i>sigev_signo</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If the signal is caught with a signal handler that was registered using
+      the <b>sigaction</b>(2) <b>SA_SIGINFO</b> flag, then the following fields
+      are set in the <i>siginfo_t</i> structure that is passed as the second
+      argument of the handler:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="si_code"><a class="permalink" href="#si_code"><i>si_code</i></a></dt>
+  <dd>This field is set to a value that depends on the API delivering the
+      notification.</dd>
+  <dt id="si_signo"><a class="permalink" href="#si_signo"><i>si_signo</i></a></dt>
+  <dd>This field is set to the signal number (i.e., the same value as in
+      <i>sigev_signo</i>).</dd>
+  <dt id="si_value"><a class="permalink" href="#si_value"><i>si_value</i></a></dt>
+  <dd>This field is set to the value specified in <i>sigev_value</i>.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Depending on the API, other fields may also be set in the <i>siginfo_t</i>
+      structure.</dd>
+  <dt></dt>
+  <dd>The same information is also available if the signal is accepted using
+      <b>sigwaitinfo</b>(2).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="SIGEV_THREAD"><a class="permalink" href="#SIGEV_THREAD"><b>SIGEV_THREAD</b></a></dt>
+  <dd>Notify the process by invoking <i>sigev_notify_function</i> &quot;as
+      if&quot; it were the start function of a new thread. (Among the
+      implementation possibilities here are that each timer notification could
+      result in the creation of a new thread, or that a single thread is created
+      to receive all notifications.) The function is invoked with
+      <i>sigev_value</i> as its sole argument. If <i>sigev_notify_attributes</i>
+      is not NULL, it should point to a <i>pthread_attr_t</i> structure that
+      defines attributes for the new thread (see
+    <b>pthread_attr_init</b>(3)).</dd>
+  <dt id="SIGEV_THREAD_ID"><a class="permalink" href="#SIGEV_THREAD_ID"><b>SIGEV_THREAD_ID</b>
+    (Linux-specific)</a></dt>
+  <dd>Currently used only by POSIX timers; see <b>timer_create</b>(2).</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="sigval"><a class="permalink" href="#sigval">sigval</a></h2>
+<p class="Pp">Data passed with a signal.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-1996.</p>
+<p class="Pp"><i>&lt;aio.h&gt;</i> and <i>&lt;time.h&gt;</i> define
+    <i>sigevent</i> since POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following headers also provide <i>sigevent</i>:
+    <i>&lt;aio.h&gt;</i>, <i>&lt;mqueue.h&gt;</i>, and
+  <i>&lt;time.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>timer_create</b>(2), <b>getaddrinfo_a</b>(3),
+    <b>lio_listio</b>(3), <b>mq_notify</b>(3), <b>pthread_sigqueue</b>(3),
+    <b>sigqueue</b>(3), <b>aiocb</b>(3type), <b>siginfo_t</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

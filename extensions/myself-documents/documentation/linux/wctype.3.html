@@ -1,0 +1,136 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">wctype(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">wctype(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">wctype - wide-character classification</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;wctype.h&gt;</b></pre>
+<pre><b>wctype_t wctype(const char *</b><i>name</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <i>wctype_t</i> type represents a property which a wide
+    character may or may not have. In other words, it represents a class of wide
+    characters. This type's nature is implementation-dependent, but the special
+    value <i>(wctype_t) 0</i> denotes an invalid property. Nonzero
+    <i>wctype_t</i> values can be passed to the <b>iswctype</b>(3) function to
+    actually test whether a given wide character has the property.</p>
+<p class="Pp">The <b>wctype</b>() function returns a property, given by its
+    name. The set of valid names depends on the <b>LC_CTYPE</b> category of the
+    current locale, but the following names are valid in all locales.</p>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <table class="tbl">
+      <tr>
+        <td>&quot;alnum&quot; -</td>
+        <td>realizes the <b>isalnum</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;alpha&quot; -</td>
+        <td>realizes the <b>isalpha</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;blank&quot; -</td>
+        <td>realizes the <b>isblank</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;cntrl&quot; -</td>
+        <td>realizes the <b>iscntrl</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;digit&quot; -</td>
+        <td>realizes the <b>isdigit</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;graph&quot; -</td>
+        <td>realizes the <b>isgraph</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;lower&quot; -</td>
+        <td>realizes the <b>islower</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;print&quot; -</td>
+        <td>realizes the <b>isprint</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;punct&quot; -</td>
+        <td>realizes the <b>ispunct</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;space&quot; -</td>
+        <td>realizes the <b>isspace</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;upper&quot; -</td>
+        <td>realizes the <b>isupper</b>(3) classification function</td>
+      </tr>
+      <tr>
+        <td>&quot;xdigit&quot; -</td>
+        <td>realizes the <b>isxdigit</b>(3) classification function</td>
+      </tr>
+    </table>
+  </dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>wctype</b>() function returns a property descriptor if the
+    <i>name</i> is valid. Otherwise, it returns <i>(wctype_t) 0</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>wctype ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C99.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The behavior of <b>wctype</b>() depends on the <b>LC_CTYPE</b>
+    category of the current locale.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>iswctype</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

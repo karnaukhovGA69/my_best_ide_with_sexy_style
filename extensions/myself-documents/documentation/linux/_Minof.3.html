@@ -1,0 +1,69 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">_Maxof(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">_Maxof(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">_Maxof, _Minof - limits of an integer type</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>T&#x00A0;_Maxof(typename&#x00A0;</b><i>T</i><b>);</b>
+<b>T&#x00A0;_Minof(typename&#x00A0;</b><i>T</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These operators return the maximum or minimum representable value
+    of the operand integer type.</p>
+<p class="Pp">If the operand is not an integer type, it produces a compilation
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The maximum or minimum representable value of the operand integer
+    type.</p>
+<p class="Pp">The result is an integer constant expression of the same type as
+    the operand.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">gcc 16.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>#include &lt;assert.h&gt;
+#include &lt;limits.h&gt;
+#include &lt;stdlib.h&gt;
+int
+main(void)
+{
+	static_assert(_Maxof(long) == LONG_MAX);
+	exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>operator</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-01</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,227 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_fdinfo(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_fdinfo(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/fdinfo/ - information about file descriptors</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This is a subdirectory containing one entry for each file which
+    the process has open, named by its file descriptor. The files in this
+    directory are readable only by the owner of the process. The contents of
+    each file can be read to obtain information about the corresponding file
+    descriptor. The content depends on the type of file referred to by the
+    corresponding file descriptor.</p>
+<p class="Pp">For regular files and directories, we see something like:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> cat /proc/12015/fdinfo/4</b>
+pos:    1000
+flags:  01002002
+mnt_id: 21
+ino:    63107
+</pre>
+<br/>
+<p class="Pp">The fields are as follows:</p>
+<dl class="Bl-tag">
+  <dt id="pos"><a class="permalink" href="#pos"><i>pos</i></a></dt>
+  <dd>This is a decimal number showing the file offset.</dd>
+  <dt id="flags"><a class="permalink" href="#flags"><i>flags</i></a></dt>
+  <dd>This is an octal number that displays the file access mode and file status
+      flags (see <b>open</b>(2)). If the close-on-exec file descriptor flag is
+      set, then <i>flags</i> will also include the value <b>O_CLOEXEC</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Before Linux 3.1, this field incorrectly displayed the setting of
+      <b>O_CLOEXEC</b> at the time the file was opened, rather than the current
+      setting of the close-on-exec flag.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="mnt_id"><a class="permalink" href="#mnt_id"><i>mnt_id</i></a></dt>
+  <dd>This field, present since Linux 3.15, is the decimal ID of the mount
+      containing this file. See the description of
+      <i>/proc/</i>pid<i>/mountinfo</i>.</dd>
+  <dt id="ino"><a class="permalink" href="#ino"><i>ino</i></a></dt>
+  <dd>This field, present since Linux 5.14, is the decimal inode number of the
+      file.</dd>
+</dl>
+<p class="Pp">For eventfd file descriptors (see <b>eventfd</b>(2)), we see
+    (since Linux 3.8) the following fields:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>pos:    0
+flags:  02
+mnt_id: 10
+ino:    63107
+eventfd-count:               40
+</pre>
+<br/>
+<p class="Pp"><i>eventfd-count</i> is the current value of the eventfd counter,
+    in hexadecimal.</p>
+<p class="Pp">For epoll file descriptors (see <b>epoll</b>(7)), we see (since
+    Linux 3.8) the following fields:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>pos:    0
+flags:  02
+mnt_id: 10
+ino:    63107
+tfd:        9 events:       19 data: 74253d2500000009
+tfd:        7 events:       19 data: 74253d2500000007
+</pre>
+<br/>
+<p class="Pp">Each of the lines beginning <i>tfd</i> describes one of the file
+    descriptors being monitored via the epoll file descriptor (see
+    <b>epoll_ctl</b>(2) for some details). The <i>tfd</i> field is the number of
+    the file descriptor. The <i>events</i> field is a hexadecimal mask of the
+    events being monitored for this file descriptor. The <i>data</i> field is
+    the data value associated with this file descriptor.</p>
+<p class="Pp">For signalfd file descriptors (see <b>signalfd</b>(2)), we see
+    (since Linux 3.8) the following fields:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>pos:    0
+flags:  02
+mnt_id: 10
+ino:    63107
+sigmask:        0000000000000006
+</pre>
+<br/>
+<p class="Pp"><i>sigmask</i> is the hexadecimal mask of signals that are
+    accepted via this signalfd file descriptor. (In this example, bits 2 and 3
+    are set, corresponding to the signals <b>SIGINT</b> and <b>SIGQUIT</b>; see
+    <b>signal</b>(7).)</p>
+<p class="Pp">For inotify file descriptors (see <b>inotify</b>(7)), we see
+    (since Linux 3.8) the following fields:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>pos:    0
+flags:  00
+mnt_id: 11
+ino:    63107
+inotify wd:2 ino:7ef82a sdev:800001 mask:800afff ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:2af87e00220ffd73
+inotify wd:1 ino:192627 sdev:800001 mask:800afff ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:27261900802dfd73
+</pre>
+<br/>
+<p class="Pp">Each of the lines beginning with &quot;inotify&quot; displays
+    information about one file or directory that is being monitored. The fields
+    in this line are as follows:</p>
+<dl class="Bl-tag">
+  <dt id="wd"><a class="permalink" href="#wd"><i>wd</i></a></dt>
+  <dd>A watch descriptor number (in decimal).</dd>
+  <dt id="ino~2"><a class="permalink" href="#ino~2"><i>ino</i></a></dt>
+  <dd>The inode number of the target file (in hexadecimal).</dd>
+  <dt id="sdev"><a class="permalink" href="#sdev"><i>sdev</i></a></dt>
+  <dd>The ID of the device where the target file resides (in hexadecimal).</dd>
+  <dt id="mask"><a class="permalink" href="#mask"><i>mask</i></a></dt>
+  <dd>The mask of events being monitored for the target file (in
+    hexadecimal).</dd>
+</dl>
+<p class="Pp">If the kernel was built with exportfs support, the path to the
+    target file is exposed as a file handle, via three hexadecimal fields:
+    <i>fhandle-bytes</i>, <i>fhandle-type</i>, and <i>f_handle</i>.</p>
+<p class="Pp">For fanotify file descriptors (see <b>fanotify</b>(7)), we see
+    (since Linux 3.8) the following fields:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>pos:    0
+flags:  02
+mnt_id: 11
+ino:    63107
+fanotify flags:0 event-flags:88002
+fanotify ino:19264f sdev:800001 mflags:0 mask:1 ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:4f261900a82dfd73
+</pre>
+<br/>
+<p class="Pp">The fourth line displays information defined when the fanotify
+    group was created via <b>fanotify_init</b>(2):</p>
+<dl class="Bl-tag">
+  <dt id="flags~2"><a class="permalink" href="#flags~2"><i>flags</i></a></dt>
+  <dd>The <i>flags</i> argument given to <b>fanotify_init</b>(2) (expressed in
+      hexadecimal).</dd>
+  <dt id="event"><a class="permalink" href="#event"><i>event-flags</i></a></dt>
+  <dd>The <i>event_f_flags</i> argument given to <b>fanotify_init</b>(2)
+      (expressed in hexadecimal).</dd>
+</dl>
+<p class="Pp">Each additional line shown in the file contains information about
+    one of the marks in the fanotify group. Most of these fields are as for
+    inotify, except:</p>
+<dl class="Bl-tag">
+  <dt id="mflags"><a class="permalink" href="#mflags"><i>mflags</i></a></dt>
+  <dd>The flags associated with the mark (expressed in hexadecimal).</dd>
+  <dt id="mask~2"><a class="permalink" href="#mask~2"><i>mask</i></a></dt>
+  <dd>The events mask for this mark (expressed in hexadecimal).</dd>
+  <dt id="ignored_mask"><a class="permalink" href="#ignored_mask"><i>ignored_mask</i></a></dt>
+  <dd>The mask of events that are ignored for this mark (expressed in
+      hexadecimal).</dd>
+</dl>
+<p class="Pp">For details on these fields, see <b>fanotify_mark</b>(2).</p>
+<p class="Pp">For timerfd file descriptors (see <b>timerfd</b>(2)), we see
+    (since Linux 3.17) the following fields:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>pos:    0
+flags:  02004002
+mnt_id: 13
+ino:    63107
+clockid: 0
+ticks: 0
+settime flags: 03
+it_value: (7695568592, 640020877)
+it_interval: (0, 0)
+</pre>
+<br/>
+<dl class="Bl-tag">
+  <dt id="clockid"><a class="permalink" href="#clockid"><i>clockid</i></a></dt>
+  <dd>This is the numeric value of the clock ID (corresponding to one of the
+      <b>CLOCK_*</b> constants defined via <i>&lt;time.h&gt;</i>) that is used
+      to mark the progress of the timer (in this example, 0 is
+      <b>CLOCK_REALTIME</b>).</dd>
+  <dt id="ticks"><a class="permalink" href="#ticks"><i>ticks</i></a></dt>
+  <dd>This is the number of timer expirations that have occurred, (i.e., the
+      value that <b>read</b>(2) on it would return).</dd>
+  <dt id="settime"><a class="permalink" href="#settime"><i>settime
+    flags</i></a></dt>
+  <dd>This field lists the flags with which the timerfd was last armed (see
+      <b>timerfd_settime</b>(2)), in octal (in this example, both
+      <b>TFD_TIMER_ABSTIME</b> and <b>TFD_TIMER_CANCEL_ON_SET</b> are set).</dd>
+  <dt id="it_value"><a class="permalink" href="#it_value"><i>it_value</i></a></dt>
+  <dd>This field contains the amount of time until the timer will next expire,
+      expressed in seconds and nanoseconds. This is always expressed as a
+      relative value, regardless of whether the timer was created using the
+      <b>TFD_TIMER_ABSTIME</b> flag.</dd>
+  <dt id="it_interval"><a class="permalink" href="#it_interval"><i>it_interval</i></a></dt>
+  <dd>This field contains the interval of the timer, in seconds and nanoseconds.
+      (The <i>it_value</i> and <i>it_interval</i> fields contain the values that
+      <b>timerfd_gettime</b>(2) on this file descriptor would return.)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.22.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-18</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

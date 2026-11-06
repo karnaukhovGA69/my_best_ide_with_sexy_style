@@ -1,0 +1,88 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sysv_signal(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">sysv_signal(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">sysv_signal - signal handling with System V semantics</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>         /* See feature_test_macros(7) */
+<b>#include &lt;signal.h&gt;</b></pre>
+<pre><b>typedef typeof(void (int))  *sighandler_t;</b></pre>
+<pre><b>sighandler_t sysv_signal(int </b><i>signum</i><b>, sighandler_t </b><i>handler</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>sysv_signal</b>() function takes the same arguments, and
+    performs the same task, as <b>signal</b>(2).</p>
+<p class="Pp">However <b>sysv_signal</b>() provides the System V unreliable
+    signal semantics, that is: a) the disposition of the signal is reset to the
+    default when the handler is invoked; b) delivery of further instances of the
+    signal is not blocked while the signal handler is executing; and c) if the
+    handler interrupts (certain) blocking system calls, then the system call is
+    not automatically restarted.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>sysv_signal</b>() function returns the previous value of
+    the signal handler, or <b>SIG_ERR</b> on error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">As for <b>signal</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>sysv_signal ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">Use of <b>sysv_signal</b>() should be avoided; use
+    <b>sigaction</b>(2) instead.</p>
+<p class="Pp">On older Linux systems, <b>sysv_signal</b>() and <b>signal</b>(2)
+    were equivalent. But on newer systems, <b>signal</b>(2) provides reliable
+    signal semantics; see <b>signal</b>(2) for details.</p>
+<p class="Pp">The use of <i>sighandler_t</i> is a GNU extension; this type is
+    defined only if the <b>_GNU_SOURCE</b> feature test macro is defined.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>sigaction</b>(2), <b>signal</b>(2), <b>bsd_signal</b>(3),
+    <b>signal</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

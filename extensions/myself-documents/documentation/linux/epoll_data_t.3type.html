@@ -1,0 +1,75 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">epoll_event(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">epoll_event(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">epoll_event, epoll_data, epoll_data_t - epoll event</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/epoll.h&gt;</b></pre>
+<pre><b>struct epoll_event {</b>
+<b>    uint32_t      events;</b>  /* Epoll events */
+<b>    epoll_data_t  data;</b>    /* User data variable */
+<b>};</b></pre>
+<pre><b>union epoll_data {</b>
+<b>    void     *ptr;</b>
+<b>    int       fd;</b>
+<b>    uint32_t  u32;</b>
+<b>    uint64_t  u64;</b>
+<b>};</b></pre>
+<pre><b>typedef union epoll_data  epoll_data_t;</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <i>epoll_event</i> structure specifies data that the kernel
+    should save and return when the corresponding file descriptor becomes
+  ready.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="C_library/kernel_differences"><a class="permalink" href="#C_library/kernel_differences">C
+  library/kernel differences</a></h2>
+<p class="Pp">The Linux kernel headers also provide this type, with a slightly
+    different definition:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>#include &lt;linux/eventpoll.h&gt;
+struct epoll_event {
+<br/>
+    __poll_t  events;
+<br/>
+    __u64     data;
+};
+</pre>
+<br/>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>epoll_wait</b>(2), <b>epoll_ctl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

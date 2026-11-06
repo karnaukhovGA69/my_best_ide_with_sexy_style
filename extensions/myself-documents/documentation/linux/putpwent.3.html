@@ -1,0 +1,116 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">putpwent(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">putpwent(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">putpwent - write a password file entry</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b>
+<b>#include &lt;sys/types.h&gt;</b>
+<b>#include &lt;pwd.h&gt;</b></pre>
+<pre><b>int putpwent(const struct passwd *restrict </b><i>p</i><b>, FILE *restrict </b><i>stream</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>putpwent</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.19:
+<br/>
+        _DEFAULT_SOURCE
+<br/>
+    glibc 2.19 and earlier:
+<br/>
+        _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>putpwent</b>() function writes a password entry from the
+    structure <i>p</i> in the file associated with <i>stream</i>.</p>
+<p class="Pp">The <i>passwd</i> structure is defined in <i>&lt;pwd.h&gt;</i> as
+    follows:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct passwd {
+<br/>
+    char    *pw_name;        /* username */
+<br/>
+    char    *pw_passwd;      /* user password */
+<br/>
+    uid_t    pw_uid;         /* user ID */
+<br/>
+    gid_t    pw_gid;         /* group ID */
+<br/>
+    char    *pw_gecos;       /* real name */
+<br/>
+    char    *pw_dir;         /* home directory */
+<br/>
+    char    *pw_shell;       /* shell program */
+};
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>putpwent</b>() function returns 0 on success. On failure,
+    it returns -1, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid (NULL) argument given.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>putpwent ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SVr4.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>endpwent</b>(3), <b>fgetpwent</b>(3), <b>getpw</b>(3),
+    <b>getpwent</b>(3), <b>getpwnam</b>(3), <b>getpwuid</b>(3),
+    <b>setpwent</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,100 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_SET_REQKEY_KEYRING(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_SET_REQKEY_KEYRING(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_SET_REQKEY_KEYRING - set the implicit destination
+  keyring</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_SET_REQKEY_KEYRING, int </b><i>op</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set the default keyring to which implicitly requested keys will be
+    linked for this thread, and return the previous setting. Implicit key
+    requests are those made by internal kernel components, such as can occur
+    when, for example, opening files on an AFS or NFS filesystem. Setting the
+    default keyring also has an effect when requesting a key from user space;
+    see <b>request_key</b>(2) for details.</p>
+<p class="Pp">The <i>op</i> argument should contain one of the following values,
+    to specify the new default keyring:</p>
+<dl class="Bl-tag">
+  <dt id="KEY_REQKEY_DEFL_NO_CHANGE"><a class="permalink" href="#KEY_REQKEY_DEFL_NO_CHANGE"><b>KEY_REQKEY_DEFL_NO_CHANGE</b></a></dt>
+  <dd>Don't change the default keyring. This can be used to discover the current
+      default keyring (without changing it).</dd>
+  <dt id="KEY_REQKEY_DEFL_DEFAULT"><a class="permalink" href="#KEY_REQKEY_DEFL_DEFAULT"><b>KEY_REQKEY_DEFL_DEFAULT</b></a></dt>
+  <dd>This selects the default behavior, which is to use the thread-specific
+      keyring if there is one, otherwise the process-specific keyring if there
+      is one, otherwise the session keyring if there is one, otherwise the
+      UID-specific session keyring, otherwise the user-specific keyring.</dd>
+  <dt id="KEY_REQKEY_DEFL_THREAD_KEYRING"><a class="permalink" href="#KEY_REQKEY_DEFL_THREAD_KEYRING"><b>KEY_REQKEY_DEFL_THREAD_KEYRING</b></a></dt>
+  <dd>Use the thread-specific keyring (<b>thread-keyring</b>(7)) as the new
+      default keyring.</dd>
+  <dt id="KEY_REQKEY_DEFL_PROCESS_KEYRING"><a class="permalink" href="#KEY_REQKEY_DEFL_PROCESS_KEYRING"><b>KEY_REQKEY_DEFL_PROCESS_KEYRING</b></a></dt>
+  <dd>Use the process-specific keyring (<b>process-keyring</b>(7)) as the new
+      default keyring.</dd>
+  <dt id="KEY_REQKEY_DEFL_SESSION_KEYRING"><a class="permalink" href="#KEY_REQKEY_DEFL_SESSION_KEYRING"><b>KEY_REQKEY_DEFL_SESSION_KEYRING</b></a></dt>
+  <dd>Use the session-specific keyring (<b>session-keyring</b>(7)) as the new
+      default keyring.</dd>
+  <dt id="KEY_REQKEY_DEFL_USER_KEYRING"><a class="permalink" href="#KEY_REQKEY_DEFL_USER_KEYRING"><b>KEY_REQKEY_DEFL_USER_KEYRING</b></a></dt>
+  <dd>Use the UID-specific keyring (<b>user-keyring</b>(7)) as the new default
+      keyring.</dd>
+  <dt id="KEY_REQKEY_DEFL_USER_SESSION_KEYRING"><a class="permalink" href="#KEY_REQKEY_DEFL_USER_SESSION_KEYRING"><b>KEY_REQKEY_DEFL_USER_SESSION_KEYRING</b></a></dt>
+  <dd>Use the UID-specific session keyring (<b>user-session-keyring</b>(7)) as
+      the new default keyring.</dd>
+  <dt id="KEY_REQKEY_DEFL_REQUESTOR_KEYRING"><a class="permalink" href="#KEY_REQKEY_DEFL_REQUESTOR_KEYRING"><b>KEY_REQKEY_DEFL_REQUESTOR_KEYRING</b>
+    (since Linux 2.6.29)</a></dt>
+  <dd>Use the requestor keyring.</dd>
+</dl>
+<p class="Pp">All other values are invalid.</p>
+<p class="Pp">The setting controlled by this operation is inherited by the child
+    of <b>fork</b>(2) and preserved across <b>execve</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the ID of the previous default keyring to which
+    implicitly requested keys were linked (one of
+    <b>KEY_REQKEY_DEFL_USER_*</b>).</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_set_reqkey_keyring</b>(3)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.13.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_set_reqkey_keyring</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

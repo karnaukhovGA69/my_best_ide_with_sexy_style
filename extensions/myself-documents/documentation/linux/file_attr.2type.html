@@ -1,0 +1,136 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">file_attr(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">file_attr(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">file_attr - filesystem file attributes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/fs.h&gt;</b></pre>
+<pre><b>struct file_attr {</b>
+<b>	u64  fa_xflags;</b>      // Extended flags
+<b>	u32  fa_extsize;</b>     // Extent size hint
+<b>	u32  fa_nextents;</b>    // Number of extents (read-only)
+<b>	u32  fa_projid;</b>      // Project identifier
+<b>	u32  fa_cowextsize;</b>  // CoW extent size hint
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Describes filesystem file attributes for use with the
+    <b>file_getattr</b>(2) and <b>file_setattr</b>(2) system calls.</p>
+<p class="Pp">The fields are as follows:</p>
+<dl class="Bl-tag">
+  <dt><i>.fa_xflags</i></dt>
+  <dd>This field contains file attribute flags. It is a bit mask consisting of
+      zero or more of the <b>FS_XFLAG_</b><i>*</i> flags. See <b>Flags</b> below
+      for a list of flags.</dd>
+  <dt><i>.fa_extsize</i></dt>
+  <dd>Extent size allocator hint in bytes. This value suggests a preferred
+      extent size for new allocations to this file.</dd>
+  <dt><i>.fa_nextents</i></dt>
+  <dd>Number of data extents in the file (read-only). This field is filled in by
+      <b>file_getattr</b>(2) and is ignored by <b>file_setattr</b>(2).</dd>
+  <dt><i>.fa_projid</i></dt>
+  <dd>Project identifier. Used by quota systems <b>quotactl</b>(2) to group
+      related files.</dd>
+  <dt><i>.fa_cowextsize</i></dt>
+  <dd>Copy-on-Write (CoW) extent size hint in bytes. This value suggests a
+      preferred extent size for CoW operations.</dd>
+</dl>
+<section class="Ss">
+<h2 class="Ss" id="Flags"><a class="permalink" href="#Flags">Flags</a></h2>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="FS_XFLAG_REALTIME"><a class="permalink" href="#FS_XFLAG_REALTIME"><b>FS_XFLAG_REALTIME</b></a></dt>
+  <dd>Data is stored in a realtime volume.</dd>
+  <dt id="FS_XFLAG_IMMUTABLE"><a class="permalink" href="#FS_XFLAG_IMMUTABLE"><b>FS_XFLAG_IMMUTABLE</b></a></dt>
+  <dd>File cannot be modified.</dd>
+  <dt id="FS_XFLAG_APPEND"><a class="permalink" href="#FS_XFLAG_APPEND"><b>FS_XFLAG_APPEND</b></a></dt>
+  <dd>All writes must append to the end of the file.</dd>
+  <dt id="FS_XFLAG_SYNC"><a class="permalink" href="#FS_XFLAG_SYNC"><b>FS_XFLAG_SYNC</b></a></dt>
+  <dd>All writes are synchronous.</dd>
+  <dt id="FS_XFLAG_NOATIME"><a class="permalink" href="#FS_XFLAG_NOATIME"><b>FS_XFLAG_NOATIME</b></a></dt>
+  <dd>Do not update file access time on reads.</dd>
+  <dt id="FS_XFLAG_NODUMP"><a class="permalink" href="#FS_XFLAG_NODUMP"><b>FS_XFLAG_NODUMP</b></a></dt>
+  <dd>Do not include file in backups.</dd>
+  <dt id="FS_XFLAG_DAX"><a class="permalink" href="#FS_XFLAG_DAX"><b>FS_XFLAG_DAX</b></a></dt>
+  <dd>Use Direct Access (DAX) for I/O operations.</dd>
+  <dt id="FS_XFLAG_NODEFRAG"><a class="permalink" href="#FS_XFLAG_NODEFRAG"><b>FS_XFLAG_NODEFRAG</b></a></dt>
+  <dd>Exclude this file from defragmentation operations.</dd>
+  <dt id="FS_XFLAG_FILESTREAM"><a class="permalink" href="#FS_XFLAG_FILESTREAM"><b>FS_XFLAG_FILESTREAM</b></a></dt>
+  <dd>Use filestream allocator for this file.</dd>
+  <dt id="FS_XFLAG_EXTSIZE"><a class="permalink" href="#FS_XFLAG_EXTSIZE"><b>FS_XFLAG_EXTSIZE</b></a></dt>
+  <dd>Use the extent size hint from the <i>fa_extsize</i> field.</dd>
+  <dt id="FS_XFLAG_COWEXTSIZE"><a class="permalink" href="#FS_XFLAG_COWEXTSIZE"><b>FS_XFLAG_COWEXTSIZE</b></a></dt>
+  <dd>Use the CoW extent size hint from the <i>fa_cowextsize</i> field.</dd>
+</dl>
+</div>
+<p class="Pp">Directory-only flags:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="FS_XFLAG_RTINHERIT"><a class="permalink" href="#FS_XFLAG_RTINHERIT"><b>FS_XFLAG_RTINHERIT</b></a></dt>
+  <dd>New files created in this directory inherit the realtime flag.</dd>
+  <dt id="FS_XFLAG_NOSYMLINKS"><a class="permalink" href="#FS_XFLAG_NOSYMLINKS"><b>FS_XFLAG_NOSYMLINKS</b></a></dt>
+  <dd>Disallow creation of symbolic links in this directory.</dd>
+  <dt id="FS_XFLAG_EXTSZINHERIT"><a class="permalink" href="#FS_XFLAG_EXTSZINHERIT"><b>FS_XFLAG_EXTSZINHERIT</b></a></dt>
+  <dd>New files created in this directory inherit the extent size hint.</dd>
+  <dt id="FS_XFLAG_PROJINHERIT"><a class="permalink" href="#FS_XFLAG_PROJINHERIT"><b>FS_XFLAG_PROJINHERIT</b></a></dt>
+  <dd>New files created in this directory inherit the project identifier.</dd>
+</dl>
+</div>
+<p class="Pp">Read-only flags:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="FS_XFLAG_PREALLOC"><a class="permalink" href="#FS_XFLAG_PREALLOC"><b>FS_XFLAG_PREALLOC</b></a></dt>
+  <dd>File has preallocated extents.</dd>
+  <dt id="FS_XFLAG_HASATTR"><a class="permalink" href="#FS_XFLAG_HASATTR"><b>FS_XFLAG_HASATTR</b></a></dt>
+  <dd>File has extended attributes.</dd>
+  <dt id="FS_XFLAG_VERITY"><a class="permalink" href="#FS_XFLAG_VERITY"><b>FS_XFLAG_VERITY</b></a></dt>
+  <dd>File has fs-verity enabled.</dd>
+  <dt id="FS_XFLAG_CASEFOLD"><a class="permalink" href="#FS_XFLAG_CASEFOLD"><b>FS_XFLAG_CASEFOLD</b></a></dt>
+  <dd>The filesystem performs case-insensitive lookups (file and directory name
+      comparisons ignore case).</dd>
+  <dt id="FS_XFLAG_CASENONPRESERVING"><a class="permalink" href="#FS_XFLAG_CASENONPRESERVING"><b>FS_XFLAG_CASENONPRESERVING</b></a></dt>
+  <dd>The filesystem does not preserve the case of file and directory
+    names.</dd>
+</dl>
+</div>
+<p class="Pp">Not all filesystems support all flags. Setting unsupported flags
+    may result in an error.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Linux_v6.17"><a class="permalink" href="#Linux_v6.17">Linux
+  v6.17</a></h2>
+<p class="Pp">This structure is introduced.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Linux_v7.2"><a class="permalink" href="#Linux_v7.2">Linux
+  v7.2</a></h2>
+<p class="Pp">The FS_XFLAG_CASEFOLD and FS_XFLAG_CASENONPRESERVING are
+    introduced to enable upper layers, such as NFSD, to retrieve case
+    sensitivity information.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>file_getattr</b>(2), <b>file_setattr</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-10-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

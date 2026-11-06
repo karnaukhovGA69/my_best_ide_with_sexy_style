@@ -1,0 +1,97 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">mbrlen(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">mbrlen(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">mbrlen - determine number of bytes in next multibyte character</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;wchar.h&gt;</b></pre>
+<pre><b>size_t mbrlen(</b>size_t n;
+<b>              const char </b><i>s</i><b>[restrict </b><i>n</i><b>], size_t </b><i>n</i><b>,</b>
+<b>              mbstate_t *restrict </b><i>ps</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>mbrlen</b>() function inspects at most <i>n</i> bytes of
+    the multibyte string starting at <i>s</i> and extracts the next complete
+    multibyte character. It updates the shift state <i>*ps</i>. If the multibyte
+    character is not the null wide character, it returns the number of bytes
+    that were consumed from <i>s</i>. If the multibyte character is the null
+    wide character, it resets the shift state <i>*ps</i> to the initial state
+    and returns 0.</p>
+<p class="Pp">If the <i>n</i> bytes starting at <i>s</i> do not contain a
+    complete multibyte character, <b>mbrlen</b>() returns
+    <i>(size_t)&#x00A0;-2</i>. This can happen even if <i>n</i> &gt;=
+    <i>MB_CUR_MAX</i>, if the multibyte string contains redundant shift
+    sequences.</p>
+<p class="Pp">If the multibyte string starting at <i>s</i> contains an invalid
+    multibyte sequence before the next complete character, <b>mbrlen</b>()
+    returns <i>(size_t)&#x00A0;-1</i> and sets <i>errno</i> to <b>EILSEQ</b>. In
+    this case, the effects on <i>*ps</i> are undefined.</p>
+<p class="Pp">If <i>ps</i> is NULL, a static anonymous state known only to the
+    <b>mbrlen</b>() function is used instead.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>mbrlen</b>() function returns the number of bytes parsed
+    from the multibyte sequence starting at <i>s</i>, if a non-null wide
+    character was recognized. It returns 0, if a null wide character was
+    recognized. It returns <i>(size_t)&#x00A0;-1</i> and sets <i>errno</i> to
+    <b>EILSEQ</b>, if an invalid multibyte sequence was encountered. It returns
+    <i>(size_t)&#x00A0;-2</i> if it couldn't parse a complete multibyte
+    character, meaning that <i>n</i> should be increased.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>mbrlen ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:mbrlen/!ps</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C99.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The behavior of <b>mbrlen</b>() depends on the <b>LC_CTYPE</b>
+    category of the current locale.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mbrtowc</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

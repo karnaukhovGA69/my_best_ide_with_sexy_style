@@ -1,0 +1,36 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">nologin(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">nologin(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">nologin - prevent unprivileged users from logging into the
+  system</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">If the file <i>/etc/nologin</i> exists and is readable,
+    <b>login</b>(1) will allow access only to root. Other users will be shown
+    the contents of this file and their logins will be refused. This provides a
+    simple way of temporarily disabling all unprivileged logins.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/etc/nologin</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>login</b>(1), <b>shutdown</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

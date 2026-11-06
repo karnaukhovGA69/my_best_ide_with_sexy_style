@@ -1,0 +1,188 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_GETDELEG(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_GETDELEG(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GETDELEG, F_SETDELEG - delegations</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_SETDELEG, const struct delegation *</b><i>deleg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_GETDELEG, struct delegation *</b><i>deleg</i><b>);</b></pre>
+<p class="Pp"></p>
+<pre>struct delegation {
+	__u32  d_flags;
+	__u16  d_type;
+	__u16  __pad;
+};
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>F_SETDELEG</b> and <b>F_GETDELEG</b> are used to establish a
+    new delegation, and retrieve the current delegation, on the open file
+    description referred to by the file descriptor <i>fd</i>.</p>
+<p class="Pp">A file delegation is a mechanism whereby the process holding the
+    delegation (the &quot;delegation holder&quot;) is notified (via delivery of
+    a signal) when a process (the &quot;delegation breaker&quot;) tries to
+    <b>open</b>(2) or <b>truncate</b>(2) the file referred to by that file
+    descriptor, or tries to <b>unlink</b>(2) or <b>rename</b>(2) the dentry that
+    was originally opened for the file.</p>
+<p class="Pp">Delegations can also be set on directory file descriptors. The
+    holder of a directory delegation will be notified if there is a create,
+    delete, or rename of a dirent within the directory.</p>
+<dl class="Bl-tag">
+  <dt id="F_SETDELEG"><a class="permalink" href="#F_SETDELEG"><b>F_SETDELEG</b></a></dt>
+  <dd>Set or remove a file or directory delegation according to the value
+      specified in <i>deleg-&gt;d_type</i>:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="F_RDLCK"><a class="permalink" href="#F_RDLCK"><b>F_RDLCK</b></a></dt>
+  <dd>Establish a read delegation. This will cause the calling process to be
+      notified when the file is opened for writing, or is truncated, unlinked or
+      renamed. A read delegation can be placed only on a file descriptor that is
+      opened read-only.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If <i>fd</i> refers to a directory, then the calling process will be
+      notified if there are changes to filenames within the directory, or when
+      the directory itself is renamed.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="F_WRLCK"><a class="permalink" href="#F_WRLCK"><b>F_WRLCK</b></a></dt>
+  <dd>Establish a write delegation. This will cause the caller to be notified
+      when the file is opened for reading or writing, or is truncated, renamed
+      or unlinked. A write delegation may be placed on a file only if there are
+      no other open file descriptors for the file. The file must be opened for
+      write in order to set a write delegation on it. Write delegations cannot
+      be set on directory file descriptors.</dd>
+  <dt id="F_UNLCK"><a class="permalink" href="#F_UNLCK"><b>F_UNLCK</b></a></dt>
+  <dd>Remove our delegation from the file.</dd>
+</dl>
+</div>
+<p class="Pp">Like leases, delegations are associated with an open file
+    description (see <b>open</b>(2)). This means that duplicate file descriptors
+    (created by, for example, <b>fork</b>(2) or <b>dup</b>(2)) refer to the same
+    delegation, and this delegation may be modified or released using any of
+    these descriptors. Furthermore, the delegation is released by either an
+    explicit <b>F_UNLCK</b> operation on any of these duplicate file
+    descriptors, or when all such file descriptors have been closed.</p>
+<p class="Pp">An unprivileged process may establish a delegation only on a file
+    whose UID (owner) matches the filesystem UID of the process. A process with
+    the <b>CAP_LEASE</b> capability may establish delegations on arbitrary files
+    and directories.</p>
+<dl class="Bl-tag">
+  <dt id="F_GETDELEG"><a class="permalink" href="#F_GETDELEG"><b>F_GETDELEG</b></a></dt>
+  <dd>Indicates what type of delegation is associated with the file descriptor
+      <i>fd</i> by setting <i>deleg-&gt;d_type</i> to either <b>F_RDLCK</b>,
+      <b>F_WRLCK</b>, or <b>F_UNLCK</b>, indicating, respectively, a read
+      delegation, a write delegation, or no delegation.</dd>
+</dl>
+<p class="Pp">When a process (the &quot;delegation breaker&quot;) performs an
+    activity that conflicts with a delegation established via <b>F_SETDELEG</b>,
+    the system call is blocked by the kernel and the kernel notifies the
+    delegation holder by sending it a signal (<b>SIGIO</b> by default). The
+    delegation holder should respond to receipt of this signal by doing whatever
+    cleanup is required in preparation for the file to be accessed by another
+    process (e.g., flushing cached buffers) and then either remove or downgrade
+    its delegation. A delegation is removed by performing an <b>F_SETDELEG</b>
+    operation specifying <i>deleg-&gt;d_type</i> as <b>F_UNLCK</b>. If the
+    delegation holder currently holds a write delegation on the file, and the
+    delegation breaker is opening the file for reading, then it is sufficient
+    for the delegation holder to downgrade the delegation to a read delegation.
+    This is done by performing an <b>F_SETDELEG</b> operation specifying
+    <i>deleg-&gt;d_type</i> as <b>F_RDLCK</b>.</p>
+<p class="Pp">If the delegation holder fails to downgrade or remove the
+    delegation within the number of seconds specified in
+    <i>/proc/sys/fs/lease-break-time</i>, then the kernel forcibly removes or
+    downgrades the delegation holder's delegation.</p>
+<p class="Pp">Once a delegation break has been initiated, <b>F_GETDELEG</b>
+    returns the target delegation type in the <i>deleg-&gt;d_type</i> (either
+    <b>F_RDLCK</b> or <b>F_UNLCK</b>, depending on what would be compatible with
+    the delegation breaker) until the delegation holder voluntarily downgrades
+    or removes the delegation or the kernel forcibly does so after the
+    delegation break timer expires.</p>
+<p class="Pp">Once the delegation has been voluntarily or forcibly removed or
+    downgraded, and assuming the delegation breaker has not unblocked its system
+    call, the kernel permits the delegation breaker's system call to
+  proceed.</p>
+<p class="Pp">If the delegation breaker's blocked system call is interrupted by
+    a signal handler, then the system call fails with the error <b>EINTR</b>,
+    but the other steps still occur as described above. If the delegation
+    breaker is killed by a signal while blocked in <b>open</b>(2) or
+    <b>truncate</b>(2), then the other steps still occur as described above. If
+    the delegation breaker specifies the <b>O_NONBLOCK</b> flag when calling
+    <b>open</b>(2), then the call immediately fails with the error
+    <b>EWOULDBLOCK</b>, but the other steps still occur as described above.</p>
+<p class="Pp">The default signal used to notify the delegation holder is
+    <b>SIGIO</b>, but this can be changed using <b>F_SETSIG</b>(2const). If a
+    <b>F_SETSIG</b>(2const) operation is performed (even one specifying
+    <b>SIGIO</b>), and the signal handler is established using
+    <b>SA_SIGINFO</b>, then the handler will receive a <i>siginfo_t</i>
+    structure as its second argument, and the <i>si_fd</i> field of this
+    argument will hold the file descriptor of the file with the delegation that
+    has been accessed by another process. (This is useful if the caller holds
+    delegations against multiple files.)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">Delegations were designed to implement NFSv4 (RFC&#x00A0;8881)
+    delegations for the Linux NFS server.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success zero is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error. A successful <b>F_GETDELEG</b>
+    call will also update the <i>deleg-&gt;d_type</i> field.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2). These operations can also return the
+    following errors:</p>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The file was held open in a way that conflicts with the requested
+      delegation.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The caller tried to set a <b>F_WRLCK</b> delegation and <i>fd</i>
+      represents a directory.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>fd</i> doesn't represent a file or directory.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>The underlying filesystem doesn't support delegations.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux, IETF&#x00A0;RFC&#x00A0;8881.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 6.19.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)<b>,</b> <b>F_SETLEASE</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-23</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

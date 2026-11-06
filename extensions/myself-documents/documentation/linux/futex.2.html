@@ -1,0 +1,575 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">futex(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">futex(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">futex - fast user-space locking</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/futex.h&gt;</b>  /* Definition of <b>FUTEX_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_futex, uint32_t *</b><i>uaddr</i><b>, int </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>futex</b>() system call provides a method for waiting until
+    a certain condition becomes true. It is typically used as a blocking
+    construct in the context of shared-memory synchronization. When using
+    futexes, the majority of the synchronization operations are performed in
+    user space. A user-space program employs the <b>futex</b>() system call only
+    when it is likely that the program has to block for a longer time until the
+    condition becomes true. Other <b>futex</b>() operations can be used to wake
+    any processes or threads waiting for a particular condition.</p>
+<p class="Pp">A futex is a 32-bit value&#x2014;referred to below as a <i>futex
+    word</i>&#x2014;whose address is supplied to the <b>futex</b>() system call.
+    (Futexes are 32 bits in size on all platforms, including 64-bit systems.)
+    All futex operations are governed by this value. In order to share a futex
+    between processes, the futex is placed in a region of shared memory, created
+    using (for example) <b>mmap</b>(2) or <b>shmat</b>(2). (Thus, the futex word
+    may have different virtual addresses in different processes, but these
+    addresses all refer to the same location in physical memory.) In a
+    multithreaded program, it is sufficient to place the futex word in a global
+    variable shared by all threads.</p>
+<p class="Pp">When executing a futex operation that requests to block a thread,
+    the kernel will block only if the futex word has the value that the calling
+    thread supplied (as one of the arguments of the <b>futex</b>() call) as the
+    expected value of the futex word. The loading of the futex word's value, the
+    comparison of that value with the expected value, and the actual blocking
+    will happen atomically and will be totally ordered with respect to
+    concurrent operations performed by other threads on the same futex word.
+    Thus, the futex word is used to connect the synchronization in user space
+    with the implementation of blocking by the kernel. Analogously to an atomic
+    compare-and-exchange operation that potentially changes shared memory,
+    blocking via a futex is an atomic compare-and-block operation.</p>
+<p class="Pp">One use of futexes is for implementing locks. The state of the
+    lock (i.e., acquired or not acquired) can be represented as an atomically
+    accessed flag in shared memory. In the uncontended case, a thread can access
+    or modify the lock state with atomic instructions, for example atomically
+    changing it from not acquired to acquired using an atomic
+    compare-and-exchange instruction. (Such instructions are performed entirely
+    in user mode, and the kernel maintains no information about the lock state.)
+    On the other hand, a thread may be unable to acquire a lock because it is
+    already acquired by another thread. It then may pass the lock's flag as a
+    futex word and the value representing the acquired state as the expected
+    value to a <b>futex</b>() wait operation. This <b>futex</b>() operation will
+    block if and only if the lock is still acquired (i.e., the value in the
+    futex word still matches the &quot;acquired state&quot;). When releasing the
+    lock, a thread has to first reset the lock state to not acquired and then
+    execute a futex operation that wakes threads blocked on the lock flag used
+    as a futex word (this can be further optimized to avoid unnecessary
+    wake-ups). See <b>futex</b>(7) for more detail on how to use futexes.</p>
+<p class="Pp">Besides the basic wait and wake-up futex functionality, there are
+    further futex operations aimed at supporting more complex use cases.</p>
+<p class="Pp">Note that no explicit initialization or destruction is necessary
+    to use futexes; the kernel maintains a futex (i.e., the kernel-internal
+    implementation artifact) only while operations such as
+    <b>FUTEX_WAIT</b>(2const) are being performed on a particular futex
+  word.</p>
+<section class="Ss">
+<h2 class="Ss" id="Arguments"><a class="permalink" href="#Arguments">Arguments</a></h2>
+<p class="Pp">The <i>uaddr</i> argument points to the futex word. On all
+    platforms, futexes are four-byte integers that must be aligned on a
+    four-byte boundary. The operation to perform on the futex is specified in
+    the <i>op</i> argument.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Futex_operations"><a class="permalink" href="#Futex_operations">Futex
+  operations</a></h2>
+<p class="Pp">The <i>op</i> argument consists of two parts: a command that
+    specifies the operation to be performed, bitwise ORed with zero or more
+    options that modify the behavior of the operation. The options that may be
+    included in <i>op</i> are as follows:</p>
+<dl class="Bl-tag">
+  <dt id="FUTEX_PRIVATE_FLAG"><a class="permalink" href="#FUTEX_PRIVATE_FLAG"><b>FUTEX_PRIVATE_FLAG</b>
+    (since Linux 2.6.22)</a></dt>
+  <dd>This option bit can be employed with all futex operations. It tells the
+      kernel that the futex is process-private and not shared with another
+      process (i.e., it is being used for synchronization only between threads
+      of the same process). This allows the kernel to make some additional
+      performance optimizations.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>As a convenience, <i>&lt;linux/futex.h&gt;</i> defines a set of constants
+      with the suffix <b>_PRIVATE</b> that are equivalents of all of the
+      operations listed below, but with the <b>FUTEX_PRIVATE_FLAG</b> ORed into
+      the constant value. Thus, there are <b>FUTEX_WAIT_PRIVATE</b>,
+      <b>FUTEX_WAKE_PRIVATE</b>, and so on.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="FUTEX_CLOCK_REALTIME"><a class="permalink" href="#FUTEX_CLOCK_REALTIME"><b>FUTEX_CLOCK_REALTIME</b>
+    (since Linux 2.6.28)</a></dt>
+  <dd>This option bit can be employed only with the
+      <b>FUTEX_WAIT_BITSET</b>(2const), <b>FUTEX_WAIT_REQUEUE_PI</b>(2const),
+      (since Linux 4.5) <b>FUTEX_WAIT</b>(2const), and (since Linux 5.14)
+      <b>FUTEX_LOCK_PI2</b>(2const) operations.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If this option is set, the kernel measures the <i>timeout</i> against the
+      <b>CLOCK_REALTIME</b> clock.</dd>
+  <dt></dt>
+  <dd>If this option is not set, the kernel measures the <i>timeout</i> against
+      the <b>CLOCK_MONOTONIC</b> clock.</dd>
+</dl>
+<p class="Pp">The operation specified in <i>op</i> is one of the following:</p>
+<dl class="Bl-tag">
+  <dt id="FUTEX_WAIT"><a class="permalink" href="#FUTEX_WAIT"><b>FUTEX_WAIT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_WAKE"><a class="permalink" href="#FUTEX_WAKE"><b>FUTEX_WAKE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_FD"><a class="permalink" href="#FUTEX_FD"><b>FUTEX_FD</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_REQUEUE"><a class="permalink" href="#FUTEX_REQUEUE"><b>FUTEX_REQUEUE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_CMP_REQUEUE"><a class="permalink" href="#FUTEX_CMP_REQUEUE"><b>FUTEX_CMP_REQUEUE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_WAKE_OP"><a class="permalink" href="#FUTEX_WAKE_OP"><b>FUTEX_WAKE_OP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_WAIT_BITSET"><a class="permalink" href="#FUTEX_WAIT_BITSET"><b>FUTEX_WAIT_BITSET</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_WAKE_BITSET"><a class="permalink" href="#FUTEX_WAKE_BITSET"><b>FUTEX_WAKE_BITSET</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Priority-inheritance_futexes"><a class="permalink" href="#Priority-inheritance_futexes">Priority-inheritance
+  futexes</a></h2>
+<p class="Pp">Linux supports priority-inheritance (PI) futexes in order to
+    handle priority-inversion problems that can be encountered with normal futex
+    locks. Priority inversion is the problem that occurs when a high-priority
+    task is blocked waiting to acquire a lock held by a low-priority task, while
+    tasks at an intermediate priority continuously preempt the low-priority task
+    from the CPU. Consequently, the low-priority task makes no progress toward
+    releasing the lock, and the high-priority task remains blocked.</p>
+<p class="Pp">Priority inheritance is a mechanism for dealing with the
+    priority-inversion problem. With this mechanism, when a high-priority task
+    becomes blocked by a lock held by a low-priority task, the priority of the
+    low-priority task is temporarily raised to that of the high-priority task,
+    so that it is not preempted by any intermediate level tasks, and can thus
+    make progress toward releasing the lock. To be effective, priority
+    inheritance must be transitive, meaning that if a high-priority task blocks
+    on a lock held by a lower-priority task that is itself blocked by a lock
+    held by another intermediate-priority task (and so on, for chains of
+    arbitrary length), then both of those tasks (or more generally, all of the
+    tasks in a lock chain) have their priorities raised to be the same as the
+    high-priority task.</p>
+<p class="Pp">From a user-space perspective, what makes a futex PI-aware is a
+    policy agreement (described below) between user space and the kernel about
+    the value of the futex word, coupled with the use of the PI-futex operations
+    described below. (Unlike the other futex operations described above, the
+    PI-futex operations are designed for the implementation of very specific IPC
+    mechanisms.)</p>
+<p class="Pp">The PI-futex operations described below differ from the other
+    futex operations in that they impose policy on the use of the value of the
+    futex word:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>If the lock is not acquired, the futex word's value shall be 0.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the lock is acquired, the futex word's value shall be the thread ID
+      (TID; see <b>gettid</b>(2)) of the owning thread.</dd>
+  <dt>&#x2022;</dt>
+  <dd>If the lock is owned and there are threads contending for the lock, then
+      the <b>FUTEX_WAITERS</b> bit shall be set in the futex word's value; in
+      other words, this value is:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>FUTEX_WAITERS | TID
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>(Note that is invalid for a PI futex word to have no owner and
+      <b>FUTEX_WAITERS</b> set.)</dd>
+</dl>
+<p class="Pp">With this policy in place, a user-space application can acquire an
+    unacquired lock or release a lock using atomic instructions executed in user
+    mode (e.g., a compare-and-swap operation such as <i>cmpxchg</i> on the x86
+    architecture). Acquiring a lock simply consists of using compare-and-swap to
+    atomically set the futex word's value to the caller's TID if its previous
+    value was 0. Releasing a lock requires using compare-and-swap to set the
+    futex word's value to 0 if the previous value was the expected TID.</p>
+<p class="Pp">If a futex is already acquired (i.e., has a nonzero value),
+    waiters must employ the <b>FUTEX_LOCK_PI</b>(2const) or
+    <b>FUTEX_LOCK_PI2</b>(2const) operations to acquire the lock. If other
+    threads are waiting for the lock, then the <b>FUTEX_WAITERS</b> bit is set
+    in the futex value; in this case, the lock owner must employ the
+    <b>FUTEX_UNLOCK_PI</b>(2const) operation to release the lock.</p>
+<p class="Pp">In the cases where callers are forced into the kernel (i.e.,
+    required to perform a <b>futex</b>() call), they then deal directly with a
+    so-called RT-mutex, a kernel locking mechanism which implements the required
+    priority-inheritance semantics. After the RT-mutex is acquired, the futex
+    value is updated accordingly, before the calling thread returns to user
+    space.</p>
+<p class="Pp">It is important to note that the kernel will update the futex
+    word's value prior to returning to user space. (This prevents the
+    possibility of the futex word's value ending up in an invalid state, such as
+    having an owner but the value being 0, or having waiters but not having the
+    <b>FUTEX_WAITERS</b> bit set.)</p>
+<p class="Pp">If a futex has an associated RT-mutex in the kernel (i.e., there
+    are blocked waiters) and the owner of the futex/RT-mutex dies unexpectedly,
+    then the kernel cleans up the RT-mutex and hands it over to the next waiter.
+    This in turn requires that the user-space value is updated accordingly. To
+    indicate that this is required, the kernel sets the <b>FUTEX_OWNER_DIED</b>
+    bit in the futex word along with the thread ID of the new owner. User space
+    can detect this situation via the presence of the <b>FUTEX_OWNER_DIED</b>
+    bit and is then responsible for cleaning up the stale state left over by the
+    dead owner.</p>
+<p class="Pp">PI futexes are operated on by specifying one of the values listed
+    below in <i>op</i>. Note that the PI futex operations must be used as paired
+    operations and are subject to some additional requirements:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd><b>FUTEX_LOCK_PI</b>(2const), <b>FUTEX_LOCK_PI2</b>(2const), and
+      <b>FUTEX_TRYLOCK_PI</b>(2const) pair with <b>FUTEX_UNLOCK_PI</b>(2const).
+      <b>FUTEX_UNLOCK_PI</b>(2const) must be called only on a futex owned by the
+      calling thread, as defined by the value policy, otherwise the error
+      <b>EPERM</b> results.</dd>
+  <dt>&#x2022;</dt>
+  <dd><b>FUTEX_WAIT_REQUEUE_PI</b>(2const) pairs with
+      <b>FUTEX_CMP_REQUEUE_PI</b>(2const). This must be performed from a non-PI
+      futex to a distinct PI futex (or the error <b>EINVAL</b> results).
+      Additionally, the number of waiters to be woken must be 1 (or the error
+      <b>EINVAL</b> results).</dd>
+</dl>
+<p class="Pp">The PI futex operations are as follows:</p>
+<dl class="Bl-tag">
+  <dt id="FUTEX_LOCK_PI"><a class="permalink" href="#FUTEX_LOCK_PI"><b>FUTEX_LOCK_PI</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_LOCK_PI2"><a class="permalink" href="#FUTEX_LOCK_PI2"><b>FUTEX_LOCK_PI2</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_TRYLOCK_PI"><a class="permalink" href="#FUTEX_TRYLOCK_PI"><b>FUTEX_TRYLOCK_PI</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_UNLOCK_PI"><a class="permalink" href="#FUTEX_UNLOCK_PI"><b>FUTEX_UNLOCK_PI</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_CMP_REQUEUE_PI"><a class="permalink" href="#FUTEX_CMP_REQUEUE_PI"><b>FUTEX_CMP_REQUEUE_PI</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FUTEX_WAIT_REQUEUE_PI"><a class="permalink" href="#FUTEX_WAIT_REQUEUE_PI"><b>FUTEX_WAIT_REQUEUE_PI</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+<p class="Pp">The <b>FUTEX_WAIT_REQUEUE_PI</b>(2const) and
+    <b>FUTEX_CMP_REQUEUE_PI</b>(2const) were added to support a fairly specific
+    use case: support for priority-inheritance-aware POSIX threads condition
+    variables. The idea is that these operations should always be paired, in
+    order to ensure that user space and the kernel remain in sync. Thus, in the
+    <b>FUTEX_WAIT_REQUEUE_PI</b>(2const) operation, the user-space application
+    pre-specifies the target of the requeue that takes place in the
+    <b>FUTEX_CMP_REQUEUE_PI</b>(2const) operation.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+<p class="Pp">The return value on success depends on the operation.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>No read access to the memory of a futex word.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>uaddr</i> did not point to a valid user-space address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>uaddr</i> does not point to a valid object&#x2014;that is, the address
+      is not four-byte-aligned.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>Invalid argument.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd>Invalid operation specified in <i>op</i>.</dd>
+  <dt id="ENOSYS~2"><a class="permalink" href="#ENOSYS~2"><b>ENOSYS</b></a></dt>
+  <dd>The <b>FUTEX_CLOCK_REALTIME</b> option was specified in <i>op</i>, but the
+      accompanying operation was neither <b>FUTEX_WAIT_BITSET</b>(2const),
+      <b>FUTEX_WAIT_REQUEUE_PI</b>(2const), nor
+    <b>FUTEX_LOCK_PI2</b>(2const).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.0.</p>
+<p class="Pp">Initial futex support was merged in Linux 2.5.7 but with different
+    semantics from what was described above. A four-argument system call with
+    the semantics described in this page was introduced in Linux 2.5.40. A fifth
+    argument was added in Linux 2.5.70, and a sixth argument was added in Linux
+    2.6.7.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below demonstrates use of futexes in a program where a
+    parent process and a child process use a pair of futexes located inside a
+    shared anonymous mapping to synchronize access to a shared resource: the
+    terminal. The two processes each write <i>nloops</i> (a command-line
+    argument that defaults to 5 if omitted) messages to the terminal and employ
+    a synchronization protocol that ensures that they alternate in writing
+    messages. Upon running this program we see output such as the following:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> ./futex_demo</b>;
+Parent (18534) 0
+Child  (18535) 0
+Parent (18534) 1
+Child  (18535) 1
+Parent (18534) 2
+Child  (18535) 2
+Parent (18534) 3
+Child  (18535) 3
+Parent (18534) 4
+Child  (18535) 4
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>/* futex_demo.c
+<br/>
+   Usage: futex_demo [nloops]
+<br/>
+                    (Default: 5)
+<br/>
+   Demonstrate the use of futexes in a program where parent and child
+<br/>
+   use a pair of futexes located inside a shared anonymous mapping to
+<br/>
+   synchronize access to a shared resource: the terminal.  The two
+<br/>
+   processes each write 'num-loops' messages to the terminal and employ
+<br/>
+   a synchronization protocol that ensures that they alternate in
+<br/>
+   writing messages.
+*/
+#define _GNU_SOURCE
+#include &lt;err.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;linux/futex.h&gt;
+#include &lt;stdatomic.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;sys/syscall.h&gt;
+#include &lt;sys/time.h&gt;
+#include &lt;sys/wait.h&gt;
+#include &lt;unistd.h&gt;
+static uint32_t *futex1, *futex2, *iaddr;
+static int
+futex(uint32_t *uaddr, int op, uint32_t val,
+<br/>
+      const struct timespec *timeout, uint32_t *uaddr2, uint32_t val3)
+{
+<br/>
+    return syscall(SYS_futex, uaddr, op, val,
+<br/>
+                   timeout, uaddr2, val3);
+}
+/* Acquire the futex pointed to by 'futexp': wait for its value to
+<br/>
+   become 1, and then set the value to 0.  */
+static void
+fwait(uint32_t *futexp)
+{
+<br/>
+    long            s;
+<br/>
+    const uint32_t  one = 1;
+<br/>
+    /* atomic_compare_exchange_strong(ptr, oldval, newval)
+<br/>
+       atomically performs the equivalent of:
+<br/>
+           if (*ptr == *oldval)
+<br/>
+               *ptr = newval;
+<br/>
+       It returns true if the test yielded true and *ptr was updated.  */
+<br/>
+    for (;;) {
+<br/>
+        /* Is the futex available? */
+<br/>
+        if (atomic_compare_exchange_strong(futexp, &amp;one, 0))
+<br/>
+            break;      /* Yes */
+<br/>
+        /* Futex is not available; wait.  */
+<br/>
+        s = futex(futexp, FUTEX_WAIT, 0, NULL, NULL, 0);
+<br/>
+        if (s == -1 &amp;&amp; errno != EAGAIN)
+<br/>
+            err(EXIT_FAILURE, &quot;futex-FUTEX_WAIT&quot;);
+<br/>
+    }
+}
+/* Release the futex pointed to by 'futexp': if the futex currently
+<br/>
+   has the value 0, set its value to 1 and then wake any futex waiters,
+<br/>
+   so that if the peer is blocked in fwait(), it can proceed.  */
+static void
+fpost(uint32_t *futexp)
+{
+<br/>
+    long            s;
+<br/>
+    const uint32_t  zero = 0;
+<br/>
+    /* atomic_compare_exchange_strong() was described
+<br/>
+       in comments above.  */
+<br/>
+    if (atomic_compare_exchange_strong(futexp, &amp;zero, 1)) {
+<br/>
+        s = futex(futexp, FUTEX_WAKE, 1, NULL, NULL, 0);
+<br/>
+        if (s  == -1)
+<br/>
+            err(EXIT_FAILURE, &quot;futex-FUTEX_WAKE&quot;);
+<br/>
+    }
+}
+int
+main(int argc, char *argv[])
+{
+<br/>
+    pid_t         childPid;
+<br/>
+    unsigned int  nloops;
+<br/>
+    setbuf(stdout, NULL);
+<br/>
+    nloops = (argc &gt; 1) ? atoi(argv[1]) : 5;
+<br/>
+    /* Create a shared anonymous mapping that will hold the futexes.
+<br/>
+       Since the futexes are being shared between processes, we
+<br/>
+       subsequently use the &quot;shared&quot; futex operations (i.e., not the
+<br/>
+       ones suffixed &quot;_PRIVATE&quot;).  */
+<br/>
+    iaddr = mmap(NULL, sizeof(*iaddr) * 2, PROT_READ | PROT_WRITE,
+<br/>
+                 MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+<br/>
+    if (iaddr == MAP_FAILED)
+<br/>
+        err(EXIT_FAILURE, &quot;mmap&quot;);
+<br/>
+    futex1 = &amp;iaddr[0];
+<br/>
+    futex2 = &amp;iaddr[1];
+<br/>
+    *futex1 = 0;        /* State: unavailable */
+<br/>
+    *futex2 = 1;        /* State: available */
+<br/>
+    /* Create a child process that inherits the shared anonymous
+<br/>
+       mapping.  */
+<br/>
+    childPid = fork();
+<br/>
+    if (childPid == -1)
+<br/>
+        err(EXIT_FAILURE, &quot;fork&quot;);
+<br/>
+    if (childPid == 0) {        /* Child */
+<br/>
+        for (unsigned int j = 0; j &lt; nloops; j++) {
+<br/>
+            fwait(futex1);
+<br/>
+            printf(&quot;Child  (%jd) %u\n&quot;, (intmax_t) getpid(), j);
+<br/>
+            fpost(futex2);
+<br/>
+        }
+<br/>
+        exit(EXIT_SUCCESS);
+<br/>
+    }
+<br/>
+    /* Parent falls through to here.  */
+<br/>
+    for (unsigned int j = 0; j &lt; nloops; j++) {
+<br/>
+        fwait(futex2);
+<br/>
+        printf(&quot;Parent (%jd) %u\n&quot;, (intmax_t) getpid(), j);
+<br/>
+        fpost(futex1);
+<br/>
+    }
+<br/>
+    wait(NULL);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>get_robust_list</b>(2), <b>restart_syscall</b>(2),
+    <b>pthread_mutexattr_getprotocol</b>(3), <b>futex</b>(7),
+  <b>sched</b>(7)</p>
+<p class="Pp">The following kernel source files:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd><i>Documentation/locking/pi-futex.rst</i></dd>
+  <dt>&#x2022;</dt>
+  <dd><i>Documentation/locking/futex-requeue-pi.rst</i></dd>
+  <dt>&#x2022;</dt>
+  <dd><i>Documentation/locking/rt-mutex.rst</i></dd>
+  <dt>&#x2022;</dt>
+  <dd><i>Documentation/locking/rt-mutex-design.rst</i></dd>
+  <dt>&#x2022;</dt>
+  <dd><i>Documentation/robust-futex-ABI.rst</i></dd>
+</dl>
+<p class="Pp">Franke, H., Russell, R., and Kirwood, M., 2002.
+  <br/>
+  <a class="Lk" href="http://kernel.org/doc/ols/2002/ols2002-pages-479-495.pdf"><i>Fuss,
+    Futexes and Furwocks: Fast Userlevel Locking in Linux</i></a> (from
+    proceedings of the Ottawa Linux Symposium 2002).</p>
+<p class="Pp">Hart, D., 2009.
+    <a class="Lk" href="http://lwn.net/Articles/360699/"><i>A futex overview and
+    update</i></a>.</p>
+<p class="Pp">Hart, D. and Guniguntala, D., 2009.
+    <a class="Lk" href="http://lwn.net/images/conf/rtlws11/papers/proc/p10.pdf"><i>Requeue-PI:
+    Making glibc Condvars PI-Aware</i></a> (from proceedings of the 2009
+    Real-Time Linux Workshop).</p>
+<p class="Pp">Drepper, U., 2011.
+    <a class="Lk" href="http://www.akkadia.org/drepper/futex.pdf"><i>Futexes Are
+    Tricky</i></a>.</p>
+<p class="Pp">Futex example library,
+    <a class="Lk" href="https://mirrors.kernel.org/pub/linux/kernel/people/rusty/">futex-*.tar.bz2</a>.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-14</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

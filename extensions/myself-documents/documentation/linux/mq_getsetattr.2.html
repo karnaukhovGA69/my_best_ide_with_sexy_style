@@ -1,0 +1,47 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">mq_getsetattr(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">mq_getsetattr(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">mq_getsetattr - get/set message queue attributes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;mqueue.h&gt;</b>           /* Definition of <b>struct mq_attr</b> */
+<b>#include &lt;sys/syscall.h&gt;</b>      /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(SYS_mq_getsetattr, mqd_t </b><i>mqdes</i><b>,</b>
+<b>            const struct mq_attr *</b><i>newattr</i><b>, struct mq_attr *</b><i>oldattr</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Do not use this system call.</p>
+<p class="Pp">This is the low-level system call used to implement
+    <b>mq_getattr</b>(3) and <b>mq_setattr</b>(3). For an explanation of how
+    this system call operates, see the description of <b>mq_setattr</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">Never call it unless you are writing a C library!</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mq_getattr</b>(3), <b>mq_overview</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

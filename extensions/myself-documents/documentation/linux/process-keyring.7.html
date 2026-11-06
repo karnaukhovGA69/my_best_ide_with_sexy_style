@@ -1,0 +1,48 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">process-keyring(7)</td>
+    <td class="head-vol">Miscellaneous Information Manual</td>
+    <td class="head-rtitle">process-keyring(7)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">process-keyring - per-process shared keyring</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The process keyring is a keyring used to anchor keys on behalf of
+    a process. It is created only when a process requests it. The process
+    keyring has the name (description) <i>_pid</i>.</p>
+<p class="Pp">A special serial number value, <b>KEY_SPEC_PROCESS_KEYRING</b>, is
+    defined that can be used in lieu of the actual serial number of the calling
+    process's process keyring.</p>
+<p class="Pp">From the <b>keyctl</b>(1) utility, '<b>@p</b>' can be used instead
+    of a numeric key ID in much the same way, but since <b>keyctl</b>(1) is a
+    program run after forking, this is of no utility.</p>
+<p class="Pp">A thread created using the <b>clone</b>(2) <b>CLONE_THREAD</b>
+    flag has the same process keyring as the caller of <b>clone</b>(2). When a
+    new process is created using <b>fork</b>() it initially has no process
+    keyring. A process's process keyring is cleared on <b>execve</b>(2). The
+    process keyring is destroyed when the last thread that refers to it
+    terminates.</p>
+<p class="Pp">If a process doesn't have a process keyring when it is accessed,
+    then the process keyring will be created if the keyring is to be modified;
+    otherwise, the error <b>ENOKEY</b> results.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(1), <b>keyctl</b>(3), <b>keyrings</b>(7),
+    <b>persistent-keyring</b>(7), <b>session-keyring</b>(7),
+    <b>thread-keyring</b>(7), <b>user-keyring</b>(7),
+    <b>user-session-keyring</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

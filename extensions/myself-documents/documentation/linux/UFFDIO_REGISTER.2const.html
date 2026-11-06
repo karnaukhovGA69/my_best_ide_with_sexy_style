@@ -1,0 +1,146 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">UFFDIO_REGISTER(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">UFFDIO_REGISTER(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">UFFDIO_REGISTER - register a memory address range with the
+    userfaultfd object</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b>  /* Definition of <b>UFFD*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, UFFDIO_REGISTER, struct uffdio_register *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b></pre>
+<pre></pre>
+<pre><b>struct uffdio_range {</b>
+<b>    __u64  start;</b>   /* Start of range */
+<b>    __u64  len;</b>     /* Size of range (bytes) */
+<b>};</b>
+<b>struct uffdio_register {</b>
+<b>    struct uffdio_range  range;</b>
+<b>    __u64                mode;</b>    /* Desired mode of operation (input) */
+<b>    __u64                ioctls;</b>  /* Available ioctl()s (output) */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Register a memory address range with the userfaultfd object. The
+    pages in the range must be &#x201C;compatible&#x201D;. Please refer to the
+    list of register modes below for the compatible memory backends for each
+    mode.</p>
+<p class="Pp">The <i>argp-&gt;range</i> field defines a memory range starting at
+    <i>argp-&gt;range.start</i> and continuing for <i>argp-&gt;range.len</i>
+    bytes that should be handled by the userfaultfd.</p>
+<p class="Pp">The <i>argp-&gt;mode</i> field defines the mode of operation
+    desired for this memory region. The following values may be bitwise ORed to
+    set the userfaultfd mode for the specified range:</p>
+<dl class="Bl-tag">
+  <dt id="UFFDIO_REGISTER_MODE_MISSING"><a class="permalink" href="#UFFDIO_REGISTER_MODE_MISSING"><b>UFFDIO_REGISTER_MODE_MISSING</b></a></dt>
+  <dd>Track page faults on missing pages. Since Linux 4.3, only private
+      anonymous ranges are compatible. Since Linux 4.11, hugetlbfs and shared
+      memory ranges are also compatible.</dd>
+  <dt id="UFFDIO_REGISTER_MODE_WP"><a class="permalink" href="#UFFDIO_REGISTER_MODE_WP"><b>UFFDIO_REGISTER_MODE_WP</b></a></dt>
+  <dd>Track page faults on write-protected pages. Since Linux 5.7, only private
+      anonymous ranges are compatible.</dd>
+  <dt id="UFFDIO_REGISTER_MODE_MINOR"><a class="permalink" href="#UFFDIO_REGISTER_MODE_MINOR"><b>UFFDIO_REGISTER_MODE_MINOR</b></a></dt>
+  <dd>Track minor page faults. Since Linux 5.13, only hugetlbfs ranges are
+      compatible. Since Linux 5.14, compatibility with shmem ranges was
+    added.</dd>
+  <dt id="UFFDIO_REGISTER_MODE_RWP"><a class="permalink" href="#UFFDIO_REGISTER_MODE_RWP"><b>UFFDIO_REGISTER_MODE_RWP</b>
+    (since Linux 7.2)</a></dt>
+  <dd>Track page faults on read-write-protected pages. Every access (read or
+      write) to a page present within the registered range generates a
+      notification once the range has been protected with
+      <b>UFFDIO_RWPROTECT</b>(2const). This mode cannot be combined with
+      <b>UFFDIO_REGISTER_MODE_WP</b>; attempting to do so fails with
+      <b>EINVAL</b>. Anonymous, shmem, and hugetlbfs ranges are compatible.</dd>
+</dl>
+<p class="Pp">If the operation is successful, the kernel modifies the
+    <i>argp-&gt;ioctls</i> bit-mask field to indicate which <b>ioctl</b>(2)
+    operations are available for the specified range. This returned bit mask can
+    contain the following bits:</p>
+<dl class="Bl-tag">
+  <dt><b>1 &lt;&lt; _UFFDIO_COPY</b></dt>
+  <dd>The <b>UFFDIO_COPY</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_WAKE</b></dt>
+  <dd>The <b>UFFDIO_WAKE</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_WRITEPROTECT</b></dt>
+  <dd>The <b>UFFDIO_WRITEPROTECT</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_ZEROPAGE</b></dt>
+  <dd>The <b>UFFDIO_ZEROPAGE</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_CONTINUE</b></dt>
+  <dd>The <b>UFFDIO_CONTINUE</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_POISON</b></dt>
+  <dd>The <b>UFFDIO_POISON</b> operation is supported.</dd>
+  <dt><b>1 &lt;&lt; _UFFDIO_RWPROTECT</b> (since Linux 7.2)</dt>
+  <dd>The <b>UFFDIO_RWPROTECT</b> operation is supported. This bit is reported
+      only when the range was registered with <b>UFFDIO_REGISTER_MODE_RWP</b>
+      (which itself requires <b>UFFD_FEATURE_RWP</b> to have been
+    negotiated).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBUSY"><a class="permalink" href="#EBUSY"><b>EBUSY</b></a></dt>
+  <dd>A mapping in the specified range is registered with another userfaultfd
+      object.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>argp</i> refers to an address that is outside the calling process's
+      accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>An invalid or unsupported bit was specified in the <i>mode</i> field; or
+      the <i>mode</i> field was zero.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>There is no mapping in the specified address range.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd><i>range.start</i> or <i>range.len</i> is not a multiple of the system
+      page size; or, <i>range.len</i> is zero; or these fields are otherwise
+      invalid.</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd>There as an incompatible mapping in the specified address range.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.3.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>userfaultfd</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_userfaultfd</b>(2),
+    <b>UFFDIO_UNREGISTER</b>(2const), <b>userfaultfd</b>(2)</p>
+<p class="Pp"><i>linux.git/Documentation/admin-guide/mm/userfaultfd.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-04</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

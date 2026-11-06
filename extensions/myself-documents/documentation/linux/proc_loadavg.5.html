@@ -1,0 +1,39 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_loadavg(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_loadavg(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/loadavg - load average</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/loadavg</i></dt>
+  <dd>The first three fields in this file are load average figures giving the
+      number of jobs in the run queue (state R) or waiting for disk I/O (state
+      D) averaged over 1, 5, and 15 minutes. They are the same as the load
+      average numbers given by <b>uptime</b>(1) and other programs. The fourth
+      field consists of two numbers separated by a slash (/). The first of these
+      is the number of currently runnable kernel scheduling entities (processes,
+      threads). The value after the slash is the number of kernel scheduling
+      entities that currently exist on the system. The fifth field is the PID of
+      the process that was most recently created on the system.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

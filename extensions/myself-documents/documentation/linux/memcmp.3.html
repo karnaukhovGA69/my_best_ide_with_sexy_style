@@ -1,0 +1,103 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">memcmp(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">memcmp(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">memcmp - memory compare</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include&#x00A0;&lt;string.h&gt;</b>  // see memory.h(3head)</pre>
+<pre><b>int memcmp(</b>size_t n;
+<b>           const void </b><i>s1</i><b>[</b><i>n</i><b>], const void </b><i>s2</i><b>[</b><i>n</i><b>], size_t </b><i>n</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>memcmp</b>() function compares the first <i>n</i> bytes
+    (each interpreted as <i>unsigned&#x00A0;char</i>) of the memory areas
+    <i>s1</i> and <i>s2</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>memcmp</b>() function returns an integer less than, equal
+    to, or greater than zero if the first <i>n</i> bytes of <i>s1</i> is found,
+    respectively, to be less than, to match, or be greater than the first
+    <i>n</i> bytes of <i>s2</i>.</p>
+<p class="Pp">For a nonzero return value, the sign is determined by the sign of
+    the difference between the first pair of bytes (interpreted as <i>unsigned
+    char</i>) that differ in <i>s1</i> and <i>s2</i>.</p>
+<p class="Pp">If <i>n</i> is zero, the return value is zero.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>memcmp ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">POSIX.1 specifies only that:</p>
+<div class="Bd-indent">
+<p class="Pp">The sign of a nonzero return value shall be determined by the sign
+    of the difference between the values of the first pair of bytes (both
+    interpreted as type <i>unsigned char</i>) that differ in the strings being
+    compared.</p>
+</div>
+<p class="Pp">In glibc, as in most other implementations, the return value is
+    the arithmetic result of subtracting the last compared byte in <i>s2</i>
+    from the last compared byte in <i>s1</i>. (If the two characters are equal,
+    this difference is 0.)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Do not use <b>memcmp</b>() to compare confidential data, such as
+    cryptographic secrets, because the CPU time required for the comparison
+    depends on the contents of the addresses compared, this function is subject
+    to timing-based side-channel attacks. In such cases, a function that
+    performs comparisons in deterministic time, depending only on <i>n</i> (the
+    quantity of bytes compared) is required. Some operating systems provide such
+    a function (e.g., NetBSD's <b>consttime_memequal</b>()), but no such
+    function is specified in POSIX. On Linux, you may need to implement such a
+    function yourself.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memory.h</b>(3head), <b>memeq</b>(3), <b>wmemcmp</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

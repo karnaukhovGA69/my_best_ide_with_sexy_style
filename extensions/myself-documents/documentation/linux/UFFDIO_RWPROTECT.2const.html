@@ -1,0 +1,107 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">UFFDIO_RWPROTECT(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">UFFDIO_RWPROTECT(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">UFFDIO_RWPROTECT - read-write-protect or un-protect a
+    userfaultfd-registered memory range</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b>  /* Definition of <b>UFFD*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, UFFDIO_RWPROTECT, struct uffdio_rwprotect *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b></pre>
+<pre></pre>
+<pre><b>struct uffdio_rwprotect {</b>
+<b>    struct uffdio_range  range;</b>  /* Range to change RWP on */
+<b>    __u64                mode;</b>   /* Mode flags */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Read-write-protect or un-protect a userfaultfd-registered memory
+    range registered with mode <b>UFFDIO_REGISTER_MODE_RWP</b>.</p>
+<p class="Pp">The following mode bits are supported:</p>
+<dl class="Bl-tag">
+  <dt id="UFFDIO_RWPROTECT_MODE_RWP"><a class="permalink" href="#UFFDIO_RWPROTECT_MODE_RWP"><b>UFFDIO_RWPROTECT_MODE_RWP</b></a></dt>
+  <dd>When this mode bit is set, the ioctl installs read-write protection on
+      every page present in the range specified by <i>.range</i>. Otherwise the
+      ioctl removes read-write protection from the range, which is also how a
+      fault handler resolves an <b>UFFD_PAGEFAULT_FLAG_RWP</b>
+    notification.</dd>
+  <dt id="UFFDIO_RWPROTECT_MODE_DONTWAKE"><a class="permalink" href="#UFFDIO_RWPROTECT_MODE_DONTWAKE"><b>UFFDIO_RWPROTECT_MODE_DONTWAKE</b></a></dt>
+  <dd>When this mode bit is set, do not wake up any thread that waits for
+      page-fault resolution after the operation. This can be specified only if
+      <b>UFFDIO_RWPROTECT_MODE_RWP</b> is not specified.</dd>
+</dl>
+<p class="Pp">Read-write protection only affects pages that are currently
+    populated in the range; unmapped addresses are left untouched. For anonymous
+    mappings, protection is preserved across page reclaim (the marker rides on
+    the swap entry) and migration. For shmem and file-backed mappings,
+    protection is dropped when the backing page is reclaimed. Callers must also
+    re-arm a range with <b>UFFDIO_RWPROTECT</b> after any operation that
+    explicitly drops the underlying page: <b>MADV_DONTNEED</b> on anonymous
+    memory, hole-punch on shmem, truncation of a file mapping.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The <i>start</i> or the <i>len</i> field of the <i>uffdio_range</i>
+      structure was not a multiple of the system page size, or <i>len</i> was
+      zero, or the specified range was otherwise invalid, or an invalid mode bit
+      was specified, or <b>UFFDIO_RWPROTECT_MODE_DONTWAKE</b> was specified
+      together with <b>UFFDIO_RWPROTECT_MODE_RWP</b>.</dd>
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The process was interrupted; retry this call.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>The range specified in <i>.range</i> is not valid; for example, the
+      virtual address does not exist, or part of the range is not registered
+      with <b>UFFDIO_REGISTER_MODE_RWP</b>.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>Encountered a generic fault during processing.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 7.2.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>userfaultfd</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_userfaultfd</b>(2),
+    <b>userfaultfd</b>(2)</p>
+<p class="Pp"><i>linux.git/Documentation/admin-guide/mm/userfaultfd.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-05-28</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

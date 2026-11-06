@@ -1,0 +1,91 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">seekdir(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">seekdir(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">seekdir - set the position of the next readdir() call in the
+    directory stream.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;dirent.h&gt;</b></pre>
+<pre><b>void seekdir(DIR *</b><i>dirp</i><b>, long </b><i>loc</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>seekdir</b>():</p>
+<pre>
+<br/>
+    _XOPEN_SOURCE
+<br/>
+        || /* glibc &gt;= 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>seekdir</b>() function sets the location in the directory
+    stream from which the next <b>readdir</b>(2) call will start. The <i>loc</i>
+    argument should be a value returned by a previous call to
+  <b>telldir</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>seekdir</b>() function returns no value.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>seekdir ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Up to glibc 2.1.1, the type of the <i>loc</i> argument was
+    <i>off_t</i>. POSIX.1-2001 specifies <i>long</i>, and this is the type used
+    since glibc 2.1.2. See <b>telldir</b>(3) for information on why you should
+    be careful in making any assumptions about the value in this argument.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>lseek</b>(2), <b>closedir</b>(3), <b>opendir</b>(3),
+    <b>readdir</b>(3), <b>rewinddir</b>(3), <b>scandir</b>(3),
+  <b>telldir</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

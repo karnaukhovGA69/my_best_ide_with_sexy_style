@@ -1,0 +1,82 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">off_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">off_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">off_t, off64_t, loff_t - file sizes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/types.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>off_t;</b></pre>
+<pre><b>#define _LARGEFILE64_SOURCE</b>
+<b>#include &lt;sys/types.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>off64_t</b>&#x00A0;[[deprecated]]<b>;</b></pre>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;sys/types.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */  <b>loff_t;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>off_t</i> is used for describing file sizes. It is a signed
+    integer type.</p>
+<p class="Pp"><i>off64_t</i> is a 64-bit version of the type, used in glibc.</p>
+<p class="Pp"><i>loff_t</i> is a 64-bit version of the type, introduced by the
+    Linux kernel.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="off_t"><a class="permalink" href="#off_t"><i>off_t</i></a></dt>
+  <dd>POSIX.1-2024.</dd>
+  <dt id="off64_t"><a class="permalink" href="#off64_t"><i>off64_t</i></a></dt>
+  <dd>None.</dd>
+  <dt id="loff_t"><a class="permalink" href="#loff_t"><i>loff_t</i></a></dt>
+  <dd>Linux.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="off_t~2"><a class="permalink" href="#off_t~2"><i>off_t</i></a></dt>
+  <dd>POSIX.1-1988.</dd>
+  <dt id="off64_t~2"><a class="permalink" href="#off64_t~2"><i>off64_t</i></a></dt>
+  <dd>Large File Summit (LFS).</dd>
+</dl>
+<p class="Pp"><i>&lt;aio.h&gt;</i> and <i>&lt;stdio.h&gt;</i> define
+    <i>off_t</i> since POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">On some architectures, the width of <i>off_t</i> can be controlled
+    with the feature test macro <b>_FILE_OFFSET_BITS</b>.</p>
+<p class="Pp">The following headers also provide <i>off_t</i>:
+    <i>&lt;aio.h&gt;</i>, <i>&lt;fcntl.h&gt;</i>, <i>&lt;stdio.h&gt;</i>,
+    <i>&lt;sys/mman.h&gt;</i>, <i>&lt;sys/stat.h&gt;</i>, and
+    <i>&lt;unistd.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>copy_file_range</b>(2), <b>lseek</b>(2), <b>mmap</b>(2),
+    <b>posix_fadvise</b>(2), <b>pread</b>(2), <b>readahead</b>(2),
+    <b>sync_file_range</b>(2), <b>truncate</b>(2), <b>fseeko</b>(3),
+    <b>lockf</b>(3), <b>posix_fallocate</b>(3),
+  <b>feature_test_macros</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-13</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

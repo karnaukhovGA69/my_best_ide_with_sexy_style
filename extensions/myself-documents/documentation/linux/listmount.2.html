@@ -1,0 +1,100 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">listmount(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">listmount(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">listmount - get a list of mount ID's</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/mount.h&gt;</b>  /* Definition of struct mnt_id_req constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(</b>size_t n;
+<b>            SYS_listmount, struct mnt_id_req *</b><i>req</i><b>,</b>
+<b>            uint64_t </b><i>mnt_ids</i><b>[</b><i>n</i><b>], size_t </b><i>n</i><b>,</b>
+<b>            unsigned long </b><i>flags</i><b>);</b></pre>
+<pre><b>#include &lt;linux/mount.h&gt;</b></pre>
+<pre><b>struct mnt_id_req {</b>
+<b>    __u32  size;</b>    /* sizeof(struct mnt_id_req) */
+<b>    __u64  mnt_id;</b>  /* The parent mnt_id being searched */
+<b>    __u64  param;</b>   /* The next mnt_id we want to find */
+<b>};</b></pre>
+<p class="Pp"><i>Note</i>: glibc provides no wrapper for <b>listmount</b>(),
+    necessitating the use of <b>syscall</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">To access the mounts in your namespace, you must have
+    CAP_SYS_ADMIN in the user namespace.</p>
+<p class="Pp">This function returns a list of mount IDs under the
+    <b>req.mnt_id</b>. This is meant to be used in conjuction with
+    <b>statmount</b>(2) in order to provide a way to iterate and discover
+    mounted file systems.</p>
+<section class="Ss">
+<h2 class="Ss" id="The_mnt_id_req_structure"><a class="permalink" href="#The_mnt_id_req_structure">The
+  mnt_id_req structure</a></h2>
+<p class="Pp"><i>req.size</i> is used by the kernel to determine which struct
+    <i>mnt_id_req</i> is being passed in, it should always be set to
+    <i>sizeof(struct&#x00A0;mnt_id_req)</i>.</p>
+<p class="Pp"><i>req.mnt_id</i> is the parent mnt_id that we will list from,
+    which can either be <b>LSMT_ROOT</b> which means the root mount of the
+    current mount namespace, or a mount ID obtained from either <b>statx</b>(2)
+    using <b>STATX_MNT_ID_UNIQUE</b> or from <b>listmount</b>(2)<b>.</b></p>
+<p class="Pp"><i>req.param</i> is used to tell the kernel what mount ID to start
+    the list from. This is useful if multiple calls to <b>listmount</b>(2) are
+    required. This can be set to the last mount ID returned in order to resume
+    from a previous spot in the list.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the number of entries filled into <i>mnt_ids</i> is
+    returned; 0 if there are no more mounts left. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The caller does not have <b>CAP_SYS_ADMIN</b> in the user namespace.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>req</i> or <i>mnt_ids</i> points to a location outside the process's
+      accessible address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid flag specified in <i>flags</i>.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>req</i> is of insufficient size to be utilized.</dd>
+  <dt id="E2BIG"><a class="permalink" href="#E2BIG"><b>E2BIG</b></a></dt>
+  <dd><i>req</i> is too large, the limit is the architectures page size.</dd>
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd>The specified <i>req.mnt_id</i> doesn't exist.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>Out of memory (i.e., kernel memory).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>statmount</b>(2), <b>statx</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-06</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

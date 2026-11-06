@@ -1,0 +1,142 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">grepc_c(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">grepc_c(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">grepc_c - print PCRE patterns for searching C code</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><b>grepc_c</b> [<i>option&#x00A0;</i>...] <i>pattern</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>grepc_c</b>(1) is a driver for <b>grepc</b>(1). It prints PCRE
+    patterns that <b>grepc</b>(1) will use to search for declarations,
+    definitions, and/or uses of <i>pattern</i> in C source code.</p>
+<p class="Pp"><i>pattern</i> is a PCRE pattern. It normally represents a C
+    identifier, and word boundaries are implicitly added to it in most
+  cases.</p>
+<section class="Ss">
+<h2 class="Ss" id="Types_of_code"><a class="permalink" href="#Types_of_code">Types
+  of code</a></h2>
+<p class="Pp">This program can produce PCRE pattern for several types of code.
+    The following arguments can be passed to the <b>-t</b> option to select the
+    types of code that will be searched.</p>
+<dl class="Bl-tag">
+  <dt id="e"><a class="permalink" href="#e"><b>e</b></a></dt>
+  <dd>enum constant definitions.</dd>
+  <dt id="f"><a class="permalink" href="#f"><b>f</b></a></dt>
+  <dd>Function prototypes and definitions. This can be further subdivided
+    into:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="fp"><a class="permalink" href="#fp"><b>fp</b></a></dt>
+  <dd>Function prototypes.</dd>
+  <dt id="fd"><a class="permalink" href="#fd"><b>fd</b></a></dt>
+  <dd>Function definitions.</dd>
+  <dt id="fl"><a class="permalink" href="#fl"><b>fl</b></a></dt>
+  <dd>Linux kernel system calls. This can be further subdivided into:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="flp"><a class="permalink" href="#flp"><b>flp</b></a></dt>
+  <dd>Linux kernel system call prototypes.</dd>
+  <dt id="fld"><a class="permalink" href="#fld"><b>fld</b></a></dt>
+  <dd>Linux kernel system call definitions.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="fg"><a class="permalink" href="#fg"><b>fg</b></a></dt>
+  <dd>glibc internal names of libc functions. This can be further subdivided
+      into:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="fgp"><a class="permalink" href="#fgp"><b>fgp</b></a></dt>
+  <dd>glibc prototypes.</dd>
+  <dt id="fgd"><a class="permalink" href="#fgd"><b>fgd</b></a></dt>
+  <dd>glibc definitions.</dd>
+</dl>
+</div>
+</div>
+<dl class="Bl-tag">
+  <dt id="m"><a class="permalink" href="#m"><b>m</b></a></dt>
+  <dd>Macro definitions.</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="mf"><a class="permalink" href="#mf"><b>mf</b></a></dt>
+  <dd>Function-like macro definitions.</dd>
+  <dt id="mo"><a class="permalink" href="#mo"><b>mo</b></a></dt>
+  <dd>Other macro definitions.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="t"><a class="permalink" href="#t"><b>t</b></a></dt>
+  <dd>Type definitions.</dd>
+  <dt id="u"><a class="permalink" href="#u"><b>u</b></a></dt>
+  <dd>Uses. Searches occurences of <i>pattern</i> within enums, function bodies,
+      macro replacements, and type definitions, and prints the whole enum,
+      function, macro, and/or type definitions. In this case there are no word
+      boundaries set by default, so if <i>pattern</i> is <b>open</b>,
+      <b>fopen</b> will also be found; that's to allow searching for patterns
+      containing any sequence of characters.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This can be further subdivided into:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="ue"><a class="permalink" href="#ue"><b>ue</b></a></dt>
+  <dd>Uses within enum definitions (except as an enum constant).</dd>
+  <dt id="uf"><a class="permalink" href="#uf"><b>uf</b></a></dt>
+  <dd>Uses within function definition bodies.</dd>
+  <dt id="um"><a class="permalink" href="#um"><b>um</b></a></dt>
+  <dd>Uses within macro replacements.</dd>
+  <dt id="ut"><a class="permalink" href="#ut"><b>ut</b></a></dt>
+  <dd>Uses within type definitions (except enum; that is: typedef, struct, or
+      union).</dd>
+</dl>
+</div>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt id="t~2"><a class="permalink" href="#t~2"><b>-t</b><i> type</i></a></dt>
+  <dd>Restrict the search to a specific <i>type</i> of code (see Types of code
+      under DESCRIPTION). This option can be passed multiple times to search for
+      various types of code. Default: <b>e f m t</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>alx@devuan:~$<b> grepc_c -tm alignof</b>;
+(?s)^[ \t]*#\s*define\s[\s\\]*alignof\(.*?[^\\]$
+(?s)^[ \t]*#\s*define\s[\s\\]*alignof\b(?!\().*?(?&lt;!\\)$
+alx@devuan:~$<b> cd /usr/lib/gcc/</b>;
+alx@devuan:/usr/lib/gcc$<b> pcre2grep -rnMf &lt;(grepc_c -tm alignof) .</b>;
+./x86_64-linux-gnu/15/include/stdalign.h:33:#define alignof _Alignof
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>grepc</b>(1), <b>pcre2grep</b>(1), <b>pcre2syntax</b>(3),
+    <b>pcre2pattern</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-06</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

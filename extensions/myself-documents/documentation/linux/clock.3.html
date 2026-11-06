@@ -1,0 +1,97 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">clock(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">clock(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">clock - determine processor time</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;time.h&gt;</b></pre>
+<pre><b>clock_t clock(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>clock</b>() function returns an approximation of processor
+    time used by the program.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The value returned is the CPU time used so far as a
+    <i>clock_t</i>; to get the number of seconds used, divide by
+    <b>CLOCKS_PER_SEC</b>. If the processor time used is not available or its
+    value cannot be represented, the function returns the value
+    <i>(clock_t)&#x00A0;-1</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>clock ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">XSI requires that <b>CLOCKS_PER_SEC</b> equals 1000000 independent
+    of the actual resolution.</p>
+<p class="Pp">On several other implementations, the value returned by
+    <b>clock</b>() also includes the times of any children whose status has been
+    collected via <b>wait</b>(2) (or another wait-type call). Linux does not
+    include the times of waited-for children in the value returned by
+    <b>clock</b>(). The <b>times</b>(2) function, which explicitly returns
+    (separate) information about the caller and its children, may be
+  preferable.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89.</p>
+<p class="Pp">In glibc 2.17 and earlier, <b>clock</b>() was implemented on top
+    of <b>times</b>(2). For improved accuracy, since glibc 2.18, it is
+    implemented on top of <b>clock_gettime</b>(2) (using the
+    <b>CLOCK_PROCESS_CPUTIME_ID</b> clock).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The C standard allows for arbitrary values at the start of the
+    program; subtract the value returned from a call to <b>clock</b>() at the
+    start of the program to get maximum portability.</p>
+<p class="Pp">Note that the time can wrap around. On a 32-bit system where
+    <b>CLOCKS_PER_SEC</b> equals 1000000 this function will return the same
+    value approximately every 72 minutes.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>clock_gettime</b>(2), <b>getrusage</b>(2), <b>times</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

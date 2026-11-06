@@ -1,0 +1,137 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">frexp(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">frexp(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">frexp, frexpf, frexpl - convert floating-point number to
+    fractional and integral components</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Math library (<i>libm</i>,&#x00A0;<i>-lm</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;math.h&gt;</b></pre>
+<pre><b>double frexp(double </b><i>x</i><b>, int *</b><i>e</i><b>);</b>
+<b>float frexpf(float </b><i>x</i><b>, int *</b><i>e</i><b>);</b>
+<b>long double frexpl(long double </b><i>x</i><b>, int *</b><i>e</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>frexpf</b>(), <b>frexpl</b>():</p>
+<pre>
+<br/>
+    _ISOC99_SOURCE || _POSIX_C_SOURCE &gt;= 200112L
+<br/>
+        || /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions are used to split the number <i>x</i> into a
+    normalized fraction and an exponent which is stored in <i>e</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">These functions return the normalized fraction. If the argument
+    <i>x</i> is not zero, the normalized fraction is <i>x</i> times a power of
+    two, and its absolute value is always in the range 1/2 (inclusive) to 1
+    (exclusive), that is, [0.5,1).</p>
+<p class="Pp">If <i>x</i> is zero, then the normalized fraction is zero and zero
+    is stored in <i>e</i>.</p>
+<p class="Pp">If <i>x</i> is a NaN, a NaN is returned, and the value of
+    <i>*e</i> is unspecified.</p>
+<p class="Pp">If <i>x</i> is positive infinity (negative infinity), positive
+    infinity (negative infinity) is returned, and the value of <i>*e</i> is
+    unspecified.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">No errors occur.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>frexp (), frexpf (), frexpl ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C99, POSIX.1-2001.</p>
+<p class="Pp">The variant returning <i>double</i> also conforms to SVr4, 4.3BSD,
+    C89.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below produces results such as the following:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> ./a.out 2560</b>
+frexp(2560, &amp;e) = 0.625: 0.625 * 2^12 = 2560
+$<b> ./a.out -4</b>
+frexp(-4, &amp;e) = -0.5: -0.5 * 2^3 = -4
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>#include &lt;float.h&gt;
+#include &lt;math.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    double x, r;
+<br/>
+    int e;
+<br/>
+    x = strtod(argv[1], NULL);
+<br/>
+    r = frexp(x, &amp;e);
+<br/>
+    printf(&quot;frexp(%g, &amp;e) = %g: %g * %d^%d = %g\n&quot;, x, r, r, 2, e, x);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ldexp</b>(3), <b>modf</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

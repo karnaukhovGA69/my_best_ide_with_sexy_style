@@ -1,0 +1,83 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strncasecmp(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strncasecmp(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strncasecmp - nonstrings case-insensitive compare</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include&#x00A0;&lt;strings.h&gt;</b>  // see memory.h(3head)</pre>
+<pre><b>int strncasecmp(const char </b><i>s1</i><b>[], const char </b><i>s2</i><b>[], size_t </b><i>n</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>strncasecmp</b>() function is similar to
+    <b>strcasecmp</b>(3), except that it compares no more than <i>n</i> bytes of
+    <i>s1</i> and <i>s2</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>strncasecmp</b>() function returns an integer less than,
+    equal to, or greater than zero if <i>s1</i> is, after ignoring case, found
+    to be less than, to match, or be greater than <i>s2</i>, respectively.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strncasecmp ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.4BSD, POSIX.1-2001.</p>
+<p class="Pp"><b>strncasecmp</b>() first appeared in 4.4BSD, where it was
+    declared in <i>&lt;string.h&gt;</i>. Thus, for reasons of historical
+    compatibility, the glibc <i>&lt;string.h&gt;</i> header file also declares
+    these functions, if the <b>_DEFAULT_SOURCE</b> (or, in glibc 2.19 and
+    earlier, <b>_BSD_SOURCE</b>) feature test macro is defined.</p>
+<p class="Pp">The POSIX.1-2008 standard says of these functions:</p>
+<p class="Pp"></p>
+<div class="Bd-indent">When the <b>LC_CTYPE</b> category of the locale being
+  used is from the POSIX locale, these functions shall behave as if the strings
+  had been converted to lowercase and then a byte comparison performed.
+  Otherwise, the results are unspecified.</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memory.h</b>(3head), <b>strncmp</b>(3),
+  <b>wcsncasecmp</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

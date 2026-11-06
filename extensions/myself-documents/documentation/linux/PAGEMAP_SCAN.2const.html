@@ -1,0 +1,170 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PAGEMAP_SCAN(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PAGEMAP_SCAN(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PAGEMAP_SCAN - get and/or clear page flags</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/fs.h&gt;</b>  /* Definition of <b>PAGE*</b> and <b>PM_*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>pagemap_fd</i><b>, PAGEMAP_SCAN, struct pm_scan_arg *</b><i>arg</i><b>);</b></pre>
+<pre><b>#include &lt;linux/fs.h&gt;</b></pre>
+<pre></pre>
+<pre><b>struct pm_scan_arg {</b>
+<b>    __u64  size;</b>
+<b>    __u64  flags;</b>
+<b>    __u64  start;</b>
+<b>    __u64  end;</b>
+<b>    __u64  walk_end;</b>
+<b>    __u64  vec;</b>
+<b>    __u64  vec_len;</b>
+<b>    __u64  max_pages;</b>
+<b>    __u64  category_inverted;</b>
+<b>    __u64  category_mask;</b>
+<b>    __u64  category_anyof_mask;</b>
+<b>    __u64  return_mask;</b>
+<b>};</b></pre>
+<pre><b>struct page_region {</b>
+<b>    __u64  start;</b>
+<b>    __u64  end;</b>
+<b>    __u64  categories;</b>
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This <b>ioctl</b>(2) is used to get and optionally clear some
+    specific flags from page table entries. The information is returned with
+    <b>PAGE_SIZE</b> granularity.</p>
+<p class="Pp">To start tracking the written state (flag) of a page or range of
+    memory, the <b>UFFD_FEATURE_WP_ASYNC</b> must be enabled by
+    <b>UFFDIO_API</b> <b>ioctl</b>(2) on <b>userfaultfd</b> and memory range
+    must be registered with <b>UFFDIO_REGISTER</b> <b>ioctl</b>(2) in
+    <b>UFFDIO_REGISTER_MODE_WP</b> mode.</p>
+<section class="Ss">
+<h2 class="Ss" id="Supported_page_flags"><a class="permalink" href="#Supported_page_flags">Supported
+  page flags</a></h2>
+<p class="Pp">The following page table entry flags are supported:</p>
+<dl class="Bl-tag">
+  <dt id="PAGE_IS_WPALLOWED"><a class="permalink" href="#PAGE_IS_WPALLOWED"><b>PAGE_IS_WPALLOWED</b></a></dt>
+  <dd>The page has asynchronous write-protection enabled.</dd>
+  <dt id="PAGE_IS_WRITTEN"><a class="permalink" href="#PAGE_IS_WRITTEN"><b>PAGE_IS_WRITTEN</b></a></dt>
+  <dd>The page has been written to from the time it was write protected.</dd>
+  <dt id="PAGE_IS_FILE"><a class="permalink" href="#PAGE_IS_FILE"><b>PAGE_IS_FILE</b></a></dt>
+  <dd>The page is file backed.</dd>
+  <dt id="PAGE_IS_PRESENT"><a class="permalink" href="#PAGE_IS_PRESENT"><b>PAGE_IS_PRESENT</b></a></dt>
+  <dd>The page is present in the memory.</dd>
+  <dt id="PAGE_IS_SWAPPED"><a class="permalink" href="#PAGE_IS_SWAPPED"><b>PAGE_IS_SWAPPED</b></a></dt>
+  <dd>The page is swapped.</dd>
+  <dt id="PAGE_IS_PFNZERO"><a class="permalink" href="#PAGE_IS_PFNZERO"><b>PAGE_IS_PFNZERO</b></a></dt>
+  <dd>The page has zero PFN.</dd>
+  <dt id="PAGE_IS_HUGE"><a class="permalink" href="#PAGE_IS_HUGE"><b>PAGE_IS_HUGE</b></a></dt>
+  <dd>The page is THP or Hugetlb backed.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Supported_operations"><a class="permalink" href="#Supported_operations">Supported
+  operations</a></h2>
+<p class="Pp">The get operation is always performed if the output buffer is
+    specified. The other operations are as following:</p>
+<dl class="Bl-tag">
+  <dt id="PM_SCAN_WP_MATCHING"><a class="permalink" href="#PM_SCAN_WP_MATCHING"><b>PM_SCAN_WP_MATCHING</b></a></dt>
+  <dd>Write protect the matched pages.</dd>
+  <dt id="PM_SCAN_CHECK_WPASYNC"><a class="permalink" href="#PM_SCAN_CHECK_WPASYNC"><b>PM_SCAN_CHECK_WPASYNC</b></a></dt>
+  <dd>Abort the scan when a page is found which doesn't have the Userfaultfd
+      Asynchronous Write protection enabled.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="The_"><a class="permalink" href="#The_">The <i>struct</i>
+  <i>pm_scan_arg</i> argument</a></h2>
+<dl class="Bl-tag">
+  <dt id="size"><a class="permalink" href="#size"><b>size</b></a></dt>
+  <dd>This field should be set to the size of the structure in bytes, as in
+      <i>sizeof(struct&#x00A0;pm_scan_arg)</i>.</dd>
+  <dt id="flags"><a class="permalink" href="#flags"><b>flags</b></a></dt>
+  <dd>The operations to be performed are specified in it.</dd>
+  <dt id="start"><a class="permalink" href="#start"><b>start</b></a></dt>
+  <dd>The starting address of the scan is specified in it.</dd>
+  <dt id="end"><a class="permalink" href="#end"><b>end</b></a></dt>
+  <dd>The ending address of the scan is specified in it.</dd>
+  <dt id="walk_end"><a class="permalink" href="#walk_end"><b>walk_end</b></a></dt>
+  <dd>The kernel returns the scan's ending address in it. The <i>walk_end</i>
+      equal to <i>end</i> means that scan has completed on the entire
+    range.</dd>
+  <dt id="vec"><a class="permalink" href="#vec"><b>vec</b></a></dt>
+  <dd>The address of <i>page_region</i> array for output.</dd>
+  <dt id="vec_len"><a class="permalink" href="#vec_len"><b>vec_len</b></a></dt>
+  <dd>The length of the <i>page_region</i> struct array.</dd>
+  <dt id="max_pages"><a class="permalink" href="#max_pages"><b>max_pages</b></a></dt>
+  <dd>It is the optional limit for the number of output pages required.</dd>
+  <dt id="category_inverted"><a class="permalink" href="#category_inverted"><b>category_inverted</b></a></dt>
+  <dd><b>PAGE_IS_</b><i>*</i> categories which values match if 0 instead of
+    1.</dd>
+  <dt id="category_mask"><a class="permalink" href="#category_mask"><b>category_mask</b></a></dt>
+  <dd>Skip pages for which any <b>PAGE_IS_</b><i>*</i> category doesn't
+    match.</dd>
+  <dt id="category_anyof_mask"><a class="permalink" href="#category_anyof_mask"><b>category_anyof_mask</b></a></dt>
+  <dd>Skip pages for which no <b>PAGE_IS_</b><i>*</i> category matches.</dd>
+  <dt id="return_mask"><a class="permalink" href="#return_mask"><b>return_mask</b></a></dt>
+  <dd><b>PAGE_IS_</b><i>*</i> categories that are to be reported in
+      <i>page_region</i>.</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">Error codes can be one of, but are not limited to, the
+  following:</p>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid arguments i.e., invalid <i>size</i> of the argument, invalid
+      <i>flags</i>, invalid <i>categories</i>, the <i>start</i> address isn't
+      aligned with <b>PAGE_SIZE</b>, or <i>vec_len</i> is specified when
+      <i>vec</i> is NULL.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>Invalid <i>arg</i> pointer, invalid <i>vec</i> pointer, or invalid address
+      range specified by <i>start</i> and <i>end</i>.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>No memory is available.</dd>
+  <dt id="EINTR"><a class="permalink" href="#EINTR"><b>EINTR</b></a></dt>
+  <dd>Fatal signal is pending.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 6.7.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-05-16</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

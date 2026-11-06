@@ -1,0 +1,100 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IPPROTO_IPV6(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IPPROTO_IPV6(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IPPROTO_IPV6 - Linux IPv6 protocol socket options</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IPV6,&#x00A0;int&#x00A0;</b><i>opt</i><b>,</b>
+<b>               const&#x00A0;void&#x00A0;</b><i>val</i><b>[</b><i>size</i><b>],&#x00A0;size_t&#x00A0;</b><i>size</i><b>);</b>
+<b>int&#x00A0;getsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IPV6,&#x00A0;int&#x00A0;</b><i>opt</i><b>,</b>
+<b>               void&#x00A0;</b><i>val</i><b>[</b><i>size</i><b>],&#x00A0;size_t&#x00A0;</b><i>size</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">IPv6 supports some protocol-specific socket options that can be
+    set with <b>setsockopt</b>(2) and read with <b>getsockopt</b>(2). The socket
+    option level for IPv6 is <b>IPPROTO_IPV6</b>. A boolean integer flag is zero
+    when it is false, otherwise true.</p>
+<p class="Pp">The following socket options are supported.</p>
+<dl class="Bl-tag">
+  <dt id="IPV6_ADDRFORM"><a class="permalink" href="#IPV6_ADDRFORM"><b>IPV6_ADDRFORM</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_ADD_MEMBERSHIP"><a class="permalink" href="#IPV6_ADD_MEMBERSHIP"><b>IPV6_ADD_MEMBERSHIP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_DROP_MEMBERSHIP"><a class="permalink" href="#IPV6_DROP_MEMBERSHIP"><b>IPV6_DROP_MEMBERSHIP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_MTU"><a class="permalink" href="#IPV6_MTU"><b>IPV6_MTU</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_MTU_DISCOVER"><a class="permalink" href="#IPV6_MTU_DISCOVER"><b>IPV6_MTU_DISCOVER</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_MULTICAST_HOPS"><a class="permalink" href="#IPV6_MULTICAST_HOPS"><b>IPV6_MULTICAST_HOPS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_MULTICAST_IF"><a class="permalink" href="#IPV6_MULTICAST_IF"><b>IPV6_MULTICAST_IF</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_MULTICAST_LOOP"><a class="permalink" href="#IPV6_MULTICAST_LOOP"><b>IPV6_MULTICAST_LOOP</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_RECVPKTINFO"><a class="permalink" href="#IPV6_RECVPKTINFO"><b>IPV6_RECVPKTINFO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_RTHDR"><a class="permalink" href="#IPV6_RTHDR"><b>IPV6_RTHDR</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_AUTHHDR"><a class="permalink" href="#IPV6_AUTHHDR"><b>IPV6_AUTHHDR</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_DSTOPTS"><a class="permalink" href="#IPV6_DSTOPTS"><b>IPV6_DSTOPTS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_HOPOPTS"><a class="permalink" href="#IPV6_HOPOPTS"><b>IPV6_HOPOPTS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_FLOWINFO"><a class="permalink" href="#IPV6_FLOWINFO"><b>IPV6_FLOWINFO</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_HOPLIMIT"><a class="permalink" href="#IPV6_HOPLIMIT"><b>IPV6_HOPLIMIT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_RECVERR"><a class="permalink" href="#IPV6_RECVERR"><b>IPV6_RECVERR</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_ROUTER_ALERT"><a class="permalink" href="#IPV6_ROUTER_ALERT"><b>IPV6_ROUTER_ALERT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_UNICAST_HOPS"><a class="permalink" href="#IPV6_UNICAST_HOPS"><b>IPV6_UNICAST_HOPS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="IPV6_V6ONLY"><a class="permalink" href="#IPV6_V6ONLY"><b>IPV6_V6ONLY</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>setsockopt</b>(2). See <b>ipv6</b>(7).</p>
+<dl class="Bl-tag">
+  <dt id="ENOPROTOOPT"><a class="permalink" href="#ENOPROTOOPT"><b>ENOPROTOOPT</b></a></dt>
+  <dd><i>opt</i> is invalid.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="IPPROTO_IPV6"><a class="permalink" href="#IPPROTO_IPV6"><b>IPPROTO_IPV6</b></a></dt>
+  <dd>POSIX.1-2001.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>setsockopt</b>(2), <b>cmsg</b>(3), <b>ipv6</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

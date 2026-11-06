@@ -1,0 +1,102 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_DUPFD(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_DUPFD(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_DUPFD, F_DUPFD_CLOEXEC - duplicate a file descriptor</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_DUPFD, int </b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_DUPFD_CLOEXEC, int </b><i>arg</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_DUPFD"><a class="permalink" href="#F_DUPFD"><b>F_DUPFD</b></a></dt>
+  <dd>Duplicate the file descriptor <i>fd</i> using the lowest-numbered
+      available file descriptor greater than or equal to <i>arg</i>. This is
+      different from <b>dup2</b>(2), which uses exactly the file descriptor
+      specified.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>On success, the new file descriptor is returned.</dd>
+  <dt></dt>
+  <dd>See <b>dup</b>(2) for further details.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="F_DUPFD_CLOEXEC"><a class="permalink" href="#F_DUPFD_CLOEXEC"><b>F_DUPFD_CLOEXEC</b></a></dt>
+  <dd>As for <b>F_DUPFD</b>, but additionally set the close-on-exec flag for the
+      duplicate file descriptor. Specifying this flag permits a program to avoid
+      an additional <b>F_SETFD</b>(2const) operation to set the
+      <b>FD_CLOEXEC</b> flag. For an explanation of why this flag is useful, see
+      the description of <b>O_CLOEXEC</b> in <b>open</b>(2).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The new file descriptor.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>arg</i> is negative or is greater than the maximum allowable value (see
+      the discussion of <b>RLIMIT_NOFILE</b> in <b>getrlimit</b>(2)).</dd>
+  <dt id="EMFILE"><a class="permalink" href="#EMFILE"><b>EMFILE</b></a></dt>
+  <dd>The per-process limit on the number of open file descriptors has been
+      reached.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">POSIX.1-2024 specifies <b>F_DUPFD_CLOFORK</b>, but Linux doesn't
+    support it.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_DUPFD~2"><a class="permalink" href="#F_DUPFD~2"><b>F_DUPFD</b></a></dt>
+  <dd>SVr4, 4.3BSD, POSIX.1-1988.</dd>
+  <dt id="F_DUPFD_CLOEXEC~2"><a class="permalink" href="#F_DUPFD_CLOEXEC~2"><b>F_DUPFD_CLOEXEC</b></a></dt>
+  <dd>Linux 2.6.24. POSIX.1-2008. (To get this definition, define
+      <b>_POSIX_C_SOURCE</b> with the value 200809L or greater, or
+      <b>_XOPEN_SOURCE</b> with the value 700 or greater.)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">The errors returned by <b>dup2</b>(2) are different from those
+    returned by <b>F_DUPFD</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>dup2</b>(2), <b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

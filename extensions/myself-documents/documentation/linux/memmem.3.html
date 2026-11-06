@@ -1,0 +1,78 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">memmem(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">memmem(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">memmem - memory search submemory</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>         /* See feature_test_macros(7) */
+<b>#include&#x00A0;&lt;string.h&gt;</b>  // see memory.h(3head)</pre>
+<pre><b>void *memmem(</b>size_t hsize, size_t nsize;
+<b>             const void </b><i>haystack</i><b>[</b><i>hsize</i><b>], size_t </b><i>hsize</i><b>,</b>
+<b>             const void </b><i>needle</i><b>[</b><i>nsize</i><b>], size_t </b><i>nsize</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>memmem</b>() function finds the start of the first
+    occurrence of the substring <i>needle</i> of size <i>nsize</i> in the memory
+    area <i>haystack</i> of size <i>hsize</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>memmem</b>() function returns a pointer to the beginning of
+    the substring, or NULL if the substring is not found.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>memmem ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">musl libc 0.9.7; FreeBSD 6.0, OpenBSD 5.4, NetBSD, Illumos.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">In glibc 2.0, if <i>needle</i> is empty, <b>memmem</b>() returns a
+    pointer to the last byte of <i>haystack</i>. This is fixed in glibc 2.1.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memory.h</b>(3head)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

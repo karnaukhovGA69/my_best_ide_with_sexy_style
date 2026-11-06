@@ -1,0 +1,43 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_bus(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_bus(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/bus/ - installed buses</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/bus/</i></dt>
+  <dd>Contains subdirectories for installed buses.</dd>
+  <dt><i>/proc/bus/pccard/</i></dt>
+  <dd>Subdirectory for PCMCIA devices when <b>CONFIG_PCMCIA</b> is set at kernel
+      compilation time.</dd>
+  <dt><i>/proc/bus/pccard/drivers</i></dt>
+  <dd></dd>
+  <dt><i>/proc/bus/pci/</i></dt>
+  <dd>Contains various bus subdirectories and pseudo-files containing
+      information about PCI buses, installed devices, and device drivers. Some
+      of these files are not ASCII.</dd>
+  <dt><i>/proc/bus/pci/devices</i></dt>
+  <dd>Information about PCI devices. They may be accessed through
+      <b>lspci</b>(8) and <b>setpci</b>(8).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,149 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">bsearch(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">bsearch(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">bsearch - binary search of a sorted array</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>void *bsearch(</b>size_t n, size_t size;
+<b>              const void </b><i>key</i><b>[</b><i>size</i><b>], const void </b><i>base</i><b>[</b><i>size</i><b> * </b><i>n</i><b>],</b>
+<b>              size_t </b><i>n</i><b>, size_t </b><i>size</i><b>,</b>
+<b>              typeof(int (const void [</b><i>size</i><b>], const void [</b><i>size</i><b>]))</b>
+<b>                  *</b><i>compar</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>bsearch</b>() function searches an array of <i>n</i>
+    objects, the initial member of which is pointed to by <i>base</i>, for a
+    member that matches the object pointed to by <i>key</i>. The size of each
+    member of the array is specified by <i>size</i>.</p>
+<p class="Pp">The contents of the array should be in ascending sorted order
+    according to the comparison function referenced by <i>compar</i>. The
+    <i>compar</i> routine is expected to have two arguments which point to the
+    <i>key</i> object and to an array member, in that order, and should return
+    an integer less than, equal to, or greater than zero if the <i>key</i>
+    object is found, respectively, to be less than, to match, or be greater than
+    the array member.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>bsearch</b>() function returns a pointer to a matching
+    member of the array, or NULL if no match is found. If there are multiple
+    elements that match the key, the element returned is unspecified.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>bsearch ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, C99, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The example below first sorts an array of structures using
+    <b>qsort</b>(3), then retrieves desired elements using <b>bsearch</b>().</p>
+<p class="Pp"></p>
+<pre>#include &lt;stdcountof.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+struct mi {
+<br/>
+    int         nr;
+<br/>
+    const char  *name;
+};
+static struct mi  months[] = {
+<br/>
+    { 1, &quot;jan&quot; }, { 2, &quot;feb&quot; }, { 3, &quot;mar&quot; }, { 4, &quot;apr&quot; },
+<br/>
+    { 5, &quot;may&quot; }, { 6, &quot;jun&quot; }, { 7, &quot;jul&quot; }, { 8, &quot;aug&quot; },
+<br/>
+    { 9, &quot;sep&quot; }, {10, &quot;oct&quot; }, {11, &quot;nov&quot; }, {12, &quot;dec&quot; }
+};
+static int
+compmi(const void *m1, const void *m2)
+{
+<br/>
+    const struct mi *mi1 = m1;
+<br/>
+    const struct mi *mi2 = m2;
+<br/>
+    return strcmp(mi1-&gt;name, mi2-&gt;name);
+}
+int
+main(int argc, char *argv[])
+{
+<br/>
+    qsort(months, countof(months), sizeof(months[0]), compmi);
+<br/>
+    for (size_t i = 1; i &lt; argc; i++) {
+<br/>
+        struct mi key;
+<br/>
+        struct mi *res;
+<br/>
+        key.name = argv[i];
+<br/>
+        res = bsearch(&amp;key, months, countof(months),
+<br/>
+                      sizeof(months[0]), compmi);
+<br/>
+        if (res == NULL)
+<br/>
+            printf(&quot;'%s': unknown month\n&quot;, argv[i]);
+<br/>
+        else
+<br/>
+            printf(&quot;%s: month #%d\n&quot;, res-&gt;name, res-&gt;nr);
+<br/>
+    }
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>hsearch</b>(3), <b>lsearch</b>(3), <b>qsort</b>(3),
+    <b>tsearch</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

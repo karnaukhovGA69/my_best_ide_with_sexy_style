@@ -1,0 +1,81 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">_Generic(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">_Generic(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">_Generic - type-generic selection</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>_Generic(</b><i>expression</i><b>, type1: </b><i>e1</i><b>, </b>... /*<b>, default: </b><i>e</i> */<b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>_Generic</b>() evaluates the path of code under the type
+    selector that is compatible with the type of the controlling
+    <i>expression</i>, or <b>default:</b> if no type is compatible.</p>
+<p class="Pp"><i>expression</i> is not evaluated.</p>
+<p class="Pp">This is especially useful for writing type-generic macros, that
+    will behave differently depending on the type of the argument.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C11.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following program demonstrates how to write a replacement for
+    the standard <b>imaxabs</b>(3) function, which being a function can't really
+    provide what it promises: seamlessly upgrading to the widest available
+  type.</p>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <pre>#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#define my_imaxabs  _Generic(INTMAX_C(0),  \
+<br/>
+    long:           labs,                  \
+<br/>
+    long long:      llabs                  \
+/*  long long long: lllabs */              \
+)
+int
+main(void)
+{
+<br/>
+    off_t  a;
+<br/>
+    a = -42;
+<br/>
+    printf(&quot;imaxabs(%jd) == %jd\n&quot;, (intmax_t) a, my_imaxabs(a));
+<br/>
+    printf(&quot;&amp;imaxabs == %p\n&quot;, &amp;my_imaxabs);
+<br/>
+    printf(&quot;&amp;labs    == %p\n&quot;, &amp;labs);
+<br/>
+    printf(&quot;&amp;llabs   == %p\n&quot;, &amp;llabs);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+    </pre>
+  </dd>
+</dl>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

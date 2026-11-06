@@ -1,0 +1,103 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ftok(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">ftok(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ftok - convert a pathname and a project identifier to a System V
+    IPC key</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/ipc.h&gt;</b></pre>
+<p class="Pp"><b>key_t ftok(const char *</b><i>path</i><b>, int
+    </b><i>proj_id</i><b>);</b></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>ftok</b>() function uses the identity of the file named by
+    the given <i>path</i> (which must refer to an existing, accessible file) and
+    the least significant 8 bits of <i>proj_id</i> (which must be nonzero) to
+    generate a <i>key_t</i> type System V IPC key, suitable for use with
+    <b>msgget</b>(2), <b>semget</b>(2), or <b>shmget</b>(2).</p>
+<p class="Pp">The resulting value is the same for all pathnames that name the
+    same file, when the same value of <i>proj_id</i> is used. The value returned
+    should be different when the (simultaneously existing) files or the project
+    IDs differ.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, the generated <i>key_t</i> value is returned. On
+    failure -1 is returned, with <i>errno</i> indicating the error as for the
+    <b>stat</b>(2) system call.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>ftok ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">On some ancient systems, the prototype was:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre><b>key_t ftok(char *</b><i>path</i><b>, char </b><i>proj_id</i><b>);</b>
+</pre>
+<br/>
+<p class="Pp">Today, <i>proj_id</i> is an <i>int</i>, but still only 8 bits are
+    used. Typical usage has an ASCII character <i>proj_id</i>, that is why the
+    behavior is said to be undefined when <i>proj_id</i> is zero.</p>
+<p class="Pp">Of course, no guarantee can be given that the resulting
+    <i>key_t</i> is unique. Typically, a best-effort attempt combines the given
+    <i>proj_id</i> byte, the lower 16 bits of the inode number, and the lower 8
+    bits of the device number into a 32-bit result. Collisions may easily
+    happen, for example between files on <i>/dev/hda1</i> and files on
+    <i>/dev/sda1</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>semget</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>msgget</b>(2), <b>semget</b>(2), <b>shmget</b>(2),
+    <b>stat</b>(2), <b>sysvipc</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

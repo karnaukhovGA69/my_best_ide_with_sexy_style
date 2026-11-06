@@ -1,0 +1,110 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sd(4)</td>
+    <td class="head-vol">Device Drivers Manual</td>
+    <td class="head-rtitle">sd(4)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">sd - driver for SCSI disk drives</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/hdreg.h&gt;        </b>/* for HDIO_GETGEO */
+<b>#include &lt;linux/fs.h&gt;           </b>/* for BLKGETSIZE and BLKRRPART */</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CONFIGURATION"><a class="permalink" href="#CONFIGURATION">CONFIGURATION</a></h1>
+<p class="Pp">The block device name has the following form: <b>sd</b><i>lp,</i>
+    where <i>l</i> is a letter denoting the physical drive, and <i>p</i> is a
+    number denoting the partition on that physical drive. Often, the partition
+    number, <i>p</i>, will be left off when the device corresponds to the whole
+    drive.</p>
+<p class="Pp">SCSI disks have a major device number of 8, and a minor device
+    number of the form (16 * <i>drive_number</i>) + <i>partition_number</i>,
+    where <i>drive_number</i> is the number of the physical drive in order of
+    detection, and <i>partition_number</i> is as follows:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>partition 0 is the whole drive</dd>
+  <dt>&#x2022;</dt>
+  <dd>partitions 1&#x2013;4 are the DOS &quot;primary&quot; partitions</dd>
+  <dt>&#x2022;</dt>
+  <dd>partitions 5&#x2013;8 are the DOS &quot;extended&quot; (or
+      &quot;logical&quot;) partitions</dd>
+</dl>
+<p class="Pp">For example, <i>/dev/sda</i> will have major 8, minor 0, and will
+    refer to all of the first SCSI drive in the system; and <i>/dev/sdb3</i>
+    will have major 8, minor 19, and will refer to the third DOS
+    &quot;primary&quot; partition on the second SCSI drive in the system.</p>
+<p class="Pp">At this time, only block devices are provided. Raw devices have
+    not yet been implemented.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The following <i>ioctl</i>s are provided:</p>
+<dl class="Bl-tag">
+  <dt id="HDIO_GETGEO"><a class="permalink" href="#HDIO_GETGEO"><b>HDIO_GETGEO</b></a></dt>
+  <dd>Returns the BIOS disk parameters in the following structure:</dd>
+</dl>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct hd_geometry {
+<br/>
+    unsigned char  heads;
+<br/>
+    unsigned char  sectors;
+<br/>
+    unsigned short cylinders;
+<br/>
+    unsigned long  start;
+};
+</pre>
+<br/>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>A pointer to this structure is passed as the <b>ioctl</b>(2)
+    parameter.</dd>
+  <dt></dt>
+  <dd>The information returned in the parameter is the disk geometry of the
+      drive <i>as understood by DOS!</i> This geometry is <i>not</i> the
+      physical geometry of the drive. It is used when constructing the drive's
+      partition table, however, and is needed for convenient operation of
+      <b>fdisk</b>(1), <b>efdisk</b>(1), and <b>lilo</b>(1). If the geometry
+      information is not available, zero will be returned for all of the
+      parameters.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="BLKGETSIZE"><a class="permalink" href="#BLKGETSIZE"><b>BLKGETSIZE</b></a></dt>
+  <dd>Returns the device size in sectors. The <b>ioctl</b>(2) parameter should
+      be a pointer to a <i>long</i>.</dd>
+  <dt id="BLKRRPART"><a class="permalink" href="#BLKRRPART"><b>BLKRRPART</b></a></dt>
+  <dd>Forces a reread of the SCSI disk partition tables. No parameter is
+    needed.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The SCSI <b>ioctl</b>(2) operations are also supported. If the
+      <b>ioctl</b>(2) parameter is required, and it is NULL, then
+      <b>ioctl</b>(2) fails with the error <b>EINVAL</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/dev/sd[a-h]</i></dt>
+  <dd>the whole device</dd>
+  <dt><i>/dev/sd[a-h][0-8]</i></dt>
+  <dd>individual block partitions</dd>
+</dl>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

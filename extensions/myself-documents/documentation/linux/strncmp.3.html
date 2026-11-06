@@ -1,0 +1,138 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strncmp(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strncmp(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strncmp - nonstrings compare</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include&#x00A0;&lt;string.h&gt;</b>  // see memory.h(3head)</pre>
+<pre><b>int strncmp(const char </b>s1<b>[], const char </b>s2<b>[], size_t </b>n<b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>strncmp</b>() function is similar to <b>strcmp</b>(3),
+    except it compares only the first (at most) <i>n</i> bytes of <i>s1</i> and
+    <i>s2</i>.</p>
+<p class="Pp">It is equivalent to</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>memcmp(s1, s2, MIN(MIN(strnlen(s1,n),strnlen(s2,n))+1, n))
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>memcmp</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strncmp ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below can be used to demonstrate the operation of
+    <b>strncmp</b>().</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> ./strncmp ABC AB 3</b>;
+&lt;strn1&gt; is greater than &lt;strn2&gt; (67)
+$<b> ./strncmp ABC AB 2</b>;
+&lt;strn1&gt; and &lt;str2&gt; are equal in the first 2 bytes
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>// strncmp.c
+// Licensed under GNU General Public License v2 or later.
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int res;
+<br/>
+    if (argc != 4) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s &lt;strn1&gt; &lt;strn2&gt; &lt;n&gt;\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    res = strncmp(argv[1], argv[2], atoi(argv[3]));
+<br/>
+    if (res == 0) {
+<br/>
+        printf(&quot;&lt;strn1&gt; and &lt;strn2&gt; are equal&quot;);
+<br/>
+        printf(&quot; in the first %d bytes\n&quot;, atoi(argv[3]));
+<br/>
+        printf(&quot;\n&quot;);
+<br/>
+    } else if (res &lt; 0) {
+<br/>
+        printf(&quot;&lt;strn1&gt; is less than &lt;strn2&gt; (%d)\n&quot;, res);
+<br/>
+    } else {
+<br/>
+        printf(&quot;&lt;strn1&gt; is greater than &lt;strn2&gt; (%d)\n&quot;, res);
+<br/>
+    }
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memory.h</b>(3head), <b>memcmp</b>(3), <b>strncasecmp</b>(3),
+    <b>wcsncmp</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,77 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getsockname(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">getsockname(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getsockname - get socket name</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int getsockname(int </b><i>sockfd</i><b>, struct sockaddr *restrict </b><i>addr</i><b>,</b>
+<b>                socklen_t *restrict </b><i>addrlen</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>getsockname</b>() returns the current address to which the
+    socket <i>sockfd</i> is bound, in the buffer pointed to by <i>addr</i>. The
+    <i>addrlen</i> argument should be initialized to indicate the amount of
+    space (in bytes) pointed to by <i>addr</i>. On return it contains the actual
+    size of the socket address.</p>
+<p class="Pp">The returned address is truncated if the buffer provided is too
+    small; in this case, <i>addrlen</i> will return a value greater than was
+    supplied to the call.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, zero is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd>The argument <i>sockfd</i> is not a valid file descriptor.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>The <i>addr</i> argument points to memory not in a valid part of the
+      process address space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>addrlen</i> is invalid (e.g., is negative).</dd>
+  <dt id="ENOBUFS"><a class="permalink" href="#ENOBUFS"><b>ENOBUFS</b></a></dt>
+  <dd>Insufficient resources were available in the system to perform the
+      operation.</dd>
+  <dt id="ENOTSOCK"><a class="permalink" href="#ENOTSOCK"><b>ENOTSOCK</b></a></dt>
+  <dd>The file descriptor <i>sockfd</i> does not refer to a socket.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, SVr4, 4.2BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>bind</b>(2), <b>socket</b>(2), <b>getifaddrs</b>(3),
+    <b>ip</b>(7), <b>socket</b>(7), <b>unix</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-29</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

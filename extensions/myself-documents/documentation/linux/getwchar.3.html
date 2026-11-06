@@ -1,0 +1,81 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getwchar(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">getwchar(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getwchar - read a wide character from standard input</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;wchar.h&gt;</b></pre>
+<pre><b>wint_t getwchar(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>getwchar</b>() function is the wide-character equivalent of
+    the <b>getchar</b>(3) function. It reads a wide character from <i>stdin</i>
+    and returns it. If the end of stream is reached, or if <i>ferror(stdin)</i>
+    becomes true, it returns <b>WEOF</b>. If a wide-character conversion error
+    occurs, it sets <i>errno</i> to <b>EILSEQ</b> and returns <b>WEOF</b>.</p>
+<p class="Pp">For a nonlocking counterpart, see <b>unlocked_stdio</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>getwchar</b>() function returns the next wide-character
+    from standard input, or <b>WEOF</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>getwchar ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C99, POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The behavior of <b>getwchar</b>() depends on the <b>LC_CTYPE</b>
+    category of the current locale.</p>
+<p class="Pp">It is reasonable to expect that <b>getwchar</b>() will actually
+    read a multibyte sequence from standard input and then convert it to a wide
+    character.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fgetwc</b>(3), <b>unlocked_stdio</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,237 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TIOCLINUX(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TIOCLINUX(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TIOCLINUX - ioctls for console terminal and virtual consoles</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/tiocl.h&gt;</b>  /* Definition of <b>TIOCL_*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TIOCLINUX, void *</b><i>argp</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The action of the following ioctls depends on the first byte in
+    the struct pointed to by <i>argp</i>, referred to here as the
+    <i>subcode</i>. These are legal only for the superuser or the owner of the
+    current terminal.</p>
+<dl class="Bl-tag">
+  <dt id="subcode"><a class="permalink" href="#subcode"><b>subcode</b>=<b>0</b></a></dt>
+  <dd>Dump the screen. Disappeared in Linux 1.1.92. (With Linux 1.1.92 or later,
+      read from <i>/dev/vcs</i>N or <i>/dev/vcsa</i>N instead.)</dd>
+  <dt id="subcode~2"><a class="permalink" href="#subcode~2"><b>subcode</b>=<b>1</b></a></dt>
+  <dd>Get task information. Disappeared in Linux 1.1.92.</dd>
+  <dt id="subcode~3"><a class="permalink" href="#subcode~3"><b>subcode</b>=<b>TIOCL_SETSEL</b></a></dt>
+  <dd>Set selection. <i>argp</i> points to a</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct {
+<br/>
+    char  subcode;
+<br/>
+    short xs, ys, xe, ye;
+<br/>
+    short sel_mode;
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd><i>xs</i> and <i>ys</i> are the starting column and row. <i>xe</i> and
+      <i>ye</i> are the ending column and row. (Upper left corner is
+      row=column=1.) <i>sel_mode</i> may be one of the following
+    operations:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="TIOCL_SELCHAR"><a class="permalink" href="#TIOCL_SELCHAR"><b>TIOCL_SELCHAR</b></a></dt>
+  <dd>Select character-by-character. The indicated screen characters are
+      highlighted and saved in a kernel buffer.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Since Linux 6.7, using this selection mode requires the
+      <b>CAP_SYS_ADMIN</b> capability.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCL_SELWORD"><a class="permalink" href="#TIOCL_SELWORD"><b>TIOCL_SELWORD</b></a></dt>
+  <dd>Select word-by-word, expanding the selection outwards to align with word
+      boundaries. The indicated screen characters are highlighted and saved in a
+      kernel buffer.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Since Linux 6.7, using this selection mode requires the
+      <b>CAP_SYS_ADMIN</b> capability.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCL_SELLINE"><a class="permalink" href="#TIOCL_SELLINE"><b>TIOCL_SELLINE</b></a></dt>
+  <dd>Select line-by-line, expanding the selection outwards to select full
+      lines. The indicated screen characters are highlighted and saved in a
+      kernel buffer.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Since Linux 6.7, using this selection mode requires the
+      <b>CAP_SYS_ADMIN</b> capability.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCL_SELPOINTER"><a class="permalink" href="#TIOCL_SELPOINTER"><b>TIOCL_SELPOINTER</b></a></dt>
+  <dd>Show the pointer at position (<i>xs</i>,&#x00A0;<i>ys</i>) or
+      (<i>xe</i>,&#x00A0;<i>ye</i>), whichever is later in text flow order.</dd>
+  <dt id="TIOCL_SELCLEAR"><a class="permalink" href="#TIOCL_SELCLEAR"><b>TIOCL_SELCLEAR</b></a></dt>
+  <dd>Remove the current selection highlight, if any, from the console holding
+      the selection.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This does not affect the stored selected text.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCL_SELMOUSEREPORT"><a class="permalink" href="#TIOCL_SELMOUSEREPORT"><b>TIOCL_SELMOUSEREPORT</b></a></dt>
+  <dd>Make the terminal report (<i>xs</i>,&#x00A0;<i>ys</i>) as the current
+      mouse location using the <b>xterm</b>(1) mouse tracking protocol (see
+      <b>console_codes</b>(4)). The lower 4 bits of <i>sel_mode</i>
+      (<b>TIOCL_SELBUTTONMASK</b>) indicate the desired button press and
+      modifier key information for the mouse event.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If mouse reporting is not enabled for the terminal, this operation yields
+      an <b>EINVAL</b> error.</dd>
+  <dt></dt>
+  <dd>Since Linux 6.7, using this selection mode requires the
+      <b>CAP_SYS_ADMIN</b> capability.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="subcode~4"><a class="permalink" href="#subcode~4"><b>subcode</b>=<b>TIOCL_PASTESEL</b></a></dt>
+  <dd>Paste selection. The characters in the selection buffer are written to
+      <i>fd</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Since Linux 6.7, using this subcode requires the <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="subcode~5"><a class="permalink" href="#subcode~5"><b>subcode</b>=<b>TIOCL_UNBLANKSCREEN</b></a></dt>
+  <dd>Unblank the screen.</dd>
+  <dt id="subcode~6"><a class="permalink" href="#subcode~6"><b>subcode</b>=<b>TIOCL_SELLOADLUT</b></a></dt>
+  <dd>Sets contents of a 256-bit look up table defining characters in a
+      &quot;word&quot;, for word-by-word selection. (Since Linux 1.1.32.)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Since Linux 6.7, using this subcode requires the <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="subcode~7"><a class="permalink" href="#subcode~7"><b>subcode</b>=<b>TIOCL_GETSHIFTSTATE</b></a></dt>
+  <dd><i>argp</i> points to a char which is set to the value of the kernel
+      variable <i>shift_state</i>. (Since Linux 1.1.32.)</dd>
+  <dt id="subcode~8"><a class="permalink" href="#subcode~8"><b>subcode</b>=<b>TIOCL_GETMOUSEREPORTING</b></a></dt>
+  <dd><i>argp</i> points to a char which is set to the value of the kernel
+      variable <i>report_mouse</i>. (Since Linux 1.1.33.)</dd>
+  <dt id="subcode~9"><a class="permalink" href="#subcode~9"><b>subcode</b>=<b>8</b></a></dt>
+  <dd>Dump screen width and height, cursor position, and all the
+      character-attribute pairs. (Linux 1.1.67 through Linux 1.1.91 only. With
+      Linux 1.1.92 or later, read from <i>/dev/vcsa*</i> instead.)</dd>
+  <dt id="subcode~10"><a class="permalink" href="#subcode~10"><b>subcode</b>=<b>9</b></a></dt>
+  <dd>Restore screen width and height, cursor position, and all the
+      character-attribute pairs. (Linux 1.1.67 through Linux 1.1.91 only. With
+      Linux 1.1.92 or later, write to <i>/dev/vcsa*</i> instead.)</dd>
+  <dt id="subcode~11"><a class="permalink" href="#subcode~11"><b>subcode</b>=<b>TIOCL_SETVESABLANK</b></a></dt>
+  <dd>Handles the Power Saving feature of the new generation of monitors. VESA
+      screen blanking mode is set to <i>argp[1]</i>, which governs what screen
+      blanking does:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><b>0</b></dt>
+  <dd>Screen blanking is disabled.</dd>
+  <dt><b>1</b></dt>
+  <dd>The current video adapter register settings are saved, then the controller
+      is programmed to turn off the vertical synchronization pulses. This puts
+      the monitor into &quot;standby&quot; mode. If your monitor has an Off_Mode
+      timer, then it will eventually power down by itself.</dd>
+  <dt><b>2</b></dt>
+  <dd>The current settings are saved, then both the vertical and horizontal
+      synchronization pulses are turned off. This puts the monitor into
+      &quot;off&quot; mode. If your monitor has no Off_Mode timer, or if you
+      want your monitor to power down immediately when the blank_timer times
+      out, then you choose this option. (<i>Caution:</i> Powering down
+      frequently will damage the monitor.) (Since Linux 1.1.76.)</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="subcode~12"><a class="permalink" href="#subcode~12"><b>subcode</b>=<b>TIOCL_SETKMSGREDIRECT</b></a></dt>
+  <dd>Change target of kernel messages (&quot;console&quot;): by default, and if
+      this is set to <b>0</b>, messages are written to the currently active VT.
+      The VT to write to is a single byte following <b>subcode</b>. (Since Linux
+      2.5.36.)</dd>
+  <dt id="subcode~13"><a class="permalink" href="#subcode~13"><b>subcode</b>=<b>TIOCL_GETFGCONSOLE</b></a></dt>
+  <dd>Returns the number of VT currently in foreground. (Since Linux
+    2.5.36.)</dd>
+  <dt id="subcode~14"><a class="permalink" href="#subcode~14"><b>subcode</b>=<b>TIOCL_SCROLLCONSOLE</b></a></dt>
+  <dd>Scroll the foreground VT by the specified amount of <i>lines</i> down, or
+      half the screen if <b>0</b>. <i>lines</i> is *(((int32_t *)&amp;subcode) +
+      1). (Since Linux 2.5.67.)</dd>
+  <dt id="subcode~15"><a class="permalink" href="#subcode~15"><b>subcode</b>=<b>TIOCL_BLANKSCREEN</b></a></dt>
+  <dd>Blank the foreground VT, ignoring &quot;pokes&quot; (typing): can only be
+      unblanked explicitly (by switching VTs, to text mode, etc.). (Since Linux
+      2.5.71.)</dd>
+  <dt id="subcode~16"><a class="permalink" href="#subcode~16"><b>subcode</b>=<b>TIOCL_BLANKEDSCREEN</b></a></dt>
+  <dd>Returns the number of VT currently blanked, <b>0</b> if none. (Since Linux
+      2.5.71.)</dd>
+  <dt id="subcode~17"><a class="permalink" href="#subcode~17"><b>subcode</b>=<b>16</b></a></dt>
+  <dd>Never used.</dd>
+  <dt id="subcode~18"><a class="permalink" href="#subcode~18"><b>subcode</b>=<b>TIOCL_GETKMSGREDIRECT</b></a></dt>
+  <dd>Returns target of kernel messages. (Since Linux 2.6.17.)</dd>
+  <dt id="subcode~19"><a class="permalink" href="#subcode~19"><b>subcode</b>=<b>TIOCL_GETBRACKETEDPASTE</b></a></dt>
+  <dd>Returns <b>1</b> if the application advertised bracketed paste
+      compatibility to the terminal, <b>0</b> otherwise. (Since Linux
+    6.16.)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned (except where indicated). On failure, -1
+    is returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>argp</i> is invalid.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>Insufficient permission.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_console</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,84 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sys_module(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">sys_module(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/sys/module - loaded modules</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><i>/sys/module/</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This subdirectory contains one subdirectory for each module that
+    is loaded into the kernel. The name of each directory is the name of the
+    module. In each of the subdirectories, there may be following files:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="coresize"><a class="permalink" href="#coresize"><i>coresize</i></a></dt>
+  <dd>[to be documented]</dd>
+  <dt id="initsize"><a class="permalink" href="#initsize"><i>initsize</i></a></dt>
+  <dd>[to be documented]</dd>
+  <dt id="initstate"><a class="permalink" href="#initstate"><i>initstate</i></a></dt>
+  <dd>[to be documented]</dd>
+  <dt id="refcnt"><a class="permalink" href="#refcnt"><i>refcnt</i></a></dt>
+  <dd>[to be documented]</dd>
+  <dt id="srcversion"><a class="permalink" href="#srcversion"><i>srcversion</i></a></dt>
+  <dd>[to be documented]</dd>
+  <dt id="taint"><a class="permalink" href="#taint"><i>taint</i></a></dt>
+  <dd>[to be documented]</dd>
+  <dt id="uevent"><a class="permalink" href="#uevent"><i>uevent</i></a></dt>
+  <dd>[to be documented]</dd>
+  <dt id="version"><a class="permalink" href="#version"><i>version</i></a></dt>
+  <dd>[to be documented]</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>In each of the subdirectories, there may be following subdirectories:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="drivers"><a class="permalink" href="#drivers"><i>drivers</i></a></dt>
+  <dd>[To be documented]</dd>
+  <dt id="holders"><a class="permalink" href="#holders"><i>holders</i></a></dt>
+  <dd>[To be documented]</dd>
+  <dt id="notes"><a class="permalink" href="#notes"><i>notes</i></a></dt>
+  <dd>[To be documented]</dd>
+  <dt id="parameters"><a class="permalink" href="#parameters"><i>parameters</i></a></dt>
+  <dd>This directory contains one file for each module parameter, with each file
+      containing the value of the corresponding parameter. Some of these files
+      are writable, allowing the parameters to be changed.</dd>
+  <dt id="sections"><a class="permalink" href="#sections"><i>sections</i></a></dt>
+  <dd>This subdirectories contains files with information about module sections.
+      This information is mainly used for debugging.</dd>
+</dl>
+<p class="Pp">[To be documented]</p>
+</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>sysfs</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-09</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

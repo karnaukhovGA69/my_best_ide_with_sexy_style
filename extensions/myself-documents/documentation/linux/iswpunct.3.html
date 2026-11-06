@@ -1,0 +1,93 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">iswpunct(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">iswpunct(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">iswpunct - test for punctuation or symbolic wide character</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;wctype.h&gt;</b></pre>
+<pre><b>int iswpunct(wint_t </b><i>wc</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>iswpunct</b>() function is the wide-character equivalent of
+    the <b>ispunct</b>(3) function. It tests whether <i>wc</i> is a wide
+    character belonging to the wide-character class &quot;punct&quot;.</p>
+<p class="Pp">The wide-character class &quot;punct&quot; is a subclass of the
+    wide-character class &quot;graph&quot;, and therefore also a subclass of the
+    wide-character class &quot;print&quot;.</p>
+<p class="Pp">The wide-character class &quot;punct&quot; is disjoint from the
+    wide-character class &quot;alnum&quot; and therefore also disjoint from its
+    subclasses &quot;alpha&quot;, &quot;upper&quot;, &quot;lower&quot;,
+    &quot;digit&quot;, &quot;xdigit&quot;.</p>
+<p class="Pp">Being a subclass of the wide-character class &quot;print&quot;,
+    the wide-character class &quot;punct&quot; is disjoint from the
+    wide-character class &quot;cntrl&quot;.</p>
+<p class="Pp">Being a subclass of the wide-character class &quot;graph&quot;,
+    the wide-character class &quot;punct&quot; is disjoint from the
+    wide-character class &quot;space&quot; and its subclass
+  &quot;blank&quot;.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>iswpunct</b>() function returns nonzero if <i>wc</i> is a
+    wide-character belonging to the wide-character class &quot;punct&quot;.
+    Otherwise, it returns zero.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>iswpunct ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C99.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The behavior of <b>iswpunct</b>() depends on the <b>LC_CTYPE</b>
+    category of the current locale.</p>
+<p class="Pp">This function's name is a misnomer when dealing with Unicode
+    characters, because the wide-character class &quot;punct&quot; contains both
+    punctuation characters and symbol (math, currency, etc.) characters.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ispunct</b>(3), <b>iswctype</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

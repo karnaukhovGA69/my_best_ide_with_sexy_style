@@ -1,0 +1,50 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_cwd(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_cwd(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/cwd - symbolic link to current working directory</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/cwd</i></dt>
+  <dd>This is a symbolic link to the current working directory of the process.
+      To find out the current working directory of process 20, for instance, you
+      can do this:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>$<b> cd /proc/20/cwd; pwd -P</b>
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>In a multithreaded process, the contents of this symbolic link are not
+      available if the main thread has already terminated (typically by calling
+      <b>pthread_exit</b>(3)).</dd>
+  <dt></dt>
+  <dd>Permission to dereference or read (<b>readlink</b>(2)) this symbolic link
+      is governed by a ptrace access mode <b>PTRACE_MODE_READ_FSCREDS</b> check;
+      see <b>ptrace</b>(2).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

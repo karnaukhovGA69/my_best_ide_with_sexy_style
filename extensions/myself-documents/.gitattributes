@@ -1,0 +1,4 @@
+# Preserve upstream documentation bytes and formatting.
+documentation/** -whitespace linguist-vendored
+# Upstream malloc diagnostic examples begin with seven equals signs.
+documentation/linux/mallopt.3.html conflict-marker-size=32

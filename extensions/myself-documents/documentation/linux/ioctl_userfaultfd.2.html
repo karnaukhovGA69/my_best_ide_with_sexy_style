@@ -1,0 +1,111 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_userfaultfd(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_userfaultfd(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_userfaultfd - create a file descriptor for handling page
+    faults in user space</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/userfaultfd.h&gt;</b>  /* Definition of <b>UFFD*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, int </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Various <b>ioctl</b>(2) operations can be performed on a
+    userfaultfd object (created by a call to <b>userfaultfd</b>(2)) using calls
+    of the form:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>ioctl(fd, op, argp);
+</pre>
+<br/>
+<p class="Pp">In the above, <i>fd</i> is a file descriptor referring to a
+    userfaultfd object, <i>op</i> is one of the operations listed below, and
+    <i>argp</i> is a pointer to a data structure that is specific to
+  <i>op</i>.</p>
+<p class="Pp">The various <b>ioctl</b>(2) operations are described below. The
+    <b>UFFDIO_API</b>, <b>UFFDIO_REGISTER</b>, and <b>UFFDIO_UNREGISTER</b>
+    operations are used to <i>configure</i> userfaultfd behavior. These
+    operations allow the caller to choose what features will be enabled and what
+    kinds of events will be delivered to the application. The remaining
+    operations are <i>range</i> operations. These operations enable the calling
+    application to resolve page-fault events.</p>
+<dl class="Bl-tag">
+  <dt id="UFFDIO_API"><a class="permalink" href="#UFFDIO_API"><b>UFFDIO_API</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_REGISTER"><a class="permalink" href="#UFFDIO_REGISTER"><b>UFFDIO_REGISTER</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_UNREGISTER"><a class="permalink" href="#UFFDIO_UNREGISTER"><b>UFFDIO_UNREGISTER</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_COPY"><a class="permalink" href="#UFFDIO_COPY"><b>UFFDIO_COPY</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_MOVE"><a class="permalink" href="#UFFDIO_MOVE"><b>UFFDIO_MOVE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_ZEROPAGE"><a class="permalink" href="#UFFDIO_ZEROPAGE"><b>UFFDIO_ZEROPAGE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_WAKE"><a class="permalink" href="#UFFDIO_WAKE"><b>UFFDIO_WAKE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_WRITEPROTECT"><a class="permalink" href="#UFFDIO_WRITEPROTECT"><b>UFFDIO_WRITEPROTECT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_RWPROTECT"><a class="permalink" href="#UFFDIO_RWPROTECT"><b>UFFDIO_RWPROTECT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_CONTINUE"><a class="permalink" href="#UFFDIO_CONTINUE"><b>UFFDIO_CONTINUE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_POISON"><a class="permalink" href="#UFFDIO_POISON"><b>UFFDIO_POISON</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="UFFDIO_SET_MODE"><a class="permalink" href="#UFFDIO_SET_MODE"><b>UFFDIO_SET_MODE</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">The following general errors can occur for all of the operations
+    described above:</p>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>argp</i> does not point to a valid memory address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>(For all operations except <b>UFFDIO_API</b>.) The userfaultfd object has
+      not yet been enabled (via the <b>UFFDIO_API</b> operation).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>userfaultfd</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>mmap</b>(2), <b>userfaultfd</b>(2)</p>
+<p class="Pp"><i>linux.git/Documentation/admin-guide/mm/userfaultfd.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-04</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,43 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_filesystems(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_filesystems(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/filesystems - supported filesystems</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/filesystems</i></dt>
+  <dd>A text listing of the filesystems which are supported by the kernel,
+      namely filesystems which were compiled into the kernel or whose kernel
+      modules are currently loaded. (See also <b>filesystems</b>(5).) If a
+      filesystem is marked with &quot;nodev&quot;, this means that it does not
+      require a block device to be mounted (e.g., virtual filesystem, network
+      filesystem).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Incidentally, this file may be used by <b>mount</b>(8) when no filesystem
+      is specified and it didn't manage to determine the filesystem type. Then
+      filesystems contained in this file are tried (excepted those that are
+      marked with &quot;nodev&quot;).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

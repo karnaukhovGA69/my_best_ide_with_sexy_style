@@ -1,0 +1,64 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">intro(3attr)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">intro(3attr)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">intro - C/C++ attributes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>[[</b><i>attr</i><b>]]</b>
+<b>[[</b><i>vendor</i><b>::</b><i>attr</i><b>]]</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Attributes modify the properties of a source construct, such as a
+    type, a variable, or a function.</p>
+<p class="Pp">The standard syntax allows specifying a <i>vendor</i> for
+    non-standard attributes.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">C and C++ dialects have provided various forms of attributes
+    before standardization.</p>
+<dl class="Bl-tag">
+  <dt><b>__attribute__((</b><i>attr</i><b>))</b></dt>
+  <dd>This is the GNU syntax for attributes. It is supported by both GCC and
+      Clang.</dd>
+  <dt><b>__declspec(</b><i>attr</i><b>)</b></dt>
+  <dd>This is the MSVC syntax for attributes. It is supported by Clang.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C23, C++23.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt><b>[[</b><i>attr</i><b>]]</b></dt>
+  <dd></dd>
+  <dt><b>[[</b><i>vendor</i><b>::</b><i>attr</i><b>]]</b></dt>
+  <dd>C23, C++11.</dd>
+  <dt><b>[[</b><i>attr</i><b>]]</b></dt>
+  <dd></dd>
+  <dt><b>[[gnu::</b><i>attr</i><b>]]</b></dt>
+  <dd>gcc 10, g++ 9, clang 9, clang++ 9.</dd>
+  <dt><b>__attribute__((</b><i>attr</i><b>))</b></dt>
+  <dd>gcc, g++, clang, clang++.</dd>
+  <dt><b>__declspec(</b><i>attr</i><b>)</b></dt>
+  <dd>clang, clang++.</dd>
+</dl>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-06-28</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

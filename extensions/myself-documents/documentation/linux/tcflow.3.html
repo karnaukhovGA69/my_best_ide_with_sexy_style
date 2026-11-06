@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">tcflow(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">tcflow(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">tcflow - suspect transmission or reception of data</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;termios.h&gt;</b></pre>
+<pre><b>int tcflow(int </b><i>fd</i><b>, int </b><i>action</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>tcflow</b>() suspends transmission or reception of data on the
+    object referred to by <i>fd</i>, depending on the value of
+  <i>action</i>:</p>
+<dl class="Bl-tag">
+  <dt id="TCOOFF"><a class="permalink" href="#TCOOFF"><b>TCOOFF</b></a></dt>
+  <dd>suspends output.</dd>
+  <dt id="TCOON"><a class="permalink" href="#TCOON"><b>TCOON</b></a></dt>
+  <dd>restarts suspended output.</dd>
+  <dt id="TCIOFF"><a class="permalink" href="#TCIOFF"><b>TCIOFF</b></a></dt>
+  <dd>transmits a STOP character, which stops the terminal device from
+      transmitting data to the system.</dd>
+  <dt id="TCION"><a class="permalink" href="#TCION"><b>TCION</b></a></dt>
+  <dd>transmits a START character, which starts the terminal device transmitting
+      data to the system.</dd>
+</dl>
+<p class="Pp">The default on open of a terminal file is that neither its input
+    nor its output is suspended.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<dl class="Bl-tag">
+  <dt><b>0</b></dt>
+  <dd>on success.</dd>
+  <dt><b>-1</b></dt>
+  <dd>on failure and set <i>errno</i> to indicate the error.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>tcflow ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>tcsendbreak</b>(3), <b>tcdrain</b>(3), <b>tcflush</b>(3),
+    <b>termios</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

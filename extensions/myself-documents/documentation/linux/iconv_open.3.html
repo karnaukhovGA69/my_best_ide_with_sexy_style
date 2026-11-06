@@ -1,0 +1,104 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">iconv_open(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">iconv_open(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">iconv_open - allocate descriptor for character set conversion</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;iconv.h&gt;</b></pre>
+<pre><b>iconv_t iconv_open(const char *</b><i>tocode</i><b>, const char *</b><i>fromcode</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>iconv_open</b>() function allocates a conversion descriptor
+    suitable for converting byte sequences from character encoding
+    <i>fromcode</i> to character encoding <i>tocode</i>.</p>
+<p class="Pp">The values permitted for <i>fromcode</i> and <i>tocode</i> and the
+    supported combinations are system-dependent. For the GNU C library, the
+    permitted values are listed by the <i>iconv --list</i> command, and all
+    combinations of the listed values are supported. Furthermore the GNU C
+    library and the GNU libiconv library support the following two suffixes:</p>
+<dl class="Bl-tag">
+  <dt>//TRANSLIT</dt>
+  <dd>When the string &quot;//TRANSLIT&quot; is appended to <i>tocode</i>,
+      transliteration is activated. This means that when a character cannot be
+      represented in the target character set, it can be approximated through
+      one or several similarly looking characters.</dd>
+  <dt>//IGNORE</dt>
+  <dd>When the string &quot;//IGNORE&quot; is appended to <i>tocode</i>,
+      characters that cannot be represented in the target character set will be
+      silently discarded.</dd>
+</dl>
+<p class="Pp">The resulting conversion descriptor can be used with
+    <b>iconv</b>(3) any number of times. It remains valid until deallocated
+    using <b>iconv_close</b>(3).</p>
+<p class="Pp">A conversion descriptor contains a conversion state. After
+    creation using <b>iconv_open</b>(), the state is in the initial state. Using
+    <b>iconv</b>(3) modifies the descriptor's conversion state. To bring the
+    state back to the initial state, use <b>iconv</b>(3) with NULL as
+    <i>inbuf</i> argument.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>iconv_open</b>() returns a freshly allocated
+    conversion descriptor. On failure, it returns <i>(iconv_t)&#x00A0;-1</i> and
+    sets <i>errno</i> to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">The following error can occur, among others:</p>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The conversion from <i>fromcode</i> to <i>tocode</i> is not supported by
+      the implementation.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>iconv_open ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">glibc 2.1. POSIX.1-2001, SUSv2.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>iconv</b>(1), <b>iconv</b>(3), <b>iconv_close</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

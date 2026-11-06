@@ -1,0 +1,82 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_SET_FPEXC(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_SET_FPEXC(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_SET_FPEXC - set the floating-point exception mode</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_SET_FPEXC, unsigned long </b><i>mode</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set floating-point exception mode to <i>mode</i>, which can be one
+    of the following values.</p>
+<dl class="Bl-tag">
+  <dt id="PR_FP_EXC_SW_ENABLE"><a class="permalink" href="#PR_FP_EXC_SW_ENABLE"><b>PR_FP_EXC_SW_ENABLE</b></a></dt>
+  <dd>Use FPEXC for FP exception enables.</dd>
+  <dt id="PR_FP_EXC_DIV"><a class="permalink" href="#PR_FP_EXC_DIV"><b>PR_FP_EXC_DIV</b></a></dt>
+  <dd>Use FPEXC for floating-point divide by zero.</dd>
+  <dt id="PR_FP_EXC_OVF"><a class="permalink" href="#PR_FP_EXC_OVF"><b>PR_FP_EXC_OVF</b></a></dt>
+  <dd>Use FPEXC for floating-point overflow.</dd>
+  <dt id="PR_FP_EXC_UND"><a class="permalink" href="#PR_FP_EXC_UND"><b>PR_FP_EXC_UND</b></a></dt>
+  <dd>Use FPEXC for floating-point underflow.</dd>
+  <dt id="PR_FP_EXC_RES"><a class="permalink" href="#PR_FP_EXC_RES"><b>PR_FP_EXC_RES</b></a></dt>
+  <dd>Use FPEXC for floating-point inexact result.</dd>
+  <dt id="PR_FP_EXC_INV"><a class="permalink" href="#PR_FP_EXC_INV"><b>PR_FP_EXC_INV</b></a></dt>
+  <dd>Use FPEXC for floating-point invalid operation.</dd>
+  <dt id="PR_FP_EXC_DISABLED"><a class="permalink" href="#PR_FP_EXC_DISABLED"><b>PR_FP_EXC_DISABLED</b></a></dt>
+  <dd>Use FPEXC for FP exceptions disabled.</dd>
+  <dt id="PR_FP_EXC_NONRECOV"><a class="permalink" href="#PR_FP_EXC_NONRECOV"><b>PR_FP_EXC_NONRECOV</b></a></dt>
+  <dd>Use FPEXC for async nonrecoverable exception mode.</dd>
+  <dt id="PR_FP_EXC_ASYNC"><a class="permalink" href="#PR_FP_EXC_ASYNC"><b>PR_FP_EXC_ASYNC</b></a></dt>
+  <dd>Use FPEXC for async recoverable exception mode.</dd>
+  <dt id="PR_FP_EXC_PRECISE"><a class="permalink" href="#PR_FP_EXC_PRECISE"><b>PR_FP_EXC_PRECISE</b></a></dt>
+  <dd>Use FPEXC for precise exception mode.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>mode</i> is not a valid value.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux. PowerPC only.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.21, 2.5.32. (PowerPC)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>PR_GET_FPEXC</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

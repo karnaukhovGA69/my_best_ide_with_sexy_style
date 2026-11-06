@@ -1,0 +1,58 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">program_invocation_name(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">program_invocation_name(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">program_invocation_name, program_invocation_short_name - obtain
+    name used to invoke calling program</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>         /* See feature_test_macros(7) */
+<b>#include &lt;errno.h&gt;</b></pre>
+<pre><b>extern char *</b><i>program_invocation_name</i><b>;</b>
+<b>extern char *</b><i>program_invocation_short_name</i><b>;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>program_invocation_name</i> contains the name that was used to
+    invoke the calling program. This is the same as the value of <i>argv[0]</i>
+    in <i>main</i>(), with the difference that the scope of
+    <i>program_invocation_name</i> is global.</p>
+<p class="Pp"><i>program_invocation_short_name</i> contains the basename
+    component of name that was used to invoke the calling program. That is, it
+    is the same value as <i>program_invocation_name</i>, with all text up to and
+    including the final slash (/), if any, removed.</p>
+<p class="Pp">These variables are automatically initialized by the glibc
+    run-time startup code.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">The Linux-specific <i>/proc/</i>pid<i>/cmdline</i> file provides
+    access to similar information.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

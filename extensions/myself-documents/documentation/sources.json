@@ -1,0 +1,70 @@
+{
+  "snapshotDate": "2026-11-06",
+  "sources": [
+    {
+      "id": "go-spec",
+      "url": "https://go.dev/ref/spec",
+      "sha256": "57831a144955cd605f8a9989938e692cbc683a272fd1f741371b60a76e3169eb"
+    },
+    {
+      "id": "go-effective",
+      "url": "https://go.dev/doc/effective_go",
+      "sha256": "9a72a7a4580f8852019a632d5bd07cf30a33adbd580752f4f800a685d9fa8ef3"
+    },
+    {
+      "id": "go-memory",
+      "url": "https://go.dev/ref/mem",
+      "sha256": "2e47dc4df1c94a7f29d9ed4149dc162938dce70741bcf931645a851ea14fde4d"
+    },
+    {
+      "id": "rust-book",
+      "url": "https://doc.rust-lang.org/stable/book/print.html",
+      "sha256": "b00b366120cd5a908a909cefb1f6c0912026aaca4b9027f93ada8dcbbc9d793b"
+    },
+    {
+      "id": "rust-reference",
+      "url": "https://doc.rust-lang.org/stable/reference/print.html",
+      "sha256": "ac9d4f551e3a09b206ed2964cd30780e530560e4d0feb6f2c62b1d4a60ff4832"
+    },
+    {
+      "id": "rust-examples",
+      "url": "https://doc.rust-lang.org/stable/rust-by-example/print.html",
+      "sha256": "a02ab363d67f539d8b65bb3b9f2d6dfd249115aa83a3f41661b1b51bdbe0dca2"
+    },
+    {
+      "id": "bash-archive",
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz",
+      "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba"
+    },
+    {
+      "id": "postgresql",
+      "url": "https://ftp.postgresql.org/pub/source/v18.6/postgresql-18.6-docs.tar.gz",
+      "sha256": "0419dec0d3b7ca55a80c0519a1dd88a8d172019ef9841288889f0281ea1f97ed"
+    },
+    {
+      "id": "linux",
+      "url": "https://www.kernel.org/pub/linux/docs/man-pages/man-pages-6.20.tar.gz",
+      "sha256": "46f325713f2fd75c8d1f4fa42748153526a44846806d37028fab85cd0143de46"
+    },
+    {
+      "id": "go-license",
+      "url": "https://raw.githubusercontent.com/golang/go/master/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+    },
+    {
+      "id": "go-content-license",
+      "url": "https://creativecommons.org/licenses/by/4.0/legalcode.txt",
+      "sha256": "9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411"
+    },
+    {
+      "id": "rust-license-mit",
+      "url": "https://raw.githubusercontent.com/rust-lang/book/main/LICENSE-MIT",
+      "sha256": "0621878e61f0d0fda054bcbe02df75192c28bde1ecc8289cbd86aeba2dd72720"
+    },
+    {
+      "id": "rust-license-apache",
+      "url": "https://raw.githubusercontent.com/rust-lang/book/main/LICENSE-APACHE",
+      "sha256": "0f2763086f981043fb18879abfa15e75ecfc188219ef9eba4483f45ce7438e1c"
+    }
+  ]
+}

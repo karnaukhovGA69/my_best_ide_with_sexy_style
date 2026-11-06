@@ -1,0 +1,146 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">timespec_get(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">timespec_get(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">timespec_get, timespec_getres - ISO C interface to clock and time
+    functions</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;time.h&gt;</b></pre>
+<pre><b>int timespec_get(struct timespec *</b><i>res</i><b>, int </b><i>base</i><b>);</b>
+<b>int timespec_getres(struct timespec *</b><i>tp</i><b>, int </b><i>base</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>timespec_get</b>(), <b>TIME_UTC</b>:</p>
+<pre>
+<br/>
+    _ISOC11_SOURCE</pre>
+<p class="Pp"><b>timespec_getres</b>(), <b>TIME_MONOTONIC</b>,
+    <b>TIME_ACTIVE</b>, <b>TIME_THREAD_ACTIVE</b>:</p>
+<pre>
+<br/>
+    _ISOC23_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>timespec_get</b>() function stores the current time, based
+    on the specified time base, in the <b>timespec</b>(3type) structure pointed
+    to by <i>res</i>.</p>
+<p class="Pp">The <b>timespec_getres</b>() function stores the resolution of
+    times retrieved by <b>timespec_get</b>() with the specified time base in the
+    <b>timespec</b>(3type) structure pointed to by <i>tp</i>, if <i>tp</i> is
+    non-NULL. For a particular time base, the resolution is constant for the
+    lifetime of the calling process.</p>
+<p class="Pp">The time base <i>base</i> is one of the following:</p>
+<dl class="Bl-tag">
+  <dt id="TIME_UTC"><a class="permalink" href="#TIME_UTC"><b>TIME_UTC</b></a></dt>
+  <dd>A system-wide time base that measures real (i.e., wall-clock) time. The
+      time and resolution in this time base are the same as those retrieved by
+      <i>clock_gettime(CLOCK_REALTIME,&#x00A0;res)</i> and
+      <i>clock_getres(CLOCK_REALTIME,&#x00A0;tp)</i>, respectively.</dd>
+  <dt id="TIME_MONOTONIC"><a class="permalink" href="#TIME_MONOTONIC"><b>TIME_MONOTONIC</b></a></dt>
+  <dd>A time base that measures time since an unspecified point in the past,
+      where the time within a process will not decrease even if the system's
+      real time clock is set or adjusted. The time and resolution in this time
+      base are the same as those retrieved by
+      <i>clock_gettime(CLOCK_MONOTONIC,&#x00A0;res)</i> and
+      <i>clock_getres(CLOCK_MONOTONIC,&#x00A0;tp)</i>, respectively.</dd>
+  <dt id="TIME_ACTIVE"><a class="permalink" href="#TIME_ACTIVE"><b>TIME_ACTIVE</b></a></dt>
+  <dd>A process-specific time base that measures CPU time consumed by the
+      calling process. The time and resolution in this time base are the same as
+      those retrieved by
+      <i>clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&#x00A0;res)</i> and
+      <i>clock_getres(CLOCK_PROCESS_CPUTIME_ID,&#x00A0;tp)</i>,
+    respectively.</dd>
+  <dt id="TIME_THREAD_ACTIVE"><a class="permalink" href="#TIME_THREAD_ACTIVE"><b>TIME_THREAD_ACTIVE</b></a></dt>
+  <dd>A thread-specific time base that measures CPU time consumed by the calling
+      thread. The time and resolution in this time base are the same as those
+      retrieved by <i>clock_gettime(CLOCK_THREAD_CPUTIME_ID,&#x00A0;res)</i> and
+      <i>clock_getres(CLOCK_THREAD_CPUTIME_ID,&#x00A0;tp)</i>,
+    respectively.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>timespec_get</b>() returns the nonzero <i>base</i> if it is a
+    supported time base and the current time was successfully retrieved, or 0
+    otherwise.</p>
+<p class="Pp"><b>timespec_getres</b>() returns the nonzero <i>base</i> if it is
+    a supported time base, or 0 otherwise.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>timespec_get (), timespec_getres ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="timespec_get"><a class="permalink" href="#timespec_get"><b>timespec_get</b>()</a></dt>
+  <dd>C23, POSIX.1-2024.</dd>
+  <dt id="TIME_UTC~2"><a class="permalink" href="#TIME_UTC~2"><b>TIME_UTC</b></a></dt>
+  <dd>C23 (though ISO C doesn't specify the time epoch), POSIX.1-2024.</dd>
+  <dt id="timespec_getres"><a class="permalink" href="#timespec_getres"><b>timespec_getres</b>()</a></dt>
+  <dd></dd>
+  <dt id="TIME_MONOTONIC~2"><a class="permalink" href="#TIME_MONOTONIC~2"><b>TIME_MONOTONIC</b></a></dt>
+  <dd></dd>
+  <dt id="TIME_ACTIVE~2"><a class="permalink" href="#TIME_ACTIVE~2"><b>TIME_ACTIVE</b></a></dt>
+  <dd></dd>
+  <dt id="TIME_THREAD_ACTIVE~2"><a class="permalink" href="#TIME_THREAD_ACTIVE~2"><b>TIME_THREAD_ACTIVE</b></a></dt>
+  <dd>C23.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="timespec_get~2"><a class="permalink" href="#timespec_get~2"><b>timespec_get</b>()</a></dt>
+  <dd></dd>
+  <dt id="TIME_UTC~3"><a class="permalink" href="#TIME_UTC~3"><b>TIME_UTC</b></a></dt>
+  <dd>C11, POSIX.1-2024, glibc 2.16, musl 1.1.10.</dd>
+  <dt id="timespec_getres~2"><a class="permalink" href="#timespec_getres~2"><b>timespec_getres</b>()</a></dt>
+  <dd>C23, glibc 2.34.</dd>
+  <dt id="TIME_MONOTONIC~3"><a class="permalink" href="#TIME_MONOTONIC~3"><b>TIME_MONOTONIC</b></a></dt>
+  <dd></dd>
+  <dt id="TIME_ACTIVE~3"><a class="permalink" href="#TIME_ACTIVE~3"><b>TIME_ACTIVE</b></a></dt>
+  <dd></dd>
+  <dt id="TIME_THREAD_ACTIVE~3"><a class="permalink" href="#TIME_THREAD_ACTIVE~3"><b>TIME_THREAD_ACTIVE</b></a></dt>
+  <dd>C23, glibc 2.43.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>clock_gettime</b>(2), <b>clock_getres</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

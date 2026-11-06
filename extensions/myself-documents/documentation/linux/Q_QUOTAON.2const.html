@@ -1,0 +1,101 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">Q_QUOTAON(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">Q_QUOTAON(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">Q_QUOTAON - turn on quotas for a filesystem</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/quota.h&gt;</b></pre>
+<pre><b>int&#x00A0;quotactl(QCMD(Q_QUOTAON, </b><i>type</i><b>), const&#x00A0;char&#x00A0;*_Nullable&#x00A0;</b><i>special</i><b>,</b>
+<b>             int&#x00A0;</b><i>fmt</i><b>, caddr_t&#x00A0;</b><i>quota_path</i><b>);</b></pre>
+<pre><b>#include &lt;sys/quota.h&gt;</b>    /* Definition of <b>Q_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int&#x00A0;syscall(SYS_quotactl_fd, int&#x00A0;</b><i>fd</i><b>, QCMD(Q_QUOTAON, </b><i>type</i><b>));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Turn on quotas for a filesystem.</p>
+<p class="Pp">The <i>fmt</i> argument is the identification number of the quota
+    format to be used. Currently, there are three supported quota formats:</p>
+<dl class="Bl-tag">
+  <dt id="QFMT_VFS_OLD"><a class="permalink" href="#QFMT_VFS_OLD"><b>QFMT_VFS_OLD</b></a></dt>
+  <dd>The original quota format.</dd>
+  <dt id="QFMT_VFS_V0"><a class="permalink" href="#QFMT_VFS_V0"><b>QFMT_VFS_V0</b></a></dt>
+  <dd>The standard VFS v0 quota format, which can handle 32-bit UIDs and GIDs
+      and quota limits up to 2^42 bytes and 2^32 inodes.</dd>
+  <dt id="QFMT_VFS_V1"><a class="permalink" href="#QFMT_VFS_V1"><b>QFMT_VFS_V1</b></a></dt>
+  <dd>A quota format that can handle 32-bit UIDs and GIDs and quota limits of
+      2^63 - 1 bytes and 2^63 - 1 inodes.</dd>
+</dl>
+<p class="Pp">The <i>quota_path</i> argument points to the pathname of a file
+    containing the quotas for the filesystem. The quota file must exist; it is
+    normally created with the <b>quotacheck</b>(8) program</p>
+<p class="Pp">Quota information can be also stored in hidden system inodes for
+    ext4, XFS, and other filesystems if the filesystem is configured so. In this
+    case, there are no visible quota files and there is no need to use
+    <b>quotacheck</b>(8). Quota information is always kept consistent by the
+    filesystem and the <b>Q_QUOTAON</b> operation serves only to enable
+    enforcement of quota limits. The presence of hidden system inodes with quota
+    information is indicated by the <b>DQF_SYS_FILE</b> flag in the
+    <i>dqi_flags</i> field returned by the <b>Q_GETINFO</b>(2const)
+  operation.</p>
+<p class="Pp">The <b>quotactl_fd</b>() variant of this system call doesn't have
+    the <i>quota_path</i> and <i>fmt</i> arguments, so the <b>Q_QUOTAON</b>
+    operation of <b>quotactl_fd</b>() is only suitable for work with hidden
+    system inodes.</p>
+<p class="Pp">This operation requires privilege (<b>CAP_SYS_ADMIN</b>).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>The quota file pointed to by <i>quota_path</i> exists, but is not a
+      regular file or is not on the filesystem pointed to by
+    <i>special</i>.</dd>
+  <dt id="EBUSY"><a class="permalink" href="#EBUSY"><b>EBUSY</b></a></dt>
+  <dd>Another <b>Q_QUOTAON</b> had already been performed.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The specified quota file is corrupted.</dd>
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b></a></dt>
+  <dd>The specified quota format was not found.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>quotactl</b>(2), <b>quotactl_fd</b>(2),
+    <b>Q_QUOTAOFF</b>(2const), <b>quotacheck</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

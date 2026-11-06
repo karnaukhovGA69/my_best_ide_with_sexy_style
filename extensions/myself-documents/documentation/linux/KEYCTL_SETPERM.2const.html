@@ -1,0 +1,263 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_SETPERM(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_SETPERM(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_SETPERM - change the permissions mask on a key</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_SETPERM, key_serial_t </b><i>key</i><b>,</b>
+<b>             key_perm_t </b><i>perms</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Change the permissions of the key with the ID provided in the
+    <i>key</i> argument to the permissions provided in the <i>perms</i>
+    argument.</p>
+<p class="Pp">If the caller doesn't have the <b>CAP_SYS_ADMIN</b> capability, it
+    can change permissions only for the keys it owns. (More precisely: the
+    caller's filesystem UID must match the UID of the key.)</p>
+<p class="Pp">The key must grant <i>setattr</i> permission to the caller
+    <i>regardless</i> of the caller's capabilities.</p>
+<p class="Pp">The permissions in <i>perms</i> specify masks of available
+    operations for each of the following user categories:</p>
+<dl class="Bl-tag">
+  <dt id="possessor"><a class="permalink" href="#possessor"><i>possessor</i>
+    (since Linux 2.6.14)</a></dt>
+  <dd>This is the permission granted to a process that possesses the key (has it
+      attached searchably to one of the process's keyrings); see
+      <b>keyrings</b>(7).</dd>
+  <dt id="user"><a class="permalink" href="#user"><i>user</i></a></dt>
+  <dd>This is the permission granted to a process whose filesystem UID matches
+      the UID of the key.</dd>
+  <dt id="group"><a class="permalink" href="#group"><i>group</i></a></dt>
+  <dd>This is the permission granted to a process whose filesystem GID or any of
+      its supplementary GIDs matches the GID of the key.</dd>
+  <dt id="other"><a class="permalink" href="#other"><i>other</i></a></dt>
+  <dd>This is the permission granted to other processes that do not match the
+      <i>user</i> and <i>group</i> categories.</dd>
+</dl>
+<p class="Pp">The <i>user</i>, <i>group</i>, and <i>other</i> categories are
+    exclusive: if a process matches the <i>user</i> category, it will not
+    receive permissions granted in the <i>group</i> category; if a process
+    matches the <i>user</i> or <i>group</i> category, then it will not receive
+    permissions granted in the <i>other</i> category.</p>
+<p class="Pp">The <i>possessor</i> category grants permissions that are
+    cumulative with the grants from the <i>user</i>, <i>group</i>, or
+    <i>other</i> category.</p>
+<p class="Pp">Each permission mask is eight bits in size, with only six bits
+    currently used. The available permissions are:</p>
+<dl class="Bl-tag">
+  <dt id="view"><a class="permalink" href="#view"><i>view</i></a></dt>
+  <dd>This permission allows reading attributes of a key.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This permission is required for the <b>KEYCTL_DESCRIBE</b>(2const)
+      operation.</dd>
+</dl>
+<p class="Pp">The permission bits for each category are:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="KEY_POS_VIEW"><a class="permalink" href="#KEY_POS_VIEW"><b>KEY_POS_VIEW</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_USR_VIEW"><a class="permalink" href="#KEY_USR_VIEW"><b>KEY_USR_VIEW</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_GRP_VIEW"><a class="permalink" href="#KEY_GRP_VIEW"><b>KEY_GRP_VIEW</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_OTH_VIEW"><a class="permalink" href="#KEY_OTH_VIEW"><b>KEY_OTH_VIEW</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="read"><a class="permalink" href="#read"><i>read</i></a></dt>
+  <dd>This permission allows reading a key's payload.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This permission is required for the <b>KEYCTL_READ</b>(2const)
+    operation.</dd>
+  <dt></dt>
+  <dd>The permission bits for each category are</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="KEY_POS_READ"><a class="permalink" href="#KEY_POS_READ"><b>KEY_POS_READ</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_USR_READ"><a class="permalink" href="#KEY_USR_READ"><b>KEY_USR_READ</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_GRP_READ"><a class="permalink" href="#KEY_GRP_READ"><b>KEY_GRP_READ</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_OTH_READ"><a class="permalink" href="#KEY_OTH_READ"><b>KEY_OTH_READ</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="write"><a class="permalink" href="#write"><i>write</i></a></dt>
+  <dd>This permission allows update or instantiation of a key's payload. For a
+      keyring, it allows keys to be linked and unlinked from the keyring,</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This permission is required for the <b>KEYCTL_UPDATE</b>(2const),
+      <b>KEYCTL_REVOKE</b>(2const), <b>KEYCTL_CLEAR</b>(2const),
+      <b>KEYCTL_LINK</b>(2const), and <b>KEYCTL_UNLINK</b>(2const)
+    operations.</dd>
+  <dt></dt>
+  <dd>The permission bits for each category are:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="KEY_POS_WRITE"><a class="permalink" href="#KEY_POS_WRITE"><b>KEY_POS_WRITE</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_USR_WRITE"><a class="permalink" href="#KEY_USR_WRITE"><b>KEY_USR_WRITE</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_GRP_WRITE"><a class="permalink" href="#KEY_GRP_WRITE"><b>KEY_GRP_WRITE</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_OTH_WRITE"><a class="permalink" href="#KEY_OTH_WRITE"><b>KEY_OTH_WRITE</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="search"><a class="permalink" href="#search"><i>search</i></a></dt>
+  <dd>This permission allows keyrings to be searched and keys to be found.
+      Searches can recurse only into nested keyrings that have <i>search</i>
+      permission set.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This permission is required for the <b>KEYCTL_GET_KEYRING_ID</b>(2const),
+      <b>KEYCTL_JOIN_SESSION_KEYRING</b>(2const), <b>KEYCTL_SEARCH</b>(2const),
+      and <b>KEYCTL_INVALIDATE (2const)</b> operations.</dd>
+  <dt></dt>
+  <dd>The permission bits for each category are:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="KEY_POS_SEARCH"><a class="permalink" href="#KEY_POS_SEARCH"><b>KEY_POS_SEARCH</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_USR_SEARCH"><a class="permalink" href="#KEY_USR_SEARCH"><b>KEY_USR_SEARCH</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_GRP_SEARCH"><a class="permalink" href="#KEY_GRP_SEARCH"><b>KEY_GRP_SEARCH</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_OTH_SEARCH"><a class="permalink" href="#KEY_OTH_SEARCH"><b>KEY_OTH_SEARCH</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="link"><a class="permalink" href="#link"><i>link</i></a></dt>
+  <dd>This permission allows a key or keyring to be linked to.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This permission is required for the <b>KEYCTL_LINK</b>(2const) and
+      <b>KEYCTL_SESSION_TO_PARENT</b>(2const) operations.</dd>
+  <dt></dt>
+  <dd>The permission bits for each category are:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="KEY_POS_LINK"><a class="permalink" href="#KEY_POS_LINK"><b>KEY_POS_LINK</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_USR_LINK"><a class="permalink" href="#KEY_USR_LINK"><b>KEY_USR_LINK</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_GRP_LINK"><a class="permalink" href="#KEY_GRP_LINK"><b>KEY_GRP_LINK</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_OTH_LINK"><a class="permalink" href="#KEY_OTH_LINK"><b>KEY_OTH_LINK</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="setattr"><a class="permalink" href="#setattr"><i>setattr</i> (since
+    Linux 2.6.15)</a></dt>
+  <dd>This permission allows a key's UID, GID, and permissions mask to be
+      changed.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This permission is required for the <b>KEYCTL_REVOKE</b>(2const),
+      <b>KEYCTL_CHOWN</b>(2const), and <b>KEYCTL_SETPERM (2const)</b>
+      operations.</dd>
+  <dt></dt>
+  <dd>The permission bits for each category are:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="KEY_POS_SETATTR"><a class="permalink" href="#KEY_POS_SETATTR"><b>KEY_POS_SETATTR</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_USR_SETATTR"><a class="permalink" href="#KEY_USR_SETATTR"><b>KEY_USR_SETATTR</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_GRP_SETATTR"><a class="permalink" href="#KEY_GRP_SETATTR"><b>KEY_GRP_SETATTR</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_OTH_SETATTR"><a class="permalink" href="#KEY_OTH_SETATTR"><b>KEY_OTH_SETATTR</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+<p class="Pp">As a convenience, the following macros are defined as masks for
+    all of the permission bits in each of the user categories:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="KEY_POS_ALL"><a class="permalink" href="#KEY_POS_ALL"><b>KEY_POS_ALL</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_USR_ALL"><a class="permalink" href="#KEY_USR_ALL"><b>KEY_USR_ALL</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_GRP_ALL"><a class="permalink" href="#KEY_GRP_ALL"><b>KEY_GRP_ALL</b></a></dt>
+  <dd></dd>
+  <dt id="KEY_OTH_ALL"><a class="permalink" href="#KEY_OTH_ALL"><b>KEY_OTH_ALL</b></a></dt>
+  <dd></dd>
+</dl>
+</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>operation</i> was <b>KEYCTL_SETPERM</b> and an invalid permission bit
+      was specified in <i>perms</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_setperm</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.10.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_setperm</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

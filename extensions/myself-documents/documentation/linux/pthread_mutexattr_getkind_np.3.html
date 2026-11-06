@@ -1,0 +1,57 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">pthread_mutexattr_setkind_np(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">pthread_mutexattr_setkind_np(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">pthread_mutexattr_setkind_np, pthread_mutexattr_getkind_np -
+    deprecated mutex creation attributes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;pthread.h&gt;</b></pre>
+<pre><b>int pthread_mutexattr_setkind_np(pthread_mutexattr_t *</b><i>attr</i><b>, int </b><i>kind</i><b>);</b>
+<b>int pthread_mutexattr_getkind_np(const pthread_mutexattr_t *</b><i>attr</i><b>,</b>
+<b>                                 int *</b><i>kind</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions are deprecated, use
+    <b>pthread_mutexattr_settype</b>(3) and <b>pthread_mutexattr_gettype</b>(3)
+    instead.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>pthread_mutexattr_getkind_np</b>() always returns 0.</p>
+<p class="Pp"><b>pthread_mutexattr_setkind_np</b>() returns 0 on success and a
+    non-zero error code on error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">On error, <b>pthread_mutexattr_setkind_np</b>() returns the
+    following error code:</p>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>kind</i> is neither <b>PTHREAD_MUTEX_FAST_NP</b> nor
+      <b>PTHREAD_MUTEX_RECURSIVE_NP</b> nor
+    <b>PTHREAD_MUTEX_ERRORCHECK_NP</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>pthread_mutexattr_settype</b>(3),
+    <b>pthread_mutexattr_gettype</b>(3).</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

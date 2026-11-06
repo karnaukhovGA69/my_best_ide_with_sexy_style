@@ -1,0 +1,104 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_MPX_ENABLE_MANAGEMENT(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_MPX_ENABLE_MANAGEMENT(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_MPX_ENABLE_MANAGEMENT, PR_MPX_DISABLE_MANAGEMENT - enable or
+    disable kernel management of Memory Protection eXtensions (MPX)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>[[deprecated]] int prctl(PR_MPX_ENABLE_MANAGEMENT, 0L, 0L, 0L, 0L);</b>
+<b>[[deprecated]] int prctl(PR_MPX_DISABLE_MANAGEMENT, 0L, 0L, 0L, 0L);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Enable or disable kernel management of Memory Protection
+    eXtensions (MPX) bounds tables.</p>
+<p class="Pp">MPX is a hardware-assisted mechanism for performing bounds
+    checking on pointers. It consists of a set of registers storing bounds
+    information and a set of special instruction prefixes that tell the CPU on
+    which instructions it should do bounds enforcement. There is a limited
+    number of these registers and when there are more pointers than registers,
+    their contents must be &quot;spilled&quot; into a set of tables. These
+    tables are called &quot;bounds tables&quot; and the MPX <b>prctl</b>()
+    operations control whether the kernel manages their allocation and
+  freeing.</p>
+<p class="Pp">When management is enabled, the kernel will take over allocation
+    and freeing of the bounds tables. It does this by trapping the #BR
+    exceptions that result at first use of missing bounds tables and instead of
+    delivering the exception to user space, it allocates the table and populates
+    the bounds directory with the location of the new table. For freeing, the
+    kernel checks to see if bounds tables are present for memory which is not
+    allocated, and frees them if so.</p>
+<p class="Pp">Before enabling MPX management using
+    <b>PR_MPX_ENABLE_MANAGEMENT</b>, the application must first have allocated a
+    user-space buffer for the bounds directory and placed the location of that
+    directory in the <i>bndcfgu</i> register.</p>
+<p class="Pp">These calls fail if the CPU or kernel does not support MPX. Kernel
+    support for MPX is enabled via the <b>CONFIG_X86_INTEL_MPX</b> configuration
+    option. You can check whether the CPU supports MPX by looking for the
+    <i>mpx</i> CPUID bit, like with the following command:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>cat /proc/cpuinfo | grep ' mpx '
+</pre>
+<br/>
+<p class="Pp">A thread may not switch in or out of long (64-bit) mode while MPX
+    is enabled.</p>
+<p class="Pp">All threads in a process are affected by these calls.</p>
+<p class="Pp">The child of a <b>fork</b>(2) inherits the state of MPX
+    management. During <b>execve</b>(2), MPX management is reset to a state as
+    if <b>PR_MPX_DISABLE_MANAGEMENT</b> had been called.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="ENXIO"><a class="permalink" href="#ENXIO"><b>ENXIO</b></a></dt>
+  <dd>The kernel or the CPU does not support MPX management. Check that the
+      kernel and processor have MPX support.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 3.19. Removed in Linux 5.4. Only on x86.</p>
+<p class="Pp">Due to a lack of toolchain support,
+    <b>PR_MPX_ENABLE_MANAGEMENT</b> and <b>PR_MPX_DISABLE_MANAGEMENT</b> are not
+    supported in Linux 5.4 and later.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2)</p>
+<p class="Pp">For further information on Intel MPX, see the kernel source file
+    <i>Documentation/x86/intel_mpx.rst</i>.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

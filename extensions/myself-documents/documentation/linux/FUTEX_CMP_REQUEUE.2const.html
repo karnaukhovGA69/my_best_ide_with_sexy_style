@@ -1,0 +1,133 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FUTEX_CMP_REQUEUE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FUTEX_CMP_REQUEUE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FUTEX_CMP_REQUEUE - compare a futex, wake some waiters, and
+    requeue others</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/futex.h&gt;</b>  /* Definition of <b>FUTEX_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_futex, uint32_t *</b><i>uaddr</i><b>, FUTEX_CMP_REQUEUE,</b>
+<b>             uint32_t </b><i>val</i><b>, uint32_t </b><i>val2</i><b>, uint32_t *</b><i>uaddr2</i><b>,</b>
+<b>             uint32_t </b><i>val3</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This operation first checks whether the location <i>uaddr</i>
+    still contains the value <i>val3</i>. If not, the operation fails with the
+    error <b>EAGAIN</b>. Otherwise, the operation wakes up a maximum of
+    <i>val</i> waiters that are waiting on the futex at <i>uaddr</i>. If there
+    are more than <i>val</i> waiters, then the remaining waiters are removed
+    from the wait queue of the source futex at <i>uaddr</i> and added to the
+    wait queue of the target futex at <i>uaddr2</i>. The <i>val2</i> argument
+    specifies an upper limit on the number of waiters that are requeued to the
+    futex at <i>uaddr2</i>.</p>
+<p class="Pp">The load from <i>uaddr</i> is an atomic memory access (i.e., using
+    atomic machine instructions of the respective architecture). This load, the
+    comparison with <i>val3</i>, and the requeueing of any waiters are performed
+    atomically and totally ordered with respect to other operations on the same
+    futex word.</p>
+<p class="Pp">Typical values to specify for <i>val</i> are 0 or 1. (Specifying
+    <i>val</i> as <b>INT_MAX</b> is not useful, because it would make the
+    <b>FUTEX_CMP_REQUEUE</b> operation equivalent to <b>FUTEX_WAKE</b>(2const).)
+    The limit value specified via <i>val2</i> is typically either 1 or
+    <b>INT_MAX</b>. (Specifying <i>val2</i> as 0 is not useful, because it would
+    make the <b>FUTEX_CMP_REQUEUE</b> operation equivalent to
+    <b>FUTEX_WAKE</b>(2const).)</p>
+<p class="Pp">The <b>FUTEX_CMP_REQUEUE</b> operation was added as a replacement
+    for the earlier <b>FUTEX_REQUEUE</b>(2const). The difference is that the
+    check of the value at <i>uaddr</i> can be used to ensure that requeueing
+    happens only under certain conditions, which allows race conditions to be
+    avoided in certain use cases.</p>
+<p class="Pp">Both <b>FUTEX_REQUEUE</b>(2const) and <b>FUTEX_CMP_REQUEUE</b> can
+    be used to avoid &quot;thundering herd&quot; wake-ups that could occur when
+    using <b>FUTEX_WAKE</b>(2const) in cases where all of the waiters that are
+    woken need to acquire another futex. Consider the following scenario, where
+    multiple waiter threads are waiting on B, a wait queue implemented using a
+    futex:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>lock(A)
+while (!check_value(V)) {
+<br/>
+    unlock(A);
+<br/>
+    block_on(B);
+<br/>
+    lock(A);
+};
+unlock(A);
+</pre>
+<br/>
+<p class="Pp">If a waker thread used <b>FUTEX_WAKE</b>(2const), then all waiters
+    waiting on B would be woken up, and they would all try to acquire lock A.
+    However, waking all of the threads in this manner would be pointless because
+    all except one of the threads would immediately block on lock A again. By
+    contrast, a requeue operation wakes just one waiter and moves the other
+    waiters to lock A, and when the woken waiter unlocks A then the next waiter
+    can proceed.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+<p class="Pp">On success, <b>FUTEX_CMP_REQUEUE</b> returns the total number of
+    waiters that were woken up or requeued to the futex for the futex word at
+    <i>uaddr2</i>. If this value is greater than <i>val</i>, then the difference
+    is the number of waiters requeued to the futex for the futex word at
+    <i>uaddr2</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>futex</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The value pointed to by <i>uaddr</i> is not equal to the expected value
+      <i>val3</i>.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>uaddr2</i> did not point to a valid user-space address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>uaddr2</i> does not point to a valid object&#x2014;that is, the address
+      is not four-byte-aligned.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The kernel detected an inconsistency between the user-space state at
+      <i>uaddr</i> and the kernel state&#x2014;that is, it detected a waiter
+      which waits in <b>FUTEX_LOCK_PI</b>(2const) or
+      <b>FUTEX_LOCK_PI2</b>(2const) on <i>uaddr</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.7.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>futex</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

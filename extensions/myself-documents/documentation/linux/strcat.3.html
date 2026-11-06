@@ -1,0 +1,150 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strcpy(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strcpy(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strcpy, strcat - string copy/catenate</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;string.h&gt;</b></pre>
+<pre><b>char *strcpy(char *restrict </b><i>dst</i><b>, const char *restrict </b><i>src</i><b>);</b>
+<b>char *strcat(char *restrict </b><i>dst</i><b>, const char *restrict </b><i>src</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="strcpy"><a class="permalink" href="#strcpy"><b>strcpy</b>()</a></dt>
+  <dd>This function copies the string pointed to by <i>src</i>, into a string at
+      the buffer pointed to by <i>dst</i>. The programmer is responsible for
+      allocating a destination buffer large enough, that is, <i>strlen(src) +
+      1</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>It is equivalent to</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>stpcpy(dst, src), dst
+    </pre>
+    <br/>
+  </dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="strcat"><a class="permalink" href="#strcat"><b>strcat</b>()</a></dt>
+  <dd>This function catenates the string pointed to by <i>src</i>, after the
+      string pointed to by <i>dst</i> (overwriting its terminating null byte).
+      The programmer is responsible for allocating a destination buffer large
+      enough, that is, <i>strlen(dst) + strlen(src) + 1</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>It is equivalent to</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>stpcpy(strnul(dst), src), dst
+    </pre>
+    <br/>
+  </dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">These functions return <i>dst</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strcpy (), strcat ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89, SVr4, 4.3BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">The strings <i>src</i> and <i>dst</i> may not overlap.</p>
+<p class="Pp">If the destination buffer is not large enough, the behavior is
+    undefined. See <b>_FORTIFY_SOURCE</b> in <b>feature_test_macros</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>#include &lt;err.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+int
+main(void)
+{
+<br/>
+    char    *buf1;
+<br/>
+    size_t  len, size;
+<br/>
+    size = strlen(&quot;Hello &quot;) + strlen(&quot;world&quot;) + strlen(&quot;!&quot;) + 1;
+<br/>
+    buf1 = malloc(sizeof(*buf1) * size);
+<br/>
+    if (buf1 == NULL)
+<br/>
+        err(EXIT_FAILURE, &quot;malloc()&quot;);
+<br/>
+    strcpy(buf1, &quot;Hello &quot;);
+<br/>
+    strcat(buf1, &quot;world&quot;);
+<br/>
+    strcat(buf1, &quot;!&quot;);
+<br/>
+    len = strlen(buf1);
+<br/>
+    printf(&quot;[len = %zu]: &quot;, len);
+<br/>
+    puts(buf1);  // &quot;Hello world!&quot;
+<br/>
+    free(buf1);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>stpcpy</b>(3), <b>strdup</b>(3), <b>string</b>(3),
+    <b>wcscpy</b>(3), <b>string_copying</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-03</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

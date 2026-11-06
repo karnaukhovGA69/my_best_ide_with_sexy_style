@@ -1,0 +1,63 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ipc(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ipc(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ipc - System V IPC system calls</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/ipc.h&gt;</b>        /* Definition of needed constants */
+<b>#include &lt;sys/syscall.h&gt;</b>      /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(SYS_ipc, unsigned int </b><i>call</i><b>, int </b><i>first</i><b>,</b>
+<b>            unsigned long </b><i>second</i><b>, unsigned long </b><i>third</i><b>, void *</b><i>ptr</i><b>,</b>
+<b>            long </b><i>fifth</i><b>);</b></pre>
+<p class="Pp"><i>Note</i>: glibc provides no wrapper for <b>ipc</b>(),
+    necessitating the use of <b>syscall</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>ipc</b>() is a common kernel entry point for the
+    System&#x00A0;V IPC calls for messages, semaphores, and shared memory.
+    <i>call</i> determines which IPC function to invoke; the other arguments are
+    passed through to the appropriate call.</p>
+<p class="Pp">User-space programs should call the appropriate functions by their
+    usual names. Only standard library implementors and kernel hackers need to
+    know about <b>ipc</b>().</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">On some architectures &#x2014;for example x86-64 and ARM&#x2014;
+    there is no <b>ipc</b>() system call; instead, <b>msgctl</b>(2),
+    <b>semctl</b>(2), <b>shmctl</b>(2), and so on really are implemented as
+    separate system calls.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>msgctl</b>(2), <b>msgget</b>(2), <b>msgrcv</b>(2),
+    <b>msgsnd</b>(2), <b>semctl</b>(2), <b>semget</b>(2), <b>semop</b>(2),
+    <b>semtimedop</b>(2), <b>shmat</b>(2), <b>shmctl</b>(2), <b>shmdt</b>(2),
+    <b>shmget</b>(2), <b>sysvipc</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

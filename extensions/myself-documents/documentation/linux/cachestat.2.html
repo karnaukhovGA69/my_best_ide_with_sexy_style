@@ -1,0 +1,91 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">cachestat(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">cachestat(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">cachestat - query the page cache statistics of a file</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/mman.h&gt;</b></pre>
+<pre><b>int cachestat(unsigned int </b><i>fd</i><b>, struct cachestat_range *</b><i>cstat_range</i><b>,</b>
+<b>              struct cachestat *</b><i>cstat</i><b>, unsigned int </b><i>flags</i><b>);</b></pre>
+<p class="Pp"></p>
+<pre><b>struct cachestat_range {</b>
+<b>    __u64 off;</b>
+<b>    __u64 len;</b>
+<b>};</b></pre>
+<pre><b>struct cachestat {</b>
+<b>    __u64 nr_cache;</b>
+<b>    __u64 nr_dirty;</b>
+<b>    __u64 nr_writeback;</b>
+<b>    __u64 nr_evicted;</b>
+<b>    __u64 nr_recently_evicted;</b>
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>cachestat()</b> queries the number of cached pages, dirty
+    pages, pages marked for writeback, evicted pages, and recently evicted pages
+    in the byte range specified by <i>.off</i> and <i>.len</i> in the
+    <b>cachestat_range</b> structure.</p>
+<p class="Pp">An evicted page is one that was previously in the page cache but
+    has since been evicted. A page is considered recently evicted if its reentry
+    into the cache would indicate active usage under memory pressure.</p>
+<p class="Pp">The results are returned in a <b>cachestat</b> structure, pointed
+    to by the <i>cstat</i> argument.</p>
+<p class="Pp">The <i>.off</i> and <i>.len</i> fields must be non-negative. If
+    <i>.len&#x00A0;&gt;&#x00A0;0</i>, the queried range is
+    [<i>.off</i>,&#x00A0;<i>.off+.len</i>]. If <i>len&#x00A0;==&#x00A0;0</i>,
+    the range is from <i>.off</i> to the end of the file.</p>
+<p class="Pp">The <i>flags</i> argument is reserved for future use and must be
+    set to <b>0</b>.</p>
+<p class="Pp">Currently, <b>hugetlbfs</b> files are not supported.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>cachestat()</b> returns 0. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>cstat</i> or <i>cstat_range</i> point to an invalid address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>Invalid <i>flags</i> value.</dd>
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd>Invalid file descriptor.</dd>
+  <dt id="EOPNOTSUPP"><a class="permalink" href="#EOPNOTSUPP"><b>EOPNOTSUPP</b></a></dt>
+  <dd>The file descriptor refers to a <b>hugetlbfs</b> file, which is
+      unsupported.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 6.5.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Note that the status of a page may change after <b>cachestat()</b>
+    retrieves it but before the values are returned to the application; thus,
+    the values may be slightly outdated.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-06-28</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

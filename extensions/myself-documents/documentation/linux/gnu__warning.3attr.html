@@ -1,0 +1,70 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">gnu::warning(3attr)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">gnu::warning(3attr)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">gnu::warning, gnu::error - diagnose function calls not removed by
+    optimizations</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>[[gnu::warning(</b><i>msg</i><b>)]]</b>
+<b>[[gnu::error(</b><i>msg</i><b>)]]</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This attribute can be applied to a function. If the function call
+    is not removed by optimizations, a diagnostic is emitted. The diagnostic
+    contains the message <i>msg</i> and the location of the call in the source
+    code.</p>
+<p class="Pp"><b>[[gnu::error()]]</b> terminates the compilation after emitting
+    the diagnostic.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<dl class="Bl-tag">
+  <dt><b>__attribute__((warning(</b><i>msg</i><b>)))</b></dt>
+  <dd></dd>
+  <dt><b>__attribute__((error(</b><i>msg</i><b>)))</b></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">gcc 4.3, g++ 4.3, clang 14, clang++ 14.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">This diagnostic is emitted by the compiler, so it doesn't take
+    into account linker optimizations.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>#include &lt;stdlib.h&gt;
+[[gnu::warning(&quot;foo&quot;)]] void dontcall(void);
+int
+main(void)
+{
+	dontcall();  // Warning.
+	if (0)
+		dontcall();  // No warning.
+	exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-11</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,149 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fsmount(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">fsmount(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fsmount - instantiate mount object from filesystem context</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/mount.h&gt;</b></pre>
+<pre><b>int fsmount(int </b><i>fsfd</i><b>, unsigned int </b><i>flags</i><b>, unsigned int </b><i>attr_flags</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>fsmount</b>() system call is part of the suite of
+    file-descriptor-based mount facilities in Linux.</p>
+<p class="Pp"><b>fsmount</b>() creates a new detached mount object for the root
+    of the new filesystem instance referenced by the filesystem context file
+    descriptor <i>fsfd</i>. A new file descriptor associated with the detached
+    mount object is then returned. In order to create a mount object with
+    <b>fsmount</b>(), the calling process must have the <b>CAP_SYS_ADMIN</b>
+    capability.</p>
+<p class="Pp">The filesystem context must have been created with a call to
+    <b>fsopen</b>(2) and then had a filesystem instance instantiated with a call
+    to <b>fsconfig</b>(2) with <b>FSCONFIG_CMD_CREATE</b> or
+    <b>FSCONFIG_CMD_CREATE_EXCL</b> in order to be in the correct state for this
+    operation (the &quot;awaiting-mount&quot; mode in kernel-developer
+    parlance). Unlike <b>open_tree</b>(2) with <b>OPEN_TREE_CLONE</b>,
+    <b>fsmount</b>() can only be called once in the lifetime of a filesystem
+    context to produce a mount object.</p>
+<p class="Pp">As with file descriptors returned from <b>open_tree</b>(2) called
+    with <b>OPEN_TREE_CLONE</b>, the returned file descriptor can then be used
+    with <b>move_mount</b>(2), <b>mount_setattr</b>(2), or other such system
+    calls to do further mount operations. This mount object will be unmounted
+    and destroyed when the file descriptor is closed if it was not otherwise
+    attached to a mount point by calling <b>move_mount</b>(2). (Note that the
+    unmount operation on <b>close</b>(2) is lazy&#x2014;akin to calling
+    <b>umount2</b>(2) with <b>MNT_DETACH</b>; any existing open references to
+    files from the mount object will continue to work, and the mount object will
+    only be completely destroyed once it ceases to be busy.) The returned file
+    descriptor also acts the same as one produced by <b>open</b>(2) with
+    <b>O_PATH</b>, meaning it can also be used as a <i>dirfd</i> argument to
+    &quot;*at()&quot; system calls.</p>
+<p class="Pp"><i>flags</i> controls the creation of the returned file
+    descriptor. A value for <i>flags</i> is constructed by bitwise ORing zero or
+    more of the following constants:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="FSMOUNT_CLOEXEC"><a class="permalink" href="#FSMOUNT_CLOEXEC"><b>FSMOUNT_CLOEXEC</b></a></dt>
+  <dd>Set the close-on-exec (<b>FD_CLOEXEC</b>) flag on the new file descriptor.
+      See the description of the <b>O_CLOEXEC</b> flag in <b>open</b>(2) for
+      reasons why this may be useful.</dd>
+</dl>
+</div>
+<p class="Pp"><i>attr_flags</i> specifies mount attributes which will be applied
+    to the created mount object, in the form of <b>MOUNT_ATTR_</b><i>*</i>
+    flags. The flags are interpreted as though <b>mount_setattr</b>(2) was
+    called with <i>attr.attr_set</i> set to the same value as <i>attr_flags</i>.
+    <b>MOUNT_ATTR_</b><i>*</i> flags which would require specifying additional
+    fields in <b>mount_attr</b>(2type) (such as <b>MOUNT_ATTR_IDMAP</b>) are not
+    valid flag values for <i>attr_flags</i>.</p>
+<p class="Pp">If the <b>fsmount</b>() operation is successful, the filesystem
+    context associated with the file descriptor <i>fsfd</i> is reset and placed
+    into reconfiguration mode, as if it were just returned by <b>fspick</b>(2).
+    You may continue to use <b>fsconfig</b>(2) with the now-reset filesystem
+    context, including issuing the <b>FSCONFIG_CMD_RECONFIGURE</b> command to
+    reconfigure the filesystem instance.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, a new file descriptor is returned. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBUSY"><a class="permalink" href="#EBUSY"><b>EBUSY</b></a></dt>
+  <dd>The filesystem context associated with <i>fsfd</i> is not in the right
+      state to be used by <b>fsmount</b>().</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>flags</i> had an invalid flag set.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>attr_flags</i> had an invalid <b>MOUNT_ATTR_</b><i>*</i> flag set.</dd>
+  <dt id="EMFILE"><a class="permalink" href="#EMFILE"><b>EMFILE</b></a></dt>
+  <dd>The calling process has too many open files to create more.</dd>
+  <dt id="ENFILE"><a class="permalink" href="#ENFILE"><b>ENFILE</b></a></dt>
+  <dd>The system has too many open files to create more.</dd>
+  <dt id="ENOSPC"><a class="permalink" href="#ENOSPC"><b>ENOSPC</b></a></dt>
+  <dd>The &quot;anonymous&quot; mount namespace necessary to contain the new
+      mount object could not be allocated, as doing so would exceed the
+      configured per-user limit on the number of mount namespaces in the current
+      user namespace. (See also <b>namespaces</b>(7).)</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate sufficient memory to complete the
+    operation.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The calling process does not have the required <b>CAP_SYS_ADMIN</b>
+      capability.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.2. glibc 2.36.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<br/>
+<pre>int fsfd, mntfd, tmpfd;
+fsfd = fsopen(&quot;tmpfs&quot;, FSOPEN_CLOEXEC);
+fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0);
+mntfd = fsmount(fsfd, FSMOUNT_CLOEXEC,
+<br/>
+                MOUNT_ATTR_NODEV | MOUNT_ATTR_NOEXEC);
+/* Create a new file without attaching the mount object */
+tmpfd = openat(mntfd, &quot;tmpfile&quot;, O_CREAT | O_EXCL | O_RDWR, 0600);
+unlinkat(mntfd, &quot;tmpfile&quot;, 0);
+/* Attach the mount object to &quot;/tmp&quot; */
+move_mount(mntfd, &quot;&quot;, AT_FDCWD, &quot;/tmp&quot;, MOVE_MOUNT_F_EMPTY_PATH);
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fsconfig</b>(2), <b>fsopen</b>(2), <b>fspick</b>(2),
+    <b>mount</b>(2), <b>mount_setattr</b>(2), <b>move_mount</b>(2),
+    <b>open_tree</b>(2), <b>mount_namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-10-01</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

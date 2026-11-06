@@ -1,0 +1,91 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">significand(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">significand(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">significand, significandf, significandl - get mantissa of
+    floating-point number</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Math library (<i>libm</i>,&#x00A0;<i>-lm</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;math.h&gt;</b></pre>
+<pre><b>double significand(double </b><i>x</i><b>);</b>
+<b>float significandf(float </b><i>x</i><b>);</b>
+<b>long double significandl(long double </b><i>x</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>significand</b>(), <b>significandf</b>(),
+    <b>significandl</b>():</p>
+<pre>
+<br/>
+    /* Since glibc 2.19: */ _DEFAULT_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions return the mantissa of <i>x</i> scaled to the
+    range [<b>1</b>,&#x00A0;<b>FLT_RADIX</b>). They are equivalent to</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>scalb(x, (double) -ilogb(x))
+</pre>
+<br/>
+<p class="Pp">This function exists mainly for use in certain standardized tests
+    for IEEE 754 conformance.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>significand (), significandf (), significandl ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+<dl class="Bl-tag">
+  <dt id="significand"><a class="permalink" href="#significand"><b>significand</b>()</a></dt>
+  <dd>BSD.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="significand~2"><a class="permalink" href="#significand~2"><b>significand</b>()</a></dt>
+  <dd>BSD.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ilogb</b>(3), <b>scalb</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

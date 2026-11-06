@@ -1,0 +1,55 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_environ(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_environ(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/environ - initial environment</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/environ</i></dt>
+  <dd>This file contains the initial environment that was set when the currently
+      executing program was started via <b>execve</b>(2). The entries are
+      separated by null bytes ('\0'), and there may be a null byte at the end.
+      Thus, to print out the environment of process 1, you would do:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>$<b> cat /proc/1/environ | tr '\000' '\n'</b>
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>If, after an <b>execve</b>(2), the process modifies its environment (e.g.,
+      by calling functions such as <b>putenv</b>(3) or modifying the
+      <b>environ</b>(7) variable directly), this file will <i>not</i> reflect
+      those changes.</dd>
+  <dt></dt>
+  <dd>Furthermore, a process may change the memory location that this file
+      refers via <b>prctl</b>(2) operations such as
+    <b>PR_SET_MM_ENV_START</b>.</dd>
+  <dt></dt>
+  <dd>Permission to access this file is governed by a ptrace access mode
+      <b>PTRACE_MODE_READ_FSCREDS</b> check; see <b>ptrace</b>(2).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

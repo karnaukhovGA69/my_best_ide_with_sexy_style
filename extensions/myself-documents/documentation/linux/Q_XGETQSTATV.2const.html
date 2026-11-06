@@ -1,0 +1,139 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">Q_XGETQSTATV(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">Q_XGETQSTATV(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">Q_XGETQSTATV - get XFS-specific quota information</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b>      /* See quotactl(2) */
+<b>#include &lt;sys/quota.h&gt;</b></pre>
+<pre><b>int&#x00A0;quotactl(QCMD(Q_XGETQSTATV, </b><i>type</i><b>), const&#x00A0;char&#x00A0;*_Nullable&#x00A0;</b><i>special</i><b>, 0,</b>
+<b>             caddr_t&#x00A0;</b><i>addr</i><b>);</b></pre>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b>      /* See quotactl_fd(2) */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int&#x00A0;syscall(SYS_quotactl_fd, int&#x00A0;</b><i>fd</i><b>, QCMD(Q_XGETQSTATV, </b><i>type</i><b>), 0,</b>
+<b>            struct&#x00A0;fs_quota_statv&#x00A0;*</b><i>addr</i><b>);</b></pre>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b>      /* See quotactl_fd(2) */</pre>
+<p class="Pp"></p>
+<pre>#define FS_QSTATV_VERSION1  1
+struct fs_quota_statv {
+	int8_t    qs_version;
+	uint8_t   qs_pad1;
+	uint16_t  qs_flags;
+	uint32_t  qs_incoredqs;
+	struct fs_qfilestatv  qs_uquota;
+	struct fs_qfilestatv  qs_gquota;
+	struct fs_qfilestatv  qs_pquota;
+	int32_t   qs_btimelimit;
+	int32_t   qs_itimelimit;
+	int32_t   qs_rtbtimelimit;
+	uint16_t  qs_bwarnlimit;
+	uint16_t  qs_iwarnlimit;
+	uint64_t  qs_pad2[8];
+};
+struct fs_qfilestatv {
+	uint64_t  qfs_ino;
+	uint64_t  qfs_nblks;
+	uint32_t  qfs_nextents;
+	uint32_t  qfs_pad;
+};
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Returns XFS filesystem-specific quota information in the
+    <i>fs_quota_statv</i> pointed to by <i>addr</i>.</p>
+<p class="Pp">This version of the operation (compared to
+    <b>Q_XGETQSTAT</b>(2const)) uses a structure with proper versioning support,
+    along with appropriate layout (all fields are naturally aligned) and padding
+    to avoiding special compat handling; it also provides the ability to get
+    statistics regarding the project quota file.</p>
+<section class="Ss">
+<h2 class="Ss" id="struct"><a class="permalink" href="#struct">struct&#x00A0;fs_quota_statv</a></h2>
+<dl class="Bl-tag">
+  <dt><i>.qs_version</i></dt>
+  <dd>This field should be filled with the version of the structure supported by
+      the callee (for now, only <i>FS_QSTAT_VERSION1</i> is supported). The
+      kernel will fill the structure in accordance with the version
+    provided.</dd>
+  <dt><i>.qs_pad1</i></dt>
+  <dd>Pad for 16-bit alignment.</dd>
+  <dt><i>.qs_flags</i></dt>
+  <dd><b>XFS_QUOTA_</b><i>*</i> flags.</dd>
+  <dt><i>.qs_incoredqs</i></dt>
+  <dd>Number of dquots incore.</dd>
+  <dt><i>.qs_uquota</i></dt>
+  <dd>User quota information.</dd>
+  <dt><i>.qs_gquota</i></dt>
+  <dd>Group quota information.</dd>
+  <dt><i>.qs_pquota</i></dt>
+  <dd>Project quota information.</dd>
+  <dt><i>.qs_btimelimit</i></dt>
+  <dd>Limit for blocks timer.</dd>
+  <dt><i>.qs_itimelimit</i></dt>
+  <dd>Limit for inodes timer.</dd>
+  <dt><i>.qs_rtbtimelimit</i></dt>
+  <dd>Limit for RT blocks timer.</dd>
+  <dt><i>.qs_bwarnlimit</i></dt>
+  <dd>Limit for # of warnings.</dd>
+  <dt><i>.qs_iwarnlimit</i></dt>
+  <dd>Limit for # of warnings.</dd>
+  <dt><i>.qs_pad2</i></dt>
+  <dd>For future proofing.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="struct~2"><a class="permalink" href="#struct~2">struct&#x00A0;fs_qfilestatv</a></h2>
+<dl class="Bl-tag">
+  <dt><i>.qfs_ino</i></dt>
+  <dd>Inode number.</dd>
+  <dt><i>.qfs_nblks</i></dt>
+  <dd>Number of BBs 512-byte-blocks.</dd>
+  <dt><i>.qfs_nextents</i></dt>
+  <dd>Number of extents.</dd>
+  <dt><i>.qfs_pad</i></dt>
+  <dd>Pad for 8-byte alignment.</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>quotactl</b>(2), <b>quotactl_fd</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

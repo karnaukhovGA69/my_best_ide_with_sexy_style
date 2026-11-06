@@ -1,0 +1,67 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">clone2(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">clone2(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">clone2, __clone2 - create a child process</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre>// glibc wrapper:
+<b>int __clone2(typeof(int (void *)) *</b><i>fn</i><b>,</b>
+<b>             void *</b><i>stack_base</i><b>, size_t </b><i>stack_size</i><b>,</b>
+<b>             int </b><i>flags</i><b>, void *</b><i>arg</i><b>, ...</b>
+<b>          /* pid_t *</b><i>parent_tid</i><b>, struct user_desc *</b><i>tls</i><b>,</b>
+<b>             pid_t *</b><i>child_tid</i><b> */ );</b></pre>
+<pre>// System call:
+<b>long syscall(SYS_clone2, unsigned long </b><i>flags</i><b>, void *</b><i>stack_base</i><b>,</b>
+<b>            int </b><i>stack_size</i><b>,</b><i>         /* Size of stack */</i>
+<b>            int *</b><i>parent_tid</i><b>, int *</b><i>child_tid</i><b>,</b>
+<b>            unsigned long </b><i>tls</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These interfaces are similar to <b>clone</b>(2) but for ia64.</p>
+<p class="Pp">These interfaces operate in the same way as <b>clone</b>(2),
+    except that <i>stack_base</i> points to the lowest address of the child's
+    stack area, and <i>stack_size</i> specifies the size of the stack pointed to
+    by <i>stack_base</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>clone</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>clone</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux (ia64).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>clone</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

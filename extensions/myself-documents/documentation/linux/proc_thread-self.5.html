@@ -1,0 +1,87 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_task(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_task(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/task/, /proc/tid/, /proc/thread-self/ - thread
+    information</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/task/</i> (since Linux 2.6.0)</dt>
+  <dd>This is a directory that contains one subdirectory for each thread in the
+      process. The name of each subdirectory is the numerical thread ID
+      (<i>tid</i>) of the thread (see <b>gettid</b>(2)).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Within each of these subdirectories, there is a set of files with the same
+      names and contents as under the <i>/proc/</i>pid directories. For
+      attributes that are shared by all threads, the contents for each of the
+      files under the <i>task/</i>tid subdirectories will be the same as in the
+      corresponding file in the parent <i>/proc/</i>pid directory (e.g., in a
+      multithreaded process, all of the <i>task/</i>tid<i>/cwd</i> files will
+      have the same value as the <i>/proc/</i>pid<i>/cwd</i> file in the parent
+      directory, since all of the threads in a process share a working
+      directory). For attributes that are distinct for each thread, the
+      corresponding files under <i>task/</i>tid may have different values (e.g.,
+      various fields in each of the <i>task/</i>tid<i>/status</i> files may be
+      different for each thread), or they might not exist in <i>/proc/</i>pid at
+      all.</dd>
+  <dt></dt>
+  <dd>In a multithreaded process, the contents of the
+      <i>/proc/</i>pid<i>/task</i> directory are not available if the main
+      thread has already terminated (typically by calling
+      <b>pthread_exit</b>(3)).</dd>
+  <dt></dt>
+  <dd>See also:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="proc_tid_children"><a class="permalink" href="#proc_tid_children"><b>proc_tid_children</b>(5).</a></dt>
+  <dd></dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>tid<i>/</i></dt>
+  <dd>There is a numerical subdirectory for each running thread that is not a
+      thread group leader (i.e., a thread whose thread ID is not the same as its
+      process ID); the subdirectory is named by the thread ID. Each one of these
+      subdirectories contains files and subdirectories exposing information
+      about the thread with the thread ID <i>tid</i>. The contents of these
+      directories are the same as the corresponding
+      <i>/proc/</i>pid<i>/task/</i>tid directories.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The <i>/proc/</i>tid subdirectories are <i>not</i> visible when iterating
+      through <i>/proc</i> with <b>getdents</b>(2) (and thus are <i>not</i>
+      visible when one uses <b>ls</b>(1) to view the contents of <i>/proc</i>).
+      However, the pathnames of these directories are visible to (i.e., usable
+      as arguments in) system calls that operate on pathnames.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt><i>/proc/thread-self/</i> (since Linux 3.17)</dt>
+  <dd>This directory refers to the thread accessing the <i>/proc</i> filesystem,
+      and is identical to the <i>/proc/self/task/</i>tid directory named by the
+      process thread ID (<i>tid</i>) of the same thread.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

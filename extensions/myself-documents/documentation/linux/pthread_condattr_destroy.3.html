@@ -1,0 +1,54 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">pthread_condattr_init(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">pthread_condattr_init(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">pthread_condattr_init, pthread_condattr_destroy - condition
+    creation attributes</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><b>#include &lt;pthread.h&gt;</b></p>
+<p class="Pp"><b>int pthread_condattr_init(pthread_condattr_t
+    *</b><i>attr</i><b>);</b> <b>int pthread_condattr_destroy(pthread_condattr_t
+    *</b><i>attr</i><b>);</b></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Condition attributes can be specified at condition creation time,
+    by passing a condition attribute object as second argument to
+    <b>pthread_cond_init</b>(3). Passing NULL is equivalent to passing a
+    condition attribute object with all attributes set to their default
+  values.</p>
+<p class="Pp">The LinuxThreads implementation supports no attributes for
+    conditions. The functions on condition attributes are included only for
+    compliance with the POSIX standard.</p>
+<p class="Pp"><b>pthread_condattr_init</b>() initializes the condition attribute
+    object <i>attr</i> and fills it with default values for the attributes.
+    <b>pthread_condattr_destroy</b>() destroys a condition attribute object,
+    which must not be reused until it is reinitialized. Both functions do
+    nothing in the LinuxThreads implementation.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>pthread_condattr_init</b>() and
+    <b>pthread_condattr_destroy</b>() always return 0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>pthread_cond_init</b>(3).</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

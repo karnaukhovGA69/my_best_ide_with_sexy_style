@@ -1,0 +1,445 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fcntl_locking(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">fcntl_locking(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GETLK, F_SETLK, F_SETLKW, F_OFD_GETLK, F_OFD_SETLK, F_OFD_SETLKW
+    - locking</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_GETLK, struct flock *</b><i>lock</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_SETLK, const struct flock *</b><i>lock</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_SETLKW, const struct flock *</b><i>lock</i><b>);</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_OFD_GETLK, struct flock *</b><i>lock</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_OFD_SETLK, const struct flock *</b><i>lock</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_OFD_SETLKW, const struct flock *</b><i>lock</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Advisory_record_locking"><a class="permalink" href="#Advisory_record_locking">Advisory
+  record locking</a></h2>
+<p class="Pp">Linux implements traditional (&quot;process-associated&quot;) UNIX
+    record locks, as standardized by POSIX. For a Linux-specific alternative
+    with better semantics, see the discussion of open file description locks
+    below.</p>
+<p class="Pp"><b>F_SETLK</b>, <b>F_SETLKW</b>, and <b>F_GETLK</b> are used to
+    acquire, release, and test for the existence of record locks (also known as
+    byte-range, file-segment, or file-region locks). The third argument,
+    <i>lock</i>, is a pointer to a structure that has at least the following
+    fields (in unspecified order).</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct flock {
+<br/>
+    ...
+<br/>
+    short l_type;    /* Type of lock: F_RDLCK,
+<br/>
+                        F_WRLCK, F_UNLCK */
+<br/>
+    short l_whence;  /* How to interpret l_start:
+<br/>
+                        SEEK_SET, SEEK_CUR, SEEK_END */
+<br/>
+    off_t l_start;   /* Starting offset for lock */
+<br/>
+    off_t l_len;     /* Number of bytes to lock */
+<br/>
+    pid_t l_pid;     /* PID of process blocking our lock
+<br/>
+                        (set by F_GETLK and F_OFD_GETLK) */
+<br/>
+    ...
+};
+</pre>
+<br/>
+<p class="Pp">The <i>l_whence</i>, <i>l_start</i>, and <i>l_len</i> fields of
+    this structure specify the range of bytes we wish to lock. Bytes past the
+    end of the file may be locked, but not bytes before the start of the
+  file.</p>
+<p class="Pp"><i>l_start</i> is the starting offset for the lock, and is
+    interpreted relative to either: the start of the file (if <i>l_whence</i> is
+    <b>SEEK_SET</b>); the current file offset (if <i>l_whence</i> is
+    <b>SEEK_CUR</b>); or the end of the file (if <i>l_whence</i> is
+    <b>SEEK_END</b>). In the final two cases, <i>l_start</i> can be a negative
+    number provided the offset does not lie before the start of the file.</p>
+<p class="Pp"><i>l_len</i> specifies the number of bytes to be locked. If
+    <i>l_len</i> is positive, then the range to be locked covers bytes
+    <i>l_start</i> up to and including <i>l_start</i>+<i>l_len</i>-1. Specifying
+    0 for <i>l_len</i> has the special meaning: lock all bytes starting at the
+    location specified by <i>l_whence</i> and <i>l_start</i> through to the end
+    of file, no matter how large the file grows.</p>
+<p class="Pp">POSIX.1-2001 allows (but does not require) an implementation to
+    support a negative <i>l_len</i> value; if <i>l_len</i> is negative, the
+    interval described by <i>lock</i> covers bytes <i>l_start</i>+<i>l_len</i>
+    up to and including <i>l_start</i>-1. This is supported since Linux 2.4.21
+    and Linux 2.5.49.</p>
+<p class="Pp">The <i>l_type</i> field can be used to place a read
+    (<b>F_RDLCK</b>) or a write (<b>F_WRLCK</b>) lock on a file. Any number of
+    processes may hold a read lock (shared lock) on a file region, but only one
+    process may hold a write lock (exclusive lock). An exclusive lock excludes
+    all other locks, both shared and exclusive. A single process can hold only
+    one type of lock on a file region; if a new lock is applied to an
+    already-locked region, then the existing lock is converted to the new lock
+    type. (Such conversions may involve splitting, shrinking, or coalescing with
+    an existing lock if the byte range specified by the new lock does not
+    precisely coincide with the range of the existing lock.)</p>
+<dl class="Bl-tag">
+  <dt id="F_SETLK"><a class="permalink" href="#F_SETLK"><b>F_SETLK</b></a></dt>
+  <dd>Acquire a lock (when <i>l_type</i> is <b>F_RDLCK</b> or <b>F_WRLCK</b>) or
+      release a lock (when <i>l_type</i> is <b>F_UNLCK</b>) on the bytes
+      specified by the <i>l_whence</i>, <i>l_start</i>, and <i>l_len</i> fields
+      of <i>lock</i>. If a conflicting lock is held by another process, this
+      call returns -1 and sets <i>errno</i> to <b>EACCES</b> or <b>EAGAIN</b>.
+      (The error returned in this case differs across implementations, so POSIX
+      requires a portable application to check for both errors.)</dd>
+  <dt id="F_SETLKW"><a class="permalink" href="#F_SETLKW"><b>F_SETLKW</b></a></dt>
+  <dd>As for <b>F_SETLK</b>, but if a conflicting lock is held on the file, then
+      wait for that lock to be released. If a signal is caught while waiting,
+      then the call is interrupted and (after the signal handler has returned)
+      returns immediately (with return value -1 and <i>errno</i> set to
+      <b>EINTR</b>; see <b>signal</b>(7)).</dd>
+  <dt id="F_GETLK"><a class="permalink" href="#F_GETLK"><b>F_GETLK</b></a></dt>
+  <dd>On input to this call, <i>lock</i> describes a lock we would like to place
+      on the file. If the lock could be placed, <b>fcntl</b>() does not actually
+      place it, but returns <b>F_UNLCK</b> in the <i>l_type</i> field of
+      <i>lock</i> and leaves the other fields of the structure unchanged.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If one or more incompatible locks would prevent this lock being placed,
+      then <b>fcntl</b>() returns details about one of those locks in the
+      <i>l_type</i>, <i>l_whence</i>, <i>l_start</i>, and <i>l_len</i> fields of
+      <i>lock</i>. If the conflicting lock is a traditional (process-associated)
+      record lock, then the <i>l_pid</i> field is set to the PID of the process
+      holding that lock. If the conflicting lock is an open file description
+      lock, then <i>l_pid</i> is set to -1. Note that the returned information
+      may already be out of date by the time the caller inspects it.</dd>
+</dl>
+<p class="Pp">In order to place a read lock, <i>fd</i> must be open for reading.
+    In order to place a write lock, <i>fd</i> must be open for writing. To place
+    both types of lock, open a file read-write.</p>
+<p class="Pp">When placing locks with <b>F_SETLKW</b>, the kernel detects
+    <i>deadlocks</i>, whereby two or more processes have their lock requests
+    mutually blocked by locks held by the other processes. For example, suppose
+    process A holds a write lock on byte 100 of a file, and process B holds a
+    write lock on byte 200. If each process then attempts to lock the byte
+    already locked by the other process using <b>F_SETLKW</b>, then, without
+    deadlock detection, both processes would remain blocked indefinitely. When
+    the kernel detects such deadlocks, it causes one of the blocking lock
+    requests to immediately fail with the error <b>EDEADLK</b>; an application
+    that encounters such an error should release some of its locks to allow
+    other applications to proceed before attempting regain the locks that it
+    requires. Circular deadlocks involving more than two processes are also
+    detected. Note, however, that there are limitations to the kernel's
+    deadlock-detection algorithm; see BUGS.</p>
+<p class="Pp">As well as being removed by an explicit <b>F_UNLCK</b>, record
+    locks are automatically released when the process terminates.</p>
+<p class="Pp">Record locks are not inherited by a child created via
+    <b>fork</b>(2), but are preserved across an <b>execve</b>(2).</p>
+<p class="Pp">Because of the buffering performed by the <b>stdio</b>(3) library,
+    the use of record locking with routines in that package should be avoided;
+    use <b>read</b>(2) and <b>write</b>(2) instead.</p>
+<p class="Pp">The record locks described above are associated with the process
+    (unlike the open file description locks described below). This has some
+    unfortunate consequences:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>If a process closes <i>any</i> file descriptor referring to a file, then
+      all of the process's locks on that file are released, regardless of the
+      file descriptor(s) on which the locks were obtained. This is bad: it means
+      that a process can lose its locks on a file such as <i>/etc/passwd</i> or
+      <i>/etc/mtab</i> when for some reason a library function decides to open,
+      read, and close the same file.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The threads in a process share locks. In other words, a multithreaded
+      program can't use record locking to ensure that threads don't
+      simultaneously access the same region of a file.</dd>
+</dl>
+<p class="Pp">Open file description locks solve both of these problems.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Open_file_description_locks_(non-POSIX)"><a class="permalink" href="#Open_file_description_locks_(non-POSIX)">Open
+  file description locks (non-POSIX)</a></h2>
+<p class="Pp">Open file description locks are advisory byte-range locks whose
+    operation is in most respects identical to the traditional record locks
+    described above. This lock type is Linux-specific, and available since Linux
+    3.15. (There is a proposal with the Austin Group to include this lock type
+    in the next revision of POSIX.1.) For an explanation of open file
+    descriptions, see <b>open</b>(2).</p>
+<p class="Pp">The principal difference between the two lock types is that
+    whereas traditional record locks are associated with a process, open file
+    description locks are associated with the open file description on which
+    they are acquired, much like locks acquired with <b>flock</b>(2).
+    Consequently (and unlike traditional advisory record locks), open file
+    description locks are inherited across <b>fork</b>(2) (and <b>clone</b>(2)
+    with <b>CLONE_FILES</b>), and are only automatically released on the last
+    close of the open file description, instead of being released on any close
+    of the file.</p>
+<p class="Pp">Conflicting lock combinations (i.e., a read lock and a write lock
+    or two write locks) where one lock is an open file description lock and the
+    other is a traditional record lock conflict even when they are acquired by
+    the same process on the same file descriptor.</p>
+<p class="Pp">Open file description locks placed via the same open file
+    description (i.e., via the same file descriptor, or via a duplicate of the
+    file descriptor created by <b>fork</b>(2), <b>dup</b>(2),
+    <b>F_DUPFD</b>(2const), and so on) are always compatible: if a new lock is
+    placed on an already locked region, then the existing lock is converted to
+    the new lock type. (Such conversions may result in splitting, shrinking, or
+    coalescing with an existing lock as discussed above.)</p>
+<p class="Pp">On the other hand, open file description locks may conflict with
+    each other when they are acquired via different open file descriptions.
+    Thus, the threads in a multithreaded program can use open file description
+    locks to synchronize access to a file region by having each thread perform
+    its own <b>open</b>(2) on the file and applying locks via the resulting file
+    descriptor.</p>
+<p class="Pp">As with traditional advisory locks, the third argument to
+    <b>fcntl</b>(), <i>lock</i>, is a pointer to an <i>flock</i> structure. By
+    contrast with traditional record locks, the <i>l_pid</i> field of that
+    structure must be set to zero when using the operations described below.</p>
+<p class="Pp">The operations for working with open file description locks are
+    analogous to those used with traditional locks:</p>
+<dl class="Bl-tag">
+  <dt id="F_OFD_SETLK"><a class="permalink" href="#F_OFD_SETLK"><b>F_OFD_SETLK</b></a></dt>
+  <dd>Acquire an open file description lock (when <i>l_type</i> is
+      <b>F_RDLCK</b> or <b>F_WRLCK</b>) or release an open file description lock
+      (when <i>l_type</i> is <b>F_UNLCK</b>) on the bytes specified by the
+      <i>l_whence</i>, <i>l_start</i>, and <i>l_len</i> fields of <i>lock</i>.
+      If a conflicting lock is held by another process, this call returns -1 and
+      sets <i>errno</i> to <b>EAGAIN</b>.</dd>
+  <dt id="F_OFD_SETLKW"><a class="permalink" href="#F_OFD_SETLKW"><b>F_OFD_SETLKW</b></a></dt>
+  <dd>As for <b>F_OFD_SETLK</b>, but if a conflicting lock is held on the file,
+      then wait for that lock to be released. If a signal is caught while
+      waiting, then the call is interrupted and (after the signal handler has
+      returned) returns immediately (with return value -1 and <i>errno</i> set
+      to <b>EINTR</b>; see <b>signal</b>(7)).</dd>
+  <dt id="F_OFD_GETLK"><a class="permalink" href="#F_OFD_GETLK"><b>F_OFD_GETLK</b></a></dt>
+  <dd>On input to this call, <i>lock</i> describes an open file description lock
+      we would like to place on the file. If the lock could be placed,
+      <b>fcntl</b>() does not actually place it, but returns <b>F_UNLCK</b> in
+      the <i>l_type</i> field of <i>lock</i> and leaves the other fields of the
+      structure unchanged. If one or more incompatible locks would prevent this
+      lock being placed, then details about one of these locks are returned via
+      <i>lock</i>, as described above for <b>F_GETLK</b>.</dd>
+</dl>
+<p class="Pp">In the current implementation, no deadlock detection is performed
+    for open file description locks. (This contrasts with process-associated
+    record locks, for which the kernel does perform deadlock detection.)</p>
+</section>
+<section class="Ss">
+<h2 class="Ss">Mandatory locking</h2>
+<p class="Pp"><i>Warning</i>: the Linux implementation of mandatory locking is
+    unreliable. See BUGS below. Because of these bugs, and the fact that the
+    feature is believed to be little used, since Linux 4.5, mandatory locking
+    has been made an optional feature, governed by a configuration option
+    (<b>CONFIG_MANDATORY_FILE_LOCKING</b>). This feature is no longer supported
+    at all in Linux 5.15 and above.</p>
+<p class="Pp">By default, both traditional (process-associated) and open file
+    description record locks are advisory. Advisory locks are not enforced and
+    are useful only between cooperating processes.</p>
+<p class="Pp">Both lock types can also be mandatory. Mandatory locks are
+    enforced for all processes. If a process tries to perform an incompatible
+    access (e.g., <b>read</b>(2) or <b>write</b>(2)) on a file region that has
+    an incompatible mandatory lock, then the result depends upon whether the
+    <b>O_NONBLOCK</b> flag is enabled for its open file description. If the
+    <b>O_NONBLOCK</b> flag is not enabled, then the system call is blocked until
+    the lock is removed or converted to a mode that is compatible with the
+    access. If the <b>O_NONBLOCK</b> flag is enabled, then the system call fails
+    with the error <b>EAGAIN</b>.</p>
+<p class="Pp">To make use of mandatory locks, mandatory locking must be enabled
+    both on the filesystem that contains the file to be locked, and on the file
+    itself. Mandatory locking is enabled on a filesystem using the &quot;-o
+    mand&quot; option to <b>mount</b>(8), or the <b>MS_MANDLOCK</b> flag for
+    <b>mount</b>(2). Mandatory locking is enabled on a file by disabling group
+    execute permission on the file and enabling the set-group-ID permission bit
+    (see <b>chmod</b>(1) and <b>chmod</b>(2)).</p>
+<p class="Pp">Mandatory locking is not specified by POSIX. Some other systems
+    also support mandatory locking, although the details of how to enable it
+    vary across systems.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Lost_locks"><a class="permalink" href="#Lost_locks">Lost
+  locks</a></h2>
+<p class="Pp">When an advisory lock is obtained on a networked filesystem such
+    as NFS it is possible that the lock might get lost. This may happen due to
+    administrative action on the server, or due to a network partition (i.e.,
+    loss of network connectivity with the server) which lasts long enough for
+    the server to assume that the client is no longer functioning.</p>
+<p class="Pp">When the filesystem determines that a lock has been lost, future
+    <b>read</b>(2) or <b>write</b>(2) requests may fail with the error
+    <b>EIO</b>. This error will persist until the lock is removed or the file
+    descriptor is closed. Since Linux 3.12, this happens at least for NFSv4
+    (including all minor versions).</p>
+<p class="Pp">Some versions of UNIX send a signal (<b>SIGLOST</b>) in this
+    circumstance. Linux does not define this signal, and does not provide any
+    asynchronous notification of lost locks.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Zero.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>op</i> is <b>F_SETLK</b> or <b>F_SETLKW</b> and the file descriptor
+      open mode doesn't match with the type of lock requested.</dd>
+  <dt id="EDEADLK"><a class="permalink" href="#EDEADLK"><b>EDEADLK</b></a></dt>
+  <dd>It was detected that the specified <b>F_SETLKW</b> operation would cause a
+      deadlock.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>lock</i> is outside your accessible address space.</dd>
+  <dt id="EINTR"><a class="permalink" href="#EINTR"><b>EINTR</b></a></dt>
+  <dd><i>op</i> is <b>F_SETLKW</b> or <b>F_OFD_SETLKW</b> and the operation was
+      interrupted by a signal; see <b>signal</b>(7).</dd>
+  <dt id="EINTR~2"><a class="permalink" href="#EINTR~2"><b>EINTR</b></a></dt>
+  <dd><i>op</i> is <b>F_GETLK</b>, <b>F_SETLK</b>, <b>F_OFD_GETLK</b>, or
+      <b>F_OFD_SETLK</b>, and the operation was interrupted by a signal before
+      the lock was checked or acquired. Most likely when locking a remote file
+      (e.g., locking over NFS), but can sometimes happen locally.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>op</i> is <b>F_OFD_SETLK</b>, <b>F_OFD_SETLKW</b>, or
+      <b>F_OFD_GETLK</b>, and <i>l_pid</i> was not specified as zero.</dd>
+  <dt id="ENOLCK"><a class="permalink" href="#ENOLCK"><b>ENOLCK</b></a></dt>
+  <dd>Too many segment locks open, lock table is full, or a remote locking
+      protocol failed (e.g., locking over NFS).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_GETLK~2"><a class="permalink" href="#F_GETLK~2"><b>F_GETLK</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETLK~2"><a class="permalink" href="#F_SETLK~2"><b>F_SETLK</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETLKW~2"><a class="permalink" href="#F_SETLKW~2"><b>F_SETLKW</b></a></dt>
+  <dd>4.3BSD, SVr4, POSIX.1-1988.</dd>
+  <dt id="F_OFD_SETLK~2"><a class="permalink" href="#F_OFD_SETLK~2"><b>F_OFD_SETLK</b></a></dt>
+  <dd></dd>
+  <dt id="F_OFD_SETLKW~2"><a class="permalink" href="#F_OFD_SETLKW~2"><b>F_OFD_SETLKW</b></a></dt>
+  <dd></dd>
+  <dt id="F_OFD_GETLK~2"><a class="permalink" href="#F_OFD_GETLK~2"><b>F_OFD_GETLK</b></a></dt>
+  <dd>POSIX.1-2024.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="File_locking"><a class="permalink" href="#File_locking">File
+  locking</a></h2>
+<p class="Pp">The original Linux <b>fcntl</b>() system call was not designed to
+    handle large file offsets (in the <i>flock</i> structure). Consequently, an
+    <b>fcntl64</b>() system call was added in Linux 2.4. The newer system call
+    employs a different structure for file locking, <i>flock64</i>, and
+    corresponding operations, <b>F_GETLK64</b>, <b>F_SETLK64</b>, and
+    <b>F_SETLKW64</b>. However, these details can be ignored by applications
+    using glibc, whose <b>fcntl</b>() wrapper function transparently employs the
+    more recent system call where it is available.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Record_locks"><a class="permalink" href="#Record_locks">Record
+  locks</a></h2>
+<p class="Pp">Since Linux 2.0, there is no interaction between the types of lock
+    placed by <b>flock</b>(2) and <b>fcntl</b>().</p>
+<p class="Pp">Several systems have more fields in <i>struct flock</i> such as,
+    for example, <i>l_sysid</i> (to identify the machine where the lock is
+    held). Clearly, <i>l_pid</i> alone is not going to be very useful if the
+    process holding the lock may live on a different machine; on Linux, while
+    present on some architectures (such as MIPS32), this field is not used.</p>
+<p class="Pp">The original Linux <b>fcntl</b>() system call was not designed to
+    handle large file offsets (in the <i>flock</i> structure). Consequently, an
+    <b>fcntl64</b>() system call was added in Linux 2.4. The newer system call
+    employs a different structure for file locking, <i>flock64</i>, and
+    corresponding operations, <b>F_GETLK64</b>, <b>F_SETLK64</b>, and
+    <b>F_SETLKW64</b>. However, these details can be ignored by applications
+    using glibc, whose <b>fcntl</b>() wrapper function transparently employs the
+    more recent system call where it is available.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Record_locking_and_NFS"><a class="permalink" href="#Record_locking_and_NFS">Record
+  locking and NFS</a></h2>
+<p class="Pp">Before Linux 3.12, if an NFSv4 client loses contact with the
+    server for a period of time (defined as more than 90 seconds with no
+    communication), it might lose and regain a lock without ever being aware of
+    the fact. (The period of time after which contact is assumed lost is known
+    as the NFSv4 leasetime. On a Linux NFS server, this can be determined by
+    looking at <i>/proc/fs/nfsd/nfsv4leasetime</i>, which expresses the period
+    in seconds. The default value for this file is 90.) This scenario
+    potentially risks data corruption, since another process might acquire a
+    lock in the intervening period and perform file I/O.</p>
+<p class="Pp">Since Linux 3.12, if an NFSv4 client loses contact with the
+    server, any I/O to the file by a process which &quot;thinks&quot; it holds a
+    lock will fail until that process closes and reopens the file. A kernel
+    parameter, <i>nfs.recover_lost_locks</i>, can be set to 1 to obtain the
+    pre-3.12 behavior, whereby the client will attempt to recover lost locks
+    when contact is reestablished with the server. Because of the attendant risk
+    of data corruption, this parameter defaults to 0 (disabled).</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Deadlock_detection"><a class="permalink" href="#Deadlock_detection">Deadlock
+  detection</a></h2>
+<p class="Pp">The deadlock-detection algorithm employed by the kernel when
+    dealing with <b>F_SETLKW</b> requests can yield both false negatives
+    (failures to detect deadlocks, leaving a set of deadlocked processes blocked
+    indefinitely) and false positives (<b>EDEADLK</b> errors when there is no
+    deadlock). For example, the kernel limits the lock depth of its dependency
+    search to 10 steps, meaning that circular deadlock chains that exceed that
+    size will not be detected. In addition, the kernel may falsely indicate a
+    deadlock when two or more processes created using the <b>clone</b>(2)
+    <b>CLONE_FILES</b> flag place locks that appear (to the kernel) to
+  conflict.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss">Mandatory locking</h2>
+<p class="Pp">The Linux implementation of mandatory locking is subject to race
+    conditions which render it unreliable: a <b>write</b>(2) call that overlaps
+    with a lock may modify data after the mandatory lock is acquired; a
+    <b>read</b>(2) call that overlaps with a lock may detect changes to data
+    that were made only after a write lock was acquired. Similar races exist
+    between mandatory locks and <b>mmap</b>(2). It is therefore inadvisable to
+    rely on mandatory locking.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2), <b>flock</b>(2), <b>lockf</b>(3),
+    <b>lslocks</b>(8)</p>
+<p class="Pp"><i>locks.txt</i>, <i>mandatory-locking.txt</i>, and
+    <i>dnotify.txt</i> in the Linux kernel source directory
+    <i>Documentation/filesystems/</i> (on older kernels, these files are
+    directly under the <i>Documentation/</i> directory, and
+    <i>mandatory-locking.txt</i> is called <i>mandatory.txt</i>)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-23</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

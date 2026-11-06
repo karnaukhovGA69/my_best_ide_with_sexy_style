@@ -1,0 +1,230 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">VFAT_IOCTL_READDIR_BOTH(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">VFAT_IOCTL_READDIR_BOTH(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">VFAT_IOCTL_READDIR_BOTH, VFAT_IOCTL_READDIR_SHORT - read filenames
+    of a directory in a FAT filesystem</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/msdos_fs.h&gt;</b>  /* Definition of <b>VFAT_*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, VFAT_IOCTL_READDIR_BOTH,</b>
+<b>          struct __fat_dirent </b><i>entry</i><b>[2]);</b>
+<b>int ioctl(int </b><i>fd</i><b>, VFAT_IOCTL_READDIR_SHORT,</b>
+<b>          struct __fat_dirent </b><i>entry</i><b>[2]);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">A file or directory on a FAT filesystem always has a short
+    filename consisting of up to 8 capital letters, optionally followed by a
+    period and up to 3 capital letters for the file extension. If the actual
+    filename does not fit into this scheme, it is stored as a long filename of
+    up to 255 UTF-16 characters.</p>
+<p class="Pp">The short filenames in a directory can be read with
+    <b>VFAT_IOCTL_READDIR_SHORT</b>. <b>VFAT_IOCTL_READDIR_BOTH</b> reads both
+    the short and the long filenames.</p>
+<p class="Pp">The <i>fd</i> argument must be a file descriptor for a directory.
+    It is sufficient to create the file descriptor by calling <b>open</b>(2)
+    with the <b>O_RDONLY</b> flag. The file descriptor can be used only once to
+    iterate over the directory entries by calling <b>ioctl</b>(2)
+  repeatedly.</p>
+<p class="Pp">The <i>entry</i> argument is a two-element array of the following
+    structures:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct __fat_dirent {
+<br/>
+    long            d_ino;
+<br/>
+    __kernel_off_t  d_off;
+<br/>
+    uint32_t short  d_reclen;
+<br/>
+    char            d_name[256];
+};
+</pre>
+<br/>
+<p class="Pp">The first entry in the array is for the short filename. The second
+    entry is for the long filename.</p>
+<p class="Pp">The <i>d_ino</i> and <i>d_off</i> fields are filled only for long
+    filenames. The <i>d_ino</i> field holds the inode number of the directory.
+    The <i>d_off</i> field holds the offset of the file entry in the directory.
+    As these values are not available for short filenames, the user code should
+    simply ignore them.</p>
+<p class="Pp">The field <i>d_reclen</i> contains the length of the filename in
+    the field <i>d_name</i>. To keep backward compatibility, a length of 0 for
+    the short filename signals that the end of the directory has been reached.
+    However, the preferred method for detecting the end of the directory is to
+    test the <b>ioctl</b>(2) return value. If no long filename exists, field
+    <i>d_reclen</i> is set to 0 and <i>d_name</i> is a character string of
+    length 0 for the long filename.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">A return value of 1 signals that a new directory entry has been
+    read and a return value of 0 signals that the end of the directory has been
+    reached.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="ENOENT"><a class="permalink" href="#ENOENT"><b>ENOENT</b></a></dt>
+  <dd><i>fd</i> refers to a removed, but still open directory.</dd>
+  <dt id="ENOTDIR"><a class="permalink" href="#ENOTDIR"><b>ENOTDIR</b></a></dt>
+  <dd><i>fd</i> does not refer to a directory.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following program demonstrates the use of <b>ioctl</b>(2) to
+    list a directory.</p>
+<p class="Pp">The following was recorded when applying the program to the
+    directory <i>/mnt/user</i>:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> ./fat_dir /mnt/user</b>;
+. -&gt; ''
+.. -&gt; ''
+ALONGF~1.TXT -&gt; 'a long filename.txt'
+UPPER.TXT -&gt; ''
+LOWER.TXT -&gt; 'lower.txt'
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<pre>#include &lt;fcntl.h&gt;
+#include &lt;linux/msdos_fs.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;unistd.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int                  fd;
+<br/>
+    int                  ret;
+<br/>
+    struct __fat_dirent  entry[2];
+<br/>
+    if (argc != 2) {
+<br/>
+        printf(&quot;Usage: %s DIRECTORY\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /*
+<br/>
+     * Open file descriptor for the directory.
+<br/>
+     */
+<br/>
+    fd = open(argv[1], O_RDONLY | O_DIRECTORY);
+<br/>
+    if (fd == -1) {
+<br/>
+        perror(&quot;open&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    for (;;) {
+<br/>
+        /*
+<br/>
+         * Read next directory entry.
+<br/>
+         */
+<br/>
+        ret = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, entry);
+<br/>
+        /*
+<br/>
+         * If an error occurs, the return value is -1.
+<br/>
+         * If the end of the directory list has been reached,
+<br/>
+         * the return value is 0.
+<br/>
+         * For backward compatibility the end of the directory
+<br/>
+         * list is also signaled by d_reclen == 0.
+<br/>
+         */
+<br/>
+        if (ret &lt; 1)
+<br/>
+            break;
+<br/>
+        /*
+<br/>
+         * Write both the short name and the long name.
+<br/>
+         */
+<br/>
+        printf(&quot;%s -&gt; '%s'\n&quot;, entry[0].d_name, entry[1].d_name);
+<br/>
+    }
+<br/>
+    if (ret == -1) {
+<br/>
+        perror(&quot;VFAT_IOCTL_READDIR_BOTH&quot;);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /*
+<br/>
+     * Close the file descriptor.
+<br/>
+     */
+<br/>
+    close(fd);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_fat</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,72 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_sys(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_sys(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/sys/ - system information, and sysctl pseudo-filesystem</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/</i></dt>
+  <dd>This directory (present since Linux 1.3.57) contains a number of files and
+      subdirectories corresponding to kernel variables. These variables can be
+      read and in some cases modified using the <i>/proc</i> filesystem, and the
+      (deprecated) <b>sysctl</b>(2) system call.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>String values may be terminated by either '\0' or '\n'.</dd>
+  <dt></dt>
+  <dd>Integer and long values may be written either in decimal or in hexadecimal
+      notation (e.g., 0x3FFF). When writing multiple integer or long values,
+      these may be separated by any of the following whitespace characters:
+      '&#x00A0;', '\t', or '\n'. Using other separators leads to the error
+      <b>EINVAL</b>.</dd>
+  <dt></dt>
+  <dd>See also:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="proc_sys_abi"><a class="permalink" href="#proc_sys_abi"><b>proc_sys_abi</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_debug"><a class="permalink" href="#proc_sys_debug"><b>proc_sys_debug</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_dev"><a class="permalink" href="#proc_sys_dev"><b>proc_sys_dev</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_fs"><a class="permalink" href="#proc_sys_fs"><b>proc_sys_fs</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_kernel"><a class="permalink" href="#proc_sys_kernel"><b>proc_sys_kernel</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_net"><a class="permalink" href="#proc_sys_net"><b>proc_sys_net</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_net_ipv4"><a class="permalink" href="#proc_sys_net_ipv4"><b>proc_sys_net_ipv4</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_proc"><a class="permalink" href="#proc_sys_proc"><b>proc_sys_proc</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_sunrpc"><a class="permalink" href="#proc_sys_sunrpc"><b>proc_sys_sunrpc</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_user"><a class="permalink" href="#proc_sys_user"><b>proc_sys_user</b>(5)</a></dt>
+  <dd></dd>
+  <dt id="proc_sys_vm"><a class="permalink" href="#proc_sys_vm"><b>proc_sys_vm</b>(5)</a></dt>
+  <dd></dd>
+</dl>
+</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

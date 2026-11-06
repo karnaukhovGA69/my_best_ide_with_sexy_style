@@ -1,0 +1,56 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IP_DROP_SOURCE_MEMBERSHIP(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IP_DROP_SOURCE_MEMBERSHIP(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IP_DROP_SOURCE_MEMBERSHIP - leave a source-specific multicast
+    group</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_DROP_SOURCE_MEMBERSHIP,</b>
+<b>               const&#x00A0;struct&#x00A0;ip_mreq_source&#x00A0;*</b><i>val</i><b>,</b>
+<b>               sizeof(struct&#x00A0;ip_mreq_source));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Leave a source-specific group; that is, stop receiving data from a
+    given multicast group that comes from a given source.</p>
+<p class="Pp">If the application has subscribed to multiple sources within the
+    same group, data from the remaining sources will still be delivered. To stop
+    receiving data from all sources at once, use
+    <b>IP_DROP_MEMBERSHIP</b>(2const).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>IPPROTO_IP</b>(2const). See <b>setsockopt</b>(2). See
+    <b>ip</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.22, Linux 2.5.68.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IP</b>(2const), <b>ip_mreq_source</b>(2type),
+    <b>setsockopt</b>(2), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

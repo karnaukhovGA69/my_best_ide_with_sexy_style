@@ -1,0 +1,115 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">daemon(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">daemon(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">daemon - run in the background</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int daemon(int </b><i>nochdir</i><b>, int </b><i>noclose</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>daemon</b>():</p>
+<pre>
+<br/>
+    Since glibc 2.21:
+<br/>
+        _DEFAULT_SOURCE
+<br/>
+    In glibc 2.19 and 2.20:
+<br/>
+        _DEFAULT_SOURCE || (_XOPEN_SOURCE &amp;&amp; _XOPEN_SOURCE &lt; 500)
+<br/>
+    Up to and including glibc 2.19:
+<br/>
+        _BSD_SOURCE || (_XOPEN_SOURCE &amp;&amp; _XOPEN_SOURCE &lt; 500)</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>daemon</b>() function is for programs wishing to detach
+    themselves from the controlling terminal and run in the background as system
+    daemons.</p>
+<p class="Pp">If <i>nochdir</i> is zero, <b>daemon</b>() changes the process's
+    current working directory to the root directory (&quot;/&quot;); otherwise,
+    the current working directory is left unchanged.</p>
+<p class="Pp">If <i>noclose</i> is zero, <b>daemon</b>() redirects standard
+    input, standard output, and standard error to <i>/dev/null</i>; otherwise,
+    no changes are made to these file descriptors.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">(This function forks, and if the <b>fork</b>(2) succeeds, the
+    parent calls <b>_exit</b>(3), so that further errors are seen by the child
+    only.) On success <b>daemon</b>() returns zero. If an error occurs,
+    <b>daemon</b>() returns -1 and sets <i>errno</i> to any of the errors
+    specified for the <b>fork</b>(2) and <b>setsid</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>daemon ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A similar function appears on the BSDs.</p>
+<p class="Pp">The glibc implementation can also return -1 when <i>/dev/null</i>
+    exists but is not a character device with the expected major and minor
+    numbers. In this case, <i>errno</i> need not be set.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">4.4BSD.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">The GNU C library implementation of this function was taken from
+    BSD, and does not employ the double-fork technique (i.e., <b>fork</b>(2),
+    <b>setsid</b>(2), <b>fork</b>(2)) that is necessary to ensure that the
+    resulting daemon process is not a session leader. Instead, the resulting
+    daemon <i>is</i> a session leader. On systems that follow System V semantics
+    (e.g., Linux), this means that if the daemon opens a terminal that is not
+    already a controlling terminal for another session, then that terminal will
+    inadvertently become the controlling terminal for the daemon.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fork</b>(2), <b>setsid</b>(2), <b>daemon</b>(7),
+    <b>logrotate</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,91 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FUTEX_TRYLOCK_PI(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FUTEX_TRYLOCK_PI(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FUTEX_TRYLOCK_PI - try to lock a priority-inheritance futex</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/futex.h&gt;</b>  /* Definition of <b>FUTEX_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_futex, uint32_t *</b><i>uaddr</i><b>, FUTEX_TRYLOCK_PI);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This operation tries to acquire the lock at <i>uaddr</i>. It is
+    invoked when a user-space atomic acquire did not succeed because the futex
+    word was not 0.</p>
+<p class="Pp">Because the kernel has access to more state information than user
+    space, acquisition of the lock might succeed if performed by the kernel in
+    cases where the futex word (i.e., the state information accessible to
+    use-space) contains stale state (<b>FUTEX_WAITERS</b> and/or
+    <b>FUTEX_OWNER_DIED</b>). This can happen when the owner of the futex died.
+    User space cannot handle this condition in a race-free manner, but the
+    kernel can fix this up and acquire the futex.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+<p class="Pp">On success, <b>FUTEX_TRYLOCK_PI</b> Returns 0 if the futex was
+    successfully locked.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>futex</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The futex owner thread ID of <i>uaddr</i> is about to exit, but has not
+      yet handled the internal state cleanup. Try again.</dd>
+  <dt id="EDEADLK"><a class="permalink" href="#EDEADLK"><b>EDEADLK</b></a></dt>
+  <dd>The futex word at <i>uaddr</i> is already locked by the caller.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The kernel detected an inconsistency between the user-space state at
+      <i>uaddr</i> and the kernel state. This indicates either state corruption
+      or that the kernel found a waiter on <i>uaddr</i> which is waiting via
+      <b>FUTEX_WAIT</b>(2const) or <b>FUTEX_WAIT_BITSET</b>(2const).</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate memory to hold state information.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd>A run-time check determined that the operation is not available. The
+      PI-futex operations are not implemented on all architectures and are not
+      supported on some CPU variants.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The caller is not allowed to attach itself to the futex at <i>uaddr</i>.
+      (This may be caused by a state corruption in user space.)</dd>
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b></a></dt>
+  <dd>The thread ID in the futex word at <i>uaddr</i> does not exist.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.18.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>futex</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

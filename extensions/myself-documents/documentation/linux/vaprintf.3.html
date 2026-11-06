@@ -1,0 +1,79 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">aprintf(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">aprintf(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">aprintf, vaprintf - allocate and print formatted string</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">gnulib - The GNU Portability Library</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>char&#x00A0;*aprintf(const&#x00A0;char&#x00A0;*restrict&#x00A0;</b><i>fmt</i><b>, ...);</b>
+<b>char&#x00A0;*vaprintf(const&#x00A0;char&#x00A0;*restrict&#x00A0;</b><i>fmt</i><b>, va_list&#x00A0;</b><i>ap</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The functions <b>aprintf</b>() and <b>vaprintf</b>() are analogs
+    of <b>sprintf</b>(3) and <b>vsprintf</b>(3), except that their output is
+    written in a space allocated as if by a call to <b>malloc</b>(3).</p>
+<p class="Pp">This pointer should be passed to <b>free</b>(3) to release the
+    allocated storage when it is no longer needed.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, these functions return a pointer to the first
+    character of the formatted string. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>sprintf</b>(3) and <b>malloc</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>aprintf (), vaprintf ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">gnulib 202607.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>free</b>(3), <b>malloc</b>(3), <b>sprintf</b>(3),
+    <b>strdup</b>(3), <b>asprintf</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-03-16</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

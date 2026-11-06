@@ -1,0 +1,85 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">abort(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">abort(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">abort - cause abnormal process termination</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>[[noreturn]] void abort(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>abort</b>() function first unblocks the <b>SIGABRT</b>
+    signal, and then raises that signal for the calling process (as though
+    <b>raise</b>(3) was called). This results in the abnormal termination of the
+    process unless the <b>SIGABRT</b> signal is caught and the signal handler
+    does not return (see <b>longjmp</b>(3)).</p>
+<p class="Pp">If the <b>SIGABRT</b> signal is ignored, or caught by a handler
+    that returns, the <b>abort</b>() function will still terminate the process.
+    It does this by restoring the default disposition for <b>SIGABRT</b> and
+    then raising the signal for a second time.</p>
+<p class="Pp">As with other cases of abnormal termination the functions
+    registered with <b>atexit</b>(3) and <b>on_exit</b>(3) are not called.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>abort</b>() function never returns.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>abort ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SVr4, POSIX.1-2001, 4.3BSD, C89.</p>
+<p class="Pp">Up until glibc 2.26, if the <b>abort</b>() function caused process
+    termination, all open streams were closed and flushed (as with
+    <b>fclose</b>(3)). However, in some cases this could result in deadlocks and
+    data corruption. Therefore, starting with glibc 2.27, <b>abort</b>()
+    terminates the process without flushing streams. POSIX.1 permits either
+    possible behavior, saying that <b>abort</b>() &quot;may include an attempt
+    to effect fclose() on all open streams&quot;.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>gdb</b>(1), <b>sigaction</b>(2), <b>assert</b>(3),
+    <b>exit</b>(3), <b>longjmp</b>(3), <b>raise</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

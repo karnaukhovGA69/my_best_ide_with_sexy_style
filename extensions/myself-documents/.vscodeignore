@@ -1,6 +1,9 @@
-src/**
+documentation/.downloads/**
+scripts/**
 test/**
-tsconfig.json
-**/*.tsbuildinfo
+src/**
 webview/**
+**/*.map
+**/*.tsbuildinfo
+tsconfig.json
 esbuild*.mts

@@ -1,0 +1,88 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">dqblk(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">dqblk(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">dqblk - disk quota block</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/quota.h&gt;</b></pre>
+<p class="Pp"></p>
+<pre>struct dqblk {
+	uint64_t  dqb_bhardlimit;
+	uint64_t  dqb_bsoftlimit;
+	uint64_t  dqb_curspace;
+	uint64_t  dqb_ihardlimit;
+	uint64_t  dqb_isoftlimit;
+	uint64_t  dqb_curinodes;
+	uint64_t  dqb_btime;
+	uint64_t  dqb_itime;
+	uint32_t  dqb_valid;
+};
+#define QIF_BLIMITS   1
+#define QIF_SPACE     2
+#define QIF_ILIMITS   4
+#define QIF_INODES    8
+#define QIF_BTIME     16
+#define QIF_ITIME     32
+#define QIF_LIMITS    (QIF_BLIMITS | QIF_ILIMITS)
+#define QIF_USAGE     (QIF_SPACE | QIF_INODES)
+#define QIF_TIMES     (QIF_BTIME | QIF_ITIME)
+#define QIF_ALL       (QIF_LIMITS | QIF_USAGE | QIF_TIMES)
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>.dqb_bhardlimit</i></dt>
+  <dd></dd>
+  <dt><i>.dqb_bsoftlimit</i></dt>
+  <dd>Absolute and preferred limits on disk quota blocks.</dd>
+  <dt><i>.dqb_curspace</i></dt>
+  <dd>Current occupied space (in bytes).</dd>
+  <dt><i>.dqb_ihardlimit</i></dt>
+  <dd></dd>
+  <dt><i>.dqb_isoftlimit</i></dt>
+  <dd>Absolute and preferred limits on number of allocated inodes.</dd>
+  <dt><i>.dqb_curinodes</i></dt>
+  <dd>Current number of allocated inodes.</dd>
+  <dt><i>.dqb_btime</i></dt>
+  <dd>Time limit for excessive disk use.</dd>
+  <dt><i>.dqb_itime</i></dt>
+  <dd>Time limit for excessive files.</dd>
+  <dt><i>.dqb_valid</i></dt>
+  <dd>Bit mask of <b>QIF_</b><i>*</i> constants. It is set to indicate which
+      fields in the <i>dqblk</i> structure are valid.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.22.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>Q_GETQUOTA</b>(2const), <b>Q_SETQUOTA</b>(2const),
+    <b>nextdqblk</b>(2type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

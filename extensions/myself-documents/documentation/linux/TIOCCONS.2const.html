@@ -1,0 +1,65 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TIOCCONS(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TIOCCONS(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TIOCCONS - redirecting console output</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of <b>TIOCCONS</b> */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TIOCCONS);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Redirect output that would have gone to <i>/dev/console</i> or
+    <i>/dev/tty0</i> to the given terminal. If that was a pseudoterminal master,
+    send it to the slave.</p>
+<p class="Pp">Only a process with the <b>CAP_SYS_ADMIN</b> capability may do
+    this.</p>
+<p class="Pp">If output was redirected already, then <b>EBUSY</b> is returned,
+    but redirection can be stopped by using this ioctl with <i>fd</i> pointing
+    at <i>/dev/console</i> or <i>/dev/tty0</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBUSY"><a class="permalink" href="#EBUSY"><b>EBUSY</b></a></dt>
+  <dd>Output was redirected already.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>Insufficient permission.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Before Linux 2.6.10, anybody can do this as long as the output was
+    not redirected yet; <b>CAP_SYS_ADMIN</b> was not necessary.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

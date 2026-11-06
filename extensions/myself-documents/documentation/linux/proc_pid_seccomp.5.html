@@ -1,0 +1,43 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pid_seccomp(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pid_seccomp(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pid/seccomp - secure computing mode</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/</i>pid<i>/seccomp</i> (Linux 2.6.12 to Linux 2.6.22)</dt>
+  <dd>This file can be used to read and change the process's secure computing
+      (seccomp) mode setting. It contains the value 0 if the process is not in
+      seccomp mode, and 1 if the process is in strict seccomp mode (see
+      <b>seccomp</b>(2)). Writing 1 to this file places the process irreversibly
+      in strict seccomp mode. (Further attempts to write to the file fail with
+      the <b>EPERM</b> error.)</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>In Linux 2.6.23, this file went away, to be replaced by the
+      <b>prctl</b>(2) <b>PR_GET_SECCOMP</b> and <b>PR_SET_SECCOMP</b> operations
+      (and later by <b>seccomp</b>(2) and the <i>Seccomp</i> field in
+      <i>/proc/</i>pid<i>/status</i>).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

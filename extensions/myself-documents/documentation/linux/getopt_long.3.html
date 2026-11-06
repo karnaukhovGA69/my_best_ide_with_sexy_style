@@ -1,0 +1,255 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">getopt_long(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">getopt_long(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">getopt_long - parse command-line options</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;getopt.h&gt;</b></pre>
+<pre><b>int getopt_long(int </b><i>argc</i><b>, char *</b><i>argv</i><b>[],</b>
+<b>           const char *</b><i>optstring</i><b>,</b>
+<b>           const struct option *</b><i>longopts</i><b>, int *</b><i>longindex</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>getopt_long</b>() function works like <b>getopt</b>(3)
+    except that it also accepts long options, started with two dashes. (If the
+    program accepts only long options, then <i>optstring</i> should be specified
+    as an empty string (&quot;&quot;), not NULL.) Long option names may be
+    abbreviated if the abbreviation is unique or is an exact match for some
+    defined option. A long option may take a parameter, of the form
+    <b>--arg=param</b> or <b>--arg param</b>.</p>
+<p class="Pp"><i>longopts</i> is a pointer to the first element of an array of
+    <i>struct option</i> declared in <i>&lt;getopt.h&gt;</i> as</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>struct option {
+<br/>
+    const char *name;
+<br/>
+    int         has_arg;
+<br/>
+    int        *flag;
+<br/>
+    int         val;
+};
+</pre>
+<br/>
+<p class="Pp">The meanings of the different fields are:</p>
+<dl class="Bl-tag">
+  <dt id="name"><a class="permalink" href="#name"><i>name</i></a></dt>
+  <dd>is the name of the long option.</dd>
+  <dt id="has_arg"><a class="permalink" href="#has_arg"><i>has_arg</i></a></dt>
+  <dd>is: <b>no_argument</b> (or 0) if the option does not take an argument;
+      <b>required_argument</b> (or 1) if the option requires an argument; or
+      <b>optional_argument</b> (or 2) if the option takes an optional
+    argument.</dd>
+  <dt id="flag"><a class="permalink" href="#flag"><i>flag</i></a></dt>
+  <dd>specifies how results are returned for a long option. If <i>flag</i> is
+      NULL, then <b>getopt_long</b>() returns <i>val</i>. (For example, the
+      calling program may set <i>val</i> to the equivalent short option
+      character.) Otherwise, <b>getopt_long</b>() returns 0, and <i>flag</i>
+      points to a variable which is set to <i>val</i> if the option is found,
+      but left unchanged if the option is not found.</dd>
+  <dt id="val"><a class="permalink" href="#val"><i>val</i></a></dt>
+  <dd>is the value to return, or to load into the variable pointed to by
+      <i>flag</i>.</dd>
+</dl>
+<p class="Pp">The last element of the array has to be filled with zeros.</p>
+<p class="Pp">If <i>longindex</i> is not NULL, it points to a variable which is
+    set to the index of the long option relative to <i>longopts</i>.</p>
+<p class="Pp">Its analogue to <b>getopt</b>(3)'s <i>optopt</i> is
+    &#x201C;<i>argv[(optind - 1)]</i>&#x201D;.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>getopt</b>(3).</p>
+<p class="Pp"><b>getopt_long</b>() also returns the option character when a
+    short option is recognized. For a long option, it returns <i>val</i> if
+    <i>flag</i> is NULL, and 0 otherwise. Error and -1 returns are the same as
+    for <b>getopt</b>(3), plus '?' for an ambiguous match or an extraneous
+    parameter.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ENVIRONMENT"><a class="permalink" href="#ENVIRONMENT">ENVIRONMENT</a></h1>
+<p class="Pp">See <b>getopt</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>getopt_long ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:getopt env</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following example program illustrates the use of
+    <b>getopt_long</b>() with most of its features.</p>
+<p class="Pp"></p>
+<pre>#include &lt;getopt.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int c;
+<br/>
+    int digit_optind = 0;
+<br/>
+    for (;;) {
+<br/>
+        int this_option_optind = optind ? optind : 1;
+<br/>
+        int option_index = 0;
+<br/>
+        static struct option long_options[] = {
+<br/>
+            {&quot;add&quot;,     required_argument, 0,  0 },
+<br/>
+            {&quot;append&quot;,  no_argument,       0,  0 },
+<br/>
+            {&quot;delete&quot;,  required_argument, 0,  0 },
+<br/>
+            {&quot;verbose&quot;, no_argument,       0,  0 },
+<br/>
+            {&quot;create&quot;,  required_argument, 0, 'c'},
+<br/>
+            {&quot;file&quot;,    required_argument, 0,  0 },
+<br/>
+            {0,         0,                 0,  0 }
+<br/>
+        };
+<br/>
+        c = getopt_long(argc, argv, &quot;abc:d:012&quot;,
+<br/>
+                        long_options, &amp;option_index);
+<br/>
+        if (c == -1)
+<br/>
+            break;
+<br/>
+        switch (c) {
+<br/>
+        case 0:
+<br/>
+            printf(&quot;option %s&quot;, long_options[option_index].name);
+<br/>
+            if (optarg)
+<br/>
+                printf(&quot; with arg %s&quot;, optarg);
+<br/>
+            printf(&quot;\n&quot;);
+<br/>
+            break;
+<br/>
+        case '0':
+<br/>
+        case '1':
+<br/>
+        case '2':
+<br/>
+            if (digit_optind != 0 &amp;&amp; digit_optind != this_option_optind)
+<br/>
+              printf(&quot;digits occur in two different argv-elements.\n&quot;);
+<br/>
+            digit_optind = this_option_optind;
+<br/>
+            printf(&quot;option %c\n&quot;, c);
+<br/>
+            break;
+<br/>
+        case 'a':
+<br/>
+            printf(&quot;option a\n&quot;);
+<br/>
+            break;
+<br/>
+        case 'b':
+<br/>
+            printf(&quot;option b\n&quot;);
+<br/>
+            break;
+<br/>
+        case 'c':
+<br/>
+            printf(&quot;option c with value '%s'\n&quot;, optarg);
+<br/>
+            break;
+<br/>
+        case 'd':
+<br/>
+            printf(&quot;option d with value '%s'\n&quot;, optarg);
+<br/>
+            break;
+<br/>
+        case '?':
+<br/>
+            break;
+<br/>
+        default:
+<br/>
+            printf(&quot;?? getopt returned character code 0%o ??\n&quot;, c);
+<br/>
+        }
+<br/>
+    }
+<br/>
+    if (optind &lt; argc) {
+<br/>
+        printf(&quot;non-option ARGV-elements: &quot;);
+<br/>
+        while (optind &lt; argc)
+<br/>
+            printf(&quot;%s &quot;, argv[optind++]);
+<br/>
+        printf(&quot;\n&quot;);
+<br/>
+    }
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>getopt</b>(1), <b>getopt</b>(3), <b>getopt_long_only</b>(3),
+    <b>getsubopt</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-14</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

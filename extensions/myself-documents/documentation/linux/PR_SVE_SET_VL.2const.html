@@ -1,0 +1,123 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_SVE_SET_VL(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_SVE_SET_VL(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_SVE_SET_VL - set the thread's SVE vector length</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_SVE_SET_VL, unsigned long </b><i>val</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Configure the thread's SVE vector length, as specified by
+    <i>val</i>.</p>
+<p class="Pp">The bits of <i>val</i> corresponding to <b>PR_SVE_VL_LEN_MASK</b>
+    must be set to the desired vector length in bytes. This is interpreted as an
+    upper bound: the kernel will select the greatest available vector length
+    that does not exceed the value specified. In particular, specifying
+    <b>SVE_VL_MAX</b> (defined in <i>&lt;asm/sigcontext.h&gt;)</i> for the
+    <b>PR_SVE_VL_LEN_MASK</b> bits requests the maximum supported vector
+  length.</p>
+<p class="Pp">In addition, the other bits of <i>val</i> must be set to one of
+    the following combinations of flags:</p>
+<dl class="Bl-tag">
+  <dt><b>0L</b></dt>
+  <dd>Perform the change immediately. At the next <b>execve</b>(2) in the
+      thread, the vector length will be reset to the value configured in
+      <i>/proc/sys/abi/sve_default_vector_length</i>.</dd>
+  <dt id="PR_SVE_VL_INHERIT"><a class="permalink" href="#PR_SVE_VL_INHERIT"><b>PR_SVE_VL_INHERIT</b></a></dt>
+  <dd>Perform the change immediately. Subsequent <b>execve</b>(2) calls will
+      preserve the new vector length.</dd>
+  <dt id="PR_SVE_SET_VL_ONEXEC"><a class="permalink" href="#PR_SVE_SET_VL_ONEXEC"><b>PR_SVE_SET_VL_ONEXEC</b></a></dt>
+  <dd>Defer the change, so that it is performed at the next <b>execve</b>(2) in
+      the thread. Further <b>execve</b>(2) calls will reset the vector length to
+      the value configured in
+    <i>/proc/sys/abi/sve_default_vector_length</i>.</dd>
+  <dt><b>PR_SVE_SET_VL_ONEXEC | PR_SVE_VL_INHERIT</b></dt>
+  <dd>Defer the change, so that it is performed at the next <b>execve</b>(2) in
+      the thread. Further <b>execve</b>(2) calls will preserve the new vector
+      length.</dd>
+</dl>
+<p class="Pp">In all cases, any previously pending deferred change is
+  canceled.</p>
+<p class="Pp">On success, a nonnegative value is returned that describes the
+    <i>selected</i> configuration. If <b>PR_SVE_SET_VL_ONEXEC</b> was included
+    in <i>val</i>, then the configuration described by the return value will
+    take effect at the next <b>execve</b>(2). Otherwise, the configuration is
+    already in effect when the <b>PR_SVE_SET_VL</b> call returns. In either
+    case, the value is encoded in the same way as the return value of
+    <b>PR_SVE_GET_VL</b>. Note that there is no explicit flag in the return
+    value corresponding to <b>PR_SVE_SET_VL_ONEXEC</b>.</p>
+<p class="Pp">The configuration (including any pending deferred change) is
+    inherited across <b>fork</b>(2) and <b>clone</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>PR_SVE_SET_VL</b> returns the nonnegative value
+    described above. On error, -1 is returned, and <i>errno</i> is set to
+    indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>SVE is not available on this platform.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The value in the bits of <i>val</i> corresponding to
+      <b>PR_SVE_VL_LEN_MASK</b> is outside the range [<b>SVE_VL_MIN</b>,
+      <b>SVE_VL_MAX</b>] or is not a multiple of 16.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd>The other bits of <i>val</i> are invalid or unsupported.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/sys/abi/sve_default_vector_length</i></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux. arm64 only.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.15 (arm64).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Because the compiler or run-time environment may be using SVE,
+    using this call without the <b>PR_SVE_SET_VL_ONEXEC</b> flag may crash the
+    calling process. The conditions for using it safely are complex and
+    system-dependent. Don't use it unless you really know what you are
+  doing.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>PR_SVE_GET_VL</b>(2const)</p>
+<p class="Pp">For more information, see the kernel source file
+    <i>Documentation/arch/arm64/sve.rst</i>.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

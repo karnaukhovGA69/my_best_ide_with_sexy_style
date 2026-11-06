@@ -1,0 +1,158 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_GETLEASE(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_GETLEASE(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GETLEASE, F_SETLEASE - leases</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_SETLEASE, int </b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_GETLEASE);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>F_SETLEASE</b> and <b>F_GETLEASE</b> are used to establish a
+    new lease, and retrieve the current lease, on the open file description
+    referred to by the file descriptor <i>fd</i>. A file lease provides a
+    mechanism whereby the process holding the lease (the &quot;lease
+    holder&quot;) is notified (via delivery of a signal) when a process (the
+    &quot;lease breaker&quot;) tries to <b>open</b>(2) or <b>truncate</b>(2) the
+    file referred to by that file descriptor.</p>
+<dl class="Bl-tag">
+  <dt id="F_SETLEASE"><a class="permalink" href="#F_SETLEASE"><b>F_SETLEASE</b></a></dt>
+  <dd>Set or remove a file lease according to which of the following values is
+      specified in the integer <i>arg</i>:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="F_RDLCK"><a class="permalink" href="#F_RDLCK"><b>F_RDLCK</b></a></dt>
+  <dd>Establish a read lease. This will cause the calling process to be notified
+      when the file is opened for writing or is truncated. A read lease can be
+      placed only on a file descriptor that is opened read-only.</dd>
+  <dt id="F_WRLCK"><a class="permalink" href="#F_WRLCK"><b>F_WRLCK</b></a></dt>
+  <dd>Establish a write lease. This will cause the caller to be notified when
+      the file is opened for reading or writing or is truncated. A write lease
+      may be placed on a file only if there are no other open file descriptors
+      for the file.</dd>
+  <dt id="F_UNLCK"><a class="permalink" href="#F_UNLCK"><b>F_UNLCK</b></a></dt>
+  <dd>Remove our lease from the file.</dd>
+</dl>
+</div>
+<p class="Pp">Leases are associated with an open file description (see
+    <b>open</b>(2)). This means that duplicate file descriptors (created by, for
+    example, <b>fork</b>(2) or <b>dup</b>(2)) refer to the same lease, and this
+    lease may be modified or released using any of these descriptors.
+    Furthermore, the lease is released by either an explicit <b>F_UNLCK</b>
+    operation on any of these duplicate file descriptors, or when all such file
+    descriptors have been closed.</p>
+<p class="Pp">Leases may be taken out only on regular files. An unprivileged
+    process may take out a lease only on a file whose UID (owner) matches the
+    filesystem UID of the process. A process with the <b>CAP_LEASE</b>
+    capability may take out leases on arbitrary files.</p>
+<dl class="Bl-tag">
+  <dt id="F_GETLEASE"><a class="permalink" href="#F_GETLEASE"><b>F_GETLEASE</b></a></dt>
+  <dd>Indicates what type of lease is associated with the file descriptor
+      <i>fd</i> by returning either <b>F_RDLCK</b>, <b>F_WRLCK</b>, or
+      <b>F_UNLCK</b>, indicating, respectively, a read lease, a write lease, or
+      no lease. <i>arg</i> is ignored.</dd>
+</dl>
+<p class="Pp">When a process (the &quot;lease breaker&quot;) performs an
+    <b>open</b>(2) or <b>truncate</b>(2) that conflicts with a lease established
+    via <b>F_SETLEASE</b>, the system call is blocked by the kernel and the
+    kernel notifies the lease holder by sending it a signal (<b>SIGIO</b> by
+    default). The lease holder should respond to receipt of this signal by doing
+    whatever cleanup is required in preparation for the file to be accessed by
+    another process (e.g., flushing cached buffers) and then either remove or
+    downgrade its lease. A lease is removed by performing an <b>F_SETLEASE</b>
+    operation specifying <i>arg</i> as <b>F_UNLCK</b>. If the lease holder
+    currently holds a write lease on the file, and the lease breaker is opening
+    the file for reading, then it is sufficient for the lease holder to
+    downgrade the lease to a read lease. This is done by performing an
+    <b>F_SETLEASE</b> operation specifying <i>arg</i> as <b>F_RDLCK</b>.</p>
+<p class="Pp">If the lease holder fails to downgrade or remove the lease within
+    the number of seconds specified in <i>/proc/sys/fs/lease-break-time</i>,
+    then the kernel forcibly removes or downgrades the lease holder's lease.</p>
+<p class="Pp">Once a lease break has been initiated, <b>F_GETLEASE</b> returns
+    the target lease type (either <b>F_RDLCK</b> or <b>F_UNLCK</b>, depending on
+    what would be compatible with the lease breaker) until the lease holder
+    voluntarily downgrades or removes the lease or the kernel forcibly does so
+    after the lease break timer expires.</p>
+<p class="Pp">Once the lease has been voluntarily or forcibly removed or
+    downgraded, and assuming the lease breaker has not unblocked its system
+    call, the kernel permits the lease breaker's system call to proceed.</p>
+<p class="Pp">If the lease breaker's blocked <b>open</b>(2) or
+    <b>truncate</b>(2) is interrupted by a signal handler, then the system call
+    fails with the error <b>EINTR</b>, but the other steps still occur as
+    described above. If the lease breaker is killed by a signal while blocked in
+    <b>open</b>(2) or <b>truncate</b>(2), then the other steps still occur as
+    described above. If the lease breaker specifies the <b>O_NONBLOCK</b> flag
+    when calling <b>open</b>(2), then the call immediately fails with the error
+    <b>EWOULDBLOCK</b>, but the other steps still occur as described above.</p>
+<p class="Pp">The default signal used to notify the lease holder is
+    <b>SIGIO</b>, but this can be changed using the <b>F_SETSIG</b> operation to
+    <b>fcntl</b>(). If a <b>F_SETSIG</b> operation is performed (even one
+    specifying <b>SIGIO</b>), and the signal handler is established using
+    <b>SA_SIGINFO</b>, then the handler will receive a <i>siginfo_t</i>
+    structure as its second argument, and the <i>si_fd</i> field of this
+    argument will hold the file descriptor of the leased file that has been
+    accessed by another process. (This is useful if the caller holds leases
+    against multiple files.)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_GETLEASE~2"><a class="permalink" href="#F_GETLEASE~2"><b>F_GETLEASE</b></a></dt>
+  <dd>Type of lease held on file descriptor.</dd>
+  <dt id="F_SETLEASE~2"><a class="permalink" href="#F_SETLEASE~2"><b>F_SETLEASE</b></a></dt>
+  <dd>Zero.</dd>
+</dl>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<p class="Pp">These operations can also fail with the following error codes:</p>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The operation is prohibited because the file is open in a way that
+      conflicts with the requested lease.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The operation is prohibited because the underlying filesystem doesn't
+      support leases, or because <i>fd</i> does not represent a regular
+    file.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-14</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

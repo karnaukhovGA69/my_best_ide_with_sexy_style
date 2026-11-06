@@ -1,0 +1,311 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_GETSIG(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_GETSIG(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GETOWN, F_SETOWN, F_GETOWN_EX, F_SETOWN_EX, F_GETSIG, F_SETSIG -
+    managing signals</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_GETOWN);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_SETOWN, int </b><i>arg</i><b>);</b></pre>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_GETOWN_EX, struct f_owner_ex *</b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_SETOWN_EX, const struct f_owner_ex *</b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_GETSIG);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_SETSIG, int </b><i>arg</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>F_GETOWN</b>, <b>F_SETOWN</b>, <b>F_GETOWN_EX</b>,
+    <b>F_SETOWN_EX</b>, <b>F_GETSIG</b>, and <b>F_SETSIG</b> are used to manage
+    I/O availability signals:</p>
+<dl class="Bl-tag">
+  <dt id="F_GETOWN"><a class="permalink" href="#F_GETOWN"><b>F_GETOWN</b></a></dt>
+  <dd>Return (as the function result) the process ID or process group ID
+      currently receiving <b>SIGIO</b> and <b>SIGURG</b> signals for events on
+      file descriptor <i>fd</i>. Process IDs are returned as positive values;
+      process group IDs are returned as negative values (but see BUGS below).
+      <i>arg</i> is ignored.</dd>
+  <dt id="F_SETOWN"><a class="permalink" href="#F_SETOWN"><b>F_SETOWN</b></a></dt>
+  <dd>Set the process ID or process group ID that will receive <b>SIGIO</b> and
+      <b>SIGURG</b> signals for events on the file descriptor <i>fd</i>. The
+      target process or process group ID is specified in <i>arg</i>. A process
+      ID is specified as a positive value; a process group ID is specified as a
+      negative value. Most commonly, the calling process specifies itself as the
+      owner (that is, <i>arg</i> is specified as <b>getpid</b>(2)).</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>As well as setting the file descriptor owner, one must also enable
+      generation of signals on the file descriptor. This is done by using the
+      <b>F_SETFL</b>(2const) operation to set the <b>O_ASYNC</b> file status
+      flag on the file descriptor. Subsequently, a <b>SIGIO</b> signal is sent
+      whenever input or output becomes possible on the file descriptor. The
+      <b>fcntl</b>() <b>F_SETSIG</b> operation can be used to obtain delivery of
+      a signal other than <b>SIGIO</b>.</dd>
+  <dt></dt>
+  <dd>Sending a signal to the owner process (group) specified by <b>F_SETOWN</b>
+      is subject to the same permissions checks as are described for
+      <b>kill</b>(2), where the sending process is the one that employs
+      <b>F_SETOWN</b> (but see BUGS below). If this permission check fails, then
+      the signal is silently discarded. <i>Note</i>: The <b>F_SETOWN</b>
+      operation records the caller's credentials at the time of the
+      <b>fcntl</b>() call, and it is these saved credentials that are used for
+      the permission checks.</dd>
+  <dt></dt>
+  <dd>If the file descriptor <i>fd</i> refers to a socket, <b>F_SETOWN</b> also
+      selects the recipient of <b>SIGURG</b> signals that are delivered when
+      out-of-band data arrives on that socket. (<b>SIGURG</b> is sent in any
+      situation where <b>select</b>(2) would report the socket as having an
+      &quot;exceptional condition&quot;.)</dd>
+  <dt></dt>
+  <dd>The following was true in Linux 2.6.x up to and including Linux
+    2.6.11:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If a nonzero value is given to <b>F_SETSIG</b> in a multithreaded process
+      running with a threading library that supports thread groups (e.g., NPTL),
+      then a positive value given to <b>F_SETOWN</b> has a different meaning:
+      instead of being a process ID identifying a whole process, it is a thread
+      ID identifying a specific thread within a process. Consequently, it may be
+      necessary to pass <b>F_SETOWN</b> the result of <b>gettid</b>(2) instead
+      of <b>getpid</b>(2) to get sensible results when <b>F_SETSIG</b> is used.
+      (In current Linux threading implementations, a main thread's thread ID is
+      the same as its process ID. This means that a single-threaded program can
+      equally use <b>gettid</b>(2) or <b>getpid</b>(2) in this scenario.) Note,
+      however, that the statements in this paragraph do not apply to the
+      <b>SIGURG</b> signal generated for out-of-band data on a socket: this
+      signal is always sent to either a process or a process group, depending on
+      the value given to <b>F_SETOWN</b>.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The above behavior was accidentally dropped in Linux 2.6.12, and won't be
+      restored. From Linux 2.6.32 onward, use <b>F_SETOWN_EX</b> to target
+      <b>SIGIO</b> and <b>SIGURG</b> signals at a particular thread.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="F_GETOWN_EX"><a class="permalink" href="#F_GETOWN_EX"><b>F_GETOWN_EX</b></a></dt>
+  <dd>Return the current file descriptor owner settings as defined by a previous
+      <b>F_SETOWN_EX</b> operation. The information is returned in the structure
+      pointed to by <i>arg</i>, which has the following form:</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>struct f_owner_ex {
+<br/>
+    int   type;
+<br/>
+    pid_t pid;
+};
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The <i>type</i> field will have one of the values <b>F_OWNER_TID</b>,
+      <b>F_OWNER_PID</b>, or <b>F_OWNER_PGRP</b>. The <i>pid</i> field is a
+      positive integer representing a thread ID, process ID, or process group
+      ID. See <b>F_SETOWN_EX</b> for more details.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="F_SETOWN_EX"><a class="permalink" href="#F_SETOWN_EX"><b>F_SETOWN_EX</b></a></dt>
+  <dd>This operation performs a similar task to <b>F_SETOWN</b>. It allows the
+      caller to direct I/O availability signals to a specific thread, process,
+      or process group. The caller specifies the target of signals via
+      <i>arg</i>, which is a pointer to a <i>f_owner_ex</i> structure. The
+      <i>type</i> field has one of the following values, which define how
+      <i>pid</i> is interpreted:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="F_OWNER_TID"><a class="permalink" href="#F_OWNER_TID"><b>F_OWNER_TID</b></a></dt>
+  <dd>Send the signal to the thread whose thread ID (the value returned by a
+      call to <b>clone</b>(2) or <b>gettid</b>(2)) is specified in
+    <i>pid</i>.</dd>
+  <dt id="F_OWNER_PID"><a class="permalink" href="#F_OWNER_PID"><b>F_OWNER_PID</b></a></dt>
+  <dd>Send the signal to the process whose ID is specified in <i>pid</i>.</dd>
+  <dt id="F_OWNER_PGRP"><a class="permalink" href="#F_OWNER_PGRP"><b>F_OWNER_PGRP</b></a></dt>
+  <dd>Send the signal to the process group whose ID is specified in <i>pid</i>.
+      (Note that, unlike with <b>F_SETOWN</b>, a process group ID is specified
+      as a positive value here.)</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt id="F_GETSIG"><a class="permalink" href="#F_GETSIG"><b>F_GETSIG</b></a></dt>
+  <dd>Return (as the function result) the signal sent when input or output
+      becomes possible. A value of zero means <b>SIGIO</b> is sent. Any other
+      value (including <b>SIGIO</b>) is the signal sent instead, and in this
+      case additional info is available to the signal handler if installed with
+      <b>SA_SIGINFO</b>. <i>arg</i> is ignored.</dd>
+  <dt id="F_SETSIG"><a class="permalink" href="#F_SETSIG"><b>F_SETSIG</b></a></dt>
+  <dd>Set the signal sent when input or output becomes possible to the value
+      given in <i>arg</i>. A value of zero means to send the default
+      <b>SIGIO</b> signal. Any other value (including <b>SIGIO</b>) is the
+      signal to send instead, and in this case additional info is available to
+      the signal handler if installed with <b>SA_SIGINFO</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>By using <b>F_SETSIG</b> with a nonzero value, and setting
+      <b>SA_SIGINFO</b> for the signal handler (see <b>sigaction</b>(2)), extra
+      information about I/O events is passed to the handler in a
+      <i>siginfo_t</i> structure. If the <i>si_code</i> field indicates the
+      source is <b>SI_SIGIO</b>, the <i>si_fd</i> field gives the file
+      descriptor associated with the event. Otherwise, there is no indication
+      which file descriptors are pending, and you should use the usual
+      mechanisms (<b>select</b>(2), <b>poll</b>(2), <b>read</b>(2) with
+      <b>O_NONBLOCK</b> set etc.) to determine which file descriptors are
+      available for I/O.</dd>
+  <dt></dt>
+  <dd>Note that the file descriptor provided in <i>si_fd</i> is the one that was
+      specified during the <b>F_SETSIG</b> operation. This can lead to an
+      unusual corner case. If the file descriptor is duplicated (<b>dup</b>(2)
+      or similar), and the original file descriptor is closed, then I/O events
+      will continue to be generated, but the <i>si_fd</i> field will contain the
+      number of the now closed file descriptor.</dd>
+  <dt></dt>
+  <dd>By selecting a real time signal (value &gt;= <b>SIGRTMIN</b>), multiple
+      I/O events may be queued using the same signal numbers. (Queuing is
+      dependent on available memory.) Extra information is available if
+      <b>SA_SIGINFO</b> is set for the signal handler, as above.</dd>
+  <dt></dt>
+  <dd>Note that Linux imposes a limit on the number of real-time signals that
+      may be queued to a process (see <b>getrlimit</b>(2) and <b>signal</b>(7))
+      and if this limit is reached, then the kernel reverts to delivering
+      <b>SIGIO</b>, and this signal is delivered to the entire process rather
+      than to a specific thread.</dd>
+</dl>
+<p class="Pp">Using these mechanisms, a program can implement fully asynchronous
+    I/O without using <b>select</b>(2) or <b>poll</b>(2) most of the time.</p>
+<p class="Pp">The use of <b>O_ASYNC</b> is specific to BSD and Linux. The only
+    use of <b>F_GETOWN</b> and <b>F_SETOWN</b> specified in POSIX.1 is in
+    conjunction with the use of the <b>SIGURG</b> signal on sockets. (POSIX does
+    not specify the <b>SIGIO</b> signal.) <b>F_GETOWN_EX</b>,
+    <b>F_SETOWN_EX</b>, <b>F_GETSIG</b>, and <b>F_SETSIG</b> are Linux-specific.
+    POSIX has asynchronous I/O and the <i>aio_sigevent</i> structure to achieve
+    similar things; these are also available in Linux as part of the GNU C
+    Library (glibc).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="F_GETOWN~2"><a class="permalink" href="#F_GETOWN~2"><b>F_GETOWN</b></a></dt>
+  <dd>Value of file descriptor owner.</dd>
+  <dt id="F_GETSIG~2"><a class="permalink" href="#F_GETSIG~2"><b>F_GETSIG</b></a></dt>
+  <dd>Value of signal sent when read or write becomes possible, or zero for
+      traditional <b>SIGIO</b> behavior.</dd>
+  <dt id="F_SETOWN~2"><a class="permalink" href="#F_SETOWN~2"><b>F_SETOWN</b></a></dt>
+  <dd></dd>
+  <dt id="F_GETOWN_EX~2"><a class="permalink" href="#F_GETOWN_EX~2"><b>F_GETOWN_EX</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETOWN_EX~2"><a class="permalink" href="#F_SETOWN_EX~2"><b>F_SETOWN_EX</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETSIG~2"><a class="permalink" href="#F_SETSIG~2"><b>F_SETSIG</b></a></dt>
+  <dd>Zero.</dd>
+</dl>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>op</i> is <b>F_SETSIG</b> and <i>arg</i> is not an allowable signal
+      number.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_GETOWN~3"><a class="permalink" href="#F_GETOWN~3"><b>F_GETOWN</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETOWN~3"><a class="permalink" href="#F_SETOWN~3"><b>F_SETOWN</b></a></dt>
+  <dd></dd>
+  <dt id="F_GETOWN_EX~3"><a class="permalink" href="#F_GETOWN_EX~3"><b>F_GETOWN_EX</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETOWN_EX~3"><a class="permalink" href="#F_SETOWN_EX~3"><b>F_SETOWN_EX</b></a></dt>
+  <dd>POSIX.1-2024.</dd>
+  <dt id="F_GETSIG~3"><a class="permalink" href="#F_GETSIG~3"><b>F_GETSIG</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETSIG~3"><a class="permalink" href="#F_SETSIG~3"><b>F_SETSIG</b></a></dt>
+  <dd>Linux. (Define the <b>_GNU_SOURCE</b> macro to obtain these
+    definitions.)</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_GETOWN~4"><a class="permalink" href="#F_GETOWN~4"><b>F_GETOWN</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETOWN~4"><a class="permalink" href="#F_SETOWN~4"><b>F_SETOWN</b></a></dt>
+  <dd>POSIX.1-2001. (To get their definitions, define either
+      <b>_XOPEN_SOURCE</b> with the value 500 or greater, or
+      <b>_POSIX_C_SOURCE</b> with the value 200809L or greater.)</dd>
+  <dt id="F_GETOWN_EX~4"><a class="permalink" href="#F_GETOWN_EX~4"><b>F_GETOWN_EX</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETOWN_EX~4"><a class="permalink" href="#F_SETOWN_EX~4"><b>F_SETOWN_EX</b></a></dt>
+  <dd>POSIX.1-2024. Linux 2.6.32.</dd>
+  <dt id="F_GETSIG~4"><a class="permalink" href="#F_GETSIG~4"><b>F_GETSIG</b></a></dt>
+  <dd></dd>
+  <dt id="F_SETSIG~4"><a class="permalink" href="#F_SETSIG~4"><b>F_SETSIG</b></a></dt>
+  <dd>Linux.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="F_GETOWN~5"><a class="permalink" href="#F_GETOWN~5">F_GETOWN</a></h2>
+<p class="Pp">A limitation of the Linux system call conventions on some
+    architectures (notably i386) means that if a (negative) process group ID to
+    be returned by <b>F_GETOWN</b> falls in the range -1 to -4095, then the
+    return value is wrongly interpreted by glibc as an error in the system call;
+    that is, the return value of <b>fcntl</b>() will be -1, and <i>errno</i>
+    will contain the (positive) process group ID. The Linux-specific
+    <b>F_GETOWN_EX</b> operation avoids this problem. Since glibc 2.11, glibc
+    makes the kernel <b>F_GETOWN</b> problem invisible by implementing
+    <b>F_GETOWN</b> using <b>F_GETOWN_EX</b>.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="F_SETOWN~5"><a class="permalink" href="#F_SETOWN~5">F_SETOWN</a></h2>
+<p class="Pp">In Linux 2.4 and earlier, there is bug that can occur when an
+    unprivileged process uses <b>F_SETOWN</b> to specify the owner of a socket
+    file descriptor as a process (group) other than the caller. In this case,
+    <b>fcntl</b>() can return -1 with <i>errno</i> set to <b>EPERM</b>, even
+    when the owner process (group) is one that the caller has permission to send
+    signals to. Despite this error return, the file descriptor owner is set, and
+    signals will be sent to the owner.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-31</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

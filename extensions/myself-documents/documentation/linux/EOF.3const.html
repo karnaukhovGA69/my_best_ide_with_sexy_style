@@ -1,0 +1,56 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">EOF(3const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">EOF(3const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">EOF - end of file or error indicator</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>#define EOF  </b>/* ... */</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>EOF</b> represents the end of an input file, or an error
+    indication. It is a negative value, of type <i>int</i>.</p>
+<p class="Pp"><b>EOF</b> is not a character (it can't be represented by
+    <i>unsigned char</i>). It is instead a sentinel value outside of the valid
+    range for valid characters.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, POSIX.1-1988.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Programs can't pass this value to an output function to
+    &quot;write&quot; the end of a file. That would likely result in undefined
+    behavior. Instead, closing the writing stream or file descriptor that refers
+    to such file is the way to signal the end of that file.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>feof</b>(3), <b>fgetc</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-01-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

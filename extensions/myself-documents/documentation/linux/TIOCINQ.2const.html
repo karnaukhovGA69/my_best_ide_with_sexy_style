@@ -1,0 +1,77 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FIONREAD(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FIONREAD(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FIONREAD, TIOCINQ, TIOCOUTQ, TCFLSH, TIOCSERGETLSR - buffer count
+    and flushing</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, FIONREAD, int *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCINQ, int *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCOUTQ, int *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TCFLSH, int </b><i>arg</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCSERGETLSR, int *</b><i>argp</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="FIONREAD"><a class="permalink" href="#FIONREAD"><b>FIONREAD</b></a></dt>
+  <dd>Get the number of bytes in the input buffer.</dd>
+  <dt id="TIOCINQ"><a class="permalink" href="#TIOCINQ"><b>TIOCINQ</b></a></dt>
+  <dd>Same as <b>FIONREAD</b>.</dd>
+  <dt id="TIOCOUTQ"><a class="permalink" href="#TIOCOUTQ"><b>TIOCOUTQ</b></a></dt>
+  <dd>Get the number of bytes in the output buffer.</dd>
+  <dt id="TCFLSH"><a class="permalink" href="#TCFLSH"><b>TCFLSH</b></a></dt>
+  <dd>Equivalent to <i>tcflush(fd, arg)</i>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>See <b>tcflush</b>(3) for the argument values <b>TCIFLUSH</b>,
+      <b>TCOFLUSH</b>, <b>TCIOFLUSH</b>.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCSERGETLSR"><a class="permalink" href="#TIOCSERGETLSR"><b>TIOCSERGETLSR</b></a></dt>
+  <dd>Get line status register. Status register has <b>TIOCSER_TEMT</b> bit set
+      when output buffer is empty and also hardware transmitter is physically
+      empty.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Does not have to be supported by all serial tty drivers.</dd>
+  <dt></dt>
+  <dd><b>tcdrain</b>(3) does not wait and returns immediately when
+      <b>TIOCSER_TEMT</b> bit is set.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2), <b>tcflush</b>(3),
+    <b>termios</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

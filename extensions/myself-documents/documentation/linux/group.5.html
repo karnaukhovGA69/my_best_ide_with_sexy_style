@@ -1,0 +1,59 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">group(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">group(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">group - user group file</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <i>/etc/group</i> file is a text file that defines the groups
+    on the system. There is one entry per line, with the following format:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>group_name:password:GID:user_list
+</pre>
+<br/>
+<p class="Pp">The fields are as follows:</p>
+<dl class="Bl-tag">
+  <dt id="group_name"><a class="permalink" href="#group_name"><i>group_name</i></a></dt>
+  <dd>the name of the group.</dd>
+  <dt id="password"><a class="permalink" href="#password"><i>password</i></a></dt>
+  <dd>the (encrypted) group password. If this field is empty, no password is
+      needed.</dd>
+  <dt id="GID"><a class="permalink" href="#GID"><i>GID</i></a></dt>
+  <dd>the numeric group ID.</dd>
+  <dt id="user_list"><a class="permalink" href="#user_list"><i>user_list</i></a></dt>
+  <dd>a list of the usernames that are members of this group, separated by
+      commas.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<p class="Pp"><i>/etc/group</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">As the 4.2BSD <b>initgroups</b>(3) man page says: no one seems to
+    keep <i>/etc/group</i> up-to-date.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>chgrp</b>(1), <b>gpasswd</b>(1), <b>groups</b>(1),
+    <b>login</b>(1), <b>newgrp</b>(1), <b>sg</b>(1), <b>getgrent</b>(3),
+    <b>getgrnam</b>(3), <b>gshadow</b>(5), <b>passwd</b>(5), <b>vigr</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

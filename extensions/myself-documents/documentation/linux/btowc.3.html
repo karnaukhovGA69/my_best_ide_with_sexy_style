@@ -1,0 +1,82 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">btowc(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">btowc(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">btowc - convert single byte to wide character</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;wchar.h&gt;</b></pre>
+<pre><b>wint_t btowc(int </b><i>c</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>btowc</b>() function converts <i>c</i>, interpreted as a
+    multibyte sequence of length 1, starting in the initial shift state, to a
+    wide character and returns it. If <i>c</i> is <b>EOF</b> or not a valid
+    multibyte sequence of length 1, the <b>btowc</b>() function returns
+    <b>WEOF</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>btowc</b>() function returns the wide character converted
+    from the single byte <i>c</i>. If <i>c</i> is <b>EOF</b> or not a valid
+    multibyte sequence of length 1, it returns <b>WEOF</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>btowc ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C99, POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The behavior of <b>btowc</b>() depends on the <b>LC_CTYPE</b>
+    category of the current locale.</p>
+<p class="Pp">This function should never be used. It does not work for encodings
+    which have state, and unnecessarily treats single bytes differently from
+    multibyte sequences. Use either <b>mbtowc</b>(3) or the thread-safe
+    <b>mbrtowc</b>(3) instead.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mbrtowc</b>(3), <b>mbtowc</b>(3), <b>wctob</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

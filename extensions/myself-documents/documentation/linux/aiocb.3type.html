@@ -1,0 +1,57 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">aiocb(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">aiocb(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">aiocb - asynchronous I/O control block</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;aio.h&gt;</b></pre>
+<pre><b>struct aiocb {</b>
+<b>    int             aio_fildes;</b>     /* File descriptor */
+<b>    off_t           aio_offset;</b>     /* File offset */
+<b>    volatile void  *aio_buf;</b>        /* Location of buffer */
+<b>    size_t          aio_nbytes;</b>     /* Length of transfer */
+<b>    int             aio_reqprio;</b>    /* Request priority offset */
+<b>    struct sigevent aio_sigevent;</b>   /* Signal number and value */
+<b>    int             aio_lio_opcode;</b> /* Operation to be performed */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">For further information about this structure, see
+  <b>aio</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-1996.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>aio_cancel</b>(3), <b>aio_error</b>(3), <b>aio_fsync</b>(3),
+    <b>aio_read</b>(3), <b>aio_return</b>(3), <b>aio_suspend</b>(3),
+    <b>aio_write</b>(3), <b>lio_listio</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

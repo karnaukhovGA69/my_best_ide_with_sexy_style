@@ -1,0 +1,92 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_GET_SPECULATION_CTRL(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_GET_SPECULATION_CTRL(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_GET_SPECULATION_CTRL - get the state of a speculation
+    misfeature for the calling thread</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_GET_SPECULATION_CTRL, long </b><i>misfeature</i><b>, 0L, 0L, 0L);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Return the state of the speculation misfeature specified in
+    <i>misfeature</i>.</p>
+<p class="Pp">Currently, <i>misfeature</i> must be one of:</p>
+<dl class="Bl-tag">
+  <dt id="PR_SPEC_STORE_BYPASS"><a class="permalink" href="#PR_SPEC_STORE_BYPASS"><b>PR_SPEC_STORE_BYPASS</b></a></dt>
+  <dd>Get the state of the speculative store bypass misfeature.</dd>
+  <dt id="PR_SPEC_INDIRECT_BRANCH"><a class="permalink" href="#PR_SPEC_INDIRECT_BRANCH"><b>PR_SPEC_INDIRECT_BRANCH</b>
+    (since Linux 4.20)</a></dt>
+  <dd>Get the state of the indirect branch speculation misfeature.</dd>
+</dl>
+<p class="Pp">The return value uses bits 0-4 with the following meaning:</p>
+<dl class="Bl-tag">
+  <dt id="PR_SPEC_PRCTL"><a class="permalink" href="#PR_SPEC_PRCTL"><b>PR_SPEC_PRCTL</b></a></dt>
+  <dd>Mitigation can be controlled per thread by
+      <b>PR_SET_SPECULATION_CTRL</b>(2const).</dd>
+  <dt id="PR_SPEC_ENABLE"><a class="permalink" href="#PR_SPEC_ENABLE"><b>PR_SPEC_ENABLE</b></a></dt>
+  <dd>The speculation feature is enabled, mitigation is disabled.</dd>
+  <dt id="PR_SPEC_DISABLE"><a class="permalink" href="#PR_SPEC_DISABLE"><b>PR_SPEC_DISABLE</b></a></dt>
+  <dd>The speculation feature is disabled, mitigation is enabled.</dd>
+  <dt id="PR_SPEC_FORCE_DISABLE"><a class="permalink" href="#PR_SPEC_FORCE_DISABLE"><b>PR_SPEC_FORCE_DISABLE</b></a></dt>
+  <dd>Same as <b>PR_SPEC_DISABLE</b> but cannot be undone.</dd>
+  <dt id="PR_SPEC_DISABLE_NOEXEC"><a class="permalink" href="#PR_SPEC_DISABLE_NOEXEC"><b>PR_SPEC_DISABLE_NOEXEC</b>
+    (since Linux 5.1)</a></dt>
+  <dd>Same as <b>PR_SPEC_DISABLE</b>, but the state will be cleared on
+      <b>execve</b>(2).</dd>
+</dl>
+<p class="Pp">If all bits are 0, then the CPU is not affected by the speculation
+    misfeature.</p>
+<p class="Pp">If <b>PR_SPEC_PRCTL</b> is set, then per-thread control of the
+    mitigation is available. If not set, <b>PR_SET_SPECULATION_CTRL</b>(2const)
+    for the speculation misfeature will fail.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>PR_GET_SPECULATION_CTRL</b> returns the nonnegative
+    value described above. On error, -1 is returned, and <i>errno</i> is set to
+    indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="ENODEV"><a class="permalink" href="#ENODEV"><b>ENODEV</b></a></dt>
+  <dd>The kernel or CPU does not support the requested speculation
+      <i>misfeature</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 4.17.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>PR_SET_SPECULATION_CTRL</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

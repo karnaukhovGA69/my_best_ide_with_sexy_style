@@ -1,0 +1,61 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">Q_SYNC(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">Q_SYNC(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">Q_SYNC - synchronize on-disk copy of quota usages</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/quota.h&gt;</b></pre>
+<pre><b>int&#x00A0;quotactl(QCMD(Q_SYNC, </b><i>type</i><b>), const&#x00A0;char&#x00A0;*_Nullable&#x00A0;</b><i>special</i><b>, 0, NULL);</b></pre>
+<pre><b>#include &lt;sys/quota.h&gt;</b>    /* Definition of <b>Q_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int&#x00A0;syscall(SYS_quotactl_fd, int&#x00A0;</b><i>fd</i><b>, QCMD(Q_SYNC, </b><i>type</i><b>));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Update the on-disk copy of quota usages for a filesystem.</p>
+<p class="Pp">For <b>quotactl</b>(2), if <i>special</i> is NULL, then all
+    filesystems with active quotas are synchronized. <b>quotactl_fd</b>(2)
+    always synchronizes only one filesystem.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>quotactl</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>quotactl</b>(2), <b>quotactl_fd</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

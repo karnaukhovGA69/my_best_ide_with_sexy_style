@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">erofs(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">erofs(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">erofs - the Enhanced Read-Only File System</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>erofs</b> is a create-once read-only filesystem, with support
+    for compression and a multi-device backing store.</p>
+<p class="Pp">There are two inode formats:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>32-byte compact with 16-bit UID/GID, 32-bit file size, and no file
+    times</dd>
+  <dt>&#x2022;</dt>
+  <dd>64-byte extended with 32-bit UID/GID, 64-bit file size, and a modification
+      time (<i>st_mtim</i>).</dd>
+</dl>
+<section class="Ss">
+<h2 class="Ss" id="Mount_options"><a class="permalink" href="#Mount_options">Mount
+  options</a></h2>
+<dl class="Bl-tag">
+  <dt id="user_xattr"><a class="permalink" href="#user_xattr"><b>user_xattr</b></a></dt>
+  <dd></dd>
+  <dt id="nouser_xattr"><a class="permalink" href="#nouser_xattr"><b>nouser_xattr</b></a></dt>
+  <dd>Controls whether <i>user</i> extended attributes are exposed. Defaults to
+      yes.</dd>
+  <dt id="acl"><a class="permalink" href="#acl"><b>acl</b></a></dt>
+  <dd></dd>
+  <dt id="noacl"><a class="permalink" href="#noacl"><b>noacl</b></a></dt>
+  <dd>Controls whether POSIX <b>acl</b>(5)s are exposed. Defaults to yes.</dd>
+  <dt id="cache_strategy"><a class="permalink" href="#cache_strategy"><b>cache_strategy</b>=<b>disabled</b>|<b>readahead</b>|<b>readaround</b></a></dt>
+  <dd>Cache allocation for compressed files: never, if reading from start of
+      file, regardless of position. Defaults to <b>readaround</b>.</dd>
+  <dt id="dax"><a class="permalink" href="#dax"><b>dax</b></a></dt>
+  <dd></dd>
+  <dt id="dax~2"><a class="permalink" href="#dax~2"><b>dax</b>=<b>always</b>|<b>never</b></a></dt>
+  <dd>Direct Access control. If <b>always</b> and the source device supports
+      DAX, uncompressed non-inlined files will be read directly, without going
+      through the page cache. <b>dax</b> is a synonym for <b>always</b>.
+      Defaults to unset, which is equivalent to <b>never</b>.</dd>
+  <dt id="device"><a class="permalink" href="#device"><b>device</b>=<b><i>blobdev</i></b></a></dt>
+  <dd>Add extra device holding some of the data. Must be given as many times and
+      in the same order as <b>--blobdev</b> was to <b>mkfs.erofs</b>(1).</dd>
+  <dt id="domain_id"><a class="permalink" href="#domain_id"><b>domain_id</b>=<b><i>did</i></b></a></dt>
+  <dd></dd>
+  <dt id="fsid"><a class="permalink" href="#fsid"><b>fsid</b>=<b><i>id</i></b></a></dt>
+  <dd>Control CacheFiles on-demand read support. To be documented.</dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp"><b>erofs</b> images are versioned through the use of feature
+    flags; these are listed in the <b>-E</b> section of
+  <b>mkfs.erofs</b>(1),</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CONFIGURATION"><a class="permalink" href="#CONFIGURATION">CONFIGURATION</a></h1>
+<p class="Pp">Linux must be configured with the <b>CONFIG_EROFS_FS</b> option to
+    mount EROFS filesystems. There are sub-configuration items that restrict the
+    availability of some of the parameters above.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Stable since Linux 5.4.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mkfs.erofs</b>(1), <b>fsck.erofs</b>(1),
+  <b>dump.erofs</b>(1)</p>
+<p class="Pp"><i>Documentation/filesystems/erofs.rst</i> in the Linux
+  source.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-09</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

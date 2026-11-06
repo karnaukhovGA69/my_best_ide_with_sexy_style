@@ -1,0 +1,73 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TIOCSCTTY(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TIOCSCTTY(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TIOCSCTTY, TIOCNOTTY - controlling the terminal</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of <b>TIOC*TTY</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TIOCSCTTY, int </b><i>arg</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCNOTTY);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="TIOCSCTTY"><a class="permalink" href="#TIOCSCTTY"><b>TIOCSCTTY</b></a></dt>
+  <dd>Make the given terminal the controlling terminal of the calling process.
+      The calling process must be a session leader and not have a controlling
+      terminal already. For this case, <i>arg</i> should be specified as
+    zero.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If this terminal is already the controlling terminal of a different
+      session group, then the ioctl fails with <b>EPERM</b>, unless the caller
+      has the <b>CAP_SYS_ADMIN</b> capability and <i>arg</i> equals 1, in which
+      case the terminal is stolen, and all processes that had it as controlling
+      terminal lose it.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="TIOCNOTTY"><a class="permalink" href="#TIOCNOTTY"><b>TIOCNOTTY</b></a></dt>
+  <dd>If the given terminal was the controlling terminal of the calling process,
+      give up this controlling terminal. If the process was session leader, then
+      send <b>SIGHUP</b> and <b>SIGCONT</b> to the foreground process group and
+      all processes in the current session lose their controlling terminal.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>Insufficient permission.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

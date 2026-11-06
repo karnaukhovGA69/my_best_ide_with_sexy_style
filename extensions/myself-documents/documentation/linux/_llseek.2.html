@@ -1,0 +1,80 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">_llseek(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">_llseek(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">_llseek - reposition read/write file offset</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/syscall.h&gt;</b>      /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>int syscall(SYS__llseek, unsigned int </b><i>fd</i><b>, unsigned long </b><i>offset_high</i><b>,</b>
+<b>            unsigned long </b><i>offset_low</i><b>, loff_t *</b><i>result</i><b>,</b>
+<b>            unsigned int </b><i>whence</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>_llseek</b>() system call repositions the offset of the
+    open file description associated with the file descriptor <i>fd</i> to the
+    value</p>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>(offset_high &lt;&lt; 32) | offset_low</dd>
+</dl>
+<p class="Pp">This new offset is a byte offset relative to the beginning of the
+    file, the current file offset, or the end of the file, depending on whether
+    <i>whence</i> is <b>SEEK_SET</b>, <b>SEEK_CUR</b>, or <b>SEEK_END</b>,
+    respectively.</p>
+<p class="Pp">The new file offset is returned in the argument <i>result</i>. The
+    type <i>loff_t</i> is a 64-bit signed type.</p>
+<p class="Pp">This system call exists on various 32-bit platforms to support
+    seeking to large file offsets.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Upon successful completion, <b>_llseek</b>() returns 0. Otherwise,
+    a value of -1 is returned and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EBADF"><a class="permalink" href="#EBADF"><b>EBADF</b></a></dt>
+  <dd><i>fd</i> is not an open file descriptor.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd>Problem with copying results to user space.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>whence</i> is invalid.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">You probably want to use the <b>lseek</b>(2) wrapper function
+    instead.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>llseek</b>(3), <b>lseek</b>(2), <b>open</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-13</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

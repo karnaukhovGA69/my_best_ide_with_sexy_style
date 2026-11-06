@@ -1,0 +1,152 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_eventpoll(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_eventpoll(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_eventpoll, EPIOCSPARAMS, EPIOCGPARAMS - ioctl() operations
+    for epoll file descriptors</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/epoll.h&gt;</b>  /* Definition of <b>EPIOC*</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, EPIOCSPARAMS, const struct epoll_params *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, EPIOCGPARAMS, struct epoll_params *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;sys/epoll.h&gt;</b></pre>
+<pre></pre>
+<pre><b>struct epoll_params {</b>
+<b>    uint32_t  busy_poll_usecs;</b>   /* Number of usecs to busy poll */
+<b>    uint16_t  busy_poll_budget;</b>  /* Max packets per poll */
+<b>    uint8_t   prefer_busy_poll;</b>  /* Boolean preference  */
+<br/>
+    /* pad the struct to a multiple of 64bits */
+<b>    uint8_t   __pad;</b>             /* Must be zero */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPIOCSPARAMS"><a class="permalink" href="#EPIOCSPARAMS"><b>EPIOCSPARAMS</b></a></dt>
+  <dd>Set the <i>epoll_params</i> structure to configure the operation of epoll.
+      Refer to the structure description below to learn what configuration is
+      supported.</dd>
+  <dt id="EPIOCGPARAMS"><a class="permalink" href="#EPIOCGPARAMS"><b>EPIOCGPARAMS</b></a></dt>
+  <dd>Get the current <i>epoll_params</i> configuration settings.</dd>
+</dl>
+<p class="Pp">All operations documented above must be performed on an epoll file
+    descriptor, which can be obtained with a call to <b>epoll_create</b>(2) or
+    <b>epoll_create1</b>(2).</p>
+<section class="Ss">
+<h2 class="Ss" id="The_epoll_params_structure"><a class="permalink" href="#The_epoll_params_structure">The
+  epoll_params structure</a></h2>
+<p class="Pp"><i>argp.busy_poll_usecs</i> denotes the number of microseconds
+    that the network stack will busy poll. During this time period, the network
+    device will be polled repeatedly for packets. This value cannot exceed
+    <b>INT_MAX</b>.</p>
+<p class="Pp"><i>argp.busy_poll_budget</i> denotes the maximum number of packets
+    that the network stack will retrieve on each poll attempt. This value cannot
+    exceed <b>NAPI_POLL_WEIGHT</b> (which is 64 as of Linux 6.9), unless the
+    process is run with <b>CAP_NET_ADMIN</b>.</p>
+<p class="Pp"><i>argp.prefer_busy_poll</i> is a boolean field and must be either
+    0 (disabled) or 1 (enabled). If enabled, this indicates to the network stack
+    that busy poll is the preferred method of processing network data and the
+    network stack should give the application the opportunity to busy poll.
+    Without this option, very busy systems may continue to do network processing
+    via the normal method of IRQs triggering softIRQ and NAPI.</p>
+<p class="Pp"><i>argp.__pad</i> must be zero.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On failure, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EOPNOTSUPP"><a class="permalink" href="#EOPNOTSUPP"><b>EOPNOTSUPP</b></a></dt>
+  <dd>The kernel was not compiled with busy poll support.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>fd</i> is not a valid file descriptor.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>argp.__pad</i> is not zero.</dd>
+  <dt id="EINVAL~3"><a class="permalink" href="#EINVAL~3"><b>EINVAL</b></a></dt>
+  <dd><i>argp.busy_poll_usecs</i> exceeds <b>INT_MAX</b>.</dd>
+  <dt id="EINVAL~4"><a class="permalink" href="#EINVAL~4"><b>EINVAL</b></a></dt>
+  <dd><i>argp.prefer_busy_poll</i> is not 0 or 1.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The process is being run without <b>CAP_NET_ADMIN</b> and the specified
+      <i>argp.busy_poll_budget</i> exceeds <b>NAPI_POLL_WEIGHT</b>.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>argp</i> is an invalid address.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 6.9, glibc 2.40.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<pre>/* Code to set the epoll params to enable busy polling */
+int epollfd = epoll_create1(0);
+struct epoll_params params;
+if (epollfd == -1) {
+<br/>
+    perror(&quot;epoll_create1&quot;);
+<br/>
+    exit(EXIT_FAILURE);
+}
+memset(&amp;params, 0, sizeof(struct epoll_params));
+params.busy_poll_usecs = 25;
+params.busy_poll_budget = 8;
+params.prefer_busy_poll = 1;
+if (ioctl(epollfd, EPIOCSPARAMS, &amp;params) == -1) {
+<br/>
+    perror(&quot;ioctl&quot;);
+<br/>
+    exit(EXIT_FAILURE);
+}
+/* Code to show how to retrieve the current settings */
+memset(&amp;params, 0, sizeof(struct epoll_params));
+if (ioctl(epollfd, EPIOCGPARAMS, &amp;params) == -1) {
+<br/>
+    perror(&quot;ioctl&quot;);
+<br/>
+    exit(EXIT_FAILURE);
+}
+/* params struct now contains the current parameters */
+fprintf(stderr, &quot;epoll usecs: %lu\n&quot;, params.busy_poll_usecs);
+fprintf(stderr, &quot;epoll packet budget: %u\n&quot;, params.busy_poll_budget);
+fprintf(stderr, &quot;epoll prefer busy poll: %u\n&quot;, params.prefer_busy_poll);
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>epoll_create</b>(2), <b>epoll_create1</b>(2),
+    <b>epoll</b>(7)</p>
+<p class="Pp"><i>linux.git/Documentation/networking/napi.rst</i></p>
+<p class="Pp"><i>linux.git/Documentation/admin-guide/sysctl/net.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-07-15</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

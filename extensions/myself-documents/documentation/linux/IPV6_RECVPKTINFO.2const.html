@@ -1,0 +1,53 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IPV6_RECVPKTINFO(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IPV6_RECVPKTINFO(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IPV6_RECVPKTINFO - set delivery of the IPV6_PKTINFO control
+    message on incoming datagrams</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IPV6,&#x00A0;IPV6_RECVPKTINFO,</b>
+<b>               const&#x00A0;int&#x00A0;*</b><i>enable</i><b>,&#x00A0;sizeof(int));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set delivery of the <b>IPV6_PKTINFO</b> control message on
+    incoming datagrams. Such control messages contain a <i>struct
+    in6_pktinfo</i>, as per RFC 3542.</p>
+<p class="Pp">Allowed only for <b>SOCK_DGRAM</b> or <b>SOCK_RAW</b> sockets.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>IPPROTO_IPV6</b>(2const). See <b>setsockopt</b>(2). See
+    <b>ipv6</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.14.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IPV6</b>(2const), <b>setsockopt</b>(2), <b>cmsg</b>(3),
+    <b>ipv6</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-02</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

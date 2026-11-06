@@ -1,0 +1,150 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">tunables.conf(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">tunables.conf(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">tunables.conf - tunables configuration file</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>/etc/tunables.conf</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Tunables are a feature in the GNU C Library that allows
+    application authors and distribution maintainers to alter the runtime
+    library behavior to match their workload.</p>
+<p class="Pp">The file is parsed by <b>ldconfig</b>(8) and the results stored in
+    <i>/etc/ld.so.cache</i>. The resulting data is read when the program starts
+    execution.</p>
+<p class="Pp">Each line in the file <i>/etc/tunables.conf</i> specifies a
+    tunable, a directive, or a filter.</p>
+<section class="Ss">
+<h2 class="Ss" id="Tunables"><a class="permalink" href="#Tunables">Tunables</a></h2>
+<p class="Pp">A tunable is specified with a string of the form
+    <i>name</i><b>=</b><i>value</i><b>.</b></p>
+<p class="Pp">For a list of supported tunables, please consult the glibc manual
+    that corresponds to your installed version of glibc, or run the following
+    command:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b>&#x00A0;ld.so&#x00A0;--list-tunables</b>;
+</pre>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Directives"><a class="permalink" href="#Directives">Directives</a></h2>
+<dl class="Bl-tag">
+  <dt id="include"><a class="permalink" href="#include"><b>include&#x00A0;</b><i>path</i></a></dt>
+  <dd>The syntax allows lines to start with the keyword <b>include</b> followed
+      by a <b>glob</b>(7) pattern. Files matching that pattern will be processed
+      as if their contents were included at that point.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Modifiers"><a class="permalink" href="#Modifiers">Modifiers</a></h2>
+<p class="Pp">Each line may include zero or more keywords or symbols at the
+    beginning, which affect how each tunable affects each processes. The
+    keywords must be separated by whitespace, but the symbols need not be.</p>
+<dl class="Bl-tag">
+  <dt id="overridable"><a class="permalink" href="#overridable"><b>overridable</b></a></dt>
+  <dd></dd>
+  <dt><b>+</b></dt>
+  <dd>Allow the tunable to be overridden by the <b>GLIBC_TUNABLES</b>
+      environment variable when the process runs (this is the default).</dd>
+  <dt id="nonoverridable"><a class="permalink" href="#nonoverridable"><b>nonoverridable</b></a></dt>
+  <dd></dd>
+  <dt><b>-</b></dt>
+  <dd>Do not allow the tunable to be overridden by the environment
+    variable.</dd>
+  <dt id="onlysecure"><a class="permalink" href="#onlysecure"><b>onlysecure</b></a></dt>
+  <dd></dd>
+  <dt><b>@</b></dt>
+  <dd>The tunable applies only to <b>AT_SECURE</b> processes, such as one
+      started from a set-user-ID program, or one with elevated
+    capabilities.</dd>
+  <dt id="nonsecure"><a class="permalink" href="#nonsecure"><b>nonsecure</b></a></dt>
+  <dd></dd>
+  <dt><b>$</b></dt>
+  <dd>The tunable applies only to non-<b>AT_SECURE</b> processes (this is the
+      default).</dd>
+  <dt id="anysecure"><a class="permalink" href="#anysecure"><b>anysecure</b></a></dt>
+  <dd></dd>
+  <dt><b>*</b></dt>
+  <dd>The tunable applies to both <b>AT_SECURE</b> and non-<b>AT_SECURE</b>
+      processes.</dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Filters"><a class="permalink" href="#Filters">Filters</a></h2>
+<p class="Pp">Filters limit the tunables following it. The effects of a filter
+    are terminated by any of the following:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>The end of the file.</dd>
+  <dt>&#x2022;</dt>
+  <dd>The end of an included file.</dd>
+  <dt>&#x2022;</dt>
+  <dd>An <b>include</b> directive.</dd>
+  <dt>&#x2022;</dt>
+  <dd>A new (possibly empty) filter.</dd>
+</dl>
+<p class="Pp">The syntax is:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre><b>[</b><i>filter</i><b>:</b><i>pattern</i><b>]</b>
+</pre>
+<br/>
+<dl class="Bl-tag">
+  <dt id="proc"><a class="permalink" href="#proc"><b>proc</b></a></dt>
+  <dd>The <b>proc</b> filter limits the following tunables to processes whose
+      name matches the pattern. The pattern may be an absolute path or just the
+      base name.</dd>
+</dl>
+<p class="Pp">A filter can also be empty: <b>[]</b>. Such a filter has no
+    effects.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/etc/tunables.conf</i></dt>
+  <dd></dd>
+  <dt><i>/etc/ld.so.cache</i></dt>
+  <dd>Cached copy of tunables.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">Example configuration file:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>glibc.malloc.arenas_max=5
+onlysecure glibc.malloc.arenas_max=1
+-glibc.pthread.rseq=1
+[proc:/bin/bad.program]
+-glibc.pthread.rseq=0
+[proc:some.program]
+-glibc.malloc.mmap_threshold=65536
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ld.so</b>(8), <b>ldconfig</b>(8)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

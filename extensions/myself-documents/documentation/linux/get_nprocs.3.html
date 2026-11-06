@@ -1,0 +1,106 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">get_nprocs(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">get_nprocs(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">get_nprocs, get_nprocs_conf - get number of processors</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/sysinfo.h&gt;</b></pre>
+<pre><b>int get_nprocs(void);</b>
+<b>int get_nprocs_conf(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The function <b>get_nprocs_conf</b>() returns the number of
+    processors configured by the operating system.</p>
+<p class="Pp">The function <b>get_nprocs</b>() returns the number of processors
+    currently available in the system. This may be less than the number returned
+    by <b>get_nprocs_conf</b>() because processors may be offline (e.g., on
+    hotpluggable systems).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">As given in DESCRIPTION.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>get_nprocs (), get_nprocs_conf ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The current implementation of these functions is rather expensive,
+    since they open and parse files in the <i>/sys</i> filesystem each time they
+    are called.</p>
+<p class="Pp">The following <b>sysconf</b>(3) calls make use of the functions
+    documented on this page to return the same information.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>np = sysconf(_SC_NPROCESSORS_CONF);     /* processors configured */
+np = sysconf(_SC_NPROCESSORS_ONLN);     /* processors available */
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The following example shows how <b>get_nprocs</b>() and
+    <b>get_nprocs_conf</b>() can be used.</p>
+<p class="Pp"></p>
+<pre>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/sysinfo.h&gt;
+int
+main(void)
+{
+<br/>
+    printf(&quot;This system has %d processors configured and &quot;
+<br/>
+            &quot;%d processors available.\n&quot;,
+<br/>
+            get_nprocs_conf(), get_nprocs());
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>nproc</b>(1)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

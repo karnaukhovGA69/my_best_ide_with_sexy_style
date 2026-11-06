@@ -1,0 +1,204 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_kpageflags(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_kpageflags(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/kpageflags - physical pages frame masks</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/kpageflags</i> (since Linux 2.6.25)</dt>
+  <dd>This file contains 64-bit masks corresponding to each physical page frame;
+      it is indexed by page frame number (see the discussion of
+      <i>/proc/</i>pid<i>/pagemap</i>). The bits are as follows:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>
+    <table class="tbl">
+      <tr>
+        <td style="text-align: right;">0</td>
+        <td>-</td>
+        <td>KPF_LOCKED</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">1</td>
+        <td>-</td>
+        <td>KPF_ERROR</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">2</td>
+        <td>-</td>
+        <td>KPF_REFERENCED</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">3</td>
+        <td>-</td>
+        <td>KPF_UPTODATE</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">4</td>
+        <td>-</td>
+        <td>KPF_DIRTY</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">5</td>
+        <td>-</td>
+        <td>KPF_LRU</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">6</td>
+        <td>-</td>
+        <td>KPF_ACTIVE</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">7</td>
+        <td>-</td>
+        <td>KPF_SLAB</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">8</td>
+        <td>-</td>
+        <td>KPF_WRITEBACK</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">9</td>
+        <td>-</td>
+        <td>KPF_RECLAIM</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">10</td>
+        <td>-</td>
+        <td>KPF_BUDDY</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">11</td>
+        <td>-</td>
+        <td>KPF_MMAP</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">12</td>
+        <td>-</td>
+        <td>KPF_ANON</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">13</td>
+        <td>-</td>
+        <td>KPF_SWAPCACHE</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">14</td>
+        <td>-</td>
+        <td>KPF_SWAPBACKED</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">15</td>
+        <td>-</td>
+        <td>KPF_COMPOUND_HEAD</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">16</td>
+        <td>-</td>
+        <td>KPF_COMPOUND_TAIL</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">17</td>
+        <td>-</td>
+        <td>KPF_HUGE</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">18</td>
+        <td>-</td>
+        <td>KPF_UNEVICTABLE</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">19</td>
+        <td>-</td>
+        <td>KPF_HWPOISON</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">20</td>
+        <td>-</td>
+        <td>KPF_NOPAGE</td>
+        <td>(since Linux 2.6.31)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">21</td>
+        <td>-</td>
+        <td>KPF_KSM</td>
+        <td>(since Linux 2.6.32)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">22</td>
+        <td>-</td>
+        <td>KPF_THP</td>
+        <td>(since Linux 3.4)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">23</td>
+        <td>-</td>
+        <td>KPF_BALLOON</td>
+        <td>(since Linux 3.18)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">24</td>
+        <td>-</td>
+        <td>KPF_ZERO_PAGE</td>
+        <td>(since Linux 4.0)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">25</td>
+        <td>-</td>
+        <td>KPF_IDLE</td>
+        <td>(since Linux 4.3)</td>
+      </tr>
+      <tr>
+        <td style="text-align: right;">26</td>
+        <td>-</td>
+        <td>KPF_PGTABLE</td>
+        <td>(since Linux 4.18)</td>
+      </tr>
+    </table>
+  </dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>For further details on the meanings of these bits, see the kernel source
+      file <i>Documentation/admin-guide/mm/pagemap.rst</i>. Before Linux 2.6.29,
+      <b>KPF_WRITEBACK</b>, <b>KPF_RECLAIM</b>, <b>KPF_BUDDY</b>, and
+      <b>KPF_LOCKED</b> did not report correctly.</dd>
+  <dt></dt>
+  <dd>The <i>/proc/kpageflags</i> file is present only if the
+      <b>CONFIG_PROC_PAGE_MONITOR</b> kernel configuration option is
+    enabled.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

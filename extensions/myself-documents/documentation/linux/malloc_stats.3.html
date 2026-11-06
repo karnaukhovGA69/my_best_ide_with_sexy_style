@@ -1,0 +1,76 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">malloc_stats(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">malloc_stats(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">malloc_stats - print memory allocation statistics</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;malloc.h&gt;</b></pre>
+<pre><b>void malloc_stats(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>malloc_stats</b>() function prints (on standard error)
+    statistics about memory allocated by <b>malloc</b>(3) and related functions.
+    For each arena (allocation area), this function prints the total amount of
+    memory allocated and the total number of bytes consumed by in-use
+    allocations. (These two values correspond to the <i>arena</i> and
+    <i>uordblks</i> fields retrieved by <b>mallinfo</b>(3).) In addition, the
+    function prints the sum of these two statistics for all arenas, and the
+    maximum number of blocks and bytes that were ever simultaneously allocated
+    using <b>mmap</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>malloc_stats ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">glibc 2.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">More detailed information about memory allocations in the main
+    arena can be obtained using <b>mallinfo</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mmap</b>(2), <b>mallinfo</b>(3), <b>malloc</b>(3),
+    <b>malloc_info</b>(3), <b>mallopt</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

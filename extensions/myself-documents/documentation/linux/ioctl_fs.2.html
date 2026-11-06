@@ -1,0 +1,88 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ioctl_fs(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">ioctl_fs(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">ioctl_fs - filesystem operations</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/fs.h&gt;</b>  /* Definition of op constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, unsigned long </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The following <i>op</i> values are available.</p>
+<section class="Ss">
+<h2 class="Ss" id="Share_some_of_the_data_of_one_file_with_another_file"><a class="permalink" href="#Share_some_of_the_data_of_one_file_with_another_file">Share
+  some of the data of one file with another file</a></h2>
+<dl class="Bl-tag">
+  <dt id="FICLONE"><a class="permalink" href="#FICLONE"><b>FICLONE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FICLONERANGE"><a class="permalink" href="#FICLONERANGE"><b>FICLONERANGE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FIDEDUPERANGE"><a class="permalink" href="#FIDEDUPERANGE"><b>FIDEDUPERANGE</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Operations_for_inode_flags"><a class="permalink" href="#Operations_for_inode_flags">Operations
+  for inode flags</a></h2>
+<dl class="Bl-tag">
+  <dt id="FS_IOC_GETFLAGS"><a class="permalink" href="#FS_IOC_GETFLAGS"><b>FS_IOC_GETFLAGS</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FS_IOC_SETFLAGS"><a class="permalink" href="#FS_IOC_SETFLAGS"><b>FS_IOC_SETFLAGS</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Get_or_set_a_filesystem_label"><a class="permalink" href="#Get_or_set_a_filesystem_label">Get
+  or set a filesystem label</a></h2>
+<dl class="Bl-tag">
+  <dt id="FS_IOC_GETFSLABEL"><a class="permalink" href="#FS_IOC_GETFSLABEL"><b>FS_IOC_GETFSLABEL</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="FS_IOC_SETFSLABEL"><a class="permalink" href="#FS_IOC_SETFSLABEL"><b>FS_IOC_SETFSLABEL</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="Get_and/or_clear_page_flags"><a class="permalink" href="#Get_and/or_clear_page_flags">Get
+  and/or clear page flags</a></h2>
+<dl class="Bl-tag">
+  <dt id="PAGEMAP_SCAN"><a class="permalink" href="#PAGEMAP_SCAN"><b>PAGEMAP_SCAN</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, a nonnegative value is returned. On error, -1 is
+    returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

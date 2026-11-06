@@ -1,0 +1,128 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">intN_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">intN_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">intN_t, int8_t, int16_t, int32_t, int64_t, uintN_t, uint8_t,
+    uint16_t, uint32_t, uint64_t - fixed-width basic integer types</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdint.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */ <b>int8_t;</b>
+<b>typedef</b> /* ... */ <b>int16_t;</b>
+<b>typedef</b> /* ... */ <b>int32_t;</b>
+<b>typedef</b> /* ... */ <b>int64_t;</b></pre>
+<pre><b>typedef</b> /* ... */ <b>uint8_t;</b>
+<b>typedef</b> /* ... */ <b>uint16_t;</b>
+<b>typedef</b> /* ... */ <b>uint32_t;</b>
+<b>typedef</b> /* ... */ <b>uint64_t;</b></pre>
+<pre><b>#define INT8_WIDTH   8</b>
+<b>#define INT16_WIDTH  16</b>
+<b>#define INT32_WIDTH  32</b>
+<b>#define INT64_WIDTH  64</b></pre>
+<pre><b>#define UINT8_WIDTH  8</b>
+<b>#define UINT16_WIDTH 16</b>
+<b>#define UINT32_WIDTH 32</b>
+<b>#define UINT64_WIDTH 64</b></pre>
+<pre><b>#define INT8_MAX     </b>/*  2**(INT8_WIDTH - 1) - 1   */
+<b>#define INT16_MAX    </b>/*  2**(INT16_WIDTH - 1) - 1  */
+<b>#define INT32_MAX    </b>/*  2**(INT32_WIDTH - 1) - 1  */
+<b>#define INT64_MAX    </b>/*  2**(INT64_WIDTH - 1) - 1  */</pre>
+<pre><b>#define INT8_MIN     </b>/*  - 2**(INT8_WIDTH - 1)     */
+<b>#define INT16_MIN    </b>/*  - 2**(INT16_WIDTH - 1)    */
+<b>#define INT32_MIN    </b>/*  - 2**(INT32_WIDTH - 1)    */
+<b>#define INT64_MIN    </b>/*  - 2**(INT64_WIDTH - 1)    */</pre>
+<pre><b>#define UINT8_MAX    </b>/*  2**INT8_WIDTH - 1         */
+<b>#define UINT16_MAX   </b>/*  2**INT16_WIDTH - 1        */
+<b>#define UINT32_MAX   </b>/*  2**INT32_WIDTH - 1        */
+<b>#define UINT64_MAX   </b>/*  2**INT64_WIDTH - 1        */</pre>
+<pre><b>#define INT8_C(</b><i>c</i><b>)    </b><i>c</i><b> ## </b><i>/* ... */</i>
+<b>#define INT16_C(</b><i>c</i><b>)   </b><i>c</i><b> ## </b><i>/* ... */</i>
+<b>#define INT32_C(</b><i>c</i><b>)   </b><i>c</i><b> ## </b><i>/* ... */</i>
+<b>#define INT64_C(</b><i>c</i><b>)   </b><i>c</i><b> ## </b><i>/* ... */</i></pre>
+<pre><b>#define UINT8_C(</b><i>c</i><b>)   </b><i>c</i><b> ## </b><i>/* ... */</i>
+<b>#define UINT16_C(</b><i>c</i><b>)  </b><i>c</i><b> ## </b><i>/* ... */</i>
+<b>#define UINT32_C(</b><i>c</i><b>)  </b><i>c</i><b> ## </b><i>/* ... */</i>
+<b>#define UINT64_C(</b><i>c</i><b>)  </b><i>c</i><b> ## </b><i>/* ... */</i></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>int</i>N<i>_t</i> are signed integer types of a fixed width of
+    exactly N bits, <i>N</i> being the value specified in its type name. They
+    are be capable of storing values in the range
+    [<b>INT</b><i>N</i><b>_MIN</b>, <b>INT</b><i>N</i><b>_MAX</b>], substituting
+    <i>N</i> by the appropriate number.</p>
+<p class="Pp"><i>uint</i>N<i>_t</i> are unsigned integer types of a fixed width
+    of exactly N bits, N being the value specified in its type name. They are
+    capable of storing values in the range [<b>0</b>,
+    <b>UINT</b><i>N</i><b>_MAX</b>], substituting <i>N</i> by the appropriate
+    number.</p>
+<p class="Pp">According to POSIX, [<i>u</i>]<i>int8_t</i>,
+    [<i>u</i>]<i>int16_t</i>, and [<i>u</i>]<i>int32_t</i> are required;
+    [<i>u</i>]<i>int64_t</i> are only required in implementations that provide
+    integer types with width 64; and all other types of this form are
+  optional.</p>
+<p class="Pp">The macros [<b>U</b>]<b>INT</b><i>N</i><b>_WIDTH</b> expand to the
+    width in bits of these types (<i>N</i>).</p>
+<p class="Pp">The macros [<b>U</b>]<b>INT</b><i>N</i><b>_MAX</b> expand to the
+    maximum value that these types can hold.</p>
+<p class="Pp">The macros <b>INT</b><i>N</i><b>_MIN</b> expand to the minimum
+    value that these types can hold.</p>
+<p class="Pp">The macros [<b>U</b>]<b>INT</b><i>N</i><b>_C</b>() expand their
+    argument to an integer constant of type [<i>u</i>]<i>int</i>N<i>_t</i>.</p>
+<p class="Pp">The length modifiers for the [<i>u</i>]<i>int</i>N<i>_t</i> types
+    for the <b>printf</b>(3) and <b>scanf</b>(3) families of functions are
+    <b>w</b><i>N</i>, resulting for example in <b>%w64d</b> or <b>%w64i</b> for
+    printing or scanning <i>int64_t</i> values.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C23, POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt>[<i>u</i>]<i>int</i>N<i>_t</i></dt>
+  <dd>C99, SUSv2, POSIX.1-2001.</dd>
+  <dt>[<b>U</b>]<b>INT</b><i>N</i><b>_MAX</b></dt>
+  <dd></dd>
+  <dt id="INT"><a class="permalink" href="#INT"><b>INT</b><i>N</i><b>_MIN</b></a></dt>
+  <dd></dd>
+  <dt>[<b>U</b>]<b>INT</b><i>N</i><b>_C</b>()</dt>
+  <dd>C99, POSIX.1-2001.</dd>
+  <dt>[<b>U</b>]<b>INT</b><i>N</i><b>_WIDTH</b></dt>
+  <dd>C23.</dd>
+</dl>
+<p class="Pp">Initially, SUSv2 did not include <i>&lt;stdint.h&gt;</i> as a
+    standard header. The [<i>u</i>]<i>int</i>N<i>_t</i> types were instead
+    defined in <i>&lt;inttypes.h&gt;</i>. This was remedied in POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following header also provides these types:
+    <i>&lt;inttypes.h&gt;</i>. <i>&lt;arpa/inet.h&gt;</i> also provides
+    <i>uint16_t</i> and <i>uint32_t</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>intmax_t</b>(3type), <b>intptr_t</b>(3type),
+  <b>printf</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-16</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

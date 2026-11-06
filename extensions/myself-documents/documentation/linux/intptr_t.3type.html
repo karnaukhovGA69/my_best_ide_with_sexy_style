@@ -1,0 +1,98 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">intptr_t(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">intptr_t(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">intptr_t, uintptr_t - integer types wide enough to hold
+  pointers</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdint.h&gt;</b></pre>
+<pre><b>typedef</b> /* ... */ <b>intptr_t;</b>
+<b>typedef</b> /* ... */ <b>uintptr_t;</b></pre>
+<pre><b>#define INTPTR_WIDTH</b>  /* ... */
+<b>#define UINTPTR_WIDTH INTPTR_WIDTH</b></pre>
+<pre><b>#define INTPTR_MAX</b>    /*  2**(INTPTR_WIDTH - 1) - 1  */
+<b>#define INTPTR_MIN</b>    /*  - 2**(INTPTR_WIDTH - 1)    */
+<b>#define UINTPTR_MAX</b>   /*  2**UINTPTR_WIDTH - 1       */</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><i>intptr_t</i> is a signed integer type such that any valid
+    (<i>void *</i>) value can be converted to this type and then converted back.
+    It is capable of storing values in the range [<b>INTPTR_MIN</b>,
+    <b>INTPTR_MAX</b>].</p>
+<p class="Pp"><i>uintptr_t</i> is an unsigned integer type such that any valid
+    (<i>void *</i>) value can be converted to this type and then converted back.
+    It is capable of storing values in the range [<b>0</b>,
+  <b>UINTPTR_MAX</b>].</p>
+<p class="Pp">The macros [<b>U</b>]<b>INTPTR_WIDTH</b> expand to the width in
+    bits of these types.</p>
+<p class="Pp">The macros [<b>U</b>]<b>INTPTR_MAX</b> expand to the maximum value
+    that these types can hold.</p>
+<p class="Pp">The macro <b>INTPTR_MIN</b> expands to the minimum value that
+    <i>intptr_t</i> can hold.</p>
+<p class="Pp">The length modifiers for the [<i>u</i>]<i>intptr_t</i> types for
+    the <b>printf</b>(3) family of functions are expanded by the macros
+    <b>PRIdPTR</b>, <b>PRIiPTR</b>, and <b>PRIuPTR</b> (defined in
+    <i>&lt;inttypes.h&gt;</i>); resulting commonly in
+    <b>%&quot;PRIdPTR&quot;</b> or <b>%&quot;PRIiPTR&quot;</b> for printing
+    <i>intptr_t</i> values. The length modifiers for the
+    [<i>u</i>]<i>intptr_t</i> types for the <b>scanf</b>(3) family of functions
+    are expanded by the macros <b>SCNdPTR</b>, <b>SCNiPTR</b>, and
+    <b>SCNuPTR</b> (defined in <i>&lt;inttypes.h&gt;</i>); resulting commonly in
+    <b>%&quot;SCNuPTR&quot;</b> for scanning <i>uintptr_t</i> values.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt>[<i>u</i>]<i>intptr_t</i></dt>
+  <dd></dd>
+  <dt>[<b>U</b>]<b>INTPTR_MAX</b></dt>
+  <dd></dd>
+  <dt id="INTPTR_MIN"><a class="permalink" href="#INTPTR_MIN"><b>INTPTR_MIN</b></a></dt>
+  <dd>C23, POSIX.1-2024.</dd>
+  <dt>[<b>U</b>]<b>INTPTR_WIDTH</b></dt>
+  <dd>C23.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt>[<i>u</i>]<i>intptr_t</i></dt>
+  <dd>SUSv2, C99, POSIX.1-2001 XSI.</dd>
+  <dt>[<b>U</b>]<b>INTPTR_MAX</b></dt>
+  <dd></dd>
+  <dt id="INTPTR_MIN~2"><a class="permalink" href="#INTPTR_MIN~2"><b>INTPTR_MIN</b></a></dt>
+  <dd>C99, POSIX.1-2001 XSI.</dd>
+  <dt>[<b>U</b>]<b>INTPTR_WIDTH</b></dt>
+  <dd>C23.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following header also provides these types:
+    <i>&lt;inttypes.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>intmax_t</b>(3type), <b>void</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

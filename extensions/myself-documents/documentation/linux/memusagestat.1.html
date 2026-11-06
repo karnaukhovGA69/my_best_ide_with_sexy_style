@@ -1,0 +1,93 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">memusagestat(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">memusagestat(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">memusagestat - generate graphic from memory profiling data</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">memusagestat</code></td>
+    <td>[<i>option</i>&#x00A0;...] <i>datafile</i> [<i>outfile</i>]</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>memusagestat</b> creates a PNG file containing a graphical
+    representation of the memory profiling data in the file <i>datafile</i>;
+    that file is generated via the <i>-d</i> (or <i>--data</i>) option of
+    <b>memusage</b>(1).</p>
+<p class="Pp">The red line in the graph shows the heap usage (allocated memory)
+    and the green line shows the stack usage. The x-scale is either the number
+    of memory-handling function calls or (if the <i>-t</i> option is specified)
+    time.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt id="o"><a class="permalink" href="#o"><b>-o&#x00A0;</b><i>file</i></a></dt>
+  <dd></dd>
+  <dt id="output="><a class="permalink" href="#output="><b>--output=</b><i>file</i></a></dt>
+  <dd>Name of the output file.</dd>
+  <dt id="s"><a class="permalink" href="#s"><b>-s&#x00A0;</b><i>string</i></a></dt>
+  <dd></dd>
+  <dt id="string="><a class="permalink" href="#string="><b>--string=</b><i>string</i></a></dt>
+  <dd>Use <i>string</i> as the title inside the output graph.</dd>
+  <dt id="t"><a class="permalink" href="#t"><b>-t</b></a></dt>
+  <dd></dd>
+  <dt id="time"><a class="permalink" href="#time"><b>--time</b></a></dt>
+  <dd>Use time (rather than number of function calls) as the scale for the X
+      axis.</dd>
+  <dt id="T"><a class="permalink" href="#T"><b>-T</b></a></dt>
+  <dd></dd>
+  <dt id="total"><a class="permalink" href="#total"><b>--total</b></a></dt>
+  <dd>Also draw a graph of total memory consumption.</dd>
+  <dt id="x"><a class="permalink" href="#x"><b>-x&#x00A0;</b><i>size</i></a></dt>
+  <dd></dd>
+  <dt id="x~2"><a class="permalink" href="#x~2"><b>--x-size=</b><i>size</i></a></dt>
+  <dd>Make the output graph <i>size</i> pixels wide.</dd>
+  <dt id="y"><a class="permalink" href="#y"><b>-y&#x00A0;</b><i>size</i></a></dt>
+  <dd></dd>
+  <dt id="y~2"><a class="permalink" href="#y~2"><b>--y-size=</b><i>size</i></a></dt>
+  <dd>Make the output graph <i>size</i> pixels high.</dd>
+  <dt><b>-?</b></dt>
+  <dd></dd>
+  <dt id="help"><a class="permalink" href="#help"><b>--help</b></a></dt>
+  <dd>Print a help message and exit.</dd>
+  <dt id="usage"><a class="permalink" href="#usage"><b>--usage</b></a></dt>
+  <dd>Print a short usage message and exit.</dd>
+  <dt id="V"><a class="permalink" href="#V"><b>-V</b></a></dt>
+  <dd></dd>
+  <dt id="version"><a class="permalink" href="#version"><b>--version</b></a></dt>
+  <dd>Print version information and exit.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">To report bugs, see
+    <a class="Lk" href="http_//www.gnu.org/software/libc/bugs.html">http://www.gnu.org/software/libc/bugs.html</a></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">See <b>memusage</b>(1).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>memusage</b>(1), <b>mtrace</b>(1)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

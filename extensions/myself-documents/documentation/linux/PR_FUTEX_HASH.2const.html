@@ -1,0 +1,85 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_FUTEX_HASH(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_FUTEX_HASH(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_FUTEX_HASH - configure the private futex hash</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_FUTEX_HASH, unsigned long </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Configure the attributes for the underlying hash used by the
+    <b>futex</b>(2) family of operations. The Linux kernel uses a hash to
+    distribute the unrelated <b>futex</b>(2) requests to different data
+    structures in order to reduce the lock contention. Unrelated requests are
+    requests which are not related to one another because they use a different
+    futex word. The data structure holds the in-kernel representation of the
+    operation and keeps track of the current users which are enqueued and wait
+    for a wake up. It also provides synchronisation of waiters against wakers.
+    The size of the global hash is determined at boot time and is based on the
+    number of CPUs in the system. Due to hash collision, two unrelated
+    <b>futex</b>(2) requests can share the same hash bucket. This in turn can
+    lead to delays of the <b>futex</b>(2) operation due to lock contention while
+    accessing the data structure. These delays can be problematic on a real-time
+    system since random processes can share in-kernel locks and it is not
+    deterministic which process will be involved.</p>
+<p class="Pp">Linux 6.17 implements a process-wide private hash which is used by
+    all <b>futex</b>(2) operations that specify the <b>FUTEX_PRIVATE_FLAG</b>
+    option as part of the operation. Without any configuration the kernel will
+    allocate 16 hash slots once the first thread has been created. If the
+    process continues to create threads, the kernel will try to resize the
+    private hash based on the number of threads and available CPUs in the
+    system. The kernel will only increase the size and will make sure it does
+    not exceed the size of the global hash.</p>
+<p class="Pp">The user can configure the size of the private hash which will
+    also disable the automatic resize provided by the kernel.</p>
+<p class="Pp">The value in <i>op</i> is one of the options below.</p>
+<dl class="Bl-tag">
+  <dt id="PR_FUTEX_HASH_GET_SLOTS"><a class="permalink" href="#PR_FUTEX_HASH_GET_SLOTS"><b>PR_FUTEX_HASH_GET_SLOTS</b></a></dt>
+  <dd></dd>
+  <dt id="PR_FUTEX_HASH_SET_SLOTS"><a class="permalink" href="#PR_FUTEX_HASH_SET_SLOTS"><b>PR_FUTEX_HASH_SET_SLOTS</b></a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, these calls return a nonnegative value. On error, -1
+    is returned, and <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 6.17.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2), <b>futex</b>(2),
+    <b>PR_FUTEX_HASH_GET_SLOTS</b>(2const),
+    <b>PR_FUTEX_HASH_SET_SLOTS</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-08-19</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

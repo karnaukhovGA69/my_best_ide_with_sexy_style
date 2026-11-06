@@ -1,0 +1,121 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fs_disk_quota(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">fs_disk_quota(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fs_disk_quota - filesystem disk quota</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;xfs/xqm.h&gt;</b></pre>
+<p class="Pp"></p>
+<pre>#define FS_DQUOT_VERSION  1  // fs_disk_quota.d_version</pre>
+<pre>#define XFS_USER_QUOTA    (1&lt;&lt;0)  // User quota type
+#define XFS_PROJ_QUOTA    (1&lt;&lt;1)  // Project quota type
+#define XFS_GROUP_QUOTA   (1&lt;&lt;2)  // Group quota type</pre>
+<pre>struct fs_disk_quota {
+	int8_t    d_version;
+	int8_t    d_flags;
+	uint16_t  d_fieldmask;
+	uint32_t  d_id;
+	uint64_t  d_blk_hardlimit;
+	uint64_t  d_blk_softlimit;
+	uint64_t  d_ino_hardlimit;
+	uint64_t  d_ino_softlimit;
+	uint64_t  d_bcount;
+	uint64_t  d_icount;
+	int32_t   d_itimer;
+	int32_t   d_btimer;
+	uint16_t  d_iwarns;
+	uint16_t  d_bwarns;
+	int32_t   d_padding2;
+	uint64_t  d_rtb_hardlimit;
+	uint64_t  d_rtb_softlimit;
+	uint64_t  d_rtbcount;
+	int32_t   d_rtbtimer;
+	uint16_t  d_rtbwarns;
+	int16_t   d_padding3;
+	char      d_padding4[8];
+};
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">All the blk units are in BBs (Basic Blocks) of 512 bytes.</p>
+<dl class="Bl-tag">
+  <dt><i>.d_version</i></dt>
+  <dd>Version of this structure.</dd>
+  <dt><i>.d_flags</i></dt>
+  <dd><b>XFS_</b>{<b>USER</b>,<b>PROJ</b>,<b>GROUP</b>}<b>_QUOTA</b></dd>
+  <dt><i>.d_fieldmask</i></dt>
+  <dd>Field specifier.</dd>
+  <dt><i>.d_id</i></dt>
+  <dd>User, project, or group ID.</dd>
+  <dt><i>.d_blk_hardlimit</i></dt>
+  <dd>Absolute limit on disk blocks.</dd>
+  <dt><i>.d_blk_softlimit</i></dt>
+  <dd>Preferred limit on disk blocks.</dd>
+  <dt><i>.d_ino_hardlimit</i></dt>
+  <dd>Maximum # allocated inodes.</dd>
+  <dt><i>.d_ino_softlimit</i></dt>
+  <dd>Preferred inode limit.</dd>
+  <dt><i>.d_bcount</i></dt>
+  <dd># disk blocks owned by the user.</dd>
+  <dt><i>.d_icount</i></dt>
+  <dd># inodes owned by the user.</dd>
+  <dt><i>.d_itimer</i></dt>
+  <dd>Zero if within inode limits; if not, we refuse service.</dd>
+  <dt><i>.d_btimer</i></dt>
+  <dd>Similar to above; for disk blocks.</dd>
+  <dt><i>.d_iwarns</i></dt>
+  <dd># warnings issued with respect to # of inodes.</dd>
+  <dt><i>.d_bwarns</i></dt>
+  <dd># warnings issued with respect to disk blocks.</dd>
+  <dt><i>.d_padding2</i></dt>
+  <dd>Padding; reserved for future use.</dd>
+  <dt><i>.d_rtb_hardlimit</i></dt>
+  <dd>Absolute limit on realtime (RT) disk blocks.</dd>
+  <dt><i>.d_rtb_softlimit</i></dt>
+  <dd>Preferred limit on RT disk blocks.</dd>
+  <dt><i>.d_rtbcount</i></dt>
+  <dd># realtime blocks owned.</dd>
+  <dt><i>.d_rtbtimer</i></dt>
+  <dd>Similar to above; for RT disk blocks.</dd>
+  <dt><i>.d_rtbwarns</i></dt>
+  <dd># warnings issued with respect to RT disk blocks.</dd>
+  <dt><i>.d_padding3</i></dt>
+  <dd>Padding; reserved for future use.</dd>
+  <dt><i>.d_padding4[8]</i></dt>
+  <dd>Yet more padding.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>Q_XGETQUOTA</b>(2const), <b>Q_XGETNEXTQUOTA</b>(2const),
+    <b>Q_XSETQLIM</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-06-05</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

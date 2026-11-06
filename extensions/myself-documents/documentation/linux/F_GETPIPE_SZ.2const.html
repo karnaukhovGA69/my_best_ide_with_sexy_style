@@ -1,0 +1,99 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_GETPIPE_SZ(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_GETPIPE_SZ(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_GETPIPE_SZ, F_SETPIPE_SZ - get/set the capacity of a pipe</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_SETPIPE_SZ, int </b><i>arg</i><b>);</b>
+<b>int fcntl(int </b><i>fd</i><b>, F_GETPIPE_SZ);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="F_SETPIPE_SZ"><a class="permalink" href="#F_SETPIPE_SZ"><b>F_SETPIPE_SZ</b></a></dt>
+  <dd>Change the capacity of the pipe referred to by <i>fd</i> to be at least
+      <i>arg</i> bytes. An unprivileged process can adjust the pipe capacity to
+      any value between the system page size and the limit defined in
+      <i>/proc/sys/fs/pipe-max-size</i> (see <b>proc_sys_fs</b>(5)). Attempts to
+      set the pipe capacity below the page size are silently rounded up to the
+      page size. Attempts by an unprivileged process to set the pipe capacity
+      above the limit in <i>/proc/sys/fs/pipe-max-size</i> yield the error
+      <b>EPERM</b>; a privileged process (<b>CAP_SYS_RESOURCE</b>) can override
+      the limit.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>When allocating the buffer for the pipe, the kernel may use a capacity
+      larger than <i>arg</i>, if that is convenient for the implementation. (In
+      the current implementation, the allocation is the next higher power-of-two
+      page-size multiple of the requested size.) The actual capacity (in bytes)
+      that is set is returned as the function result.</dd>
+  <dt></dt>
+  <dd>Attempting to set the pipe capacity smaller than the amount of buffer
+      space currently used to store data produces the error <b>EBUSY</b>.</dd>
+  <dt></dt>
+  <dd>Note that because of the way the pages of the pipe buffer are employed
+      when data is written to the pipe, the number of bytes that can be written
+      may be less than the nominal size, depending on the size of the
+    writes.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="F_GETPIPE_SZ"><a class="permalink" href="#F_GETPIPE_SZ"><b>F_GETPIPE_SZ</b></a></dt>
+  <dd>Return (as the function result) the capacity of the pipe referred to by
+      <i>fd</i>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The pipe capacity.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EBUSY"><a class="permalink" href="#EBUSY"><b>EBUSY</b></a></dt>
+  <dd><i>op</i> is <b>F_SETPIPE_SZ</b> and the new pipe capacity specified in
+      <i>arg</i> is smaller than the amount of buffer space currently used to
+      store data in the pipe.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd><i>op</i> is <b>F_SETPIPE_SZ</b> and the soft or hard user pipe limit has
+      been reached; see <b>pipe</b>(7).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.35.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

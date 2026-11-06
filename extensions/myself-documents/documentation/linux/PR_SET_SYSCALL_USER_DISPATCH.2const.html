@@ -1,0 +1,138 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PR_SET_SYSCALL_USER_DISPATCH(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">PR_SET_SYSCALL_USER_DISPATCH(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">PR_SET_SYSCALL_USER_DISPATCH - set the system-call user dispatch
+    mechanism for the calling thread</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/prctl.h&gt;</b>  /* Definition of <b>PR_*</b> constants */
+<b>#include &lt;sys/prctl.h&gt;</b></pre>
+<pre><b>int prctl(PR_SET_SYSCALL_USER_DISPATCH, long </b><i>op</i><b>, ...);</b></pre>
+<pre><b>int prctl(PR_SET_SYSCALL_USER_DISPATCH, PR_SYS_DISPATCH_ON,</b>
+<b>          unsigned long </b><i>off</i><b>, unsigned long </b><i>size</i><b>, int8_t *</b><i>switch</i><b>);</b>
+<b>int prctl(PR_SET_SYSCALL_USER_DISPATCH, PR_SYS_DISPATCH_OFF, 0L, 0L, 0L);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Configure the Syscall User Dispatch mechanism for the calling
+    thread. This mechanism allows an application to selectively intercept system
+    calls so that they can be handled within the application itself.
+    Interception takes the form of a thread-directed <b>SIGSYS</b> signal that
+    is delivered to the thread when it makes a system call. If intercepted, the
+    system call is not executed by the kernel.</p>
+<dl class="Bl-tag">
+  <dt id="PR_SYS_DISPATCH_ON"><a class="permalink" href="#PR_SYS_DISPATCH_ON"><b>PR_SYS_DISPATCH_ON</b></a></dt>
+  <dd>Enable this mechanism.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>Once enabled, further system calls will be selectively intercepted,
+      depending on a control variable provided by user space. In this case,
+      <i>off</i> and <i>size</i> respectively identify the offset and size of a
+      single contiguous memory region in the process address space from where
+      system calls are always allowed to be executed, regardless of the control
+      variable. (Typically, this area would include the area of memory
+      containing the C library.)</dd>
+  <dt></dt>
+  <dd><i>switch</i> points to a variable that is a fast switch to allow/block
+      system call execution without the overhead of doing another system call to
+      re-configure Syscall User Dispatch. This control variable can either be
+      set to <b>SYSCALL_DISPATCH_FILTER_BLOCK</b> to block system calls from
+      executing or to <b>SYSCALL_DISPATCH_FILTER_ALLOW</b> to temporarily allow
+      them to be executed. This value is checked by the kernel on every system
+      call entry, and any unexpected value will raise an uncatchable
+      <b>SIGSYS</b> at that time, killing the application.</dd>
+  <dt></dt>
+  <dd>When a system call is intercepted, the kernel sends a thread-directed
+      <b>SIGSYS</b> signal to the triggering thread. Various fields will be set
+      in the <i>siginfo_t</i> structure (see <b>sigaction</b>(2)) associated
+      with the signal:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd><i>si_signo</i> will contain <b>SIGSYS</b>.</dd>
+  <dt>&#x2022;</dt>
+  <dd><i>si_call_addr</i> will show the address of the system call
+    instruction.</dd>
+  <dt>&#x2022;</dt>
+  <dd><i>si_syscall</i> and <i>si_arch</i> will indicate which system call was
+      attempted.</dd>
+  <dt>&#x2022;</dt>
+  <dd><i>si_code</i> will contain <b>SYS_USER_DISPATCH</b>.</dd>
+  <dt>&#x2022;</dt>
+  <dd><i>si_errno</i> will be set to 0.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The program counter will be as though the system call happened (i.e., the
+      program counter will not point to the system call instruction).</dd>
+  <dt></dt>
+  <dd>When the signal handler returns to the kernel, the system call completes
+      immediately and returns to the calling thread, without actually being
+      executed. If necessary (i.e., when emulating the system call on user
+      space.), the signal handler should set the system call return value to a
+      sane value, by modifying the register context stored in the
+      <i>ucontext</i> argument of the signal handler. See <b>sigaction</b>(2),
+      <b>sigreturn</b>(2), and <b>getcontext</b>(3) for more information.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt id="PR_SYS_DISPATCH_OFF"><a class="permalink" href="#PR_SYS_DISPATCH_OFF"><b>PR_SYS_DISPATCH_OFF</b></a></dt>
+  <dd>Syscall User Dispatch is disabled for that thread.</dd>
+</dl>
+<p class="Pp">The setting is not preserved across <b>fork</b>(2),
+    <b>clone</b>(2), or <b>execve</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>switch</i> is an invalid address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>op</i> is <b>PR_SYS_DISPATCH_ON</b> and the memory range specified is
+      outside the address space of the process.</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd><i>op</i> is invalid.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux. x86 only.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.11 (x86).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>prctl</b>(2)</p>
+<p class="Pp">For more information, see the kernel source file
+    <i>Documentation/admin-guide/syscall-user-dispatch.rst</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

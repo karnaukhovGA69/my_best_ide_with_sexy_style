@@ -14,6 +14,7 @@ test('production packaging retains the document webview resource path', () => {
 	try {
 		execFileSync(process.execPath, [path.join(__dirname, '..', 'esbuild.webview.mts'), '--outputRoot', output], { stdio: 'pipe' });
 		assert.ok(fs.statSync(path.join(output, 'out', 'webview', 'editor.js')).size > 0);
+		assert.ok(fs.statSync(path.join(output, 'out', 'webview', 'library.js')).size > 0);
 		assert.equal(fs.existsSync(path.join(output, 'webview', 'editor.js')), false);
 	} finally {
 		fs.rmSync(output, { recursive: true, force: true });

@@ -1,0 +1,57 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">timeval(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">timeval(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">timeval - time in seconds and microseconds</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/time.h&gt;</b></pre>
+<pre><b>struct timeval {</b>
+<b>    time_t       tv_sec;</b>   /* Seconds */
+<b>    suseconds_t  tv_usec;</b>  /* Microseconds */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Describes times in seconds and microseconds.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">SUSv1, POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following headers also provide this type:
+    <i>&lt;sys/resource.h&gt;</i>, <i>&lt;sys/select.h&gt;</i>, and
+    <i>&lt;utmpx.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>gettimeofday</b>(2), <b>select</b>(2), <b>utimes</b>(2),
+    <b>adjtime</b>(3), <b>futimes</b>(3), <b>timeradd</b>(3),
+    <b>suseconds_t</b>(3type), <b>time_t</b>(3type), <b>timespec</b>(3type)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

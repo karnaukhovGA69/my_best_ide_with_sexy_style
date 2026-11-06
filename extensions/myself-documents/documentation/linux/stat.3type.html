@@ -1,0 +1,160 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">stat(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">stat(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">stat - file status</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/stat.h&gt;</b></pre>
+<pre><b>struct stat {</b>
+<b>    dev_t      st_dev;</b>      /* ID of device containing file */
+<b>    ino_t      st_ino;</b>      /* Inode number */
+<b>    mode_t     st_mode;</b>     /* File type and mode */
+<b>    nlink_t    st_nlink;</b>    /* Number of hard links */
+<b>    uid_t      st_uid;</b>      /* User ID of owner */
+<b>    gid_t      st_gid;</b>      /* Group ID of owner */
+<b>    dev_t      st_rdev;</b>     /* Device ID (if special file) */
+<b>    off_t      st_size;</b>     /* Total size, in bytes */
+<b>    blksize_t  st_blksize;</b>  /* Block size for filesystem I/O */
+<b>    blkcnt_t   st_blocks;</b>   /* Number of 512 B blocks allocated */
+<br/>
+    /* Since POSIX.1-2008, this structure supports nanosecond
+<br/>
+       precision for the following timestamp fields.
+<br/>
+       For the details before POSIX.1-2008, see HISTORY.  */
+<b>    struct timespec  st_atim;</b>  /* Time of last access */
+<b>    struct timespec  st_mtim;</b>  /* Time of last modification */
+<b>    struct timespec  st_ctim;</b>  /* Time of last status change */
+<b>#define st_atime  st_atim.tv_sec</b>  /* Backward compatibility */
+<b>#define st_mtime  st_mtim.tv_sec</b>
+<b>#define st_ctime  st_ctim.tv_sec</b>
+<b>};</b>
+</pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><i>.st_atim</i>, <i>.st_mtim</i>, <i>.st_ctim</i>:</p>
+<pre>
+<br/>
+    Since glibc 2.12:
+<br/>
+        _POSIX_C_SOURCE &gt;= 200809L || _XOPEN_SOURCE &gt;= 700
+<br/>
+    glibc 2.19 and earlier:
+<br/>
+        _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Describes information about a file.</p>
+<p class="Pp">The fields are as follows:</p>
+<dl class="Bl-tag">
+  <dt><i>.st_dev</i></dt>
+  <dd>This field describes the device on which this file resides. (The
+      <b>major</b>(3) and <b>minor</b>(3) macros may be useful to decompose the
+      device ID in this field.)</dd>
+  <dt><i>.st_ino</i></dt>
+  <dd>This field contains the file's inode number in the filesystem on
+      <i>.st_dev</i>. If <b>stat</b>(2) was called on the mount point, then
+      <i>.st_ino</i> differs from <i>.d_ino</i> returned by <b>readdir</b>(3)
+      for the corresponding directory entry in the parent directory. In this
+      case, <i>.st_ino</i> is the inode number of the root directory of the
+      mounted filesystem, while <i>.d_ino</i> is the inode number of the mount
+      point in the parent filesystem.</dd>
+  <dt><i>.st_mode</i></dt>
+  <dd>This field contains the file type and mode. See <b>inode</b>(7) for
+      further information.</dd>
+  <dt><i>.st_nlink</i></dt>
+  <dd>This field contains the number of hard links to the file.</dd>
+  <dt><i>.st_uid</i></dt>
+  <dd>This field contains the user ID of the owner of the file.</dd>
+  <dt><i>.st_gid</i></dt>
+  <dd>This field contains the ID of the group owner of the file.</dd>
+  <dt><i>.st_rdev</i></dt>
+  <dd>This field describes the device that this file (inode) represents.</dd>
+  <dt><i>.st_size</i></dt>
+  <dd>This field gives the size of the file (if it is a regular file or a
+      symbolic link) in bytes. The size of a symbolic link is the length of the
+      pathname it contains, without a terminating null byte.</dd>
+  <dt><i>.st_blksize</i></dt>
+  <dd>This field gives the &quot;preferred&quot; block size for efficient
+      filesystem I/O.</dd>
+  <dt><i>.st_blocks</i></dt>
+  <dd>This field indicates the number of blocks allocated to the file, in
+      512-byte units. (This may be smaller than <i>.st_size</i>/512 when the
+      file has holes.)</dd>
+  <dt><i>.st_atime</i></dt>
+  <dd>This is the time of the last access of file data.</dd>
+  <dt><i>.st_mtime</i></dt>
+  <dd>This is the time of last modification of file data.</dd>
+  <dt><i>.st_ctime</i></dt>
+  <dd>This is the file's last status change timestamp (time of last change to
+      the inode).</dd>
+</dl>
+<p class="Pp">For further information on the above fields, see
+  <b>inode</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="stat"><a class="permalink" href="#stat"><i>stat</i></a></dt>
+  <dd>POSIX.1-1988.</dd>
+  <dt><i>.st_rdev</i></dt>
+  <dd></dd>
+  <dt><i>.st_blksize</i></dt>
+  <dd></dd>
+  <dt><i>.st_blocks</i></dt>
+  <dd>SUSv1, POSIX.1-2001 XSI.</dd>
+</dl>
+<p class="Pp">Initially, SUSv1 specified <i>.st_blksize</i> and
+    <i>.st_blocks</i> with type <i>long</i>. This was remedied in SUSv2.</p>
+<p class="Pp">Old kernels and old standards did not support nanosecond timestamp
+    fields. Instead, there were three timestamp fields &#x2014;<i>.st_atime</i>,
+    <i>.st_mtime</i>, and <i>.st_ctime</i>&#x2014; typed as <i>time_t</i> that
+    recorded timestamps with one-second precision.</p>
+<p class="Pp">Since Linux 2.5.48, the <i>stat</i> structure supports nanosecond
+    resolution for the three file timestamp fields. The nanosecond components of
+    each timestamp are available via names of the form <i>.st_atim.tv_nsec</i>,
+    if suitable test macros are defined. Nanosecond timestamps were standardized
+    in POSIX.1-2008, and, starting with glibc 2.12, glibc exposes the nanosecond
+    component names if <b>_POSIX_C_SOURCE</b> is defined with the value 200809L
+    or greater, or <b>_XOPEN_SOURCE</b> is defined with the value 700 or
+    greater. Up to and including glibc 2.19, the definitions of the nanoseconds
+    components are also defined if <b>_BSD_SOURCE</b> or <b>_SVID_SOURCE</b> is
+    defined. If none of the aforementioned macros are defined, then the
+    nanosecond values are exposed with names of the form
+  <i>.st_atimensec</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The following header also provides this type:
+    <i>&lt;ftw.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>stat</b>(2), <b>inode</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

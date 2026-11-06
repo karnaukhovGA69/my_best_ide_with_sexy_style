@@ -1,0 +1,513 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ctime(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">ctime(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">asctime, ctime, gmtime, localtime, mktime, asctime_r, ctime_r,
+    gmtime_r, localtime_r - transform date and time to broken-down time or
+  ASCII</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;time.h&gt;</b></pre>
+<pre><b>char *asctime(const struct tm *</b><i>tm</i><b>);</b>
+<b>char *asctime_r(const struct tm *restrict </b><i>tm</i><b>,</b>
+<b>                    char </b><i>buf</i><b>[restrict 26]);</b></pre>
+<pre><b>char *ctime(const time_t *</b><i>timep</i><b>);</b>
+<b>char *ctime_r(const time_t *restrict </b><i>timep</i><b>,</b>
+<b>                    char </b><i>buf</i><b>[restrict 26]);</b></pre>
+<pre><b>struct tm *gmtime(const time_t *</b><i>timep</i><b>);</b>
+<b>struct tm *gmtime_r(const time_t *restrict </b><i>timep</i><b>,</b>
+<b>                    struct tm *restrict </b><i>result</i><b>);</b></pre>
+<pre><b>struct tm *localtime(const time_t *</b><i>timep</i><b>);</b>
+<b>struct tm *localtime_r(const time_t *restrict </b><i>timep</i><b>,</b>
+<b>                    struct tm *restrict </b><i>result</i><b>);</b></pre>
+<pre><b>time_t mktime(struct tm *</b><i>tm</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>asctime_r</b>(), <b>ctime_r</b>(), <b>gmtime_r</b>(),
+    <b>localtime_r</b>():</p>
+<pre>
+<br/>
+    _POSIX_C_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>ctime</b>(), <b>gmtime</b>(), and <b>localtime</b>()
+    functions all take an argument of data type <i>time_t</i>, which represents
+    calendar time. When interpreted as an absolute time value, it represents the
+    number of seconds elapsed since the Epoch, 1970-01-01 00:00:00 +0000
+  (UTC).</p>
+<p class="Pp">The <b>asctime</b>() and <b>mktime</b>() functions both take an
+    argument representing broken-down time, which is a representation separated
+    into year, month, day, and so on.</p>
+<p class="Pp">Broken-down time is stored in the structure <i>tm</i>, described
+    in <b>tm</b>(3type).</p>
+<p class="Pp">The call <b>ctime(</b><i>t</i><b>)</b> is equivalent to
+    <i>asctime(localtime(t))</i>. It converts the calendar time <i>t</i> into a
+    null-terminated string of the form</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>&quot;Wed Jun 30 21:49:08 1993\n&quot;
+</pre>
+<br/>
+<p class="Pp">The abbreviations for the days of the week are &quot;Sun&quot;,
+    &quot;Mon&quot;, &quot;Tue&quot;, &quot;Wed&quot;, &quot;Thu&quot;,
+    &quot;Fri&quot;, and &quot;Sat&quot;. The abbreviations for the months are
+    &quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;,
+    &quot;May&quot;, &quot;Jun&quot;, &quot;Jul&quot;, &quot;Aug&quot;,
+    &quot;Sep&quot;, &quot;Oct&quot;, &quot;Nov&quot;, and &quot;Dec&quot;. The
+    return value points to a statically allocated string which might be
+    overwritten by subsequent calls to any of the date and time functions. The
+    function also sets the external variables <i>tzname</i>, <i>timezone</i>,
+    and <i>daylight</i> as if it called <b>tzset</b>(3). The reentrant version
+    <b>ctime_r</b>() does the same, but stores the string in a user-supplied
+    buffer which should have room for at least 26 bytes. It need not set
+    <i>tzname</i>, <i>timezone</i>, and <i>daylight</i>.</p>
+<p class="Pp">The <b>gmtime</b>() function converts the calendar time
+    <i>timep</i> to broken-down time representation, expressed in Coordinated
+    Universal Time (UTC). It may return NULL when the year does not fit into an
+    integer. The return value points to a statically allocated struct which
+    might be overwritten by subsequent calls to any of the date and time
+    functions. The <b>gmtime_r</b>() function does the same, but stores the data
+    in a user-supplied struct.</p>
+<p class="Pp">The <b>localtime</b>() function converts the calendar time
+    <i>timep</i> to broken-down time representation, expressed relative to the
+    user's specified timezone. The function also sets the external variables
+    <i>tzname</i>, <i>timezone</i>, and <i>daylight</i> as if it called
+    <b>tzset</b>(3). The return value points to a statically allocated struct
+    which might be overwritten by subsequent calls to any of the date and time
+    functions. The <b>localtime_r</b>() function does the same, but stores the
+    data in a user-supplied struct. It need not set <i>tzname</i>,
+    <i>timezone</i>, and <i>daylight</i>.</p>
+<p class="Pp">The <b>asctime</b>() function converts the broken-down time value
+    <i>tm</i> into a null-terminated string with the same format as
+    <b>ctime</b>(). The return value points to a statically allocated string
+    which might be overwritten by subsequent calls to any of the date and time
+    functions. The <b>asctime_r</b>() function does the same, but stores the
+    string in a user-supplied buffer which should have room for at least 26
+    bytes.</p>
+<p class="Pp">The <b>mktime</b>() function converts a broken-down time
+    structure, expressed as local time, to calendar time representation. The
+    function ignores the values supplied by the caller in the <i>tm_wday</i> and
+    <i>tm_yday</i> fields. The value specified in the <i>tm_isdst</i> field
+    informs <b>mktime</b>() whether or not daylight saving time (DST) is in
+    effect for the time supplied in the <i>tm</i> structure: a positive value
+    means DST is in effect; zero means that DST is not in effect; and a negative
+    value means that <b>mktime</b>() should (use timezone information and system
+    databases to) attempt to determine whether DST is in effect at the specified
+    time. See <b>timegm</b>(3) for a UTC equivalent of this function.</p>
+<p class="Pp">The <b>mktime</b>() function modifies the fields of the <i>tm</i>
+    structure as follows: <i>tm_wday</i> and <i>tm_yday</i> are set to values
+    determined from the contents of the other fields; if structure members are
+    outside their valid interval, they will be normalized (so that, for example,
+    40 October is changed into 9 November); <i>tm_isdst</i> is set (regardless
+    of its initial value) to a positive value or to 0, respectively, to indicate
+    whether DST is or is not in effect at the specified time. The function also
+    sets the external variables <i>tzname</i>, <i>timezone</i>, and
+    <i>daylight</i> as if it called <b>tzset</b>(3).</p>
+<p class="Pp">If the specified broken-down time cannot be represented as
+    calendar time (seconds since the Epoch), <b>mktime</b>() returns
+    <i>(time_t)&#x00A0;-1</i> and does not alter the members of the broken-down
+    time structure.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, <b>gmtime</b>() and <b>localtime</b>() return a
+    pointer to a <i>struct&#x00A0;tm</i>.</p>
+<p class="Pp">On success, <b>gmtime_r</b>() and <b>localtime_r</b>() return the
+    address of the structure pointed to by <i>result</i>.</p>
+<p class="Pp">On success, <b>asctime</b>() and <b>ctime</b>() return a pointer
+    to a string.</p>
+<p class="Pp">On success, <b>asctime_r</b>() and <b>ctime_r</b>() return a
+    pointer to the string pointed to by <i>buf</i>.</p>
+<p class="Pp">On success, <b>mktime</b>() returns the calendar time (seconds
+    since the Epoch), expressed as a value of type <i>time_t</i>.</p>
+<p class="Pp">On error, <b>mktime</b>() returns the value
+    <i>(time_t)&#x00A0;-1</i>, and leaves the <i>tm-&gt;tm_wday</i> member
+    unmodified. The remaining functions return NULL on error. On error,
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EOVERFLOW"><a class="permalink" href="#EOVERFLOW"><b>EOVERFLOW</b></a></dt>
+  <dd>The result cannot be represented.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>asctime ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:asctime locale</td>
+  </tr>
+  <tr>
+    <td>asctime_r ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe locale</td>
+  </tr>
+  <tr>
+    <td>ctime ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:tmbuf race:asctime env locale</td>
+  </tr>
+  <tr>
+    <td>ctime_r (), gmtime_r (), localtime_r (), mktime ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe env locale</td>
+  </tr>
+  <tr>
+    <td>gmtime (), localtime ()</td>
+    <td>Thread safety</td>
+    <td>MT-Unsafe race:tmbuf env locale</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">POSIX doesn't specify the parameters of <b>ctime_r</b>() to be
+    <i>restrict</i>; that is specific to glibc.</p>
+<p class="Pp">In many implementations, including glibc, a 0 in <i>tm_mday</i> is
+    interpreted as meaning the last day of the preceding month.</p>
+<p class="Pp">According to POSIX.1, <b>localtime</b>() is required to behave as
+    though <b>tzset</b>(3) was called, while <b>localtime_r</b>() does not have
+    this requirement. For portable code, <b>tzset</b>(3) should be called before
+    <b>localtime_r</b>().</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="asctime"><a class="permalink" href="#asctime"><b>asctime</b>()</a></dt>
+  <dd></dd>
+  <dt id="ctime"><a class="permalink" href="#ctime"><b>ctime</b>()</a></dt>
+  <dd></dd>
+  <dt id="gmtime"><a class="permalink" href="#gmtime"><b>gmtime</b>()</a></dt>
+  <dd></dd>
+  <dt id="localtime"><a class="permalink" href="#localtime"><b>localtime</b>()</a></dt>
+  <dd></dd>
+  <dt id="mktime"><a class="permalink" href="#mktime"><b>mktime</b>()</a></dt>
+  <dd>C23, POSIX.1-2024.</dd>
+  <dt id="gmtime_r"><a class="permalink" href="#gmtime_r"><b>gmtime_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="localtime_r"><a class="permalink" href="#localtime_r"><b>localtime_r</b>()</a></dt>
+  <dd>POSIX.1-2024.</dd>
+  <dt id="asctime_r"><a class="permalink" href="#asctime_r"><b>asctime_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="ctime_r"><a class="permalink" href="#ctime_r"><b>ctime_r</b>()</a></dt>
+  <dd>None.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="gmtime~2"><a class="permalink" href="#gmtime~2"><b>gmtime</b>()</a></dt>
+  <dd></dd>
+  <dt id="localtime~2"><a class="permalink" href="#localtime~2"><b>localtime</b>()</a></dt>
+  <dd></dd>
+  <dt id="mktime~2"><a class="permalink" href="#mktime~2"><b>mktime</b>()</a></dt>
+  <dd>C89, POSIX.1-1988.</dd>
+  <dt id="asctime~2"><a class="permalink" href="#asctime~2"><b>asctime</b>()</a></dt>
+  <dd></dd>
+  <dt id="ctime~2"><a class="permalink" href="#ctime~2"><b>ctime</b>()</a></dt>
+  <dd>C89, POSIX.1-1988. Marked obsolescent in C23 and in POSIX.1-2008
+      (recommending <b>strftime</b>(3)).</dd>
+  <dt id="gmtime_r~2"><a class="permalink" href="#gmtime_r~2"><b>gmtime_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="localtime_r~2"><a class="permalink" href="#localtime_r~2"><b>localtime_r</b>()</a></dt>
+  <dd>POSIX.1-1996.</dd>
+  <dt id="asctime_r~2"><a class="permalink" href="#asctime_r~2"><b>asctime_r</b>()</a></dt>
+  <dd></dd>
+  <dt id="ctime_r~2"><a class="permalink" href="#ctime_r~2"><b>ctime_r</b>()</a></dt>
+  <dd>POSIX.1-1996. Marked obsolescent in POSIX.1-2008. Removed in POSIX.1-2024
+      (recommending <b>strftime</b>(3)).</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<section class="Ss">
+<h2 class="Ss" id="Thread_safety"><a class="permalink" href="#Thread_safety">Thread
+  safety</a></h2>
+<p class="Pp">The four functions <b>asctime</b>(), <b>ctime</b>(),
+    <b>gmtime</b>(), and <b>localtime</b>() return a pointer to static data and
+    hence are not thread-safe. The thread-safe versions, <b>asctime_r</b>(),
+    <b>ctime_r</b>(), <b>gmtime_r</b>(), and <b>localtime_r</b>(), are specified
+    by SUSv2.</p>
+<p class="Pp">POSIX.1 says: &quot;The <b>asctime</b>(), <b>ctime</b>(),
+    <b>gmtime</b>(), and <b>localtime</b>() functions shall return values in one
+    of two static objects: a broken-down time structure and an array of type
+    <i>char</i>. Execution of any of the functions that return a pointer to one
+    of these object types may overwrite the information in any object of the
+    same type pointed to by the value returned from any previous call to any of
+    them.&quot; This can occur in the glibc implementation.</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="mktime()"><a class="permalink" href="#mktime()">mktime()</a></h2>
+<p class="Pp"><i>(time_t) -1</i> can represent a valid time (one second before
+    the Epoch). To determine whether <b>mktime</b>() failed, one must use the
+    <i>tm-&gt;tm_wday</i> field. See the example program in EXAMPLES.</p>
+<p class="Pp">The handling of a non-negative <i>tm_isdst</i> in <b>mktime</b>()
+    is poorly specified, and passing a value that is incorrect for the time
+    specified yields unspecified results. Since <b>mktime</b>() is one of the
+    few functions that knows when DST is in effect, providing a correct value
+    may be difficult. One workaround for this is to call <b>mktime</b>() twice,
+    once with <i>tm_isdst</i> set to zero, and once with <i>tm_isdst</i> set to
+    a positive value, and discarding the results from the call that changes it.
+    If neither call changes <i>tm_isdst</i> then the time specified probably
+    happens during a fall-back period where DST begins or ends, and both results
+    are valid but represent two different times. If both calls change it, that
+    could indicate a fall-forward transition, or some other reason why the time
+    specified does not exist.</p>
+<p class="Pp">The specification of time zones and daylight saving time are up to
+    regional governments, change often, and may include discontinuities beyond
+    <i>mktime</i>'s ability to document a result. For example, a change in the
+    timezone definition may cause a clock time to be repeated or skipped without
+    a corresponding DST change.</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below defines a wrapper that allows detecting invalid
+    and ambiguous times, with <b>EINVAL</b> and <b>ENOTUNIQ</b>,
+  respectively.</p>
+<p class="Pp">The following shell session shows sample runs of the program:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$&#x00A0;<b>TZ=UTC ./a.out 1969 12 31 23 59 59 0</b>;
+-1
+$
+$&#x00A0;<b>export TZ=Europe/Madrid</b>;
+$
+$&#x00A0;<b>./a.out 2147483647 2147483647 00 00 00 00 -1</b>;
+a.out: mktime: Value too large for defined data type
+$
+$&#x00A0;<b>./a.out 2024 08 23 00 17 53 -1</b>;
+1724365073
+$&#x00A0;<b>./a.out 2024 08 23 00 17 53 0</b>;
+a.out: my_mktime: Invalid argument
+1724368673
+$&#x00A0;<b>./a.out 2024 08 23 00 17 53 1</b>;
+1724365073
+$
+$&#x00A0;<b>./a.out 2024 02 23 00 17 53 -1</b>;
+1708643873
+$&#x00A0;<b>./a.out 2024 02 23 00 17 53 0</b>;
+1708643873
+$&#x00A0;<b>./a.out 2024 02 23 00 17 53 1</b>;
+a.out: my_mktime: Invalid argument
+1708640273
+$
+$&#x00A0;<b>./a.out 2023 03 26 02 17 53 -1</b>;
+a.out: my_mktime: Invalid argument
+1679793473
+$
+$&#x00A0;<b>./a.out 2023 10 29 02 17 53 -1</b>;
+a.out: my_mktime: Name not unique on network
+1698542273
+$&#x00A0;<b>./a.out 2023 10 29 02 17 53 0</b>;
+1698542273
+$&#x00A0;<b>./a.out 2023 10 29 02 17 53 1</b>;
+1698538673
+$
+$&#x00A0;<b>./a.out 2023 02 29 12 00 00 -1</b>;
+a.out: my_mktime: Invalid argument
+1677668400
+</pre>
+<section class="Ss">
+<h2 class="Ss" id="Program_source:_mktime.c"><a class="permalink" href="#Program_source:_mktime.c">Program
+  source: mktime.c</a></h2>
+<p class="Pp"></p>
+<pre>#include &lt;err.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;time.h&gt;
+#define is_signed(T)  ((T) -1 &lt; 1)
+static time_t my_mktime(struct tm *tp);
+int
+main(int argc, char *argv[])
+{
+<br/>
+    char       **p;
+<br/>
+    time_t     t;
+<br/>
+    struct tm  tm;
+<br/>
+    if (argc != 8) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s yyyy mm dd HH MM SS isdst\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    p = &amp;argv[1];
+<br/>
+    tm.tm_year  = atoi(*p++) - 1900;
+<br/>
+    tm.tm_mon   = atoi(*p++) - 1;
+<br/>
+    tm.tm_mday  = atoi(*p++);
+<br/>
+    tm.tm_hour  = atoi(*p++);
+<br/>
+    tm.tm_min   = atoi(*p++);
+<br/>
+    tm.tm_sec   = atoi(*p++);
+<br/>
+    tm.tm_isdst = atoi(*p++);
+<br/>
+    errno = 0;
+<br/>
+    tm.tm_wday = -1;
+<br/>
+    t = my_mktime(&amp;tm);
+<br/>
+    if (tm.tm_wday == -1)
+<br/>
+        err(EXIT_FAILURE, &quot;mktime&quot;);
+<br/>
+    if (errno == EINVAL || errno == ENOTUNIQ)
+<br/>
+        warn(&quot;my_mktime&quot;);
+<br/>
+    if (is_signed(time_t))
+<br/>
+        printf(&quot;%jd\n&quot;, (intmax_t) t);
+<br/>
+    else
+<br/>
+        printf(&quot;%ju\n&quot;, (uintmax_t) t);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+static time_t
+my_mktime(struct tm *tp)
+{
+<br/>
+    int            e, isdst;
+<br/>
+    time_t         t;
+<br/>
+    struct tm      tm;
+<br/>
+    unsigned char  wday[sizeof(tp-&gt;tm_wday)];
+<br/>
+    e = errno;
+<br/>
+    tm = *tp;
+<br/>
+    isdst = tp-&gt;tm_isdst;
+<br/>
+    memcpy(wday, &amp;tp-&gt;tm_wday, sizeof(wday));
+<br/>
+    tp-&gt;tm_wday = -1;
+<br/>
+    t = mktime(tp);
+<br/>
+    if (tp-&gt;tm_wday == -1) {
+<br/>
+        memcpy(&amp;tp-&gt;tm_wday, wday, sizeof(wday));
+<br/>
+        return -1;
+<br/>
+    }
+<br/>
+    if (isdst == -1)
+<br/>
+        tm.tm_isdst = tp-&gt;tm_isdst;
+<br/>
+    if (   tm.tm_sec   != tp-&gt;tm_sec
+<br/>
+        || tm.tm_min   != tp-&gt;tm_min
+<br/>
+        || tm.tm_hour  != tp-&gt;tm_hour
+<br/>
+        || tm.tm_mday  != tp-&gt;tm_mday
+<br/>
+        || tm.tm_mon   != tp-&gt;tm_mon
+<br/>
+        || tm.tm_year  != tp-&gt;tm_year
+<br/>
+        || tm.tm_isdst != tp-&gt;tm_isdst)
+<br/>
+    {
+<br/>
+        errno = EINVAL;
+<br/>
+        return t;
+<br/>
+    }
+<br/>
+    if (isdst != -1)
+<br/>
+        goto out;
+<br/>
+    tm = *tp;
+<br/>
+    tm.tm_isdst = !tm.tm_isdst;
+<br/>
+    tm.tm_wday = -1;
+<br/>
+    mktime(&amp;tm);
+<br/>
+    if (tm.tm_wday == -1)
+<br/>
+        goto out;
+<br/>
+    if (tm.tm_isdst != tp-&gt;tm_isdst) {
+<br/>
+        errno = ENOTUNIQ;
+<br/>
+        return t;
+<br/>
+    }
+out:
+<br/>
+    errno = e;
+<br/>
+    return t;
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>date</b>(1), <b>gettimeofday</b>(2), <b>time</b>(2),
+    <b>utime</b>(2), <b>clock</b>(3), <b>difftime</b>(3), <b>strftime</b>(3),
+    <b>strptime</b>(3), <b>timegm</b>(3), <b>tzset</b>(3), <b>time</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

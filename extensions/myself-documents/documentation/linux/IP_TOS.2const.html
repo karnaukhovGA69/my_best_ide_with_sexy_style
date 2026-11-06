@@ -1,0 +1,70 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">IP_TOS(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">IP_TOS(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">IP_TOS - type of service</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;netinet/in.h&gt;</b>  /* Definition of <b>IP*</b> constants */
+<b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>int&#x00A0;setsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_TOS,</b>
+<b>               const&#x00A0;int&#x00A0;*</b><i>tos</i><b>,&#x00A0;sizeof(int));</b>
+<b>int&#x00A0;getsockopt(int&#x00A0;</b><i>sockfd</i><b>,&#x00A0;IPPROTO_IP,&#x00A0;IP_TOS,</b>
+<b>               int&#x00A0;*</b><i>tos</i><b>,&#x00A0;sizeof(int));</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Set or receive the Type-Of-Service (TOS) field that is sent with
+    every IP packet originating from this socket. It is used to prioritize
+    packets on the network.</p>
+<p class="Pp">There are some standard TOS flags defined:</p>
+<dl class="Bl-tag">
+  <dt id="IPTOS_LOWDELAY"><a class="permalink" href="#IPTOS_LOWDELAY"><b>IPTOS_LOWDELAY</b></a></dt>
+  <dd>to minimize delays for interactive traffic,</dd>
+  <dt id="IPTOS_THROUGHPUT"><a class="permalink" href="#IPTOS_THROUGHPUT"><b>IPTOS_THROUGHPUT</b></a></dt>
+  <dd>to optimize throughput,</dd>
+  <dt id="IPTOS_RELIABILITY"><a class="permalink" href="#IPTOS_RELIABILITY"><b>IPTOS_RELIABILITY</b></a></dt>
+  <dd>to optimize for reliability,</dd>
+  <dt id="IPTOS_MINCOST"><a class="permalink" href="#IPTOS_MINCOST"><b>IPTOS_MINCOST</b></a></dt>
+  <dd>should be used for &quot;filler data&quot; where slow transmission doesn't
+      matter.</dd>
+</dl>
+<p class="Pp">At most one of these TOS values can be specified. Other bits are
+    invalid and shall be cleared.</p>
+<p class="Pp">Linux sends <b>IPTOS_LOWDELAY</b> datagrams first by default, but
+    the exact behavior depends on the configured queueing discipline.</p>
+<p class="Pp">Some high-priority levels may require superuser privileges (the
+    <b>CAP_NET_ADMIN</b> capability).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>IPPROTO_IP</b>(2const). See <b>setsockopt</b>(2). See
+    <b>ip</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 1.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>IPPROTO_IP</b>(2const), <b>setsockopt</b>(2), <b>ip</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-11-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

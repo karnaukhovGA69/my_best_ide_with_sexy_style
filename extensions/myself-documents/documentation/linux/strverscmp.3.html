@@ -1,0 +1,131 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strverscmp(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strverscmp(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strverscmp - strings version compare</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>         /* See feature_test_macros(7) */
+<b>#include &lt;string.h&gt;</b></pre>
+<pre><b>int strverscmp(const char *</b><i>s1</i><b>, const char *</b><i>s2</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">For a dataset like <i>jan1</i>, <i>jan2</i>, ..., <i>jan9</i>,
+    <i>jan10</i>, ... sorting it lexicographically yields <i>jan1</i>,
+    <i>jan10</i>, ..., <i>jan2</i>, ..., <i>jan9</i>. The task of
+    <b>strverscmp</b>() is to compare two strings yielding the former order,
+    while <b>strcmp</b>(3) finds only the lexicographic order. This function
+    does not use the locale category <b>LC_COLLATE</b>, so is meant mostly for
+    situations where the strings are expected to be in ASCII. This is different
+    from the ordering produced by <b>sort</b>(1) <b>-V</b>.</p>
+<p class="Pp">What this function does is the following. If both strings are
+    equal, return 0. Otherwise, find the position between two bytes with the
+    property that before it both strings are equal, while directly after it
+    there is a difference. Find the largest consecutive digit strings containing
+    (or starting at, or ending at) this position. If one or both of these is
+    empty, then return what <b>strcmp</b>(3) would have returned (numerical
+    ordering of byte values). Otherwise, compare both digit strings numerically,
+    where digit strings with one or more leading zeros are interpreted as if
+    they have a decimal point in front (so that in particular digit strings with
+    more leading zeros come before digit strings with fewer leading zeros).
+    Thus, the ordering is <i>000</i>, <i>00</i>, <i>01</i>, <i>010</i>,
+    <i>09</i>, <i>0</i>, <i>1</i>, <i>9</i>, <i>10</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">The <b>strverscmp</b>() function returns an integer less than,
+    equal to, or greater than zero if <i>s1</i> is found, respectively, to be
+    earlier than, equal to, or later than <i>s2</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strverscmp ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below can be used to demonstrate the behavior of
+    <b>strverscmp</b>(). It uses <b>strverscmp</b>() to compare the two strings
+    given as its command-line arguments. An example of its use is the
+  following:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> ./a.out jan1 jan10</b>;
+jan1 &lt; jan10
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>#define _GNU_SOURCE
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int res;
+<br/>
+    if (argc != 3) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s &lt;string1&gt; &lt;string2&gt;\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    res = strverscmp(argv[1], argv[2]);
+<br/>
+    printf(&quot;%s %s %s\n&quot;, argv[1],
+<br/>
+           (res &lt; 0) ? &quot;&lt;&quot; : (res == 0) ? &quot;==&quot; : &quot;&gt;&quot;, argv[2]);
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>string</b>(3), <b>strcmp</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-10</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

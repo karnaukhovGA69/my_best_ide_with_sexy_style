@@ -1,0 +1,75 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">mount_attr(2type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">mount_attr(2type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">mount_attr - what mount properties to set and clear</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Linux kernel headers</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/mount.h&gt;</b></pre>
+<pre><b>struct mount_attr {</b>
+<b>    u64 attr_set;</b>     /* Mount properties to set */
+<b>    u64 attr_clr;</b>     /* Mount properties to clear */
+<b>    u64 propagation;</b>  /* Mount propagation type */
+<b>    u64 userns_fd;</b>    /* User namespace file descriptor */
+<br/>
+    /* ... */
+<b>};</b>
+</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Specifies which mount properties should be changed with
+    <b>mount_setattr</b>(2).</p>
+<p class="Pp">The fields are as follows:</p>
+<dl class="Bl-tag">
+  <dt><i>.attr_set</i></dt>
+  <dd>This field specifies which <b>MOUNT_ATTR_</b><i>*</i> attribute flags to
+      set.</dd>
+  <dt><i>.attr_clr</i></dt>
+  <dd>This field specifies which <b>MOUNT_ATTR_</b><i>*</i> attribute flags to
+      clear.</dd>
+  <dt><i>.propagation</i></dt>
+  <dd>This field specifies what mount propagation will be applied. The valid
+      values of this field are the same propagation types described in
+      <b>mount_namespaces</b>(7).</dd>
+  <dt><i>.userns_fd</i></dt>
+  <dd>This field specifies a file descriptor that indicates which user namespace
+      to use as a reference for ID-mapped mounts with
+    <b>MOUNT_ATTR_IDMAP</b>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 5.12. glibc 2.36.</p>
+<p class="Pp">Extra fields may be appended to the structure, with a zero value
+    in a new field resulting in the kernel behaving as though that extension
+    field was not present. Therefore, a user <i>must</i> zero-fill this
+    structure on initialization.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mount_setattr</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

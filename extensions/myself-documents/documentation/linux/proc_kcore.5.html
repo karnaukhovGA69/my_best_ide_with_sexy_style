@@ -1,0 +1,39 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_kcore(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_kcore(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/kcore - physical memory</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/kcore</i></dt>
+  <dd>This file represents the physical memory of the system and is stored in
+      the ELF core file format. With this pseudo-file, and an unstripped kernel
+      (<i>/usr/src/linux/vmlinux</i>) binary, GDB can be used to examine the
+      current state of any kernel data structures.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>The total length of the file is the size of physical memory (RAM) plus
+      4&#x00A0;KiB.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">makedev(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">makedev(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">makedev, major, minor - manage a device number</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/sysmacros.h&gt;</b></pre>
+<pre><b>dev_t makedev(unsigned int </b><i>maj</i><b>, unsigned int </b><i>min</i><b>);</b></pre>
+<pre><b>unsigned int major(dev_t </b><i>dev</i><b>);</b>
+<b>unsigned int minor(dev_t </b><i>dev</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">A device ID consists of two parts: a major ID, identifying the
+    class of the device, and a minor ID, identifying a specific instance of a
+    device in that class. A device ID is represented using the type
+    <i>dev_t</i>.</p>
+<p class="Pp">Given major and minor device IDs, <b>makedev</b>() combines these
+    to produce a device ID, returned as the function result. This device ID can
+    be given to <b>mknod</b>(2), for example.</p>
+<p class="Pp">The <b>major</b>() and <b>minor</b>() functions perform the
+    converse task: given a device ID, they return, respectively, the major and
+    minor components. These macros can be useful to, for example, decompose the
+    device IDs in the structure returned by <b>stat</b>(2).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>makedev (), major (), minor ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">The BSDs expose the definitions for these macros via
+    <i>&lt;sys/types.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">None.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">BSD, HP-UX, Solaris, AIX, Irix.</p>
+<p class="Pp">These interfaces are defined as macros. Since glibc 2.3.3, they
+    have been aliases for three GNU-specific functions:
+    <b>gnu_dev_makedev</b>(), <b>gnu_dev_major</b>(), and
+    <b>gnu_dev_minor</b>(). The latter names are exported, but the traditional
+    names are more portable.</p>
+<p class="Pp">Depending on the version, glibc also exposes definitions for these
+    macros from <i>&lt;sys/types.h&gt;</i> if suitable feature test macros are
+    defined. However, this behavior was deprecated in glibc 2.25, and since
+    glibc 2.28, <i>&lt;sys/types.h&gt;</i> no longer provides these
+  definitions.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>mknod</b>(2), <b>stat</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,353 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">stdio(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">stdio(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">stdio - standard input/output library functions</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>extern&#x00A0;FILE&#x00A0;&#x00A0;*</b><i>stdin</i><b>;</b>
+<b>extern&#x00A0;FILE&#x00A0;&#x00A0;*</b><i>stdout</i><b>;</b>
+<b>extern&#x00A0;FILE&#x00A0;&#x00A0;*</b><i>stderr</i><b>;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The standard I/O library provides a simple and efficient buffered
+    stream I/O interface. Input and output is mapped into logical data streams
+    and the physical I/O characteristics are concealed. The functions and macros
+    are listed below; more information is available from the individual man
+    pages.</p>
+<p class="Pp">A stream is associated with an external file (which may be a
+    physical device) by <i>opening</i> a file, which may involve creating a new
+    file. Creating an existing file causes its former contents to be discarded.
+    If a file can support positioning requests (such as a disk file, as opposed
+    to a terminal), then a <i>file position indicator</i> associated with the
+    stream is positioned at the start of the file (byte zero), unless the file
+    is opened with append mode. If append mode is used, it is unspecified
+    whether the position indicator will be placed at the start or the end of the
+    file. The position indicator is maintained by subsequent reads, writes, and
+    positioning requests. All input occurs as if the characters were read by
+    successive calls to the <b>fgetc</b>(3) function; all output takes place as
+    if all characters were written by successive calls to the <b>fputc</b>(3)
+    function.</p>
+<p class="Pp">A file is disassociated from a stream by <i>closing</i> the file.
+    Output streams are flushed (any unwritten buffer contents are transferred to
+    the host environment) before the stream is disassociated from the file. The
+    value of a pointer to a <i>FILE</i> object is indeterminate after a file is
+    closed (garbage).</p>
+<p class="Pp">A file may be subsequently reopened, by the same or another
+    program execution, and its contents reclaimed or modified (if it can be
+    repositioned at the start). If the main function returns to its original
+    caller, or the <b>exit</b>(3) function is called, all open files are closed
+    (hence all output streams are flushed) before program termination. Other
+    methods of program termination, such as <b>abort</b>(3) do not bother about
+    closing files properly.</p>
+<p class="Pp">At program startup, three text streams are predefined and need not
+    be opened explicitly: <i>standard input</i> (for reading conventional
+    input), <i>standard output</i> (for writing conventional output), and
+    <i>standard error</i> (for writing diagnostic output). These streams are
+    abbreviated <i>stdin</i>, <i>stdout</i>, and <i>stderr</i>. When opened, the
+    standard error stream is not fully buffered; the standard input and output
+    streams are fully buffered if and only if the streams do not refer to an
+    interactive device.</p>
+<p class="Pp">Output streams that refer to terminal devices are always line
+    buffered by default; pending output to such streams is written automatically
+    whenever an input stream that refers to a terminal device is read. In cases
+    where a large amount of computation is done after printing part of a line on
+    an output terminal, it is necessary to <b>fflush</b>(3) the standard output
+    before going off and computing so that the output will appear.</p>
+<p class="Pp">The <i>stdio</i> library is a part of the library <b>libc</b> and
+    routines are automatically loaded as needed by <b>cc</b>(1). The SYNOPSIS
+    sections of the following manual pages indicate which include files are to
+    be used, what the compiler declaration for the function looks like, and
+    which external variables are of interest.</p>
+<p class="Pp">The following are defined as macros; these names may not be reused
+    without first removing their current definitions with <b>#undef</b>:
+    <b>BUFSIZ</b>, <b>EOF</b>, <b>FILENAME_MAX</b>, <b>FOPEN_MAX</b>,
+    <b>L_cuserid</b>, <b>L_ctermid</b>, <b>L_tmpnam</b>, <b>NULL</b>,
+    <b>SEEK_END</b>, <b>SEEK_SET</b>, <b>SEEK_CUR</b>, <b>TMP_MAX</b>,
+    <b>clearerr</b>, <b>feof</b>, <b>ferror</b>, <b>fileno</b>, <b>getc</b>,
+    <b>getchar</b>, <b>putc</b>, <b>putchar</b>, <b>stderr</b>, <b>stdin</b>,
+    <b>stdout</b>. Function versions of the macro functions <b>feof</b>,
+    <b>ferror</b>, <b>clearerr</b>, <b>fileno</b>, <b>getc</b>, <b>getchar</b>,
+    <b>putc</b>, and <b>putchar</b> exist and will be used if the macros
+    definitions are explicitly removed.</p>
+<section class="Ss">
+<h2 class="Ss" id="List_of_functions"><a class="permalink" href="#List_of_functions">List
+  of functions</a></h2>
+<table class="tbl">
+  <tr style="border-bottom-style: solid;">
+    <td><b>Function</b></td>
+    <td><b>Description</b></td>
+  </tr>
+  <tr>
+    <td>clearerr (3)</td>
+    <td>check and reset stream status</td>
+  </tr>
+  <tr>
+    <td>fclose (3)</td>
+    <td>close a stream</td>
+  </tr>
+  <tr>
+    <td>fdopen (3)</td>
+    <td>stream open functions</td>
+  </tr>
+  <tr>
+    <td>feof (3)</td>
+    <td>check and reset stream status</td>
+  </tr>
+  <tr>
+    <td>ferror (3)</td>
+    <td>check and reset stream status</td>
+  </tr>
+  <tr>
+    <td>fflush (3)</td>
+    <td>flush a stream</td>
+  </tr>
+  <tr>
+    <td>fgetc (3)</td>
+    <td>get next character or word from input stream</td>
+  </tr>
+  <tr>
+    <td>fgetpos (3)</td>
+    <td>reposition a stream</td>
+  </tr>
+  <tr>
+    <td>fgets (3)</td>
+    <td>get a line from a stream</td>
+  </tr>
+  <tr>
+    <td>fileno (3)</td>
+    <td>return the integer descriptor of the argument stream</td>
+  </tr>
+  <tr>
+    <td>fmemopen (3)</td>
+    <td>open memory as stream</td>
+  </tr>
+  <tr>
+    <td>fopen (3)</td>
+    <td>stream open functions</td>
+  </tr>
+  <tr>
+    <td>fopencookie (3)</td>
+    <td>open a custom stream</td>
+  </tr>
+  <tr>
+    <td>fprintf (3)</td>
+    <td>formatted output conversion</td>
+  </tr>
+  <tr>
+    <td>fpurge (3)</td>
+    <td>flush a stream</td>
+  </tr>
+  <tr>
+    <td>fputc (3)</td>
+    <td>output a character or word to a stream</td>
+  </tr>
+  <tr>
+    <td>fputs (3)</td>
+    <td>output a line to a stream</td>
+  </tr>
+  <tr>
+    <td>fread (3)</td>
+    <td>binary stream input/output</td>
+  </tr>
+  <tr>
+    <td>freopen (3)</td>
+    <td>stream open functions</td>
+  </tr>
+  <tr>
+    <td>fscanf (3)</td>
+    <td>input format conversion</td>
+  </tr>
+  <tr>
+    <td>fseek (3)</td>
+    <td>reposition a stream</td>
+  </tr>
+  <tr>
+    <td>fsetpos (3)</td>
+    <td>reposition a stream</td>
+  </tr>
+  <tr>
+    <td>ftell (3)</td>
+    <td>reposition a stream</td>
+  </tr>
+  <tr>
+    <td>fwrite (3)</td>
+    <td>binary stream input/output</td>
+  </tr>
+  <tr>
+    <td>getc (3)</td>
+    <td>get next character or word from input stream</td>
+  </tr>
+  <tr>
+    <td>getchar (3)</td>
+    <td>get next character or word from input stream</td>
+  </tr>
+  <tr>
+    <td>gets (3)</td>
+    <td>get a line from a stream</td>
+  </tr>
+  <tr>
+    <td>getw (3)</td>
+    <td>get next character or word from input stream</td>
+  </tr>
+  <tr>
+    <td>mktemp (3)</td>
+    <td>make temporary filename (unique)</td>
+  </tr>
+  <tr>
+    <td>open_memstream (3)</td>
+    <td>open a dynamic memory buffer stream</td>
+  </tr>
+  <tr>
+    <td>open_wmemstream (3)</td>
+    <td>open a dynamic memory buffer stream</td>
+  </tr>
+  <tr>
+    <td>perror (3)</td>
+    <td>system error messages</td>
+  </tr>
+  <tr>
+    <td>printf (3)</td>
+    <td>formatted output conversion</td>
+  </tr>
+  <tr>
+    <td>putc (3)</td>
+    <td>output a character or word to a stream</td>
+  </tr>
+  <tr>
+    <td>putchar (3)</td>
+    <td>output a character or word to a stream</td>
+  </tr>
+  <tr>
+    <td>puts (3)</td>
+    <td>output a line to a stream</td>
+  </tr>
+  <tr>
+    <td>putw (3)</td>
+    <td>output a character or word to a stream</td>
+  </tr>
+  <tr>
+    <td>remove (3)</td>
+    <td>remove directory entry</td>
+  </tr>
+  <tr>
+    <td>rewind (3)</td>
+    <td>reposition a stream</td>
+  </tr>
+  <tr>
+    <td>scanf (3)</td>
+    <td>input format conversion</td>
+  </tr>
+  <tr>
+    <td>setbuf (3)</td>
+    <td>stream buffering operations</td>
+  </tr>
+  <tr>
+    <td>setbuffer (3)</td>
+    <td>stream buffering operations</td>
+  </tr>
+  <tr>
+    <td>setlinebuf (3)</td>
+    <td>stream buffering operations</td>
+  </tr>
+  <tr>
+    <td>setvbuf (3)</td>
+    <td>stream buffering operations</td>
+  </tr>
+  <tr>
+    <td>sprintf (3)</td>
+    <td>formatted output conversion</td>
+  </tr>
+  <tr>
+    <td>sscanf (3)</td>
+    <td>input format conversion</td>
+  </tr>
+  <tr>
+    <td>strerror (3)</td>
+    <td>system error messages</td>
+  </tr>
+  <tr>
+    <td>sys_errlist (3)</td>
+    <td>system error messages</td>
+  </tr>
+  <tr>
+    <td>sys_nerr (3)</td>
+    <td>system error messages</td>
+  </tr>
+  <tr>
+    <td>tempnam (3)</td>
+    <td>temporary file routines</td>
+  </tr>
+  <tr>
+    <td>tmpfile (3)</td>
+    <td>temporary file routines</td>
+  </tr>
+  <tr>
+    <td>tmpnam (3)</td>
+    <td>temporary file routines</td>
+  </tr>
+  <tr>
+    <td>ungetc (3)</td>
+    <td>un-get character from input stream</td>
+  </tr>
+  <tr>
+    <td>vfprintf (3)</td>
+    <td>formatted output conversion</td>
+  </tr>
+  <tr>
+    <td>vfscanf (3)</td>
+    <td>input format conversion</td>
+  </tr>
+  <tr>
+    <td>vprintf (3)</td>
+    <td>formatted output conversion</td>
+  </tr>
+  <tr>
+    <td>vscanf (3)</td>
+    <td>input format conversion</td>
+  </tr>
+  <tr>
+    <td>vsprintf (3)</td>
+    <td>formatted output conversion</td>
+  </tr>
+  <tr>
+    <td>vsscanf (3)</td>
+    <td>input format conversion</td>
+  </tr>
+</table>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">C89, POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>close</b>(2), <b>open</b>(2), <b>read</b>(2), <b>write</b>(2),
+    <b>stdout</b>(3), <b>unlocked_stdio</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-09-21</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

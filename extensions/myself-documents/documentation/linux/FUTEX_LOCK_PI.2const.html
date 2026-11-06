@@ -1,0 +1,130 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">FUTEX_LOCK_PI(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">FUTEX_LOCK_PI(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">FUTEX_LOCK_PI - lock a priority-inheritance futex</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/futex.h&gt;</b>  /* Definition of <b>FUTEX_*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>  /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_futex, uint32_t *</b><i>uaddr</i><b>, FUTEX_LOCK_PI, 0,</b>
+<b>             const struct timespec *</b><i>timeout</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This operation is used after an attempt to acquire the lock via an
+    atomic user-mode instruction failed because the futex word has a nonzero
+    value&#x2014;specifically, because it contained the (PID-namespace-specific)
+    TID of the lock owner.</p>
+<p class="Pp">The operation checks the value of the futex word at the address
+    <i>uaddr</i>. If the value is 0, then the kernel tries to atomically set the
+    futex value to the caller's TID. If the futex word's value is nonzero, the
+    kernel atomically sets the <b>FUTEX_WAITERS</b> bit, which signals the futex
+    owner that it cannot unlock the futex in user space atomically by setting
+    the futex value to 0. After that, the kernel:</p>
+<dl class="Bl-tag">
+  <dt>(1)</dt>
+  <dd>Tries to find the thread which is associated with the owner TID.</dd>
+  <dt>(2)</dt>
+  <dd>Creates or reuses kernel state on behalf of the owner. (If this is the
+      first waiter, there is no kernel state for this futex, so kernel state is
+      created by locking the RT-mutex and the futex owner is made the owner of
+      the RT-mutex. If there are existing waiters, then the existing state is
+      reused.)</dd>
+  <dt>(3)</dt>
+  <dd>Attaches the waiter to the futex (i.e., the waiter is enqueued on the
+      RT-mutex waiter list).</dd>
+</dl>
+<p class="Pp">If more than one waiter exists, the enqueueing of the waiter is in
+    descending priority order. (For information on priority ordering, see the
+    discussion of the <b>SCHED_DEADLINE</b>, <b>SCHED_FIFO</b>, and
+    <b>SCHED_RR</b> scheduling policies in <b>sched</b>(7).) The owner inherits
+    either the waiter's CPU bandwidth (if the waiter is scheduled under the
+    <b>SCHED_DEADLINE</b> policy) or the waiter's priority (if the waiter is
+    scheduled under the <b>SCHED_RR</b> or <b>SCHED_FIFO</b> policy). This
+    inheritance follows the lock chain in the case of nested locking and
+    performs deadlock detection.</p>
+<p class="Pp">The <i>timeout</i> argument provides a timeout for the lock
+    attempt. If <i>timeout</i> is not NULL, the structure it points to specifies
+    an absolute timeout. If <i>timeout</i> is NULL, the operation will block
+    indefinitely.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+<p class="Pp">On success, <b>FUTEX_LOCK_PI</b> returns 0 if the futex was
+    successfully locked.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>futex</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd>The futex owner thread ID of <i>uaddr</i> is about to exit, but has not
+      yet handled the internal state cleanup. Try again.</dd>
+  <dt id="EDEADLK"><a class="permalink" href="#EDEADLK"><b>EDEADLK</b></a></dt>
+  <dd>The futex word at <i>uaddr</i> is already locked by the caller.</dd>
+  <dt id="EFAULT"><a class="permalink" href="#EFAULT"><b>EFAULT</b></a></dt>
+  <dd><i>timeout</i> did not point to a valid user-space address.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>The supplied <i>timeout</i> argument was invalid (<i>tv_sec</i> was less
+      than zero, or <i>tv_nsec</i> was not less than 1,000,000,000).</dd>
+  <dt id="EINVAL~2"><a class="permalink" href="#EINVAL~2"><b>EINVAL</b></a></dt>
+  <dd>The kernel detected an inconsistency between the user-space state at
+      <i>uaddr</i> and the kernel state. This indicates either state corruption
+      or that the kernel found a waiter on <i>uaddr</i> which is waiting via
+      <b>FUTEX_WAIT</b>(2const) or <b>FUTEX_WAIT_BITSET</b>(2const).</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>The kernel could not allocate memory to hold state information.</dd>
+  <dt id="ENOSYS"><a class="permalink" href="#ENOSYS"><b>ENOSYS</b></a></dt>
+  <dd>A run-time check determined that the operation is not available. The
+      PI-futex operations are not implemented on all architectures and are not
+      supported on some CPU variants.</dd>
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>The caller is not allowed to attach itself to the futex at <i>uaddr</i>.
+      (This may be caused by a state corruption in user space.)</dd>
+  <dt id="ESRCH"><a class="permalink" href="#ESRCH"><b>ESRCH</b></a></dt>
+  <dd>The thread ID in the futex word at <i>uaddr</i> does not exist.</dd>
+  <dt id="ETIMEDOUT"><a class="permalink" href="#ETIMEDOUT"><b>ETIMEDOUT</b></a></dt>
+  <dd>The timeout expired before the operation completed.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.18.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Unlike other <b>futex</b>(2) operations, the timeout is measured
+    against the <b>CLOCK_REALTIME</b> clock.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>futex</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-12-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

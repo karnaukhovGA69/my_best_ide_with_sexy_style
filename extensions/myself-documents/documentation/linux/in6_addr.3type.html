@@ -1,0 +1,94 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sockaddr(3type)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">sockaddr(3type)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">sockaddr, sockaddr_storage, socklen_t - socket address</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/socket.h&gt;</b></pre>
+<pre><b>struct sockaddr {</b>
+<b>    sa_family_t     sa_family;</b>      /* Address family */
+<b>    char            sa_data[];</b>      /* Socket address */
+<b>};</b></pre>
+<pre><b>struct sockaddr_storage {</b>
+<b>    sa_family_t     ss_family;</b>      /* Address family */
+<b>};</b></pre>
+<pre><b>typedef</b> /* ... */ <b>socklen_t;</b>
+<b>typedef</b> /* ... */ <b>sa_family_t;</b></pre>
+<pre></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt id="sockaddr"><a class="permalink" href="#sockaddr"><i>sockaddr</i></a></dt>
+  <dd>Describes a socket address.</dd>
+  <dt id="sockaddr_storage"><a class="permalink" href="#sockaddr_storage"><i>sockaddr_storage</i></a></dt>
+  <dd>A structure at least as large as any other <i>sockaddr_</i>* address
+      structures. It's aligned so that a pointer to it can be cast as a pointer
+      to other <i>sockaddr_</i>* structures and used to access its fields.</dd>
+  <dt id="socklen_t"><a class="permalink" href="#socklen_t"><i>socklen_t</i></a></dt>
+  <dd>Describes the length of a socket address. This is an integer type of at
+      least 32 bits.</dd>
+  <dt id="sa_family_t"><a class="permalink" href="#sa_family_t"><i>sa_family_t</i></a></dt>
+  <dd>Describes a socket's protocol family. This is an unsigned integer
+    type.</dd>
+</dl>
+<section class="Ss">
+<h2 class="Ss" id="Internet_domain_sockets"><a class="permalink" href="#Internet_domain_sockets">Internet
+  domain sockets</a></h2>
+<p class="Pp">See <b>sockaddr_in</b>(3type) and <b>sockaddr_in6</b>(3type).</p>
+</section>
+<section class="Ss">
+<h2 class="Ss" id="UNIX_domain_sockets"><a class="permalink" href="#UNIX_domain_sockets">UNIX
+  domain sockets</a></h2>
+<p class="Pp">See <b>sockaddr_un</b>(3type).</p>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2024.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001.</p>
+<p class="Pp"><i>socklen_t</i> was invented by POSIX. See also
+  <b>accept</b>(2).</p>
+<p class="Pp">These structures were invented before modern ISO C strict-aliasing
+    rules. If aliasing rules are applied strictly, these structures would be
+    extremely difficult to use without invoking undefined behavior. POSIX.1-2024
+    fixed this by requiring that implementations make sure that these structures
+    can be safely used as they were designed.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp"><i>socklen_t</i> is also defined in <i>&lt;netdb.h&gt;</i>.</p>
+<p class="Pp"><i>sa_family_t</i> is also defined in <i>&lt;netinet/in.h&gt;</i>
+    and <i>&lt;sys/un.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>accept</b>(2), <b>bind</b>(2), <b>connect</b>(2),
+    <b>getpeername</b>(2), <b>getsockname</b>(2), <b>getsockopt</b>(2),
+    <b>sendto</b>(2), <b>setsockopt</b>(2), <b>socket</b>(2),
+    <b>socketpair</b>(2), <b>getaddrinfo</b>(3), <b>gethostbyaddr</b>(3),
+    <b>getnameinfo</b>(3), <b>htonl</b>(3), <b>ipv6</b>(7), <b>socket</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

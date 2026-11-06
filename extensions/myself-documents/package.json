@@ -13,7 +13,9 @@
   ],
   "main": "./out/extension.js",
   "l10n": "./l10n",
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:myself.documentation.open"
+  ],
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": true
@@ -33,6 +35,24 @@
         "title": "%open%",
         "category": "Documents",
         "icon": "$(book)"
+      },
+      {
+        "command": "myself.documentation.search",
+        "title": "%library.search%",
+        "category": "Documentation",
+        "icon": "$(search)"
+      },
+      {
+        "command": "myself.documentation.import",
+        "title": "%library.import%",
+        "category": "Documentation",
+        "icon": "$(add)"
+      },
+      {
+        "command": "myself.documentation.remove",
+        "title": "%library.remove%",
+        "category": "Documentation",
+        "icon": "$(trash)"
       }
     ],
     "customEditors": [
@@ -70,6 +90,48 @@
           "command": "myself.documents.open",
           "when": "resourceExtname == .txt && activeCustomEditorId != myself.documents.editor",
           "group": "navigation@30"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "myself.documentation.search",
+          "when": "view == myself.documentation.library",
+          "group": "navigation@0"
+        },
+        {
+          "command": "myself.documentation.import",
+          "when": "view == myself.documentation.library",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "myself.documentation.remove",
+          "when": "view == myself.documentation.library && viewItem == importedDocumentation",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "myself.documentation.remove",
+          "when": "false"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "myselfDocumentation",
+          "title": "%library.title%",
+          "icon": "media/library.svg"
+        }
+      ]
+    },
+    "views": {
+      "myselfDocumentation": [
+        {
+          "id": "myself.documentation.library",
+          "name": "%library.title%"
         }
       ]
     }

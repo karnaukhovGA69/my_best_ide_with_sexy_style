@@ -1,0 +1,124 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">abs(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">abs(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">abs, labs, llabs, imaxabs, uabs, ulabs, ullabs, umaxabs - compute
+    the absolute value of an integer</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdlib.h&gt;</b></pre>
+<pre><b>int abs(int </b><i>j</i><b>);</b>
+<b>long labs(long </b><i>j</i><b>);</b>
+<b>long long llabs(long long </b><i>j</i><b>);</b></pre>
+<pre><b>unsigned int uabs(int </b><i>j</i><b>);</b>
+<b>unsigned long ulabs(long </b><i>j</i><b>);</b>
+<b>unsigned long long ullabs(long long </b><i>j</i><b>);</b></pre>
+<pre><b>#include &lt;inttypes.h&gt;</b></pre>
+<pre><b>intmax_t imaxabs(intmax_t </b><i>j</i><b>);</b>
+<b>uintmax_t umaxabs(intmax_t </b><i>j</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>llabs</b>():</p>
+<pre>
+<br/>
+    _ISOC99_SOURCE || _POSIX_C_SOURCE &gt;= 200112L</pre>
+<p class="Pp"><b>uabs</b>(), <b>ulabs</b>(), <b>ullabs</b>(),
+  <b>umaxabs</b>():</p>
+<pre>
+<br/>
+    _ISOC2Y_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions compute the absolute value of the argument
+    <i>j</i> of the appropriate integer type for the function.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Returns the absolute value of the integer argument, of the
+    appropriate integer type for the function.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>abs (), labs (), llabs (), imaxabs (), uabs (), ulabs (), ullabs (),
+      umaxabs ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<dl class="Bl-tag">
+  <dt id="abs"><a class="permalink" href="#abs"><b>abs</b>()</a></dt>
+  <dd></dd>
+  <dt id="labs"><a class="permalink" href="#labs"><b>labs</b>()</a></dt>
+  <dd></dd>
+  <dt id="llabs"><a class="permalink" href="#llabs"><b>llabs</b>()</a></dt>
+  <dd></dd>
+  <dt id="imaxabs"><a class="permalink" href="#imaxabs"><b>imaxabs</b>()</a></dt>
+  <dd>C23, POSIX.1-2024</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt id="abs~2"><a class="permalink" href="#abs~2"><b>abs</b>()</a></dt>
+  <dd>C89, POSIX.1-1996, SVr4, 4.3BSD.</dd>
+  <dt id="labs~2"><a class="permalink" href="#labs~2"><b>labs</b>()</a></dt>
+  <dd>C89, POSIX.1-2001.</dd>
+  <dt id="llabs~2"><a class="permalink" href="#llabs~2"><b>llabs</b>()</a></dt>
+  <dd>C99, POSIX.1-2001; glibc 2.0.</dd>
+  <dt id="imaxabs~2"><a class="permalink" href="#imaxabs~2"><b>imaxabs</b>()</a></dt>
+  <dd>C99, POSIX.1-2001; glibc 2.1.1.</dd>
+  <dt id="uabs"><a class="permalink" href="#uabs"><b>uabs</b>()</a></dt>
+  <dd></dd>
+  <dt id="ulabs"><a class="permalink" href="#ulabs"><b>ulabs</b>()</a></dt>
+  <dd></dd>
+  <dt id="ullabs"><a class="permalink" href="#ullabs"><b>ullabs</b>()</a></dt>
+  <dd>C2y; glibc 2.42.</dd>
+  <dt id="umaxabs"><a class="permalink" href="#umaxabs"><b>umaxabs</b>()</a></dt>
+  <dd>C2y; glibc 2.43.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="BUGS"><a class="permalink" href="#BUGS">BUGS</a></h1>
+<p class="Pp">For <b>abs</b>(), <b>labs</b>(), <b>llabs</b>(), and
+    <b>imaxabs</b>(), trying to take the absolute value of the most negative
+    integer is not defined.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>cabs</b>(3), <b>ceil</b>(3), <b>fabs</b>(3), <b>floor</b>(3),
+    <b>rint</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

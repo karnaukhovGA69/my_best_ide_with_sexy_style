@@ -1,0 +1,154 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">pthread_key_create(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">pthread_key_create(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">pthread_key_create, pthread_key_delete, pthread_setspecific,
+    pthread_getspecific - management of thread-specific data</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;pthread.h&gt;</b></pre>
+<pre><b>int pthread_key_create(pthread_key_t *</b><i>key</i><b>,</b>
+<b>                       typeof(void (void *)) *</b><i>destr_function</i><b>;</b>
+<b>int pthread_key_delete(pthread_key_t </b><i>key</i><b>);</b>
+<b>int pthread_setspecific(pthread_key_t </b><i>key</i><b>, const void *</b><i>pointer</i><b>);</b>
+<b>void * pthread_getspecific(pthread_key_t </b><i>key</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Programs often need global or static variables that have different
+    values in different threads. Since threads share one memory space, this
+    cannot be achieved with regular variables. Thread-specific data is the POSIX
+    threads answer to this need.</p>
+<p class="Pp">Each thread possesses a private memory block, the thread-specific
+    data area, or TSD area for short. This area is indexed by TSD keys. The TSD
+    area associates values of type <i>void&#x00A0;*</i> to TSD keys. TSD keys
+    are common to all threads, but the value associated with a given TSD key can
+    be different in each thread.</p>
+<p class="Pp">For concreteness, the TSD areas can be viewed as arrays of
+    <i>void&#x00A0;*</i> pointers, TSD keys as integer indices into these
+    arrays, and the value of a TSD key as the value of the corresponding array
+    element in the calling thread.</p>
+<p class="Pp">When a thread is created, its TSD area initially associates NULL
+    with all keys.</p>
+<p class="Pp"><b>pthread_key_create</b>() allocates a new TSD key. The key is
+    stored in the location pointed to by <i>key</i>. There is a limit of
+    <b>PTHREAD_KEYS_MAX</b> on the number of keys allocated at a given time. The
+    value initially associated with the returned key is NULL in all currently
+    executing threads.</p>
+<p class="Pp">The <i>destr_function</i> argument, if not NULL, specifies a
+    destructor function associated with the key. When a thread terminates via
+    <b>pthread_exit</b>() or by cancelation, <i>destr_function</i> is called
+    with arguments the value associated with the key in that thread. The
+    <i>destr_function</i> is not called if that value is NULL. The order in
+    which destructor functions are called at thread termination time is
+    unspecified.</p>
+<p class="Pp">Before the destructor function is called, the NULL value is
+    associated with the key in the current thread. A destructor function might,
+    however, re-associate non-NULL values to that key or some other key. To deal
+    with this, if after all the destructors have been called for all non-NULL
+    values, there are still some non-NULL values with associated destructors,
+    then the process is repeated. The glibc implementation stops the process
+    after <b>PTHREAD_DESTRUCTOR_ITERATIONS</b> iterations, even if some non-NULL
+    values with associated descriptors remain. Other implementations may loop
+    indefinitely.</p>
+<p class="Pp"><b>pthread_key_delete</b>() deallocates a TSD key. It does not
+    check whether non-NULL values are associated with that key in the currently
+    executing threads, nor call the destructor function associated with the
+  key.</p>
+<p class="Pp"><b>pthread_setspecific</b>() changes the value associated with
+    <i>key</i> in the calling thread, storing the given <i>pointer</i>
+  instead.</p>
+<p class="Pp"><b>pthread_getspecific</b>() returns the value currently
+    associated with <i>key</i> in the calling thread.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>pthread_key_create</b>(), <b>pthread_key_delete</b>(), and
+    <b>pthread_setspecific</b>() return 0 on success and a non-zero error code
+    on failure. If successful, <b>pthread_key_create</b>() stores the newly
+    allocated key in the location pointed to by its <i>key</i> argument.</p>
+<p class="Pp"><b>pthread_getspecific</b>() returns the value associated with
+    <i>key</i> on success, and NULL on error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp"><b>pthread_key_create</b>() returns the following error code on
+    error:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="EAGAIN"><a class="permalink" href="#EAGAIN"><b>EAGAIN</b></a></dt>
+  <dd><b>PTHREAD_KEYS_MAX</b> keys are already allocated.</dd>
+</dl>
+</div>
+<p class="Pp"><b>pthread_key_delete</b>() and <b>pthread_setspecific</b>()
+    return the following error code on error:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd><i>key</i> is not a valid, allocated TSD key.</dd>
+</dl>
+</div>
+<p class="Pp"><b>pthread_getspecific</b>() returns NULL if <i>key</i> is not a
+    valid, allocated TSD key.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp">pthread_create(3), pthread_exit(3), pthread_testcancel(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLE"><a class="permalink" href="#EXAMPLE">EXAMPLE</a></h1>
+<p class="Pp">The following code fragment allocates a thread-specific array of
+    100 characters, with automatic reclamation at thread exit:</p>
+<p class="Pp"></p>
+<div class="Bd-indent">
+<pre>
+/* Key for the thread-specific buffer */
+static pthread_key_t buffer_key;
+/* Once-only initialisation of the key */
+static pthread_once_t buffer_key_once = PTHREAD_ONCE_INIT;
+/* Allocate the thread-specific buffer */
+void buffer_alloc(void)
+{
+<br/>
+  pthread_once(&amp;buffer_key_once, buffer_key_alloc);
+<br/>
+  pthread_setspecific(buffer_key, malloc(100));
+}
+/* Return the thread-specific buffer */
+char * get_buffer(void)
+{
+<br/>
+  return (char *) pthread_getspecific(buffer_key);
+}
+/* Allocate the key */
+static void buffer_key_alloc()
+{
+<br/>
+  pthread_key_create(&amp;buffer_key, buffer_destroy);
+}
+/* Free the thread-specific buffer */
+static void buffer_destroy(void * buf)
+{
+<br/>
+  free(buf);
+}
+</pre>
+</div>
+<pre></pre>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-05-17</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

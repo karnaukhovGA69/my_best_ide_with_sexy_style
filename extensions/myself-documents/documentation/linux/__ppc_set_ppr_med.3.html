@@ -1,0 +1,116 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">__ppc_set_ppr_med(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">__ppc_set_ppr_med(3)</td>
+  </tr>
+</table>
+<div class="manual-text">Programmer's Manual&quot;
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">__ppc_set_ppr_med, __ppc_set_ppr_very_low, __ppc_set_ppr_low,
+    __ppc_set_ppr_med_low, __ppc_set_ppr_med_high - Set the Program Priority
+    Register</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;sys/platform/ppc.h&gt;</b></pre>
+<pre><b>void __ppc_set_ppr_med(void);</b>
+<b>void __ppc_set_ppr_very_low(void);</b>
+<b>void __ppc_set_ppr_low(void);</b>
+<b>void __ppc_set_ppr_med_low(void);</b>
+<b>void __ppc_set_ppr_med_high(void);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">These functions provide access to the <i>Program Priority
+    Register</i> (PPR) on the Power architecture.</p>
+<p class="Pp">The PPR is a 64-bit register that controls the program's priority.
+    By adjusting the PPR value the programmer may improve system throughput by
+    causing system resources to be used more efficiently, especially in
+    contention situations. The available unprivileged states are covered by the
+    following functions:</p>
+<dl class="Bl-tag">
+  <dt><b>__ppc_set_ppr_med</b>()</dt>
+  <dd>sets the Program Priority Register value to <i>medium</i> (default).</dd>
+  <dt><b>__ppc_set_ppr_very_low</b>()</dt>
+  <dd>sets the Program Priority Register value to <i>very low</i>.</dd>
+  <dt><b>__ppc_set_ppr_low</b>()</dt>
+  <dd>sets the Program Priority Register value to <i>low</i>.</dd>
+  <dt><b>__ppc_set_ppr_med_low</b>()</dt>
+  <dd>sets the Program Priority Register value to <i>medium low</i>.</dd>
+</dl>
+<p class="Pp">The privileged state <i>medium high</i> may also be set during
+    certain time intervals by problem-state (unprivileged) programs, with the
+    following function:</p>
+<dl class="Bl-tag">
+  <dt><b>__ppc_set_ppr_med_high</b>()</dt>
+  <dd>sets the Program Priority to <i>medium high</i>.</dd>
+</dl>
+<p class="Pp">If the program priority is medium high when the time interval
+    expires or if an attempt is made to set the priority to medium high when it
+    is not allowed, the priority is set to medium.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>__ppc_set_ppr_med (), __ppc_set_ppr_very_low (), __ppc_set_ppr_low (),
+      __ppc_set_ppr_med_low (), __ppc_set_ppr_med_high ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">GNU.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<dl class="Bl-tag">
+  <dt><b>__ppc_set_ppr_med</b>()</dt>
+  <dd></dd>
+  <dt><b>__ppc_set_ppr_low</b>()</dt>
+  <dd></dd>
+  <dt><b>__ppc_set_ppr_med_low</b>()</dt>
+  <dd>glibc 2.18.</dd>
+  <dt><b>__ppc_set_ppr_very_low</b>()</dt>
+  <dd></dd>
+  <dt><b>__ppc_set_ppr_med_high</b>()</dt>
+  <dd>glibc 2.23.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="NOTES"><a class="permalink" href="#NOTES">NOTES</a></h1>
+<p class="Pp">The functions <b>__ppc_set_ppr_very_low</b>() and
+    <b>__ppc_set_ppr_med_high</b>() will be defined by
+    <i>&lt;sys/platform/ppc.h&gt;</i> if <b>_ARCH_PWR8</b> is defined.
+    Availability of these functions can be tested using <b>#ifdef
+    _ARCH_PWR8</b>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>__ppc_yield</b>(3)</p>
+<p class="Pp"><i>Power ISA, Book&#x00A0;II - Section&#x00A0;3.1 (Program
+    Priority Registers)</i></p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

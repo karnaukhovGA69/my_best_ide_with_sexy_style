@@ -1,0 +1,41 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_pci(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_pci(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/pci - PCI devices</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/pci</i></dt>
+  <dd>This is a listing of all PCI devices found during kernel initialization
+      and their configuration.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>This file has been deprecated in favor of a new <i>/proc</i> interface for
+      PCI (<i>/proc/bus/pci</i>). It became optional in Linux 2.2 (available
+      with <b>CONFIG_PCI_OLD_PROC</b> set at kernel compilation). It became once
+      more nonoptionally enabled in Linux 2.4. Next, it was deprecated in Linux
+      2.6 (still available with <b>CONFIG_PCI_LEGACY_PROC</b> set), and finally
+      removed altogether since Linux 2.6.17.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

@@ -1,0 +1,181 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">strtok_r(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">strtok_r(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">strtok_r - string tokenize reentrant</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;string.h&gt;</b></pre>
+<pre><b>char *strtok_r(char *_Nullable restrict </b><i>str</i><b>, const char *restrict </b><i>delim</i><b>,</b>
+<b>               char **restrict </b><i>saveptr</i><b>);</b></pre>
+<p class="Pp"></p>
+<div class="Bd-indent">Feature Test Macro Requirements for glibc (see
+  <b>feature_test_macros</b>(7)):</div>
+<p class="Pp"><b>strtok_r</b>():</p>
+<pre>
+<br/>
+    _POSIX_C_SOURCE
+<br/>
+        || /* glibc &lt;= 2.19: */ _BSD_SOURCE || _SVID_SOURCE</pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <b>strtok_r</b>() function is a reentrant version of
+    <b>strtok</b>(3).</p>
+<p class="Pp">The <i>saveptr</i> argument is a pointer to a <i>char&#x00A0;*</i>
+    variable that is used internally by <b>strtok_r</b>() in order to maintain
+    context between successive calls that parse the same string.</p>
+<p class="Pp">On the first call to <b>strtok_r</b>(), <i>str</i> should point to
+    the string to be parsed, and the value of <i>*saveptr</i> is ignored (but
+    see VERSIONS). In subsequent calls, <i>str</i> should be NULL, and
+    <i>saveptr</i> (and the buffer that it points to) should be unchanged since
+    the previous call.</p>
+<p class="Pp">Different strings may be parsed concurrently using sequences of
+    calls to <b>strtok_r</b>() that specify different <i>saveptr</i>
+  arguments.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>strtok_r</b>() returns a pointer to the next token, or NULL if
+    there are no more tokens.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>strtok_r ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">On some implementations, <i>*saveptr</i> is required to be NULL on
+    the first call to <b>strtok_r</b>() that is being used to parse
+  <i>str</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below uses nested loops that employ <b>strtok_r</b>()
+    to break a string into a two-level hierarchy of tokens. The first
+    command-line argument specifies the string to be parsed. The second argument
+    specifies the delimiter byte(s) to be used to separate that string into
+    &quot;major&quot; tokens. The third argument specifies the delimiter byte(s)
+    to be used to separate the &quot;major&quot; tokens into subtokens.</p>
+<p class="Pp">An example of the output produced by this program is the
+    following:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> ./a.out 'a/bbb///cc;xxx:yyy:' ':;' '/'</b>
+1: a/bbb///cc
+<br/>
+         --&gt; a
+<br/>
+         --&gt; bbb
+<br/>
+         --&gt; cc
+2: xxx
+<br/>
+         --&gt; xxx
+3: yyy
+<br/>
+         --&gt; yyy
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+int
+main(int argc, char *argv[])
+{
+<br/>
+    char *str1, *str2, *token, *subtoken;
+<br/>
+    char *saveptr1, *saveptr2;
+<br/>
+    int j;
+<br/>
+    if (argc != 4) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s string delim subdelim\n&quot;,
+<br/>
+                argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    for (j = 1, str1 = argv[1]; ; j++, str1 = NULL) {
+<br/>
+        token = strtok_r(str1, argv[2], &amp;saveptr1);
+<br/>
+        if (token == NULL)
+<br/>
+            break;
+<br/>
+        printf(&quot;%d: %s\n&quot;, j, token);
+<br/>
+        for (str2 = token; ; str2 = NULL) {
+<br/>
+            subtoken = strtok_r(str2, argv[3], &amp;saveptr2);
+<br/>
+            if (subtoken == NULL)
+<br/>
+                break;
+<br/>
+            printf(&quot;\t --&gt; %s\n&quot;, subtoken);
+<br/>
+        }
+<br/>
+    }
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>strtok</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-25</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

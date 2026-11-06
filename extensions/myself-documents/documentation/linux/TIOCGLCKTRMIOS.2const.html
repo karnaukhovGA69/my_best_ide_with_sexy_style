@@ -1,0 +1,71 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">TIOCSLCKTRMIOS(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">TIOCSLCKTRMIOS(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">TIOCGLCKTRMIOS, TIOCSLCKTRMIOS - locking the termios structre</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;asm/termbits.h&gt;</b>  /* Definition of <b>TIOC*CLKTRMIOS</b> constants */
+<b>#include &lt;sys/ioctl.h&gt;</b></pre>
+<pre><b>int ioctl(int </b><i>fd</i><b>, TIOCGLCKTRMIOS, struct termios *</b><i>argp</i><b>);</b>
+<b>int ioctl(int </b><i>fd</i><b>, TIOCSLCKTRMIOS, const struct termios *</b><i>argp</i><b>);</b></pre>
+<pre><b>#include &lt;asm/termbits.h&gt;</b></pre>
+<pre><b>struct termios;</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <i>termios</i> structure of a terminal can be locked. The lock
+    is itself a <i>termios</i> structure, with nonzero bits or fields indicating
+    a locked value.</p>
+<dl class="Bl-tag">
+  <dt id="TIOCGLCKTRMIOS"><a class="permalink" href="#TIOCGLCKTRMIOS"><b>TIOCGLCKTRMIOS</b></a></dt>
+  <dd>Gets the locking status of the <i>termios</i> structure of the
+    terminal.</dd>
+  <dt id="TIOCSLCKTRMIOS"><a class="permalink" href="#TIOCSLCKTRMIOS"><b>TIOCSLCKTRMIOS</b></a></dt>
+  <dd>Sets the locking status of the <i>termios</i> structure of the terminal.
+      Only a process with the <b>CAP_SYS_ADMIN</b> capability can do this.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, 0 is returned. On error, -1 is returned, and
+    <i>errno</i> is set to indicate the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EPERM"><a class="permalink" href="#EPERM"><b>EPERM</b></a></dt>
+  <dd>Insufficient permission.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="CAVEATS"><a class="permalink" href="#CAVEATS">CAVEATS</a></h1>
+<p class="Pp">Please note that <b>struct termios</b> from
+    <i>&lt;asm/termbits.h&gt;</i> is different and incompatible with <b>struct
+    termios</b> from <i>&lt;termios.h&gt;</i>. These ioctl calls require
+    <b>struct termios</b> from <i>&lt;asm/termbits.h&gt;</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ioctl</b>(2), <b>ioctl_tty</b>(2), <b>TCSETS</b>(2const)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

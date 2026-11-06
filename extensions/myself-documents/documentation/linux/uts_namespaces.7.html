@@ -1,0 +1,42 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">uts_namespaces(7)</td>
+    <td class="head-vol">Miscellaneous Information Manual</td>
+    <td class="head-rtitle">uts_namespaces(7)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">uts_namespaces - overview of Linux UTS namespaces</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">UTS namespaces provide isolation of two system identifiers: the
+    hostname and the NIS domain name. These identifiers are set using
+    <b>sethostname</b>(2) and <b>setdomainname</b>(2), and can be retrieved
+    using <b>uname</b>(2), <b>gethostname</b>(2), and <b>getdomainname</b>(2).
+    Changes made to these identifiers are visible to all other processes in the
+    same UTS namespace, but are not visible to processes in other UTS
+    namespaces.</p>
+<p class="Pp">When a process creates a new UTS namespace using <b>clone</b>(2)
+    or <b>unshare</b>(2) with the <b>CLONE_NEWUTS</b> flag, the hostname and
+    domain name of the new UTS namespace are copied from the corresponding
+    values in the caller's UTS namespace.</p>
+<p class="Pp">Use of UTS namespaces requires a kernel that is configured with
+    the <b>CONFIG_UTS_NS</b> option.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>nsenter</b>(1), <b>unshare</b>(1), <b>clone</b>(2),
+    <b>getdomainname</b>(2), <b>gethostname</b>(2), <b>setns</b>(2),
+    <b>uname</b>(2), <b>unshare</b>(2), <b>namespaces</b>(7)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

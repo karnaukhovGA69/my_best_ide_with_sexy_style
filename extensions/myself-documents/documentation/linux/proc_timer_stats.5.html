@@ -1,0 +1,129 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">proc_timer_stats(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">proc_timer_stats(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/proc/timer_stats - timer statistics</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<dl class="Bl-tag">
+  <dt><i>/proc/timer_stats</i> (from Linux 2.6.21 until Linux 4.10)</dt>
+  <dd>This is a debugging facility to make timer (ab)use in a Linux system
+      visible to kernel and user-space developers. It can be used by kernel and
+      user-space developers to verify that their code does not make undue use of
+      timers. The goal is to avoid unnecessary wakeups, thereby optimizing power
+      consumption.</dd>
+</dl>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>If enabled in the kernel (<b>CONFIG_TIMER_STATS</b>), but not used, it has
+      almost zero run-time overhead and a relatively small data-structure
+      overhead. Even if collection is enabled at run time, overhead is low: all
+      the locking is per-CPU and lookup is hashed.</dd>
+  <dt></dt>
+  <dd>The <i>/proc/timer_stats</i> file is used both to control sampling
+      facility and to read out the sampled information.</dd>
+  <dt></dt>
+  <dd>The <i>timer_stats</i> functionality is inactive on bootup. A sampling
+      period can be started using the following command:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre># echo 1 &gt; /proc/timer_stats
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The following command stops a sampling period:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre># echo 0 &gt; /proc/timer_stats
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The statistics can be retrieved by:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>$ cat /proc/timer_stats
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>While sampling is enabled, each readout from <i>/proc/timer_stats</i> will
+      see newly updated statistics. Once sampling is disabled, the sampled
+      information is kept until a new sample period is started. This allows
+      multiple readouts.</dd>
+  <dt></dt>
+  <dd>Sample output from <i>/proc/timer_stats</i>:</dd>
+  <dt></dt>
+  <dd>
+    <br/>
+    <pre>$<b> cat /proc/timer_stats</b>
+Timer Stats Version: v0.3
+Sample period: 1.764 s
+Collection: active
+<br/>
+  255,     0 swapper/3        hrtimer_start_range_ns (tick_sched_timer)
+<br/>
+   71,     0 swapper/1        hrtimer_start_range_ns (tick_sched_timer)
+<br/>
+   58,     0 swapper/0        hrtimer_start_range_ns (tick_sched_timer)
+<br/>
+    4,  1694 gnome-shell      mod_delayed_work_on (delayed_work_timer_fn)
+<br/>
+   17,     7 rcu_sched        rcu_gp_kthread (process_timeout)
+...
+<br/>
+    1,  4911 kworker/u16:0    mod_delayed_work_on (delayed_work_timer_fn)
+<br/>
+   1D,  2522 kworker/0:0      queue_delayed_work_on (delayed_work_timer_fn)
+1029 total events, 583.333 events/sec
+    </pre>
+    <br/>
+  </dd>
+  <dt></dt>
+  <dd>The output columns are:</dd>
+</dl>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>[1]</dt>
+  <dd>a count of the number of events, optionally (since Linux 2.6.23) followed
+      by the letter 'D' if this is a deferrable timer;</dd>
+  <dt>[2]</dt>
+  <dd>the PID of the process that initialized the timer;</dd>
+  <dt>[3]</dt>
+  <dd>the name of the process that initialized the timer;</dd>
+  <dt>[4]</dt>
+  <dd>the function where the timer was initialized; and (in parentheses) the
+      callback function that is associated with the timer.</dd>
+</dl>
+</div>
+<dl class="Bl-tag">
+  <dt></dt>
+  <dd>During the Linux 4.11 development cycle, this file was removed because of
+      security concerns, as it exposes information across namespaces.
+      Furthermore, it is possible to obtain the same information via in-kernel
+      tracing facilities such as ftrace.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>proc</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

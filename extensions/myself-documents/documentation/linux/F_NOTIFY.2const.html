@@ -1,0 +1,112 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">F_NOTIFY(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">F_NOTIFY(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">F_NOTIFY - file and directory change notification</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#define _GNU_SOURCE</b>
+<b>#include &lt;fcntl.h&gt;</b></pre>
+<pre><b>int fcntl(int </b><i>fd</i><b>, F_NOTIFY, int </b><i>arg</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Provide notification when the directory referred to by <i>fd</i>
+    or any of the files that it contains is changed. The events to be notified
+    are specified in <i>arg</i>, which is a bit mask specified by ORing together
+    zero or more of the following bits:</p>
+<dl class="Bl-tag">
+  <dt id="DN_ACCESS"><a class="permalink" href="#DN_ACCESS"><b>DN_ACCESS</b></a></dt>
+  <dd>A file was accessed (<b>read</b>(2), <b>pread</b>(2), <b>readv</b>(2), and
+      similar)</dd>
+  <dt id="DN_MODIFY"><a class="permalink" href="#DN_MODIFY"><b>DN_MODIFY</b></a></dt>
+  <dd>A file was modified (<b>write</b>(2), <b>pwrite</b>(2), <b>writev</b>(2),
+      <b>truncate</b>(2), <b>ftruncate</b>(2), and similar).</dd>
+  <dt id="DN_CREATE"><a class="permalink" href="#DN_CREATE"><b>DN_CREATE</b></a></dt>
+  <dd>A file was created (<b>open</b>(2), <b>creat</b>(2), <b>mknod</b>(2),
+      <b>mkdir</b>(2), <b>link</b>(2), <b>symlink</b>(2), <b>rename</b>(2) into
+      this directory).</dd>
+  <dt id="DN_DELETE"><a class="permalink" href="#DN_DELETE"><b>DN_DELETE</b></a></dt>
+  <dd>A file was unlinked (<b>unlink</b>(2), <b>rename</b>(2) to another
+      directory, <b>rmdir</b>(2)).</dd>
+  <dt id="DN_RENAME"><a class="permalink" href="#DN_RENAME"><b>DN_RENAME</b></a></dt>
+  <dd>A file was renamed within this directory (<b>rename</b>(2)).</dd>
+  <dt id="DN_ATTRIB"><a class="permalink" href="#DN_ATTRIB"><b>DN_ATTRIB</b></a></dt>
+  <dd>The attributes of a file were changed (<b>chown</b>(2), <b>chmod</b>(2),
+      <b>utime</b>(2), <b>utimensat</b>(2), and similar).</dd>
+</dl>
+<p class="Pp">(In order to obtain these definitions, the <b>_GNU_SOURCE</b>
+    feature test macro must be defined before including <i>any</i> header
+    files.)</p>
+<p class="Pp">Directory notifications are normally &quot;one-shot&quot;, and the
+    application must reregister to receive further notifications. Alternatively,
+    if <b>DN_MULTISHOT</b> is included in <i>arg</i>, then notification will
+    remain in effect until explicitly removed.</p>
+<p class="Pp">A series of <b>F_NOTIFY</b> requests is cumulative, with the
+    events in <i>arg</i> being added to the set already monitored. To disable
+    notification of all events, make an <b>F_NOTIFY</b> call specifying
+    <i>arg</i> as 0.</p>
+<p class="Pp">Notification occurs via delivery of a signal. The default signal
+    is <b>SIGIO</b>, but this can be changed using the <b>F_SETSIG</b> operation
+    to <b>fcntl</b>(). (Note that <b>SIGIO</b> is one of the nonqueuing standard
+    signals; switching to the use of a real-time signal means that multiple
+    notifications can be queued to the process.) In the latter case, the signal
+    handler receives a <i>siginfo_t</i> structure as its second argument (if the
+    handler was established using <b>SA_SIGINFO</b>) and the <i>si_fd</i> field
+    of this structure contains the file descriptor which generated the
+    notification (useful when establishing notification on multiple
+    directories).</p>
+<p class="Pp">Especially when using <b>DN_MULTISHOT</b>, a real time signal
+    should be used for notification, so that multiple notifications can be
+    queued.</p>
+<p class="Pp"><b>NOTE:</b> New applications should use the <i>inotify</i>
+    interface (available since Linux 2.6.13), which provides a much superior
+    interface for obtaining notifications of filesystem events. See
+    <b>inotify</b>(7).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">Zero.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fcntl</b>(2).</p>
+<dl class="Bl-tag">
+  <dt id="ENOTDIR"><a class="permalink" href="#ENOTDIR"><b>ENOTDIR</b></a></dt>
+  <dd><i>fd</i> does not refer to a directory.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.4.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>fcntl</b>(2)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2025-07-20</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

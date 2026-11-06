@@ -1,0 +1,82 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">fgets(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">fgets(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">fgets - FILE get line-string</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;stdio.h&gt;</b></pre>
+<pre><b>char *fgets(</b>int size;
+<b>            char </b><i>s</i><b>[restrict </b><i>size</i><b>], int </b><i>size</i><b>, FILE *restrict </b><i>stream</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>fgets</b>() reads in at most one less than <i>size</i>
+    characters from <i>stream</i> and stores them into the buffer pointed to by
+    <i>s</i>. Reading stops after an <b>EOF</b> or a newline. If a newline is
+    read, it is stored into the buffer. A terminating null byte ('\0') is stored
+    after the last character in the buffer.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp"><b>fgets</b>() returns <i>s</i> on success.</p>
+<p class="Pp">When end of file occurs while no characters have been read, NULL
+    is returned.</p>
+<p class="Pp">On error, NULL is returned, and <i>errno</i> is set to indicate
+    the error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<p class="Pp">See <b>fgetc</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ATTRIBUTES"><a class="permalink" href="#ATTRIBUTES">ATTRIBUTES</a></h1>
+<p class="Pp">For an explanation of the terms used in this section, see
+    <b>attributes</b>(7).</p>
+<table class="tbl" border="1" style="border-style: solid;">
+  <tr>
+    <td><b>Interface</b></td>
+    <td><b>Attribute</b></td>
+    <td><b>Value</b></td>
+  </tr>
+  <tr>
+    <td>fgets ()</td>
+    <td>Thread safety</td>
+    <td>MT-Safe</td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">C11, POSIX.1-2008.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">POSIX.1-2001, C89.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>ferror</b>(3), <b>fgetc</b>(3), <b>fgetws</b>(3),
+    <b>fopen</b>(3), <b>fread</b>(3), <b>getline</b>(3),
+    <b>unlocked_stdio</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-08-19</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

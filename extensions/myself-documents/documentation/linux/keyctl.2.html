@@ -1,0 +1,521 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">keyctl(2)</td>
+    <td class="head-vol">System Calls Manual</td>
+    <td class="head-rtitle">keyctl(2)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">keyctl - manipulate the kernel's key management facility</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, int </b><i>op</i><b>, ...);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp"><b>keyctl</b>() allows user-space programs to perform key
+    manipulation.</p>
+<p class="Pp">The operation performed by <b>keyctl</b>() is determined by the
+    value of the <i>op</i> argument. Each of these operations is wrapped by the
+    <i>libkeyutils</i> library (provided by the <i>keyutils</i> package) into
+    individual functions (see <b>keyctl</b>(3)) to permit the compiler to check
+    types.</p>
+<p class="Pp">The permitted values for <i>op</i> are:</p>
+<dl class="Bl-tag">
+  <dt id="KEYCTL_GET_KEYRING_ID"><a class="permalink" href="#KEYCTL_GET_KEYRING_ID"><b>KEYCTL_GET_KEYRING_ID</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_JOIN_SESSION_KEYRING"><a class="permalink" href="#KEYCTL_JOIN_SESSION_KEYRING"><b>KEYCTL_JOIN_SESSION_KEYRING</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_UPDATE"><a class="permalink" href="#KEYCTL_UPDATE"><b>KEYCTL_UPDATE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_REVOKE"><a class="permalink" href="#KEYCTL_REVOKE"><b>KEYCTL_REVOKE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_CHOWN"><a class="permalink" href="#KEYCTL_CHOWN"><b>KEYCTL_CHOWN</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_SETPERM"><a class="permalink" href="#KEYCTL_SETPERM"><b>KEYCTL_SETPERM</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_DESCRIBE"><a class="permalink" href="#KEYCTL_DESCRIBE"><b>KEYCTL_DESCRIBE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_CLEAR"><a class="permalink" href="#KEYCTL_CLEAR"><b>KEYCTL_CLEAR</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_LINK"><a class="permalink" href="#KEYCTL_LINK"><b>KEYCTL_LINK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_UNLINK"><a class="permalink" href="#KEYCTL_UNLINK"><b>KEYCTL_UNLINK</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_SEARCH"><a class="permalink" href="#KEYCTL_SEARCH"><b>KEYCTL_SEARCH</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_READ"><a class="permalink" href="#KEYCTL_READ"><b>KEYCTL_READ</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_INSTANTIATE"><a class="permalink" href="#KEYCTL_INSTANTIATE"><b>KEYCTL_INSTANTIATE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_INSTANTIATE_IOV"><a class="permalink" href="#KEYCTL_INSTANTIATE_IOV"><b>KEYCTL_INSTANTIATE_IOV</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_NEGATE"><a class="permalink" href="#KEYCTL_NEGATE"><b>KEYCTL_NEGATE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_REJECT"><a class="permalink" href="#KEYCTL_REJECT"><b>KEYCTL_REJECT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_SET_REQKEY_KEYRING"><a class="permalink" href="#KEYCTL_SET_REQKEY_KEYRING"><b>KEYCTL_SET_REQKEY_KEYRING</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_SET_TIMEOUT"><a class="permalink" href="#KEYCTL_SET_TIMEOUT"><b>KEYCTL_SET_TIMEOUT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_ASSUME_AUTHORITY"><a class="permalink" href="#KEYCTL_ASSUME_AUTHORITY"><b>KEYCTL_ASSUME_AUTHORITY</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_GET_SECURITY"><a class="permalink" href="#KEYCTL_GET_SECURITY"><b>KEYCTL_GET_SECURITY</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_SESSION_TO_PARENT"><a class="permalink" href="#KEYCTL_SESSION_TO_PARENT"><b>KEYCTL_SESSION_TO_PARENT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_INVALIDATE"><a class="permalink" href="#KEYCTL_INVALIDATE"><b>KEYCTL_INVALIDATE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_GET_PERSISTENT"><a class="permalink" href="#KEYCTL_GET_PERSISTENT"><b>KEYCTL_GET_PERSISTENT</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_DH_COMPUTE"><a class="permalink" href="#KEYCTL_DH_COMPUTE"><b>KEYCTL_DH_COMPUTE</b>(2const)</a></dt>
+  <dd></dd>
+  <dt id="KEYCTL_RESTRICT_KEYRING"><a class="permalink" href="#KEYCTL_RESTRICT_KEYRING"><b>KEYCTL_RESTRICT_KEYRING</b>(2const)</a></dt>
+  <dd></dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">For a successful call, the return value depends on the
+  operation.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="ERRORS"><a class="permalink" href="#ERRORS">ERRORS</a></h1>
+<dl class="Bl-tag">
+  <dt id="EACCES"><a class="permalink" href="#EACCES"><b>EACCES</b></a></dt>
+  <dd>The requested operation wasn't permitted.</dd>
+  <dt id="EDQUOT"><a class="permalink" href="#EDQUOT"><b>EDQUOT</b></a></dt>
+  <dd>The key quota for the caller's user would be exceeded by creating a key or
+      linking it to the keyring.</dd>
+  <dt id="EINVAL"><a class="permalink" href="#EINVAL"><b>EINVAL</b></a></dt>
+  <dd>size of the string (including the terminating null byte) specified in
+      <i>arg3</i> (the key type) or <i>arg4</i> (the key description) exceeded
+      the limit (32 bytes and 4096 bytes respectively).</dd>
+  <dt id="EKEYEXPIRED"><a class="permalink" href="#EKEYEXPIRED"><b>EKEYEXPIRED</b></a></dt>
+  <dd>An expired key was found or specified.</dd>
+  <dt id="EKEYREJECTED"><a class="permalink" href="#EKEYREJECTED"><b>EKEYREJECTED</b></a></dt>
+  <dd>A rejected key was found or specified.</dd>
+  <dt id="EKEYREVOKED"><a class="permalink" href="#EKEYREVOKED"><b>EKEYREVOKED</b></a></dt>
+  <dd>A revoked key was found or specified.</dd>
+  <dt id="ENOKEY"><a class="permalink" href="#ENOKEY"><b>ENOKEY</b></a></dt>
+  <dd>No matching key was found or an invalid key was specified.</dd>
+  <dt id="ENOMEM"><a class="permalink" href="#ENOMEM"><b>ENOMEM</b></a></dt>
+  <dd>One of kernel memory allocation routines failed during the execution of
+      the syscall.</dd>
+  <dt id="ENOTDIR"><a class="permalink" href="#ENOTDIR"><b>ENOTDIR</b></a></dt>
+  <dd>A key of keyring type was expected but the ID of a key with a different
+      type was provided.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library. (The
+    accompanying package provides the <i>&lt;keyutils.h&gt;</i> header file.)
+    However, rather than using this system call directly, you probably want to
+    use the various library functions mentioned in the descriptions of
+    individual operations above.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.10.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+<p class="Pp">The program below provide subset of the functionality of the
+    <b>request-key</b>(8) program provided by the <i>keyutils</i> package. For
+    informational purposes, the program records various information in a log
+    file.</p>
+<p class="Pp">As described in <b>request_key</b>(2), the <b>request-key</b>(8)
+    program is invoked with command-line arguments that describe a key that is
+    to be instantiated. The example program fetches and logs these arguments.
+    The program assumes authority to instantiate the requested key, and then
+    instantiates that key.</p>
+<p class="Pp">The following shell session demonstrates the use of this program.
+    In the session, we compile the program and then use it to temporarily
+    replace the standard <b>request-key</b>(8) program. (Note that temporarily
+    disabling the standard <b>request-key</b>(8) program may not be safe on some
+    systems.) While our example program is installed, we use the example program
+    shown in <b>request_key</b>(2) to request a key.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> cc -o key_instantiate key_instantiate.c -lkeyutils</b>;
+$<b> sudo mv /sbin/request-key /sbin/request-key.backup</b>;
+$<b> sudo cp key_instantiate /sbin/request-key</b>;
+$<b> ./t_request_key user mykey somepayloaddata</b>;
+Key ID is 20d035bf
+$<b> sudo mv /sbin/request-key.backup /sbin/request-key</b>;
+</pre>
+<br/>
+<p class="Pp">Looking at the log file created by this program, we can see the
+    command-line arguments supplied to our example program:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> cat /tmp/key_instantiate.log</b>;
+Time: Mon Nov  7 13:06:47 2016
+Command line arguments:
+<br/>
+  argv[0]:            /sbin/request-key
+<br/>
+  operation:          create
+<br/>
+  key_to_instantiate: 20d035bf
+<br/>
+  UID:                1000
+<br/>
+  GID:                1000
+<br/>
+  thread_keyring:     0
+<br/>
+  process_keyring:    0
+<br/>
+  session_keyring:    256e6a6
+Key description:      user;1000;1000;3f010000;mykey
+Auth key payload:     somepayloaddata
+Destination keyring:  256e6a6
+Auth key description: .request_key_auth;1000;1000;0b010000;20d035bf
+</pre>
+<br/>
+<p class="Pp">The last few lines of the above output show that the example
+    program was able to fetch:</p>
+<dl class="Bl-tag">
+  <dt>&#x2022;</dt>
+  <dd>the description of the key to be instantiated, which included the name of
+      the key (<i>mykey</i>);</dd>
+  <dt>&#x2022;</dt>
+  <dd>the payload of the authorization key, which consisted of the data
+      (<i>somepayloaddata</i>) passed to <b>request_key</b>(2);</dd>
+  <dt>&#x2022;</dt>
+  <dd>the destination keyring that was specified in the call to
+      <b>request_key</b>(2); and</dd>
+  <dt>&#x2022;</dt>
+  <dd>the description of the authorization key, where we can see that the name
+      of the authorization key matches the ID of the key that is to be
+      instantiated (<i>20d035bf</i>).</dd>
+</dl>
+<p class="Pp">The example program in <b>request_key</b>(2) specified the
+    destination keyring as <b>KEY_SPEC_SESSION_KEYRING</b>. By examining the
+    contents of <i>/proc/keys</i>, we can see that this was translated to the ID
+    of the destination keyring (<i>0256e6a6</i>) shown in the log output above;
+    we can also see the newly created key with the name <i>mykey</i> and ID
+    <i>20d035bf</i>.</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> cat /proc/keys | egrep 'mykey|256e6a6'</b>;
+0256e6a6 I--Q---  194 perm 3f030000  1000  1000 keyring  _ses: 3
+20d035bf I--Q---    1 perm 3f010000  1000  1000 user     mykey: 16
+</pre>
+<br/>
+<section class="Ss">
+<h2 class="Ss" id="Program_source"><a class="permalink" href="#Program_source">Program
+  source</a></h2>
+<p class="Pp"></p>
+<pre>/* key_instantiate.c */
+#include &lt;errno.h&gt;
+#include &lt;keyutils.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;time.h&gt;
+#ifndef KEY_SPEC_REQUESTOR_KEYRING
+#define KEY_SPEC_REQUESTOR_KEYRING      (-8)
+#endif
+int
+main(int argc, char *argv[])
+{
+<br/>
+    int           akp_size;       /* Size of auth_key_payload */
+<br/>
+    int           auth_key;
+<br/>
+    char          dbuf[256];
+<br/>
+    char          auth_key_payload[256];
+<br/>
+    char          *operation;
+<br/>
+    FILE          *fp;
+<br/>
+    gid_t         gid;
+<br/>
+    uid_t         uid;
+<br/>
+    time_t        t;
+<br/>
+    key_serial_t  key_to_instantiate, dest_keyring;
+<br/>
+    key_serial_t  thread_keyring, process_keyring, session_keyring;
+<br/>
+    if (argc != 8) {
+<br/>
+        fprintf(stderr, &quot;Usage: %s op key uid gid thread_keyring &quot;
+<br/>
+                        &quot;process_keyring session_keyring\n&quot;, argv[0]);
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fp = fopen(&quot;/tmp/key_instantiate.log&quot;, &quot;w&quot;);
+<br/>
+    if (fp == NULL)
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    setbuf(fp, NULL);
+<br/>
+    t = time(NULL);
+<br/>
+    fprintf(fp, &quot;Time: %s\n&quot;, ctime(&amp;t));
+<br/>
+    /*
+<br/>
+     * The kernel passes a fixed set of arguments to the program
+<br/>
+     * that it execs; fetch them.
+<br/>
+     */
+<br/>
+    operation = argv[1];
+<br/>
+    key_to_instantiate = atoi(argv[2]);
+<br/>
+    uid = atoi(argv[3]);
+<br/>
+    gid = atoi(argv[4]);
+<br/>
+    thread_keyring = atoi(argv[5]);
+<br/>
+    process_keyring = atoi(argv[6]);
+<br/>
+    session_keyring = atoi(argv[7]);
+<br/>
+    fprintf(fp, &quot;Command line arguments:\n&quot;);
+<br/>
+    fprintf(fp, &quot;  argv[0]:            %s\n&quot;, argv[0]);
+<br/>
+    fprintf(fp, &quot;  operation:          %s\n&quot;, operation);
+<br/>
+    fprintf(fp, &quot;  key_to_instantiate: %jx\n&quot;,
+<br/>
+            (uintmax_t) key_to_instantiate);
+<br/>
+    fprintf(fp, &quot;  UID:                %jd\n&quot;, (intmax_t) uid);
+<br/>
+    fprintf(fp, &quot;  GID:                %jd\n&quot;, (intmax_t) gid);
+<br/>
+    fprintf(fp, &quot;  thread_keyring:     %jx\n&quot;,
+<br/>
+            (uintmax_t) thread_keyring);
+<br/>
+    fprintf(fp, &quot;  process_keyring:    %jx\n&quot;,
+<br/>
+            (uintmax_t) process_keyring);
+<br/>
+    fprintf(fp, &quot;  session_keyring:    %jx\n&quot;,
+<br/>
+            (uintmax_t) session_keyring);
+<br/>
+    fprintf(fp, &quot;\n&quot;);
+<br/>
+    /*
+<br/>
+     * Assume the authority to instantiate the key named in argv[2].
+<br/>
+     */
+<br/>
+    if (keyctl(KEYCTL_ASSUME_AUTHORITY, key_to_instantiate) == -1) {
+<br/>
+        fprintf(fp, &quot;KEYCTL_ASSUME_AUTHORITY failed: %s\n&quot;,
+<br/>
+                strerror(errno));
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    /*
+<br/>
+     * Fetch the description of the key that is to be instantiated.
+<br/>
+     */
+<br/>
+    if (keyctl(KEYCTL_DESCRIBE, key_to_instantiate,
+<br/>
+               dbuf, sizeof(dbuf)) == -1) {
+<br/>
+        fprintf(fp, &quot;KEYCTL_DESCRIBE failed: %s\n&quot;, strerror(errno));
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fprintf(fp, &quot;Key description:      %s\n&quot;, dbuf);
+<br/>
+    /*
+<br/>
+     * Fetch the payload of the authorization key, which is
+<br/>
+     * actually the callout data given to request_key().
+<br/>
+     */
+<br/>
+    akp_size = keyctl(KEYCTL_READ, KEY_SPEC_REQKEY_AUTH_KEY,
+<br/>
+                      auth_key_payload, sizeof(auth_key_payload));
+<br/>
+    if (akp_size == -1) {
+<br/>
+        fprintf(fp, &quot;KEYCTL_READ failed: %s\n&quot;, strerror(errno));
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    auth_key_payload[akp_size] = '\0';
+<br/>
+    fprintf(fp, &quot;Auth key payload:     %s\n&quot;, auth_key_payload);
+<br/>
+    /*
+<br/>
+     * For interest, get the ID of the authorization key and
+<br/>
+     * display it.
+<br/>
+     */
+<br/>
+    auth_key = keyctl(KEYCTL_GET_KEYRING_ID,
+<br/>
+                      KEY_SPEC_REQKEY_AUTH_KEY);
+<br/>
+    if (auth_key == -1) {
+<br/>
+        fprintf(fp, &quot;KEYCTL_GET_KEYRING_ID failed: %s\n&quot;,
+<br/>
+                strerror(errno));
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fprintf(fp, &quot;Auth key ID:          %jx\n&quot;, (uintmax_t) auth_key);
+<br/>
+    /*
+<br/>
+     * Fetch key ID for the request_key(2) destination keyring.
+<br/>
+     */
+<br/>
+    dest_keyring = keyctl(KEYCTL_GET_KEYRING_ID,
+<br/>
+                          KEY_SPEC_REQUESTOR_KEYRING);
+<br/>
+    if (dest_keyring == -1) {
+<br/>
+        fprintf(fp, &quot;KEYCTL_GET_KEYRING_ID failed: %s\n&quot;,
+<br/>
+                strerror(errno));
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fprintf(fp, &quot;Destination keyring:  %jx\n&quot;, (uintmax_t) dest_keyring);
+<br/>
+    /*
+<br/>
+     * Fetch the description of the authorization key.  This
+<br/>
+     * allows us to see the key type, UID, GID, permissions,
+<br/>
+     * and description (name) of the key.  Among other things,
+<br/>
+     * we will see that the name of the key is a hexadecimal
+<br/>
+     * string representing the ID of the key to be instantiated.
+<br/>
+     */
+<br/>
+    if (keyctl(KEYCTL_DESCRIBE, KEY_SPEC_REQKEY_AUTH_KEY,
+<br/>
+               dbuf, sizeof(dbuf)) == -1)
+<br/>
+    {
+<br/>
+        fprintf(fp, &quot;KEYCTL_DESCRIBE failed: %s\n&quot;, strerror(errno));
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    fprintf(fp, &quot;Auth key description: %s\n&quot;, dbuf);
+<br/>
+    /*
+<br/>
+     * Instantiate the key using the callout data that was supplied
+<br/>
+     * in the payload of the authorization key.
+<br/>
+     */
+<br/>
+    if (keyctl(KEYCTL_INSTANTIATE, key_to_instantiate,
+<br/>
+               auth_key_payload, akp_size + 1, dest_keyring) == -1)
+<br/>
+    {
+<br/>
+        fprintf(fp, &quot;KEYCTL_INSTANTIATE failed: %s\n&quot;,
+<br/>
+                strerror(errno));
+<br/>
+        exit(EXIT_FAILURE);
+<br/>
+    }
+<br/>
+    exit(EXIT_SUCCESS);
+}
+</pre>
+</section>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(1), <b>add_key</b>(2), <b>request_key</b>(2),
+    <b>keyctl</b>(3), <b>recursive_key_scan</b>(3),
+    <b>recursive_session_key_scan</b>(3), <b>capabilities</b>(7),
+    <b>credentials</b>(7), <b>keyrings</b>(7), <b>keyutils</b>(7),
+    <b>persistent-keyring</b>(7), <b>process-keyring</b>(7),
+    <b>session-keyring</b>(7), <b>thread-keyring</b>(7), <b>user-keyring</b>(7),
+    <b>user_namespaces</b>(7), <b>user-session-keyring</b>(7),
+    <b>request-key</b>(8)</p>
+<p class="Pp">The kernel source files under
+  <i>Documentation/security/keys/</i>.</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

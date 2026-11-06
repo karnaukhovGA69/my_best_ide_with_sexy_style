@@ -1,0 +1,66 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">sys_dev(5)</td>
+    <td class="head-vol">File Formats Manual</td>
+    <td class="head-rtitle">sys_dev(5)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">/sys/dev/ - system devices</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<p class="Pp"><i>/sys/dev/</i></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">This directory contains two subdirectories <i>block/</i> and
+    <i>char/</i>, corresponding, respectively, to the block and character
+    devices on the system. Inside each of these subdirectories are symbolic
+    links with names of the form <i>major-ID</i>:<i>minor-ID</i>, where the ID
+    values correspond to the major and minor ID of a specific device. Each
+    symbolic link points to the <b>sysfs</b> directory for a device. The
+    symbolic links inside <i>/sys/dev/</i> thus provide an easy way to look up
+    the <b>sysfs</b> interface using the device IDs returned by a call to
+    <b>stat</b>(2) (or similar).</p>
+<p class="Pp">The following shell session shows an example from
+    <i>/sys/dev/</i>:</p>
+<p class="Pp">
+  <br/>
+</p>
+<pre>$<b> stat -c &quot;%t %T&quot; /dev/null</b>;
+1 3
+$<b> readlink /sys/dev/char/1\:3</b>;
+../../devices/virtual/mem/null
+$<b> ls -Fd /sys/devices/virtual/mem/null</b>;
+/sys/devices/virtual/mem/null/
+$<b> ls -d1 /sys/devices/virtual/mem/null/*</b>;
+/sys/devices/virtual/mem/null/dev
+/sys/devices/virtual/mem/null/power/
+/sys/devices/virtual/mem/null/subsystem@
+/sys/devices/virtual/mem/null/uevent
+</pre>
+<br/>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.0.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>sysfs</b>(5)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-09-09</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

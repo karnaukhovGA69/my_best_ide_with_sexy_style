@@ -1,0 +1,89 @@
+<table class="head">
+  <tr>
+    <td class="head-ltitle">KEYCTL_ASSUME_AUTHORITY(2const)</td>
+    <td class="head-vol"></td>
+    <td class="head-rtitle">KEYCTL_ASSUME_AUTHORITY(2const)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp">KEYCTL_ASSUME_AUTHORITY - assume the authority to instantiate a
+    key</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="LIBRARY"><a class="permalink" href="#LIBRARY">LIBRARY</a></h1>
+<p class="Pp">Standard C library (<i>libc</i>,&#x00A0;<i>-lc</i>)</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<pre><b>#include &lt;linux/keyctl.h&gt;</b>  /* Definition of <b>KEY*</b> constants */
+<b>#include &lt;sys/syscall.h&gt;</b>   /* Definition of <b>SYS_*</b> constants */
+<b>#include &lt;unistd.h&gt;</b></pre>
+<pre><b>long syscall(SYS_keyctl, KEYCTL_ASSUME_AUTHORITY, key_serial_t </b><i>key</i><b>);</b></pre>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">Assume (or divest) the authority for the calling thread to
+    instantiate a key.</p>
+<p class="Pp">The <i>key</i> argument specifies either a nonzero key ID to
+    assume authority, or the value 0 to divest authority.</p>
+<p class="Pp">If <i>key</i> is nonzero, then it specifies the ID of an
+    uninstantiated key for which authority is to be assumed. That key can then
+    be instantiated using one of <b>KEYCTL_INSTANTIATE</b>(2const),
+    <b>KEYCTL_INSTANTIATE_IOV</b>(2const), <b>KEYCTL_REJECT</b>(2const), or
+    <b>KEYCTL_NEGATE</b>(2const). Once the key has been instantiated, the thread
+    is automatically divested of authority to instantiate the key.</p>
+<p class="Pp">Authority over a key can be assumed only if the calling thread has
+    present in its keyrings the authorization key that is associated with the
+    specified key. (In other words, the <b>KEYCTL_ASSUME_AUTHORITY</b> operation
+    is available only from a <b>request-key</b>(8)-style program; see
+    <b>request_key</b>(2) for an explanation of how this operation is used.) The
+    caller must have <i>search</i> permission on the authorization key.</p>
+<p class="Pp">If the specified key has a matching authorization key, then the ID
+    of that key is returned. The authorization key can be read
+    (<b>KEYCTL_READ</b>(2const)) to obtain the callout information passed to
+    <b>request_key</b>(2).</p>
+<p class="Pp">If the ID given in <i>key</i> is 0, then the currently assumed
+    authority is cleared (divested), and the value 0 is returned.</p>
+<p class="Pp">The <b>KEYCTL_ASSUME_AUTHORITY</b> mechanism allows a program such
+    as <b>request-key</b>(8) to assume the necessary authority to instantiate a
+    new uninstantiated key that was created as a consequence of a call to
+    <b>request_key</b>(2). For further information, see <b>request_key</b>(2)
+    and the kernel source file
+    <i>Documentation/security/keys/request-key.rst</i>.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUE"><a class="permalink" href="#RETURN_VALUE">RETURN
+  VALUE</a></h1>
+<p class="Pp">On success, either 0, if the ID given was 0, or the ID of the
+    authorization key matching the specified key, if a nonzero key ID was
+    provided.</p>
+<p class="Pp">On error, -1 is returned, and <i>errno</i> is set to indicate the
+    error.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="VERSIONS"><a class="permalink" href="#VERSIONS">VERSIONS</a></h1>
+<p class="Pp">A wrapper is provided in the <i>libkeyutils</i> library:
+    <b>keyctl_assume_authority</b>(3).</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="STANDARDS"><a class="permalink" href="#STANDARDS">STANDARDS</a></h1>
+<p class="Pp">Linux.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+<p class="Pp">Linux 2.6.16.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><b>keyctl</b>(2), <b>keyctl_assume_authority</b>(3)</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">2026-02-08</td>
+    <td class="foot-os">Linux man-pages (unreleased)</td>
+  </tr>
+</table>

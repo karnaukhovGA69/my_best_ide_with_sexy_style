@@ -1,0 +1,9 @@
+# mcp-server-editor-runtime-remove
+
+Статус: ГОТОВО / ожидает интеграции. Владелец: MCP cleanup. Ветка: `agent/mcp-server-editor-runtime-remove`. База main `411cccde06e`. Claim `6160715ce8c`. Код/тесты: `dbc64e9b7a1625eecaef881bd23ac252aec4f3b4`. Следующий пакет после release-0.0.9.
+
+Из browser/mcpServerEditor.ts удалены MCP gallery details/actions/install controls, navigation, README/manifest fetch/cache, Markdown rendering/webview, configuration rendering и subscriptions. Сохранён EditorPane с прежним ID и только базовыми telemetry/theme/storage DI dependencies: старые inputs отображают локализованное сообщение о недоступности MCP, поддерживают keyboard focus/layout/disposal. Base input/options lifecycle не читает server metadata; activeWebview undefined, find calls inert. Полностью удалён orphan browser/media/mcpServerEditor.css. Общие Markdown/webview/editor implementations не менялись.
+
+Добавлены 3 browser tests: construction с минимальными base services, отсутствие actions/links/inputs/webviews; trap server metadata при restored inputs/tab options; layout/focus/disposal. Все проходят. ESLint обоих TS прошёл; узкий TypeScript с MCP contribution root — 0 diagnostics после исправления enum tab в тесте; git diff --check прошёл. Baseline regression test ожидаемо падает из-за notificationService dependency. Для baseline временно восстановлен только старый CSS и удалён в finally, поскольку harness подменяет лишь TS-файл; первый baseline запуск без CSS не являлся поведенческой проверкой.
+
+Независимо от ещё не интегрированных registry/protocol cleanup веток. Общий contribution остаётся совместимым; его не меняли. GitHub/auth/Git/SSH не затронуты. Embedded chat configuration form и остальные MCP UI пока остаются. Полные typecheck/build/package/native smoke — на следующем пакете.

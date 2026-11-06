@@ -8,7 +8,7 @@ const { loadWithVscode, emitter, viewApi } = require('./helpers.cts');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const uri = value => ({ path: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
-	const actions = new Map(), files = new Map(), reads = [], writes = [], notices = [], external = [], sent = [];
+	const actions = new Map(), files = new Map(), reads = [], writes = [], notices = [], external = [], sent = [], dialogs = [];
 	const events = emitter(), disposed = emitter(); const state = { imports: options.imports ?? [] };
 	let provider, panel, selection; let beforeRead = options.beforeRead;
 	const catalog = { groups: [{ id: 'test', title: 'Test', version: '1', license: 'MIT' }], entries: [
@@ -30,7 +30,7 @@ async function fixture(options = {}) {
 					webview: { cspSource: 'https://local.invalid', asWebviewUri: resource => resource.toString(), onDidReceiveMessage: events.event, postMessage: async message => { sent.push(message); return true; } } };
 				return panel;
 			},
-			showOpenDialog: async () => selection,
+			showOpenDialog: async () => { dialogs.push('open'); return options.dialog ? options.dialog(selection) : selection; },
 			showErrorMessage: async text => { notices.push(text); },
 			showInformationMessage: async (_text, action) => options.confirm ? options.confirm(action) : action,
 		},
@@ -38,14 +38,14 @@ async function fixture(options = {}) {
 		workspace: { fs: {
 			readFile: async resource => { reads.push(resource.path); if (beforeRead) { await beforeRead(resource.path); } if (!files.has(resource.path)) { throw new Error('missing'); } return files.get(resource.path); },
 			stat: async resource => ({ size: files.get(resource.path)?.length ?? 0 }),
-			createDirectory: async () => {}, writeFile: async (resource, bytes) => { writes.push(resource.path); files.set(resource.path, bytes); },
+			createDirectory: async () => {}, writeFile: async (resource, bytes) => { writes.push(resource.path); if (options.beforeWrite) { await options.beforeWrite(); } files.set(resource.path, bytes); },
 			delete: async resource => { files.delete(resource.path); },
 		} },
 	};
-	const context = { subscriptions: [], extensionUri: uri('/extension'), globalStorageUri: uri('/profile'), globalState: { get: () => state.imports, update: async (_key, value) => { state.imports = value; } } };
+	const context = { subscriptions: [], extensionUri: uri('/extension'), globalStorageUri: uri('/profile'), globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
 	loadWithVscode('library.js', vscode).registerLibrary(context);
 	if (!options.deferCatalog) { await provider.getChildren(); }
-	return { actions, provider, files, reads, writes, notices, external, sent, state, panel: () => panel, select: value => { selection = value; }, delay: handler => { beforeRead = handler; },
+	return { actions, provider, files, reads, writes, notices, external, sent, state, dialogs, panel: () => panel, select: value => { selection = value; }, delay: handler => { beforeRead = handler; },
 		message: async value => { events.fire(value); await tick(); }, dispose: () => context.subscriptions.forEach(d => d.dispose()) };
 }
 
@@ -210,4 +210,86 @@ test('closing a reader cancels a pending external-link confirmation', async () =
 		f.panel().dispose(); release('Open in Browser'); await tick();
 		assert.deepEqual(f.external, []);
 	} finally { release?.(); f.dispose(); }
+});
+
+
+test('disposal cancels an open import dialog and queued imports without writing', async () => {
+	let release; const gate = new Promise(resolve => { release = resolve; });
+	const f = await fixture({ dialog: () => gate });
+	try {
+		f.files.set('/chosen/guide.md', Buffer.from('# Guide'));
+		const first = f.actions.get('myself.documentation.import')(); await tick();
+		const second = f.actions.get('myself.documentation.import')();
+		f.dispose(); release([uri('/chosen/guide.md')]); await Promise.all([first, second]);
+		assert.equal(f.dialogs.length, 1); assert.deepEqual(f.writes, []); assert.deepEqual(f.state.imports, []);
+		assert.deepEqual(f.notices, []);
+	} finally { release?.(); f.dispose(); }
+});
+
+test('disposal during a source read cancels the import before profile writes', async () => {
+	let release; const gate = new Promise(resolve => { release = resolve; }); const f = await fixture();
+	try {
+		f.files.set('/chosen/guide.md', Buffer.from('# Guide')); f.select([uri('/chosen/guide.md')]);
+		f.delay(file => file === '/chosen/guide.md' ? gate : undefined);
+		const pending = f.actions.get('myself.documentation.import')(); await tick(); f.dispose(); release(); await pending;
+		assert.deepEqual(f.writes, []); assert.deepEqual(f.state.imports, []); assert.deepEqual(f.notices, []);
+	} finally { release?.(); f.dispose(); }
+});
+
+test('disposal during a profile write removes the uncommitted copy', async () => {
+	let release; const gate = new Promise(resolve => { release = resolve; }); const f = await fixture({ beforeWrite: () => gate });
+	try {
+		f.files.set('/chosen/guide.md', Buffer.from('# Guide')); f.select([uri('/chosen/guide.md')]);
+		const pending = f.actions.get('myself.documentation.import')(); await tick(); assert.equal(f.writes.length, 1);
+		f.dispose(); release(); await pending;
+		assert.deepEqual(f.state.imports, []); assert.equal(f.files.has(f.writes[0]), false); assert.ok(f.files.has('/chosen/guide.md'));
+		assert.deepEqual(f.notices, []);
+	} finally { release?.(); f.dispose(); }
+});
+
+test('an already-started metadata commit remains paired with its copy after disposal', async () => {
+	let release; const gate = new Promise(resolve => { release = resolve; }); const f = await fixture({ beforeUpdate: () => gate });
+	try {
+		f.files.set('/chosen/guide.md', Buffer.from('# Guide')); f.select([uri('/chosen/guide.md')]);
+		const pending = f.actions.get('myself.documentation.import')(); await tick(); assert.equal(f.writes.length, 1);
+		f.dispose(); release(); await pending;
+		assert.equal(f.state.imports.length, 1); assert.ok(f.files.has('/profile/' + f.state.imports[0].file));
+		assert.deepEqual(f.notices, []);
+	} finally { release?.(); f.dispose(); }
+});
+
+test('failed metadata persistence removes only the new copy and permits a later import', async () => {
+	let fail = true; const f = await fixture({ beforeUpdate: () => { if (fail) { throw new Error('storage failure'); } } });
+	try {
+		f.files.set('/chosen/guide.md', Buffer.from('# Guide')); f.select([uri('/chosen/guide.md')]);
+		await f.actions.get('myself.documentation.import')();
+		assert.deepEqual(f.state.imports, []); assert.equal(f.files.has(f.writes[0]), false); assert.ok(f.files.has('/chosen/guide.md'));
+		assert.equal(f.notices.length, 1);
+		fail = false; await f.actions.get('myself.documentation.import')();
+		assert.equal(f.state.imports.length, 1); assert.ok(f.files.has('/profile/' + f.state.imports[0].file));
+	} finally { f.dispose(); }
+});
+
+
+test('a failed profile write leaves no entry and does not break the import queue', async () => {
+	let fail = true; const f = await fixture({ beforeWrite: () => { if (fail) { throw new Error('disk failure'); } } });
+	try {
+		f.files.set('/chosen/guide.md', Buffer.from('# Guide')); f.select([uri('/chosen/guide.md')]);
+		await f.actions.get('myself.documentation.import')();
+		assert.deepEqual(f.state.imports, []); assert.equal(f.files.has(f.writes[0]), false); assert.ok(f.files.has('/chosen/guide.md'));
+		fail = false; await f.actions.get('myself.documentation.import')();
+		assert.equal(f.state.imports.length, 1); assert.ok(f.files.has('/profile/' + f.state.imports[0].file));
+	} finally { f.dispose(); }
+});
+
+test('failed removal persistence preserves the existing copy and disposed removal does nothing', async () => {
+	let fail = false; const f = await fixture({ beforeUpdate: () => { if (fail) { throw new Error('storage failure'); } } });
+	try {
+		f.files.set('/chosen/guide.md', Buffer.from('# Guide')); f.select([uri('/chosen/guide.md')]);
+		await f.actions.get('myself.documentation.import')(); const entry = f.state.imports[0];
+		fail = true; await assert.rejects(f.actions.get('myself.documentation.remove')(entry), /storage failure/);
+		assert.deepEqual(f.state.imports, [entry]); assert.ok(f.files.has('/profile/' + entry.file));
+		fail = false; f.dispose(); await f.actions.get('myself.documentation.remove')(entry);
+		assert.deepEqual(f.state.imports, [entry]); assert.ok(f.files.has('/profile/' + entry.file));
+	} finally { f.dispose(); }
 });

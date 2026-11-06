@@ -172,14 +172,18 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 
 	async importFile(): Promise<void> {
 		await this.loaded;
+		if (this.disposed) { return; }
 		const selection = await vscode.window.showOpenDialog({ canSelectMany: true, filters: { [vscode.l10n.t('Documentation')]: ['html', 'htm', 'md', 'txt'] }, openLabel: vscode.l10n.t('Add to Local Library') });
-		if (!selection) { return; }
+		if (this.disposed || !selection) { return; }
 		for (const uri of selection) {
+			if (this.disposed) { return; }
 			if (uri.scheme !== 'file' || uri.authority) { continue; }
 			let target: vscode.Uri | undefined;
 			try {
 				if ((await vscode.workspace.fs.stat(uri)).size > maxDocumentBytes) { throw new Error('large'); }
+				if (this.disposed) { return; }
 				const bytes = await vscode.workspace.fs.readFile(uri);
+				if (this.disposed) { return; }
 				if (bytes.length > maxDocumentBytes) { throw new Error('large'); }
 				new TextDecoder('utf-8', { fatal: true }).decode(bytes);
 				const title = uri.path.split('/').pop()!;
@@ -189,25 +193,32 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 				const file = `imports/${id}.${format === 'html' ? 'html' : /\.md$/i.test(title) ? 'md' : 'txt'}`;
 				target = vscode.Uri.joinPath(this.context.globalStorageUri, file);
 				await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(this.context.globalStorageUri, 'imports'));
+				if (this.disposed) { return; }
 				await vscode.workspace.fs.writeFile(target, bytes);
+				if (this.disposed) {
+					await vscode.workspace.fs.delete(target).then(undefined, () => undefined);
+					return;
+				}
 				const entries: LibraryEntry[] = [...this.imports, { id, group: 'imported', title, file, source: '', format }];
 				await this.context.globalState.update('documentation.imports', entries);
 				this.imports = entries;
-				this.changes.fire();
+				if (!this.disposed) { this.changes.fire(); }
 			} catch {
 				if (target) { await vscode.workspace.fs.delete(target).then(undefined, () => undefined); }
-				void vscode.window.showErrorMessage(vscode.l10n.t('The document could not be added. Choose a local UTF-8 file up to 16 MiB.'));
+				if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The document could not be added. Choose a local UTF-8 file up to 16 MiB.')); }
 			}
 		}
 	}
 
 	async remove(candidate: LibraryEntry): Promise<void> {
+		await this.loaded;
+		if (this.disposed) { return; }
 		const entry = this.imports.find(entry => entry.id === candidate?.id);
 		if (!entry) { return; }
 		const entries = this.imports.filter(item => item !== entry);
 		await this.context.globalState.update('documentation.imports', entries);
 		this.imports = entries;
-		this.changes.fire();
+		if (!this.disposed) { this.changes.fire(); }
 		await vscode.workspace.fs.delete(vscode.Uri.joinPath(this.context.globalStorageUri, entry.file)).then(undefined, () => undefined);
 	}
 

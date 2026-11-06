@@ -1,0 +1,32 @@
+{
+	"name": "theme-nerded-calm",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"version": "1.0.0",
+	"publisher": "myself",
+	"license": "SEE LICENSE IN LICENSE.txt",
+	"engines": {
+		"vscode": "*"
+	},
+	"categories": [
+		"Themes"
+	],
+	"contributes": {
+		"themes": [
+			{
+				"id": "Nerded Calm",
+				"label": "%themeLabel%",
+				"uiTheme": "vs-dark",
+				"path": "./themes/nerded-calm.json"
+			}
+		],
+		"iconThemes": [
+			{
+				"id": "nerded-calm-file-icons",
+				"label": "%iconThemeLabel%",
+				"path": "./fileicons/vscode-icons.json"
+			}
+		]
+	},
+	"type": "module"
+}

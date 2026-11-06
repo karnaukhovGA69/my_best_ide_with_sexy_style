@@ -2629,18 +2629,14 @@ suite('ChatPetWidget', () => {
 		]);
 	});
 
-	test('logs pet enablement at startup and when toggled', () => {
+	test('does not log pet enablement at startup or when toggled', () => {
 		const telemetryService = new TestTelemetryService();
 		const service = disposables.add(new ChatPetService(disposables.add(new TestStorageService()), telemetryService, new NullLogService(), editorWindowEnvironment));
 
 		service.toggle();
 		service.toggle();
 
-		assert.deepStrictEqual(telemetryService.events, [
-			{ name: 'chatPetEnablement', data: { enabled: false, source: 'startup' } },
-			{ name: 'chatPetEnablement', data: { enabled: true, source: 'change' } },
-			{ name: 'chatPetEnablement', data: { enabled: false, source: 'change' } },
-		]);
+		assert.deepStrictEqual(telemetryService.events, []);
 	});
 
 	test('persists pet scale and position across windows, dismissal, and restart', () => {

@@ -61,18 +61,6 @@ export const ChatPetContextKeys = {
 	enabled: new RawContextKey<boolean>('chatPetEnabled', false, localize('chatPet.context.enabled', "Whether the VS Code pet is enabled")),
 };
 
-type ChatPetEnablementEvent = {
-	enabled: boolean;
-	source: 'startup' | 'change';
-};
-
-type ChatPetEnablementClassification = {
-	owner: 'justschen';
-	comment: 'Tracks VS Code pet enablement so adoption can be measured.';
-	enabled: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Whether the VS Code pet is enabled.' };
-	source: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Whether the state was observed at startup or changed while VS Code was running.' };
-};
-
 export function getChatPetVariant(configuredVariant: string | undefined, productQuality: string | undefined): ChatPetVariant {
 	if (configuredVariant === 'stable' || configuredVariant === 'insiders') {
 		return configuredVariant;
@@ -162,7 +150,7 @@ export class ChatPetService extends Disposable implements IChatPetService {
 
 	constructor(
 		@IStorageService private readonly storageService: IStorageService,
-		@ITelemetryService private readonly telemetryService: ITelemetryService,
+		@ITelemetryService _telemetryService: ITelemetryService,
 		@ILogService private readonly logService: ILogService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 	) {
@@ -220,7 +208,6 @@ export class ChatPetService extends Disposable implements IChatPetService {
 		this._register(this.storageService.onDidChangeValue(StorageScope.APPLICATION, CHAT_PET_HORIZONTAL_POSITION_STORAGE_KEY, this._store)(() => {
 			this._horizontalPosition.set(getChatPetHorizontalPosition(this.storageService.get(CHAT_PET_HORIZONTAL_POSITION_STORAGE_KEY, StorageScope.APPLICATION)), undefined);
 		}));
-		this._logEnablement(this._enabled.get(), 'startup');
 	}
 
 	toggle(): boolean {
@@ -238,11 +225,6 @@ export class ChatPetService extends Disposable implements IChatPetService {
 			return;
 		}
 		this._enabled.set(enabled, undefined);
-		this._logEnablement(enabled, 'change');
-	}
-
-	private _logEnablement(enabled: boolean, source: ChatPetEnablementEvent['source']): void {
-		this.telemetryService.publicLog2<ChatPetEnablementEvent, ChatPetEnablementClassification>('chatPetEnablement', { enabled, source });
 	}
 
 	getWindowColor(windowKind: ChatPetWindowKind): IObservable<ChatPetColor> {

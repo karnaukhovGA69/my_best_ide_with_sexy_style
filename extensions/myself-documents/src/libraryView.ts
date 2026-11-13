@@ -13,8 +13,12 @@ export function libraryHtml(webview: vscode.Webview, extensionUri: vscode.Uri): 
 	return `<!doctype html><html lang="${escape(vscode.env.language)}"><head><meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}'; connect-src 'none'; font-src 'none'; media-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="${style}"></head>
-<body><header><button id="back" type="button">${escape(vscode.l10n.t('Back'))}</button><div><h1 id="title"></h1><p id="metadata"></p></div><button id="source" type="button">${escape(vscode.l10n.t('Open Original in Browser'))}</button></header>
+<body><p id="empty">${escape(vscode.l10n.t('Choose an article from the library.'))}</p>
+<main id="reader" hidden>
+<header><div><h1 id="title"></h1><p id="metadata"></p></div><div class="actions"><button id="back" type="button">${escape(vscode.l10n.t('Back'))}</button><button id="source" type="button">${escape(vscode.l10n.t('Open Original in Browser'))}</button></div></header>
+<form id="find" aria-label="${escape(vscode.l10n.t('Find in Document'))}"><input id="query" type="search" aria-label="${escape(vscode.l10n.t('Find in Document'))}" placeholder="${escape(vscode.l10n.t('Find in Document'))}"><button type="submit">${escape(vscode.l10n.t('Next Match'))}</button></form>
+<p id="find-status" role="status" data-no-match="${escape(vscode.l10n.t('No matches found.'))}" hidden></p>
 <label id="contents-label" for="contents">${escape(vscode.l10n.t('Contents'))}</label><select id="contents"></select>
-<p id="notice" role="status"></p><article id="document" aria-label="${escape(vscode.l10n.t('Local documentation'))}"></article>
+<p id="notice" role="status"></p><article id="document" aria-label="${escape(vscode.l10n.t('Local documentation'))}"></article></main>
 <script nonce="${nonce}" src="${script}"></script></body></html>`;
 }

@@ -23,8 +23,8 @@ before(async () => {
 	browser = await chromium.launch({ headless: true });
 });
 after(async () => { await browser?.close(); await new Promise(resolve => server?.close(resolve)); });
-async function open() {
-	const page = await browser.newPage({ viewport: { width: 1100, height: 800 } });
+async function open(viewport = { width: 1100, height: 800 }) {
+	const page = await browser.newPage({ viewport });
 	const external = [], errors = [];
 	await page.route('https://**/*', route => { external.push(route.request().url()); return route.abort(); });
 	page.on('pageerror', error => errors.push(error.message));
@@ -60,6 +60,30 @@ test('contents and links work without opening a browser automatically; TXT stays
 		await show(page, '# Notes\n<script>bad()</script>', { format: 'text', title: 'Text' });
 		await page.waitForFunction(() => document.getElementById('title').textContent === 'Text');
 		assert.equal(await page.locator('#document pre').textContent(), '# Notes\n<script>bad()</script>'); assert.deepEqual(external, []);
+	} finally { await page.close(); }
+});
+
+test('Find works in a narrow reader and does not overflow the sidebar', async () => {
+	const { page, errors } = await open({ width: 270, height: 450 });
+	try {
+		await show(page, '<p>Two <em>words</em> in the document.</p>'.repeat(100), { title: 'A documentation article with a long title' });
+		assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+		const query = page.getByRole('searchbox');
+		await page.keyboard.press('Meta+f');
+		assert.equal(await query.evaluate(node => document.activeElement === node), true);
+		await query.fill('Two words');
+		await query.press('Enter');
+		assert.equal(await page.evaluate(() => window.getSelection().toString()), 'Two words');
+		const firstMatch = await page.evaluate(() => window.getSelection().anchorNode.parentElement.closest('p').previousElementSibling === null);
+		assert.equal(firstMatch, true);
+		await page.getByRole('button', { name: 'Next Match' }).click();
+		assert.equal(await page.evaluate(() => window.getSelection().anchorNode.parentElement.closest('p').previousElementSibling !== null), true);
+		assert.equal(await page.locator('#find-status').isVisible(), false);
+		await query.fill('not found in the article');
+		await query.press('Enter');
+		assert.equal(await page.locator('#find-status').textContent(), 'No matches found.');
+		assert.equal(await page.locator('#find-status').isVisible(), true);
+		assert.deepEqual(errors, []);
 	} finally { await page.close(); }
 });
 

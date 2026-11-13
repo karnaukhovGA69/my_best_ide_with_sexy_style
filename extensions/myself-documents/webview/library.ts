@@ -10,6 +10,10 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	const contents = document.getElementById('contents') as HTMLSelectElement;
 	const back = document.getElementById('back') as HTMLButtonElement;
 	const source = document.getElementById('source') as HTMLButtonElement;
+	const reader = document.getElementById('reader')!;
+	const find = document.getElementById('find') as HTMLFormElement;
+	const query = document.getElementById('query') as HTMLInputElement;
+	const findStatus = document.getElementById('find-status')!;
 	const allowed = new Set('a abbr b blockquote br caption code col colgroup dd del details div dl dt em figcaption figure h1 h2 h3 h4 h5 h6 hr i kbd li main mark ol p pre s samp section small span strong sub summary sup table tbody td th thead tfoot tr ul var'.split(' '));
 	const discarded = new Set('script style iframe object embed link meta base form input button select option textarea noscript svg math canvas video audio source picture'.split(' '));
 
@@ -49,6 +53,8 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	window.addEventListener('message', event => {
 		const message = event.data;
 		if (message?.type !== 'document' || typeof message.text !== 'string') { return; }
+		document.getElementById('empty')!.hidden = true;
+		reader.hidden = false;
 		document.getElementById('title')!.textContent = message.title;
 		document.getElementById('metadata')!.textContent = message.metadata;
 		document.getElementById('notice')!.textContent = message.notice;
@@ -79,6 +85,7 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 		}
 		contents.hidden = contents.options.length === 0;
 		document.getElementById('contents-label')!.hidden = contents.hidden;
+		findStatus.hidden = true;
 		window.scrollTo(0, 0);
 		if (typeof message.fragment === 'string' && message.fragment) { scroll(message.fragment); }
 	});
@@ -94,5 +101,29 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	contents.addEventListener('change', () => document.getElementById(contents.value)?.scrollIntoView({ block: 'start' }));
 	back.addEventListener('click', () => api.postMessage({ type: 'back' }));
 	source.addEventListener('click', () => api.postMessage({ type: 'source' }));
+	find.addEventListener('submit', event => {
+		event.preventDefault();
+		const text = query.value;
+		if (!text) { return; }
+		// Chromium's find scrolls to and selects each match, including text split across inline tags.
+		const browser = window as Window & { find?(text: string, caseSensitive: boolean, backwards: boolean, wrapAround: boolean): boolean };
+		query.blur();
+		// Chromium searches input values too. Exclude the query from its own results.
+		query.value = '';
+		const matched = browser.find?.(text, false, false, true) ?? false;
+		query.value = text;
+		findStatus.textContent = matched ? '' : findStatus.dataset.noMatch!;
+		findStatus.hidden = matched;
+		if (!matched) { query.focus(); }
+	});
+	query.addEventListener('input', () => { findStatus.hidden = true; });
+	window.addEventListener('keydown', event => {
+		if (!reader.hidden && (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'f') {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			query.focus();
+			query.select();
+		}
+	}, true);
 	api.postMessage({ type: 'ready' });
 })();

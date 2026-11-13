@@ -10,6 +10,8 @@ import { readDocumentationFolder } from './libraryImport';
 import { libraryHtml } from './libraryView';
 
 type LibraryNode = LibraryGroup | LibraryEntry;
+const readerViewId = 'myself.documentation.reader';
+
 function isEntry(node: LibraryNode): node is LibraryEntry {
 	return typeof (node as Partial<LibraryEntry>).file === 'string';
 }
@@ -24,6 +26,7 @@ export function registerLibrary(context: vscode.ExtensionContext): void {
 	};
 	context.subscriptions.push(library,
 		vscode.window.createTreeView('myself.documentation.library', { treeDataProvider: library, showCollapseAll: true }),
+		vscode.window.registerWebviewViewProvider(readerViewId, library, { webviewOptions: { retainContextWhenHidden: true } }),
 		vscode.commands.registerCommand('myself.documentation.open', (id: string) => library.open(id)),
 		vscode.commands.registerCommand('myself.documentation.search', () => library.search()),
 		vscode.commands.registerCommand('myself.documentation.import', () => mutate(() => library.importFile())),
@@ -32,7 +35,7 @@ export function registerLibrary(context: vscode.ExtensionContext): void {
 	);
 }
 
-class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vscode.Disposable {
+class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vscode.WebviewViewProvider, vscode.Disposable {
 	private readonly changes = new vscode.EventEmitter<void>();
 	readonly onDidChangeTreeData = this.changes.event;
 	private readonly root: vscode.Uri;
@@ -40,9 +43,11 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private groups: LibraryGroup[] = [];
 	private entries: LibraryEntry[] = [];
 	private imports: LibraryEntry[] = [];
-	private panel: vscode.WebviewPanel | undefined;
+	private reader: vscode.WebviewView | undefined;
+	private readerListeners: vscode.Disposable | undefined;
 	private current: LibraryEntry | undefined;
 	private payload: object | undefined;
+	private sentPayload: object | undefined;
 	private ready = false;
 	private generation = 0;
 	private disposed = false;
@@ -110,6 +115,45 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		if (selected) { await this.open(selected.id); }
 	}
 
+	resolveWebviewView(reader: vscode.WebviewView): void {
+		if (this.disposed) { return; }
+		this.readerListeners?.dispose();
+		this.reader = reader;
+		this.ready = false;
+		this.sentPayload = undefined;
+		reader.webview.options = {
+			enableScripts: true,
+			localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media'), vscode.Uri.joinPath(this.context.extensionUri, 'out', 'webview')],
+		};
+		this.readerListeners = vscode.Disposable.from(
+			reader.webview.onDidReceiveMessage(message => {
+				void this.message(message).catch(() => {
+					if (this.reader === reader) { void vscode.window.showErrorMessage(vscode.l10n.t('The documentation action could not be completed.')); }
+				});
+			}),
+			reader.onDidChangeVisibility(() => {
+				if (reader.visible) { void this.sendDocument(); }
+				else { this.generation++; }
+			}),
+			reader.onDidDispose(() => {
+				this.generation++;
+				this.reader = undefined;
+				this.readerListeners?.dispose();
+				this.readerListeners = undefined;
+			}),
+		);
+		reader.webview.html = libraryHtml(reader.webview, this.context.extensionUri);
+	}
+
+	private async sendDocument(): Promise<void> {
+		const { reader, payload } = this;
+		if (!reader?.visible || !this.ready || !payload || this.sentPayload === payload) { return; }
+		this.sentPayload = payload;
+		if (!await reader.webview.postMessage(payload) && this.reader === reader && this.sentPayload === payload) {
+			this.sentPayload = undefined;
+		}
+	}
+
 	async open(id: string, fragment = '', addHistory = true): Promise<void> {
 		await this.loaded;
 		if (this.disposed) { return; }
@@ -129,21 +173,11 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			this.payload = { type: 'document', text: new TextDecoder().decode(bytes), format: /\.md$/i.test(entry.file) ? 'markdown' : entry.format, selector: entry.selector,
 				title: entry.title, metadata: [group?.title, group?.version, group?.license].filter(Boolean).join(' · '),
 				source: !!entry.source, back: this.history.length > 0, fragment,
-				notice: vscode.l10n.t('Offline copy. Scripts, forms and external media are disabled. Use the Find control to search this page.') };
-			if (!this.panel) {
-				this.ready = false;
-				const panel = vscode.window.createWebviewPanel('myself.documentation.reader', entry.title, vscode.ViewColumn.Beside, {
-					enableFindWidget: true, enableScripts: true,
-					localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media'), vscode.Uri.joinPath(this.context.extensionUri, 'out', 'webview')],
-				});
-				this.panel = panel;
-				const listener = panel.webview.onDidReceiveMessage(message => { void this.message(message).catch(() => vscode.window.showErrorMessage(vscode.l10n.t('The documentation action could not be completed.'))); });
-				panel.onDidDispose(() => { listener.dispose(); if (this.panel === panel) { this.generation++; this.panel = undefined; this.ready = false; } });
-				panel.webview.html = libraryHtml(panel.webview, this.context.extensionUri);
+				notice: vscode.l10n.t('Offline copy. Scripts, forms and external media are disabled.') };
+			if (!this.reader?.visible) {
+				await vscode.commands.executeCommand(`${readerViewId}.open`, { preserveFocus: true });
 			}
-			this.panel.title = entry.title;
-			this.panel.reveal(vscode.ViewColumn.Beside);
-			if (this.ready) { await this.panel.webview.postMessage(this.payload); }
+			await this.sendDocument();
 		} catch {
 			if (generation === this.generation) {
 				void vscode.window.showErrorMessage(vscode.l10n.t('The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.'));
@@ -155,7 +189,8 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		if (this.disposed || !isRecord(message)) { return; }
 		if (message.type === 'ready') {
 			this.ready = true;
-			if (this.payload) { await this.panel?.webview.postMessage(this.payload); }
+			this.sentPayload = undefined;
+			await this.sendDocument();
 		} else if (message.type === 'back') {
 			const previous = this.history.pop();
 			if (previous) { await this.open(previous, '', false); }
@@ -270,5 +305,11 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		await vscode.workspace.fs.delete(vscode.Uri.joinPath(this.context.globalStorageUri, entry.file)).then(undefined, () => undefined);
 	}
 
-	dispose(): void { this.disposed = true; this.generation++; this.panel?.dispose(); this.changes.dispose(); }
+	dispose(): void {
+		this.disposed = true;
+		this.generation++;
+		this.readerListeners?.dispose();
+		this.reader = undefined;
+		this.changes.dispose();
+	}
 }

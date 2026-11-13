@@ -5,6 +5,7 @@
   "open": "Open as Document",
   "editor": "Document",
   "library.title": "Documentation",
+  "library.reader": "Reader",
   "library.search": "Search Local Documentation",
   "library.import": "Add Local Document",
   "library.remove": "Remove from Library",

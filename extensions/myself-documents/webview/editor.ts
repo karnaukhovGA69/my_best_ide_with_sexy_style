@@ -165,6 +165,15 @@ function element<T extends HTMLElement>(id: string): T {
 	});
 	text.addEventListener('keydown', event => {
 		numberedListEdit = undefined;
+		const key = event.key.toLowerCase();
+		if ((event.metaKey || event.ctrlKey) && !event.altKey && (key === 'z' || key === 'y')) {
+			// Handle history before the webview shell forwards the key to the
+			// workbench, where the active custom editor would also undo or redo.
+			event.stopPropagation();
+			event.preventDefault();
+			requestAction(key === 'y' || event.shiftKey ? 'redo' : 'undo');
+			return;
+		}
 		if (event.key !== 'Enter' || event.defaultPrevented || event.shiftKey || event.altKey || event.metaKey || event.ctrlKey
 			|| event.isComposing || composing || text.readOnly || text.disabled) {
 			return;
@@ -204,8 +213,6 @@ function element<T extends HTMLElement>(id: string): T {
 		const key = event.key.toLowerCase();
 		if (key === 's') {
 			event.preventDefault(); requestAction('save');
-		} else if (event.target === text && (key === 'z' || key === 'y')) {
-			event.preventDefault(); requestAction(key === 'y' || event.shiftKey ? 'redo' : 'undo');
 		} else if (key === 'f') {
 			event.preventDefault(); element<HTMLInputElement>('query').focus();
 		}

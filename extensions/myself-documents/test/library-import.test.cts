@@ -28,13 +28,25 @@ test('folder scanning preserves Unicode paths, skips symlinks and never follows 
 test('folder scanning fails before import for invalid UTF-8, cancellation and bounded counts/bytes', async () => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'library-limits-'));
 	try {
-		await fs.writeFile(path.join(root, 'one.md'), '# One');
-		for (const limits of [{ documents: 0 }, { entries: 0 }, { bytes: 2 }]) {
-			await assert.rejects(readDocumentationFolder(root, () => false, { ...folderImportLimits, ...limits }));
+		const file = path.join(root, 'one.md');
+		const content = '# Один';
+		await fs.writeFile(file, content);
+		const limits = { ...folderImportLimits, documents: 1, entries: 1, bytes: Buffer.byteLength(content) };
+		const documents = await readDocumentationFolder(root, () => false, limits);
+		assert.deepEqual(documents.map(document => document.relative), ['one.md']);
+		assert.equal(new TextDecoder().decode(documents[0].bytes), content);
+
+		for (const { change, message, label } of [
+			{ change: { documents: 0 }, message: 'Document limit', label: 'document count' },
+			{ change: { entries: 0 }, message: 'Entry limit', label: 'directory entry count' },
+			{ change: { bytes: limits.bytes - 1 }, message: 'Document limit', label: 'total bytes' },
+		]) {
+			await assert.rejects(readDocumentationFolder(root, () => false, { ...limits, ...change }), { message }, label);
 		}
-		await assert.rejects(readDocumentationFolder(root, () => true), /Cancelled/);
-		await fs.writeFile(path.join(root, 'bad.txt'), Buffer.from([255]));
-		await assert.rejects(readDocumentationFolder(root, () => false));
+		await assert.rejects(readDocumentationFolder(root, () => true, limits), { message: 'Cancelled' });
+
+		await fs.writeFile(file, Buffer.alloc(limits.bytes, 0xff));
+		await assert.rejects(readDocumentationFolder(root, () => false, limits), { code: 'ERR_ENCODING_INVALID_ENCODED_DATA' });
 	} finally { await fs.rm(root, { recursive: true, force: true }); }
 });
 

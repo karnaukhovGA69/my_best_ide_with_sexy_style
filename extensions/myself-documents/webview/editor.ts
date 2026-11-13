@@ -32,6 +32,7 @@ function element<T extends HTMLElement>(id: string): T {
 	let pendingAction: string | undefined;
 	let actionRunning = false;
 	let composing = false;
+	let numberedListEdit: { start: number; text: string } | undefined;
 
 	function pageOptions(): PageOptions {
 		return { size: 'A4', fontFamily: fields.font.value as FontFamily, fontSizePt: Number(fields.size.value), lineHeight: Number(fields.leading.value), marginMm: Number(fields.margin.value) };
@@ -151,10 +152,42 @@ function element<T extends HTMLElement>(id: string): T {
 		renderState();
 		flush();
 	});
-	text.addEventListener('input', () => {
+	text.addEventListener('input', event => {
+		// Let the browser insert the newline and keep the caret in view.
+		// Add the number before the usual input handler publishes the edit.
+		if (numberedListEdit && event.inputType === 'insertLineBreak') {
+			text.setRangeText(numberedListEdit.text, numberedListEdit.start, text.selectionStart, 'end');
+		}
+		numberedListEdit = undefined;
 		notice.textContent = '';
 		renderState();
 		flush();
+	});
+	text.addEventListener('keydown', event => {
+		numberedListEdit = undefined;
+		if (event.key !== 'Enter' || event.defaultPrevented || event.shiftKey || event.altKey || event.metaKey || event.ctrlKey
+			|| event.isComposing || composing || text.readOnly || text.disabled) {
+			return;
+		}
+		const { value, selectionStart: caret, selectionEnd } = text;
+		if (caret !== selectionEnd || (caret < value.length && value[caret] !== '\n')) {
+			return;
+		}
+		const lineStart = value.lastIndexOf('\n', caret - 1) + 1;
+		const line = value.slice(lineStart, caret);
+		const marker = /^([ \t]*)([0-9]+)\) /.exec(line);
+		if (!marker) {
+			return;
+		}
+		const [prefix, indent, number] = marker;
+		if (!line.slice(prefix.length).trim()) {
+			numberedListEdit = { start: lineStart + indent.length, text: '' };
+		} else {
+			const nextNumber = Number(number) + 1;
+			if (Number.isSafeInteger(nextNumber)) {
+				numberedListEdit = { start: caret + 1, text: `${indent}${nextNumber}) ` };
+			}
+		}
 	});
 	text.addEventListener('compositionstart', () => { composing = true; });
 	text.addEventListener('compositionend', () => { composing = false; flush(); });

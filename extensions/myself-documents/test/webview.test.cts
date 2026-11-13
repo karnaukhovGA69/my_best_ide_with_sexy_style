@@ -123,6 +123,75 @@ test('text is literal, and keyboard undo is routed to document history', async (
 	} finally { await page.close(); }
 });
 
+test('Enter continues an indented numbered list and Undo uses the host document history', async () => {
+	const page = await open();
+	try {
+		const text = page.locator('#text');
+		const first = '\t  9) Первый пункт';
+		const original = `Before\n${first}\nAfter`;
+		await snapshot(page, { text: original, version: 2, dirty: false, name: 'List.txt' });
+		const caret = 'Before\n'.length + first.length;
+		await text.evaluate((el, offset) => el.setSelectionRange(offset, offset), caret);
+		await text.press('Enter');
+		const continued = `Before\n${first}\n\t  10) \nAfter`;
+		assert.equal(await text.inputValue(), continued);
+		assert.deepEqual(await text.evaluate(el => [el.selectionStart, el.selectionEnd]), [caret + 8, caret + 8]);
+
+		const edits = (await messages(page)).filter(m => m.type === 'edit');
+		assert.equal(edits.length, 1);
+		assert.equal(edits[0].text, continued);
+		await text.press('Control+z');
+		assert.equal((await messages(page)).some(m => m.type === 'action'), false);
+		await snapshot(page, { text: continued, version: 3, dirty: true, ack: edits[0].id, name: 'List.txt' });
+		const action = (await messages(page)).find(m => m.type === 'action');
+		assert.equal(action.action, 'undo');
+		assert.equal(action.version, 3);
+		await snapshot(page, { text: original, version: 4, dirty: false, name: 'List.txt' });
+		assert.equal(await text.inputValue(), original);
+	} finally { await page.close(); }
+});
+
+test('Enter removes an empty list marker and keeps normal newline behavior elsewhere', async () => {
+	const page = await open();
+	try {
+		const text = page.locator('#text');
+		const cases = [
+			{ value: '1) Item\n2) ', offset: '1) Item\n2) '.length, expected: '1) Item\n' },
+			{ value: '  2)   \t', offset: 8, expected: '  ' },
+			{ value: 'A paragraph', offset: 11, expected: 'A paragraph\n' },
+			{ value: '2) Item', offset: 4, expected: '2) I\ntem' },
+			{ value: '2)item', offset: 6, expected: '2)item\n' },
+		];
+		let version = 1;
+		for (const { value, offset, expected } of cases) {
+			await snapshot(page, { text: value, version: ++version, dirty: false, name: 'List.txt' });
+			await text.evaluate((el, caret) => el.setSelectionRange(caret, caret), offset);
+			await text.press('Enter');
+			assert.equal(await text.inputValue(), expected);
+			const edit = (await messages(page)).filter(m => m.type === 'edit').at(-1);
+			assert.equal(edit.text, expected);
+			await snapshot(page, { text: expected, version: ++version, dirty: true, ack: edit.id, name: 'List.txt' });
+		}
+	} finally { await page.close(); }
+});
+
+test('the new list item stays in view at the bottom of a long document', async () => {
+	const page = await open();
+	try {
+		const text = page.locator('#text');
+		const original = 'Paragraph\n'.repeat(100) + '1) Final item';
+		await snapshot(page, { text: original, version: 2, dirty: false, name: 'List.txt' });
+		await text.focus();
+		await text.evaluate(el => {
+			el.setSelectionRange(el.value.length, el.value.length);
+			window.scrollTo(0, window.scrollY + el.getBoundingClientRect().bottom - window.innerHeight);
+		});
+		await text.press('Enter');
+		assert.equal(await text.inputValue(), original + '\n2) ');
+		assert.equal(await text.evaluate(el => el.getBoundingClientRect().bottom - window.innerHeight < parseFloat(getComputedStyle(el).lineHeight) / 2), true);
+	} finally { await page.close(); }
+});
+
 test('find uses original Unicode offsets, literal queries and wraps to the first match', async () => {
 	const page = await open();
 	try {

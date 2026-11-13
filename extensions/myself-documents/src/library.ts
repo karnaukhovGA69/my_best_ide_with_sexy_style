@@ -48,10 +48,11 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private current: LibraryEntry | undefined;
 	private payload: object | undefined;
 	private sentPayload: object | undefined;
+	private sentBack: boolean | undefined;
 	private ready = false;
 	private generation = 0;
 	private disposed = false;
-	private readonly history: string[] = [];
+	private history: string[] = [];
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 		this.root = vscode.Uri.joinPath(context.extensionUri, 'documentation');
@@ -147,10 +148,16 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 
 	private async sendDocument(): Promise<void> {
 		const { reader, payload } = this;
-		if (!reader?.visible || !this.ready || !payload || this.sentPayload === payload) { return; }
+		if (!reader?.visible || !this.ready || !payload) { return; }
+		const back = this.history.length > 0;
+		const newDocument = this.sentPayload !== payload;
+		if (!newDocument && this.sentBack === back) { return; }
 		this.sentPayload = payload;
-		if (!await reader.webview.postMessage(payload) && this.reader === reader && this.sentPayload === payload) {
-			this.sentPayload = undefined;
+		this.sentBack = back;
+		const message = newDocument ? { ...payload, back } : { type: 'backState', back };
+		if (!await reader.webview.postMessage(message) && this.reader === reader && this.sentPayload === payload) {
+			if (newDocument) { this.sentPayload = undefined; }
+			else if (this.sentBack === back) { this.sentBack = undefined; }
 		}
 	}
 
@@ -166,20 +173,22 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			if (generation !== this.generation) { return; }
 			const bytes = await vscode.workspace.fs.readFile(uri);
 			if (bytes.length > maxDocumentBytes) { throw new Error('large'); }
-			if (generation !== this.generation) { return; }
-			if (addHistory && this.current && this.current.id !== entry.id) { this.history.push(this.current.id); }
+			if (generation !== this.generation || (entry.group === 'imported' && !this.imports.includes(entry))) { return; }
+			if (addHistory && this.current && this.current.id !== entry.id && (this.current.group !== 'imported' || this.imports.includes(this.current))) {
+				this.history.push(this.current.id);
+			}
 			this.current = entry;
 			const group = this.groups.find(group => group.id === entry.group);
 			this.payload = { type: 'document', text: new TextDecoder().decode(bytes), format: /\.md$/i.test(entry.file) ? 'markdown' : entry.format, selector: entry.selector,
 				title: entry.title, metadata: [group?.title, group?.version, group?.license].filter(Boolean).join(' · '),
-				source: !!entry.source, back: this.history.length > 0, fragment,
+				source: !!entry.source, fragment,
 				notice: vscode.l10n.t('Offline copy. Scripts, forms and external media are disabled.') };
 			if (!this.reader?.visible) {
 				await vscode.commands.executeCommand(`${readerViewId}.open`, { preserveFocus: true });
 			}
 			await this.sendDocument();
 		} catch {
-			if (generation === this.generation) {
+			if (generation === this.generation && (entry.group !== 'imported' || this.imports.includes(entry))) {
 				void vscode.window.showErrorMessage(vscode.l10n.t('The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.'));
 			}
 		}
@@ -193,7 +202,10 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			await this.sendDocument();
 		} else if (message.type === 'back') {
 			const previous = this.history.pop();
-			if (previous) { await this.open(previous, '', false); }
+			if (previous) {
+				await this.open(previous, '', false);
+				await this.sendDocument();
+			}
 		} else if (message.type === 'source' && this.current?.source && /^https:\/\//.test(this.current.source)) {
 			await vscode.env.openExternal(vscode.Uri.parse(this.current.source));
 		} else if (message.type === 'link' && typeof message.href === 'string' && this.current) {
@@ -301,8 +313,10 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		const entries = this.imports.filter(item => item !== entry);
 		await this.context.globalState.update('documentation.imports', entries);
 		this.imports = entries;
+		this.history = this.history.filter(id => id !== entry.id);
 		if (!this.disposed) { this.changes.fire(); }
 		await vscode.workspace.fs.delete(vscode.Uri.joinPath(this.context.globalStorageUri, entry.file)).then(undefined, () => undefined);
+		await this.sendDocument();
 	}
 
 	dispose(): void {

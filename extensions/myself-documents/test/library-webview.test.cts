@@ -87,6 +87,23 @@ test('Find works in a narrow reader and does not overflow the sidebar', async ()
 	} finally { await page.close(); }
 });
 
+test('updating Back availability preserves the rendered article and scroll position', async () => {
+	const { page, errors } = await open();
+	try {
+		await show(page, '<p>Documentation paragraph.</p>'.repeat(100));
+		const back = page.locator('#back');
+		assert.equal(await back.isEnabled(), true);
+		const paragraph = await page.locator('#document p').first().elementHandle();
+		await page.evaluate(() => window.scrollTo(0, 500));
+		await page.waitForFunction(() => window.scrollY === 500);
+		await page.evaluate(() => window.postMessage({ type: 'backState', back: false }, '*'));
+		await page.waitForFunction(() => document.getElementById('back').disabled);
+		assert.equal(await page.evaluate(node => document.querySelector('#document p') === node, paragraph), true);
+		assert.equal(await page.evaluate(() => window.scrollY), 500);
+		assert.deepEqual(errors, []);
+	} finally { await page.close(); }
+});
+
 test('all five official sets render readable offline content with no external requests', async () => {
 	const catalog = JSON.parse(fs.readFileSync(path.join(root, 'documentation/catalog.json'), 'utf8'));
 	const files = ['go/go-spec.html', 'rust/rust-reference.html', 'postgresql/index.html', 'bash/bash.html', 'linux/open.2.html'];

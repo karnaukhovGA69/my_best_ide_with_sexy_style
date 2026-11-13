@@ -52,6 +52,10 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 
 	window.addEventListener('message', event => {
 		const message = event.data;
+		if (message?.type === 'backState' && typeof message.back === 'boolean') {
+			back.disabled = !message.back;
+			return;
+		}
 		if (message?.type !== 'document' || typeof message.text !== 'string') { return; }
 		document.getElementById('empty')!.hidden = true;
 		reader.hidden = false;

@@ -377,3 +377,77 @@ test('folder import rolls back copies when disposed during a write', async () =>
 		assert.equal(await fs.readFile(path.join(folder, 'one.md'), 'utf8'), '# One');
 	} finally { release?.(); f.dispose(); await fs.rm(folder, { recursive: true, force: true }); }
 });
+
+test('Back skips a removed article and opens the previous available one', async () => {
+	const f = await fixture();
+	try {
+		f.files.set('/chosen/removed.html', Buffer.from('<h1>Removed</h1>'));
+		f.select([uri('/chosen/removed.html')]);
+		await f.actions.get('myself.documentation.import')();
+		const imported = f.state.imports[0];
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' });
+		await f.actions.get('myself.documentation.open')(imported.id);
+		await f.actions.get('myself.documentation.open')('two');
+		await f.actions.get('myself.documentation.remove')(imported);
+		await f.message({ type: 'back' });
+		assert.equal(f.sent.at(-1).title, 'One');
+		assert.equal(f.sent.at(-1).back, false);
+	} finally { f.dispose(); }
+});
+
+for (const hidden of [false, true]) {
+	test(`removing the last history entry updates Back without resending the article (hidden: ${hidden})`, async () => {
+		const f = await fixture();
+		try {
+			f.files.set('/chosen/removed.html', Buffer.from('<h1>Removed</h1>'));
+			f.select([uri('/chosen/removed.html')]);
+			await f.actions.get('myself.documentation.import')();
+			const imported = f.state.imports[0];
+			await f.actions.get('myself.documentation.open')(imported.id);
+			await f.message({ type: 'ready' });
+			await f.actions.get('myself.documentation.open')('two');
+			const current = f.sent.at(-1);
+			assert.equal(current.title, 'Two');
+			assert.equal(current.back, true);
+			if (hidden) {
+				f.reader().setVisible(false);
+			}
+			await f.actions.get('myself.documentation.remove')(imported);
+			if (hidden) {
+				assert.equal(f.sent.at(-1), current);
+				f.reader().setVisible(true);
+				await tick();
+			}
+			assert.deepEqual(f.sent.slice(1), [current, { type: 'backState', back: false }]);
+			await f.message({ type: 'back' });
+			assert.equal(f.sent.length, 3);
+			await f.message({ type: 'ready' });
+			assert.deepEqual(f.sent.at(-1), { ...current, back: false });
+		} finally { f.dispose(); }
+	});
+}
+
+test('removing an imported article during a Back read leaves the current article visible', async () => {
+	const f = await fixture();
+	let release;
+	try {
+		f.files.set('/chosen/removed.html', Buffer.from('<h1>Removed</h1>'));
+		f.select([uri('/chosen/removed.html')]);
+		await f.actions.get('myself.documentation.import')();
+		const imported = f.state.imports[0];
+		await f.actions.get('myself.documentation.open')(imported.id);
+		await f.message({ type: 'ready' });
+		await f.actions.get('myself.documentation.open')('two');
+		const gate = new Promise(resolve => { release = resolve; });
+		f.delay(file => file.endsWith(imported.file) ? gate : undefined);
+		await f.message({ type: 'back' });
+		assert.equal(f.reads.at(-1), '/profile/' + imported.file);
+		await f.actions.get('myself.documentation.remove')(imported);
+		release();
+		await tick();
+		assert.deepEqual(f.sent.at(-1), { type: 'backState', back: false });
+		assert.deepEqual(f.sent.filter(message => message.type === 'document').map(message => message.title), ['removed.html', 'Two']);
+		assert.deepEqual(f.notices, []);
+	} finally { release?.(); f.dispose(); }
+});

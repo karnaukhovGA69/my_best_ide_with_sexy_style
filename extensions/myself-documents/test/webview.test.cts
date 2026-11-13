@@ -26,12 +26,22 @@ before(async () => {
 	browser = await chromium.launch({ headless: true });
 });
 after(async () => { await browser?.close(); await new Promise(resolve => server?.close(resolve)); });
-async function open(restored) {
+async function open(restored, forwardHistoryKeys = false) {
 	const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
-	await page.addInitScript(state => {
+	await page.addInitScript(({ state, forwardHistoryKeys }) => {
 		window.messages = [];
 		window.acquireVsCodeApi = () => ({ postMessage: message => window.messages.push(message), getState: () => state, setState: next => { window.persisted = next; } });
-	}, restored);
+		if (forwardHistoryKeys) {
+			// The workbench webview shell forwards Undo/Redo from a bubbling window
+			// listener even when the extension has called preventDefault().
+			window.addEventListener('keydown', event => {
+				if ((event.metaKey || event.ctrlKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
+					event.preventDefault();
+					window.messages.push({ type: 'forwardedHistoryKey' });
+				}
+			});
+		}
+	}, { state: restored, forwardHistoryKeys });
 	await page.goto(origin);
 	await page.addStyleTag({ content: ':root { --vscode-foreground: #25282c; --vscode-sideBar-background: #f3f4f5; --vscode-editor-background: #fff; --vscode-editor-foreground: #25282c; --vscode-font-family: system-ui, sans-serif; --vscode-font-size: 13px; --vscode-descriptionForeground: #646a73; --vscode-input-foreground: #25282c; --vscode-input-background: #fff; --vscode-input-border: #c6cad0; --vscode-button-secondaryForeground: #25282c; --vscode-button-secondaryBackground: #e9ebee; --vscode-button-secondaryHoverBackground: #dce0e5; --vscode-button-foreground: #fff; --vscode-button-background: #2463bb; --vscode-button-hoverBackground: #19539f; --vscode-focusBorder: #2463bb; --vscode-panel-border: #d6d9de; }' });
 	await page.waitForFunction(() => window.messages.some(m => m.type === 'ready'));
@@ -148,6 +158,38 @@ test('Enter continues an indented numbered list and Undo uses the host document 
 		assert.equal(action.version, 3);
 		await snapshot(page, { text: original, version: 4, dirty: false, name: 'List.txt' });
 		assert.equal(await text.inputValue(), original);
+	} finally { await page.close(); }
+});
+
+test('Cmd+Z and Cmd+Shift+Z dispatch once with the workbench key forwarder installed', async () => {
+	const page = await open(undefined, true);
+	try {
+		const text = page.locator('#text');
+		const original = '  9) Fresh check';
+		const continued = original + '\n  10) ';
+		const name = 'List.txt';
+		await snapshot(page, { text: original, version: 2, dirty: false, name });
+		await text.evaluate(el => el.setSelectionRange(el.value.length, el.value.length));
+		await text.press('Enter');
+		const edit = (await messages(page)).find(m => m.type === 'edit');
+		assert.equal(edit.text, continued);
+		await snapshot(page, { text: continued, version: 3, dirty: true, ack: edit.id, name });
+
+		await text.press('Meta+z');
+		assert.deepEqual((await messages(page)).filter(m => m.type === 'action').map(m => [m.action, m.version]), [['undo', 3]]);
+		assert.equal((await messages(page)).some(m => m.type === 'forwardedHistoryKey'), false);
+		await snapshot(page, { text: original, version: 4, dirty: false, name });
+		await page.evaluate(() => window.postMessage({ type: 'actionDone' }, '*'));
+		await page.waitForFunction(() => !document.querySelector('#text').readOnly);
+		assert.equal(await text.inputValue(), original);
+		assert.equal(await page.locator('#conflict').isVisible(), false);
+
+		await text.press('Meta+Shift+z');
+		assert.deepEqual((await messages(page)).filter(m => m.type === 'action').map(m => [m.action, m.version]), [['undo', 3], ['redo', 4]]);
+		assert.equal((await messages(page)).some(m => m.type === 'forwardedHistoryKey'), false);
+		await snapshot(page, { text: continued, version: 5, dirty: true, name });
+		assert.equal(await text.inputValue(), continued);
+		assert.equal(await page.locator('#conflict').isVisible(), false);
 	} finally { await page.close(); }
 });
 

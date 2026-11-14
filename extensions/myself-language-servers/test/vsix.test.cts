@@ -96,7 +96,7 @@ test('bundled VSIX registers a working import, refresh and removal flow', { skip
 	await commands.get('myself.languageServers.remove')(items[0]);
 	await commands.get('myself.languageServers.refresh')();
 	assert.deepEqual(await provider.getChildren(), []);
-	assert.deepEqual(await fs.readdir(join(storage, 'managed')), []);
+	assert.ok((await fs.readdir(join(storage, 'managed'))).every(name => name.endsWith('.lock')));
 	assert.deepEqual(errors, []);
 	assert.equal(changes.length, 3);
 

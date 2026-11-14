@@ -5,7 +5,7 @@
 
 import { basename } from 'node:path';
 import * as vscode from 'vscode';
-import { PackageStore, type InstalledPackage } from './store';
+import { PackageBusyError, PackageStore, type InstalledPackage } from './store';
 
 const viewId = 'myself.languageServers.packages';
 
@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(tree, changes, output,
 		vscode.commands.registerCommand('myself.languageServers.refresh', async () => {
 			try {
-				await store.cleanupRemovedPackages();
+				await store.cleanup();
 			} catch (error) {
 				output.error(String(error));
 				void vscode.window.showErrorMessage(vscode.l10n.t('Package cleanup is incomplete. Refresh the list to retry.'));
@@ -111,6 +111,10 @@ export function activate(context: vscode.ExtensionContext): void {
 			try {
 				await store.remove(item.installed.id);
 			} catch (error) {
+				if (error instanceof PackageBusyError) {
+					void vscode.window.showInformationMessage(vscode.l10n.t('This package is busy. Try removing it after the other operation finishes.'));
+					return;
+				}
 				const retry = vscode.l10n.t('Retry Cleanup');
 				if (await vscode.window.showErrorMessage(vscode.l10n.t('Could not remove the package. {0}', (error as Error).message), retry) === retry) {
 					try {

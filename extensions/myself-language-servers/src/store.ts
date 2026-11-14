@@ -8,11 +8,15 @@ import { constants } from 'node:fs';
 import { lstat, mkdir, mkdtemp, open, readdir, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join } from 'node:path';
 import { extractZip, isMacArm64Executable, isPortableArchivePath, snapshotZip } from './archive';
+import { tryAcquireLease } from './lease';
 
 const packageId = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const digest = /^[0-9a-f]{64}$/;
 const manifestName = 'package.json';
 const manifestSizeLimit = 8192;
+const stagingPrefix = '.import-v2-';
+const removedPrefix = '.removed-v2-';
+const legacyRemovedPrefix = '.removed-';
 
 export interface InstalledPackage {
 	readonly schemaVersion: 1;
@@ -28,6 +32,8 @@ export interface PackagePreview {
 	readonly entrypoints: readonly string[];
 	readonly archiveSha256: string;
 }
+
+export class PackageBusyError extends Error { }
 
 function isInstalledPackage(value: unknown, id: string): value is InstalledPackage {
 	if (typeof value !== 'object' || value === null) {
@@ -78,7 +84,20 @@ export class PackageStore {
 		}
 		await this.ensureRoot();
 		signal?.throwIfAborted();
-		const staging = await mkdtemp(join(this.root, '.import-'));
+		const lease = await tryAcquireLease(join(this.root, '.imports.lock'));
+		if (!lease) {
+			throw new PackageBusyError('A package import or cleanup is already in progress.');
+		}
+		try {
+			signal?.throwIfAborted();
+			return await this.importWithLease(source, select, signal);
+		} finally {
+			await lease.close();
+		}
+	}
+
+	private async importWithLease(source: string, select: (preview: PackagePreview) => Promise<string | undefined>, signal?: AbortSignal): Promise<InstalledPackage | undefined> {
+		const staging = await mkdtemp(join(this.root, stagingPrefix));
 		let committed = false;
 		try {
 			const snapshot = join(staging, 'archive.zip');
@@ -190,13 +209,30 @@ export class PackageStore {
 		}
 	}
 
-	async remove(id: string): Promise<void> {
+	/** Holds a package lease for one operation across all windows. Launch must also account for a surviving child. */
+	async withPackageLease<T>(id: string, operation: () => Promise<T>): Promise<T> {
 		if (!packageId.test(id)) {
 			throw new Error('Invalid managed package ID.');
 		}
 		await this.ensureRoot();
+		const lease = await tryAcquireLease(join(this.root, `.package-${id}.lock`));
+		if (!lease) {
+			throw new PackageBusyError('This package is in use in another operation.');
+		}
+		try {
+			return await operation();
+		} finally {
+			await lease.close();
+		}
+	}
+
+	async remove(id: string): Promise<void> {
+		await this.withPackageLease(id, () => this.removeWithLease(id));
+	}
+
+	private async removeWithLease(id: string): Promise<void> {
 		const installation = join(this.root, id);
-		const trash = join(this.root, '.removed-' + id);
+		const trash = join(this.root, removedPrefix + id);
 		if (await this.readPackage(installation, id)) {
 			try {
 				await rename(installation, trash);
@@ -217,28 +253,51 @@ export class PackageStore {
 		await this.cleanupRemovedPackage(id);
 	}
 
-	async cleanupRemovedPackages(): Promise<void> {
+	async cleanup(): Promise<void> {
 		await this.ensureRoot();
-		for (const directory of await readdir(this.root, { withFileTypes: true })) {
-			if (directory.name.startsWith('.removed-')) {
-				const id = directory.name.slice('.removed-'.length);
-				if (packageId.test(id)) {
-					await this.cleanupRemovedPackage(id);
+		const imports = await tryAcquireLease(join(this.root, '.imports.lock'));
+		if (imports) {
+			try {
+				for (const name of await readdir(this.root)) {
+					if (name.startsWith(stagingPrefix) && /^[a-zA-Z0-9]{6}$/.test(name.slice(stagingPrefix.length))) {
+						await this.cleanupPrivateDirectory(join(this.root, name));
+					}
+				}
+			} finally {
+				await imports.close();
+			}
+		}
+		for (const name of await readdir(this.root)) {
+			if (name.startsWith(legacyRemovedPrefix)) {
+				const prefix = name.startsWith(removedPrefix) ? removedPrefix : legacyRemovedPrefix;
+				const id = name.slice(prefix.length);
+				if (!packageId.test(id)) {
+					continue;
+				}
+				const lease = await tryAcquireLease(join(this.root, `.package-${id}.lock`));
+				if (!lease) {
+					continue;
+				}
+				try {
+					await this.cleanupPrivateDirectory(join(this.root, name));
+				} finally {
+					await lease.close();
 				}
 			}
 		}
 	}
 
 	private async cleanupRemovedPackage(id: string): Promise<void> {
-		const trash = join(this.root, '.removed-' + id);
-		// A previous cleanup may have partly removed this directory. Its name is
-		// reserved for packages atomically claimed for removal.
+		await this.cleanupPrivateDirectory(join(this.root, removedPrefix + id));
+	}
+
+	private async cleanupPrivateDirectory(directory: string): Promise<void> {
 		try {
-			const pending = await lstat(trash);
+			const pending = await lstat(directory);
 			if (!pending.isDirectory() || (pending.mode & 0o077) || pending.uid !== process.getuid?.()) {
-				throw new Error('The removal directory is not a private directory.');
+				throw new Error('The cleanup directory is not a private directory.');
 			}
-			await rm(trash, { recursive: true, force: true });
+			await rm(directory, { recursive: true, force: true });
 		} catch (error) {
 			if (!fileWasRemoved(error)) {
 				throw new Error('Package cleanup is incomplete. Retry removal to finish reclaiming disk space.', { cause: error });

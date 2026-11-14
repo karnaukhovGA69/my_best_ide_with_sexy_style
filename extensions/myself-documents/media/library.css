@@ -1,15 +1,19 @@
 /* Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. */
 body { color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0 auto; padding: 24px 32px 80px; max-width: 960px; line-height: 1.6; }
-header { display: flex; align-items: start; gap: 16px; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 16px; margin-bottom: 16px; }
-header > div { flex: 1; min-width: 0; }
+header { display: grid; gap: 8px; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 8px; margin-bottom: 8px; }
 header h1 { font-size: 20px; margin: 0; overflow-wrap: anywhere; }
 #metadata, #notice { color: var(--vscode-descriptionForeground); font-size: 12px; }
 #metadata { margin: 4px 0 0; }
-button, select { font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, var(--vscode-panel-border)); padding: 5px 9px; border-radius: 3px; }
+.actions, #find { display: flex; flex-wrap: wrap; gap: 4px; }
+.actions > button { max-width: 100%; overflow-wrap: anywhere; }
+#find { position: sticky; top: 0; margin-bottom: 8px; padding-block: 4px; background: var(--vscode-editor-background); }
+#query { min-width: 0; flex: 1 1 8em; font-size: 12px; }
+#find-status { margin: 0 0 8px; font-size: 12px; }
+button, select, input { font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, var(--vscode-panel-border)); padding: 5px 9px; border-radius: 3px; }
 button { cursor: pointer; font-size: 12px; }
 button:hover { background: var(--vscode-toolbar-hoverBackground); }
 button:disabled { opacity: .5; cursor: default; }
-button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 2px; }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 2px; }
 #contents { max-width: 100%; width: 100%; margin: 4px 0; }
 #contents-label { font-size: 12px; }
 article { font-size: 15px; overflow-wrap: anywhere; }
@@ -22,4 +26,4 @@ table { border-collapse: collapse; display: block; overflow: auto; } th, td { pa
 blockquote { margin-left: 0; padding-left: 16px; border-left: 3px solid var(--vscode-textBlockQuote-border); }
 .image-description { color: var(--vscode-descriptionForeground); font-style: italic; }
 [hidden] { display: none !important; }
-@media (max-width: 550px) { body { padding: 16px 16px 48px; } header { flex-wrap: wrap; } #source { margin-left: auto; } }
+@media (max-width: 550px) { body { padding: 8px 12px 32px; } }

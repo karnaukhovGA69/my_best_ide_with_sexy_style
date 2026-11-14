@@ -13,7 +13,7 @@ import { ExtensionsWorkbenchService } from '../../browser/extensionsWorkbenchSer
 import '../../browser/extensions.contribution.js';
 import {
 	IExtensionManagementService, IExtensionGalleryService, ILocalExtension, IGalleryExtension,
-	DidUninstallExtensionEvent, InstallExtensionEvent, IGalleryExtensionAssets, InstallOperation, IExtensionTipsService, InstallExtensionResult, getTargetPlatform, IExtensionsControlManifest, UninstallExtensionEvent, Metadata, InstallExtensionInfo, IAllowedExtensionsService
+	DidUninstallExtensionEvent, InstallExtensionEvent, IGalleryExtensionAssets, InstallOperation, IExtensionTipsService, InstallExtensionResult, getTargetPlatform, IExtensionsControlManifest, UninstallExtensionEvent, Metadata, InstallExtensionInfo, IAllowedExtensionsService, EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT
 } from '../../../../../platform/extensionManagement/common/extensionManagement.js';
 import { IWorkbenchExtensionEnablementService, EnablementState, IExtensionManagementServerService, IExtensionManagementServer, IProfileAwareExtensionManagementService, IWorkbenchExtensionManagementService } from '../../../../services/extensionManagement/common/extensionManagement.js';
 import { IExtensionRecommendationsService } from '../../../../services/extensionRecommendations/common/extensionRecommendations.js';
@@ -1738,6 +1738,65 @@ suite('ExtensionsWorkbenchServiceTest', () => {
 		});
 		testObject = await aWorkbenchService();
 		await assert.rejects(testObject.install(gallery.identifier.id), /reported to be problematic/);
+	});
+
+	test('installing a local VSIX updates the installed list without looking up gallery metadata', async () => {
+		const progressService: Pick<IProgressService, 'withProgress'> = { withProgress: (_options, task) => task({ report() { } }) };
+		instantiationService.stub(IProgressService, progressService);
+		const local = aLocalExtension('private-test', {}, { source: 'vsix' });
+		const source = URI.file('private-test.vsix');
+		const profileLocation = URI.file('extensions.json');
+		const manifest: IExtensionsControlManifest = {
+			malicious: [],
+			deprecated: { [local.identifier.id]: { disallowInstall: true } },
+			search: [],
+		};
+		instantiationService.stubPromise(IExtensionManagementService, 'getExtensionsControlManifest', manifest);
+		testObject = await aWorkbenchService();
+		const getExtensions = instantiationService.stub(IExtensionGalleryService, 'getExtensions', async () => []);
+		const getControlManifest = instantiationService.stub(IExtensionManagementService, 'getExtensionsControlManifest', async () => manifest);
+		instantiationService.stub(IWorkbenchExtensionManagementService, 'getManifest', async () => local.manifest);
+		instantiationService.stub(IWorkbenchExtensionManagementService, 'installVSIX', async () => {
+			didInstallEvent.fire([{ local, identifier: local.identifier, source, operation: InstallOperation.Install, profileLocation, context: { [EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT]: true } }]);
+			return local;
+		});
+
+		const installed = await testObject.install(source);
+		await timeout(0);
+
+		assert.strictEqual(installed.local, local);
+		assert.strictEqual(installed.state, ExtensionState.Installed);
+		assert.strictEqual(installed.enablementState, EnablementState.EnabledGlobally);
+		assert.strictEqual(getExtensions.callCount, 0);
+		assert.strictEqual(getControlManifest.callCount, 0);
+		assert.strictEqual(installed.deprecationInfo?.disallowInstall, true);
+	});
+
+	test('a local VSIX does not suppress gallery handling for other installs in the same event', async () => {
+		testObject = await aWorkbenchService();
+		const local = aLocalExtension('private-test', {}, { source: 'vsix' });
+		const downloaded = aLocalExtension('downloaded', {}, { source: 'vsix' });
+		const gallery = aGalleryExtension('catalogued');
+		const galleryLocal = aLocalExtension(gallery.name, {}, { source: 'gallery' });
+		const downloadedGallery = aGalleryExtension(downloaded.manifest.name);
+		const getExtensions = instantiationService.stub(IExtensionGalleryService, 'getExtensions', async () => [downloadedGallery]);
+		const getControlManifest = instantiationService.stub(IExtensionManagementService, 'getExtensionsControlManifest', async () => ({ malicious: [], deprecated: {}, search: [] }));
+		const profileLocation = URI.file('extensions.json');
+		const operation = InstallOperation.Install;
+
+		didInstallEvent.fire([
+			{ local, identifier: local.identifier, source: URI.file('private-test.vsix'), profileLocation, operation },
+			{ local: downloaded, identifier: downloaded.identifier, source: URI.file('downloaded.vsix'), profileLocation, operation, context: { [EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT]: false } },
+			{ local: galleryLocal, identifier: galleryLocal.identifier, source: gallery, profileLocation, operation },
+		]);
+		await timeout(0);
+
+		assert.strictEqual(getControlManifest.callCount, 1);
+		assert.strictEqual(getExtensions.callCount, 1);
+		assert.deepStrictEqual(getExtensions.firstCall.args[0].map((info: { id: string }) => info.id), [downloaded.identifier.id]);
+		assert.strictEqual(testObject.local.find(extension => extension.local === local)?.gallery, undefined);
+		assert.strictEqual(testObject.local.find(extension => extension.local === downloaded)?.gallery, downloadedGallery);
+		assert.strictEqual(testObject.local.find(extension => extension.local === galleryLocal)?.gallery, gallery);
 	});
 
 	async function aWorkbenchService(): Promise<ExtensionsWorkbenchService> {

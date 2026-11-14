@@ -20,6 +20,7 @@ import {
 	UninstallExtensionInfo,
 	TargetPlatformToString,
 	AllowedExtensionsConfigKey,
+	EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT,
 	EXTENSION_INSTALL_SKIP_PUBLISHER_TRUST_CONTEXT,
 	ExtensionManagementError,
 	ExtensionManagementErrorCode,
@@ -581,6 +582,7 @@ class Extensions extends Disposable {
 	private installing: Extension[] = [];
 	private uninstalling: Extension[] = [];
 	private installed: Extension[] = [];
+	private extensionsControlManifest: IExtensionsControlManifest | undefined;
 
 	constructor(
 		readonly server: IExtensionManagementServer,
@@ -792,6 +794,7 @@ class Extensions extends Disposable {
 
 	private async fetchInstalledExtensions(productVersion?: IProductVersion): Promise<void> {
 		const extensionsControlManifest = await this.server.extensionManagementService.getExtensionsControlManifest();
+		this.extensionsControlManifest = extensionsControlManifest;
 		const all = await this.server.extensionManagementService.getInstalled(undefined, undefined, productVersion);
 		if (this.isWorkspaceServer) {
 			all.push(...await this.workbenchExtensionManagementService.getInstalledWorkspaceExtensions(true));
@@ -841,11 +844,14 @@ class Extensions extends Disposable {
 	}
 
 	private async onDidInstallExtensions(results: readonly InstallExtensionResult[]): Promise<void> {
-		const extensions: Extension[] = [];
+		const extensionsToRefresh: Extension[] = [];
 		for (const event of results) {
 			const { local, source } = event;
 			const gallery = source && !URI.isUri(source) ? source : undefined;
 			const location = source && URI.isUri(source) ? source : undefined;
+			const localVsix = location
+				? (event.context?.[EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT] ?? (location.scheme === Schemas.file)) === true
+				: !source && local?.source === 'vsix';
 			const installingExtension = gallery ? this.installing.filter(e => areSameExtensions(e.identifier, gallery.identifier))[0] : null;
 			this.installing = installingExtension ? this.installing.filter(e => e !== installingExtension) : this.installing;
 
@@ -866,17 +872,24 @@ class Extensions extends Disposable {
 					}
 					extension.enablementState = this.extensionEnablementService.getEnablementState(local);
 				}
-				extensions.push(extension);
+				if (localVsix) {
+					if (this.extensionsControlManifest) {
+						extension.setExtensionsControlManifest(this.extensionsControlManifest);
+					}
+				} else {
+					extensionsToRefresh.push(extension);
+				}
 			}
 			this._onChange.fire(!local || !extension ? undefined : { extension, operation: event.operation });
 		}
 
-		if (extensions.length) {
+		if (extensionsToRefresh.length) {
 			const manifest = await this.server.extensionManagementService.getExtensionsControlManifest();
-			for (const extension of extensions) {
+			this.extensionsControlManifest = manifest;
+			for (const extension of extensionsToRefresh) {
 				extension.setExtensionsControlManifest(manifest);
 			}
-			this.matchInstalledExtensionsWithGallery(extensions);
+			this.matchInstalledExtensionsWithGallery(extensionsToRefresh);
 		}
 	}
 

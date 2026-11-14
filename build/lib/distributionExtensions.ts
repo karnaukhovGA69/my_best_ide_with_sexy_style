@@ -55,8 +55,9 @@ export function isDistributionExtension(name: string): boolean {
  * Filters paths relative to the packaged extensions directory, including stale build output.
  * Retained extensions bundle their dependencies (or package them within their own folder).
  * The shared TypeScript installation is only needed by the omitted language services.
+ * Official documentation is shipped separately from the built-in reader.
  */
 export function isDistributionExtensionFile(relativePath: string): boolean {
-	const [extension] = relativePath.replaceAll('\\', '/').split('/');
-	return isDistributionExtension(extension);
+	const [extension, entry] = relativePath.replaceAll('\\', '/').split('/');
+	return isDistributionExtension(extension) && !(extension === 'myself-documents' && entry === 'documentation');
 }

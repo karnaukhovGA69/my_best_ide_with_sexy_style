@@ -9,7 +9,13 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	const article = document.getElementById('document')!;
 	const contents = document.getElementById('contents') as HTMLSelectElement;
 	const back = document.getElementById('back') as HTMLButtonElement;
+	const emptyBack = document.getElementById('empty-back') as HTMLButtonElement;
+	const empty = document.getElementById('empty')!;
 	const source = document.getElementById('source') as HTMLButtonElement;
+	const reader = document.getElementById('reader')!;
+	const find = document.getElementById('find') as HTMLFormElement;
+	const query = document.getElementById('query') as HTMLInputElement;
+	const findStatus = document.getElementById('find-status')!;
 	const allowed = new Set('a abbr b blockquote br caption code col colgroup dd del details div dl dt em figcaption figure h1 h2 h3 h4 h5 h6 hr i kbd li main mark ol p pre s samp section small span strong sub summary sup table tbody td th thead tfoot tr ul var'.split(' '));
 	const discarded = new Set('script style iframe object embed link meta base form input button select option textarea noscript svg math canvas video audio source picture'.split(' '));
 
@@ -46,13 +52,38 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 		document.getElementById('doc-' + fragment)?.scrollIntoView({ block: 'start' });
 	}
 
+	function updateBack(available: boolean): void {
+		back.disabled = !available;
+		emptyBack.hidden = !available;
+	}
+
 	window.addEventListener('message', event => {
 		const message = event.data;
+		if (message?.type === 'backState' && typeof message.back === 'boolean') {
+			updateBack(message.back === true);
+			return;
+		}
+		if (message?.type === 'clear') {
+			reader.hidden = true;
+			empty.hidden = false;
+			article.replaceChildren();
+			contents.replaceChildren();
+			document.getElementById('title')!.textContent = '';
+			document.getElementById('metadata')!.textContent = '';
+			document.getElementById('notice')!.textContent = '';
+			query.value = '';
+			findStatus.hidden = true;
+			source.hidden = true;
+			updateBack(message.back === true);
+			return;
+		}
 		if (message?.type !== 'document' || typeof message.text !== 'string') { return; }
+		empty.hidden = true;
+		reader.hidden = false;
 		document.getElementById('title')!.textContent = message.title;
 		document.getElementById('metadata')!.textContent = message.metadata;
 		document.getElementById('notice')!.textContent = message.notice;
-		back.disabled = !message.back;
+		updateBack(message.back === true);
 		source.hidden = !message.source;
 		if (message.format === 'html' || message.format === 'markdown') {
 			const html = message.format === 'markdown' ? marked.parse(message.text, { async: false }) : message.text;
@@ -64,21 +95,25 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 		}
 		contents.replaceChildren();
 		let index = 0;
-		const headingIds = new Set<string>();
+		const occupiedIds = new Set(message.format === 'markdown' ? Array.from(article.querySelectorAll('[id]'), element => element.id) : []);
+		const nextSuffix = new Map<string, number>();
 		for (const heading of article.querySelectorAll('h1, h2, h3')) {
 			if (!heading.id && message.format === 'markdown') {
 				const slug = (heading.textContent ?? '').trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/\s/g, '-');
 				const base = 'doc-' + (slug || `local-heading-${index++}`);
-				let id = base; let suffix = 1;
-				while (headingIds.has(id) || document.getElementById(id)) { id = `${base}-${suffix++}`; }
+				let suffix = nextSuffix.get(base) ?? 0;
+				let id = suffix === 0 ? base : `${base}-${suffix}`;
+				while (occupiedIds.has(id)) { id = `${base}-${++suffix}`; }
 				heading.id = id;
+				occupiedIds.add(id);
+				nextSuffix.set(base, suffix + 1);
 			}
 			if (!heading.id) { heading.id = `doc-local-heading-${index++}`; }
-			headingIds.add(heading.id);
 			const option = document.createElement('option'); option.value = heading.id; option.textContent = heading.textContent; contents.append(option);
 		}
 		contents.hidden = contents.options.length === 0;
 		document.getElementById('contents-label')!.hidden = contents.hidden;
+		findStatus.hidden = true;
 		window.scrollTo(0, 0);
 		if (typeof message.fragment === 'string' && message.fragment) { scroll(message.fragment); }
 	});
@@ -93,6 +128,31 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	});
 	contents.addEventListener('change', () => document.getElementById(contents.value)?.scrollIntoView({ block: 'start' }));
 	back.addEventListener('click', () => api.postMessage({ type: 'back' }));
+	emptyBack.addEventListener('click', () => api.postMessage({ type: 'back' }));
 	source.addEventListener('click', () => api.postMessage({ type: 'source' }));
+	find.addEventListener('submit', event => {
+		event.preventDefault();
+		const text = query.value;
+		if (!text) { return; }
+		// Chromium's find scrolls to and selects each match, including text split across inline tags.
+		const browser = window as Window & { find?(text: string, caseSensitive: boolean, backwards: boolean, wrapAround: boolean): boolean };
+		query.blur();
+		// Chromium searches input values too. Exclude the query from its own results.
+		query.value = '';
+		const matched = browser.find?.(text, false, false, true) ?? false;
+		query.value = text;
+		findStatus.textContent = matched ? '' : findStatus.dataset.noMatch!;
+		findStatus.hidden = matched;
+		if (!matched) { query.focus(); }
+	});
+	query.addEventListener('input', () => { findStatus.hidden = true; });
+	window.addEventListener('keydown', event => {
+		if (!reader.hidden && (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'f') {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			query.focus();
+			query.select();
+		}
+	}, true);
 	api.postMessage({ type: 'ready' });
 })();

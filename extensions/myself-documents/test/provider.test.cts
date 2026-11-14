@@ -15,10 +15,10 @@ async function fixture(options = {}) {
 	const replace = value => { text = value; document.version++; document.isDirty = true; changes.fire({ document }); };
 	const vscode = {
 		...viewApi, EventEmitter: class { constructor() { this.event = emitter().event; } fire() {} dispose() {} }, EndOfLine: { CRLF: 2 }, Range: class { constructor(start, end) { this.start = start; this.end = end; } },
+		extensions: { getExtension: () => undefined, onDidChange: emitter().event },
 		WorkspaceEdit: class { replace(resource, range, value) { this.edit = { resource, range, value }; } },
-		window: { createTreeView: () => ({ dispose() {} }), showErrorMessage() {}, registerCustomEditorProvider: (_id, value) => { provider = value; return { dispose() {} }; } },
+		window: { createTreeView: () => ({ dispose() {} }), registerWebviewViewProvider: () => ({ dispose() {} }), showErrorMessage() {}, registerCustomEditorProvider: (_id, value) => { provider = value; return { dispose() {} }; } },
 		workspace: {
-			fs: { readFile: async () => new TextEncoder().encode('{"groups":[],"entries":[]}') },
 			onDidChangeTextDocument: changes.event, onDidSaveTextDocument: saves.event,
 			applyEdit: async edit => { const { range, value } = edit.edit; history.push(text); replace(text.slice(0, range.start) + value + text.slice(range.end)); return true; },
 			save: async () => {

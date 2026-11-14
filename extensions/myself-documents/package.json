@@ -130,7 +130,7 @@
       ]
     },
     "viewsContainers": {
-      "activitybar": [
+      "secondarySidebar": [
         {
           "id": "myselfDocumentation",
           "title": "%library.title%",
@@ -142,7 +142,14 @@
       "myselfDocumentation": [
         {
           "id": "myself.documentation.library",
-          "name": "%library.title%"
+          "name": "%library.title%",
+          "initialSize": 30
+        },
+        {
+          "id": "myself.documentation.reader",
+          "name": "%library.reader%",
+          "type": "webview",
+          "initialSize": 70
         }
       ]
     }

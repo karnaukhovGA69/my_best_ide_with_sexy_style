@@ -39,7 +39,7 @@ suite('Myself IDE extension distribution', () => {
 	test('rejects excluded packages and unreviewed upstream additions', () => {
 		assert.deepStrictEqual([
 			'github', 'github-authentication', 'copilot', 'GitHub.copilot-chat', 'prompt-basics', 'emmet', 'grunt', 'gulp', 'jake',
-			'tunnel-forwarding', 'myself-github', 'remote-ssh', 'remote-server',
+			'tunnel-forwarding', 'myself-github', 'myself.offline-documentation', 'remote-ssh', 'remote-server',
 			'go', 'rust', 'cpp', 'fsharp', 'lua', 'json', 'json-language-features', 'yaml', 'sql',
 			'javascript', 'typescript-basics', 'typescript-language-features', 'new-upstream-extension',
 		].filter(isDistributionExtension), []);
@@ -57,6 +57,21 @@ suite('Myself IDE extension distribution', () => {
 			'git/package.json', 'git/node_modules/@vscode/fs-copyfile/package.json',
 			'markdown-math/notebook-out/index.js',
 			'markdown-basics\\package.json',
+		]);
+	});
+
+	test('ships the documentation reader without the optional offline library', () => {
+		assert.deepStrictEqual([
+			'myself-documents/package.json',
+			'myself-documents/out/webview/library.js',
+			'myself-documents/documentation',
+			'myself-documents/documentation/catalog.json',
+			'myself-documents\\documentation\\licenses\\NOTICE.txt',
+			'myself.offline-documentation/package.json',
+			'myself.offline-documentation-0.1.0.vsix',
+		].filter(isDistributionExtensionFile), [
+			'myself-documents/package.json',
+			'myself-documents/out/webview/library.js',
 		]);
 	});
 });

@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 const assert = require('node:assert/strict');
-const { execFile } = require('node:child_process');
+const { execFile, spawn } = require('node:child_process');
 const { createHash, randomUUID } = require('node:crypto');
+const { once } = require('node:events');
 const { createWriteStream } = require('node:fs');
 const fs = require('node:fs/promises');
 const { tmpdir } = require('node:os');
@@ -15,7 +16,7 @@ const { pipeline } = require('node:stream/promises');
 const { test, after } = require('node:test');
 const { promisify } = require('node:util');
 const { ZipFile } = require('yazl');
-const { PackageStore } = require('../out/store.js');
+const { PackageBusyError, PackageStore } = require('../out/store.js');
 
 const darwinArm64 = process.platform === 'darwin' && process.arch === 'arm64';
 const execFileAsync = promisify(execFile);
@@ -64,6 +65,8 @@ after(async () => {
 });
 
 const selectFirst = async preview => preview.entrypoints[0];
+const isLock = name => /^\.(?:imports|package-[0-9a-f-]+)\.lock$/.test(name);
+const managedContents = async storage => (await fs.readdir(join(storage, 'managed'))).filter(name => !isLock(name));
 
 test('publishes the inspected Mach-O and its resource atomically, then removes only the UUID copy', { skip: !darwinArm64 }, async t => {
 	const root = await temp(t);
@@ -93,13 +96,16 @@ test('publishes the inspected Mach-O and its resource atomically, then removes o
 	}
 	assert.equal((await fs.stat(payload)).mode & 0o777, 0o700);
 	assert.deepEqual(await secondWindow.list(), [installed]);
-	assert.deepEqual(await fs.readdir(join(storage, 'managed')), [installed.id]);
+	assert.deepEqual(await managedContents(storage), [installed.id]);
 
 	const second = await secondWindow.importZip(zip, selectFirst);
 	assert.notEqual(second.id, installed.id);
-	await Promise.all([store.remove(installed.id), secondWindow.remove(installed.id)]);
+	const removals = await Promise.allSettled([store.remove(installed.id), secondWindow.remove(installed.id)]);
+	assert.ok(removals.some(result => result.status === 'fulfilled'));
+	assert.ok(removals.every(result => result.status === 'fulfilled' || result.reason instanceof PackageBusyError));
+	await secondWindow.remove(installed.id);
 	assert.deepEqual(await store.list(), [second]);
-	assert.deepEqual(await fs.readdir(join(storage, 'managed')), [second.id]);
+	assert.deepEqual(await managedContents(storage), [second.id]);
 	assert.equal(createHash('sha256').update(await fs.readFile(zip)).digest('hex'), archiveSha256);
 });
 
@@ -123,7 +129,7 @@ test('inspection and commit use the same snapshot; cancellation or invalid selec
 		return selectFirst(preview);
 	}, cancel.signal), { name: 'AbortError' });
 	await assert.rejects(store.importZip(zip, async () => '../outside'), /select an executable/i);
-	assert.deepEqual(await fs.readdir(join(storage, 'managed')), [installed.id]);
+	assert.deepEqual(await managedContents(storage), [installed.id]);
 });
 
 function patchNames(archive, name, replacement, localOnly = false) {
@@ -185,7 +191,7 @@ test('checks the CRC, sizes and bounds of streamed deflate descriptors', { skip:
 	await fs.writeFile(zip, truncated);
 	await assert.rejects(store.importZip(zip, async () => assert.fail('truncated ZIP reached selection')), /data descriptor/i);
 	assert.deepEqual(await store.list(), before);
-	assert.equal((await fs.readdir(join(storage, 'managed'))).length, before.length);
+	assert.equal((await managedContents(storage)).length, before.length);
 });
 
 test('rejects hostile ZIP paths, types, metadata and payloads before publication', { skip: !darwinArm64 }, async t => {
@@ -225,7 +231,7 @@ test('rejects hostile ZIP paths, types, metadata and payloads before publication
 			patch(edition);
 			await fs.writeFile(zip, edition);
 			await assert.rejects(store.importZip(zip, async () => assert.fail('invalid ZIP reached selection')));
-			assert.deepEqual(await fs.readdir(join(storage, 'managed')), []);
+			assert.deepEqual(await managedContents(storage), []);
 		});
 	}
 
@@ -242,7 +248,7 @@ test('rejects hostile ZIP paths, types, metadata and payloads before publication
 		await t.test(name, async () => {
 			await makeZip(zip, name === 'no native binary' ? entries : [[entry, binary], ...entries]);
 			await assert.rejects(store.importZip(zip, async () => assert.fail('invalid ZIP reached selection')));
-			assert.deepEqual(await fs.readdir(join(storage, 'managed')), []);
+			assert.deepEqual(await managedContents(storage), []);
 		});
 	}
 	assert.equal(await fs.readFile(outside, 'utf8'), 'outside stays intact');
@@ -266,9 +272,125 @@ test('ignores uncommitted and malformed folders and retries removal after a rest
 	await fs.rename(join(managed, install.id), join(managed, '.removed-' + install.id));
 	const restarted = new PackageStore(storage);
 	assert.deepEqual(await restarted.list(), []);
-	await restarted.cleanupRemovedPackages();
-	assert.deepEqual(await fs.readdir(managed), [forged]);
+	await restarted.cleanup();
+	assert.deepEqual(await managedContents(storage), [forged]);
 	assert.equal(await fs.readFile(join(outside, 'marker'), 'utf8'), 'unrelated');
+});
+
+test('Refresh leaves a live import alone and recovers its staging after SIGKILL', { skip: !darwinArm64, timeout: 5000 }, async t => {
+	const root = await temp(t);
+	const storage = join(root, 'storage');
+	const zip = join(root, 'server.zip');
+	await nestZip(zip, await testBinary());
+	const store = new PackageStore(storage);
+	const installed = await store.importZip(zip, selectFirst);
+	const managed = join(storage, 'managed');
+	const legacy = join(managed, '.import-legacy');
+	await fs.mkdir(legacy, { mode: 0o700 });
+	await fs.writeFile(join(legacy, 'keep'), 'legacy');
+	const child = spawn(process.execPath, ['-e', `
+		const { PackageStore } = require(process.argv[1]);
+		const store = new PackageStore(process.argv[2]);
+		store.importZip(process.argv[3], async () => {
+			process.send('selecting');
+			await new Promise(resolve => process.once('disconnect', resolve));
+		}).catch(error => { console.error(error); process.exitCode = 1; });
+	`, require.resolve('../out/store.js'), storage, zip], { stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+	const exited = once(child, 'exit');
+	try {
+		const stage = await Promise.race([
+			once(child, 'message').then(([message]) => message),
+			exited.then(() => assert.fail('importer exited before selection')),
+		]);
+		assert.equal(stage, 'selecting');
+		const staging = (await managedContents(storage)).find(name => name.startsWith('.import-v2-'));
+		assert.ok(staging);
+		await store.cleanup();
+		await fs.access(join(managed, staging, 'archive.zip'));
+		await assert.rejects(store.importZip(zip, selectFirst), PackageBusyError);
+		assert.deepEqual(await store.list(), [installed]);
+		child.kill('SIGKILL');
+		assert.deepEqual(await exited, [null, 'SIGKILL']);
+		await store.cleanup();
+		assert.deepEqual((await managedContents(storage)).sort(), ['.import-legacy', installed.id].sort());
+		assert.equal(await fs.readFile(join(legacy, 'keep'), 'utf8'), 'legacy');
+		assert.deepEqual(await store.list(), [installed]);
+	} finally {
+		if (child.exitCode === null && child.signalCode === null) {
+			child.kill('SIGKILL');
+			await exited;
+		}
+	}
+});
+
+test('Remove reports a busy package and Refresh retries a failure after rename', { skip: !darwinArm64, timeout: 5000 }, async t => {
+	const root = await temp(t);
+	const storage = join(root, 'storage');
+	const zip = join(root, 'server.zip');
+	await nestZip(zip, await testBinary());
+	const store = new PackageStore(storage);
+	const installed = await store.importZip(zip, selectFirst);
+	const otherWindow = new PackageStore(storage);
+	const child = spawn(process.execPath, ['-e', `
+		const { PackageStore } = require(process.argv[1]);
+		const store = new PackageStore(process.argv[2]);
+		store.withPackageLease(process.argv[3], async () => {
+			process.send('locked');
+			await new Promise(resolve => process.once('disconnect', resolve));
+		}).catch(error => { console.error(error); process.exitCode = 1; });
+	`, require.resolve('../out/store.js'), storage, installed.id], { stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+	const exited = once(child, 'exit');
+	try {
+		const locked = await Promise.race([
+			once(child, 'message').then(([message]) => message),
+			exited.then(() => assert.fail('package owner exited before acquiring its lease')),
+		]);
+		assert.equal(locked, 'locked');
+		await assert.rejects(otherWindow.remove(installed.id), PackageBusyError);
+		assert.deepEqual(await otherWindow.list(), [installed]);
+	} finally {
+		if (child.connected) {
+			child.disconnect();
+		}
+		assert.deepEqual(await exited, [0, null]);
+	}
+
+	const remove = fs.rm;
+	const tombstone = `.removed-v2-${installed.id}`;
+	const failure = t.mock.method(fs, 'rm', async (path, options) => {
+		if (path === join(storage, 'managed', tombstone)) {
+			throw new Error('simulated disk failure');
+		}
+		return remove(path, options);
+	});
+	try {
+		await assert.rejects(store.remove(installed.id), /cleanup is incomplete/i);
+		assert.deepEqual(await otherWindow.list(), []);
+		assert.deepEqual(await managedContents(storage), [tombstone]);
+	} finally {
+		failure.mock.restore();
+	}
+	await otherWindow.cleanup();
+	await otherWindow.remove(installed.id);
+	assert.deepEqual(await managedContents(storage), []);
+});
+
+test('Refresh refuses symlinks at the import lease and staging paths', { skip: !darwinArm64 }, async t => {
+	const root = await temp(t);
+	const storage = join(root, 'storage');
+	const store = new PackageStore(storage);
+	await store.list();
+	const managed = join(storage, 'managed');
+	const outside = join(root, 'outside');
+	await fs.mkdir(outside, { mode: 0o700 });
+	await fs.writeFile(join(outside, 'keep'), 'unrelated');
+	const lease = join(managed, '.imports.lock');
+	await fs.symlink(join(outside, 'keep'), lease);
+	await assert.rejects(store.cleanup(), { code: 'ELOOP' });
+	await fs.unlink(lease);
+	await fs.symlink(outside, join(managed, '.import-v2-ABC123'));
+	await assert.rejects(store.cleanup(), /cleanup is incomplete/i);
+	assert.equal(await fs.readFile(join(outside, 'keep'), 'utf8'), 'unrelated');
 });
 
 test('rejects an extension storage symlink before creating the managed folder', { skip: !darwinArm64 }, async t => {

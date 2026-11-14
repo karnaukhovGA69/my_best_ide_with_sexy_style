@@ -74,17 +74,20 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 		}
 		contents.replaceChildren();
 		let index = 0;
-		const headingIds = new Set<string>();
+		const occupiedIds = new Set(message.format === 'markdown' ? Array.from(article.querySelectorAll('[id]'), element => element.id) : []);
+		const nextSuffix = new Map<string, number>();
 		for (const heading of article.querySelectorAll('h1, h2, h3')) {
 			if (!heading.id && message.format === 'markdown') {
 				const slug = (heading.textContent ?? '').trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/\s/g, '-');
 				const base = 'doc-' + (slug || `local-heading-${index++}`);
-				let id = base; let suffix = 1;
-				while (headingIds.has(id) || document.getElementById(id)) { id = `${base}-${suffix++}`; }
+				let suffix = nextSuffix.get(base) ?? 0;
+				let id = suffix === 0 ? base : `${base}-${suffix}`;
+				while (occupiedIds.has(id)) { id = `${base}-${++suffix}`; }
 				heading.id = id;
+				occupiedIds.add(id);
+				nextSuffix.set(base, suffix + 1);
 			}
 			if (!heading.id) { heading.id = `doc-local-heading-${index++}`; }
-			headingIds.add(heading.id);
 			const option = document.createElement('option'); option.value = heading.id; option.textContent = heading.textContent; contents.append(option);
 		}
 		contents.hidden = contents.options.length === 0;

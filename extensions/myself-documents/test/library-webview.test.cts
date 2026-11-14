@@ -171,3 +171,25 @@ test('Markdown renders headings, lists, tables and code with local contents and 
 		assert.deepEqual(external, []); assert.deepEqual(errors, []);
 	} finally { await page.close(); }
 });
+
+test('clearing an official document removes its content and permits Back to personal history', async () => {
+	const { page, errors } = await open();
+	try {
+		await show(page, '<h1>Official</h1><p>Official article</p>');
+		await page.locator('#query').fill('Old search');
+		await page.evaluate(() => window.postMessage({ type: 'clear', back: true }, '*'));
+		await page.locator('#reader').waitFor({ state: 'hidden' });
+		assert.equal(await page.locator('#empty').isVisible(), true);
+		assert.equal(await page.locator('#document').textContent(), '');
+		assert.equal(await page.locator('#contents option').count(), 0);
+		assert.equal(await page.locator('#query').inputValue(), '');
+		await page.getByRole('button', { name: 'Back', exact: true }).click();
+		assert.deepEqual(await page.evaluate(() => window.messages.at(-1)), { type: 'back' });
+		await page.evaluate(() => window.postMessage({ type: 'backState', back: false }, '*'));
+		await page.locator('#empty-back').waitFor({ state: 'hidden' });
+		await show(page, '<h1>Personal article</h1>', { title: 'Personal', back: false });
+		assert.equal(await page.locator('#empty').isVisible(), false);
+		assert.equal(await page.locator('#document h1').textContent(), 'Personal article');
+		assert.deepEqual(errors, []);
+	} finally { await page.close(); }
+});

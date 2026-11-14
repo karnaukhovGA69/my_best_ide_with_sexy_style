@@ -9,6 +9,8 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	const article = document.getElementById('document')!;
 	const contents = document.getElementById('contents') as HTMLSelectElement;
 	const back = document.getElementById('back') as HTMLButtonElement;
+	const emptyBack = document.getElementById('empty-back') as HTMLButtonElement;
+	const empty = document.getElementById('empty')!;
 	const source = document.getElementById('source') as HTMLButtonElement;
 	const reader = document.getElementById('reader')!;
 	const find = document.getElementById('find') as HTMLFormElement;
@@ -50,19 +52,38 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 		document.getElementById('doc-' + fragment)?.scrollIntoView({ block: 'start' });
 	}
 
+	function updateBack(available: boolean): void {
+		back.disabled = !available;
+		emptyBack.hidden = !available;
+	}
+
 	window.addEventListener('message', event => {
 		const message = event.data;
 		if (message?.type === 'backState' && typeof message.back === 'boolean') {
-			back.disabled = !message.back;
+			updateBack(message.back === true);
+			return;
+		}
+		if (message?.type === 'clear') {
+			reader.hidden = true;
+			empty.hidden = false;
+			article.replaceChildren();
+			contents.replaceChildren();
+			document.getElementById('title')!.textContent = '';
+			document.getElementById('metadata')!.textContent = '';
+			document.getElementById('notice')!.textContent = '';
+			query.value = '';
+			findStatus.hidden = true;
+			source.hidden = true;
+			updateBack(message.back === true);
 			return;
 		}
 		if (message?.type !== 'document' || typeof message.text !== 'string') { return; }
-		document.getElementById('empty')!.hidden = true;
+		empty.hidden = true;
 		reader.hidden = false;
 		document.getElementById('title')!.textContent = message.title;
 		document.getElementById('metadata')!.textContent = message.metadata;
 		document.getElementById('notice')!.textContent = message.notice;
-		back.disabled = !message.back;
+		updateBack(message.back === true);
 		source.hidden = !message.source;
 		if (message.format === 'html' || message.format === 'markdown') {
 			const html = message.format === 'markdown' ? marked.parse(message.text, { async: false }) : message.text;
@@ -107,6 +128,7 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	});
 	contents.addEventListener('change', () => document.getElementById(contents.value)?.scrollIntoView({ block: 'start' }));
 	back.addEventListener('click', () => api.postMessage({ type: 'back' }));
+	emptyBack.addEventListener('click', () => api.postMessage({ type: 'back' }));
 	source.addEventListener('click', () => api.postMessage({ type: 'source' }));
 	find.addEventListener('submit', event => {
 		event.preventDefault();

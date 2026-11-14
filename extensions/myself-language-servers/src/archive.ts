@@ -18,6 +18,8 @@ const totalLimit = 512 * MiB;
 const fileLimit = 256 * MiB;
 const entryLimit = 4096;
 const depthLimit = 16;
+const dataDescriptorFlag = 1 << 3;
+const dataDescriptorSignature = 0x08074b50;
 // Timestamps and Unix UID/GID. Extraction does not apply any extra fields.
 const extraFields = new Set([0x5455, 0x7875, 0x000a]);
 const forbiddenName = /[<>:"\\|?*\p{Cc}\p{Cf}\uFFFD]|[ .]$/u;
@@ -135,7 +137,7 @@ function validateLocalHeader(zip: ZipFile, entry: ZipEntry): Promise<number> {
 				reject(error);
 				return;
 			}
-			const hasDescriptor = (entry.generalPurposeBitFlag & 8) !== 0;
+			const hasDescriptor = (entry.generalPurposeBitFlag & dataDescriptorFlag) !== 0;
 			if (!header.fileName.equals(entry.fileNameRaw) || header.compressionMethod !== entry.compressionMethod
 				|| header.generalPurposeBitFlag !== entry.generalPurposeBitFlag
 				|| !(header.crc32 === entry.crc32 || (hasDescriptor && header.crc32 === 0))
@@ -152,6 +154,23 @@ function validateLocalHeader(zip: ZipFile, entry: ZipEntry): Promise<number> {
 			}
 		});
 	});
+}
+
+async function validateDataDescriptor(snapshot: FileHandle, entry: ZipEntry, start: number, limit: number): Promise<void> {
+	// ZIP32 has three four-byte fields and an optional four-byte signature.
+	const available = Math.min(16, limit - start);
+	const descriptor = available >= 12 ? await readHeader(snapshot, start, available) : undefined;
+	if (!descriptor) {
+		throw new Error('ZIP data descriptor is missing or truncated.');
+	}
+	const matches = (offset: number) => descriptor.readUInt32LE(offset) === entry.crc32
+		&& descriptor.readUInt32LE(offset + 4) === entry.compressedSize
+		&& descriptor.readUInt32LE(offset + 8) === entry.uncompressedSize;
+	// A descriptor without a signature can happen to start with the same CRC value.
+	if (matches(0) || (descriptor.length === 16 && descriptor.readUInt32LE(0) === dataDescriptorSignature && matches(4))) {
+		return;
+	}
+	throw new Error('ZIP data descriptor does not match its central directory.');
 }
 
 function registerPath(nodes: Map<string, { path: string; directory: boolean; explicit: boolean }>, relative: string, directory: boolean): void {
@@ -172,7 +191,7 @@ function registerPath(nodes: Map<string, { path: string; directory: boolean; exp
 	}
 }
 
-async function inspectZip(zip: ZipFile, signal?: AbortSignal): Promise<ArchiveEntry[]> {
+async function inspectZip(zip: ZipFile, snapshot: FileHandle, signal?: AbortSignal): Promise<ArchiveEntry[]> {
 	const centralDirectoryStart = zip.readEntryCursor;
 	const entries = await readEntries(zip, signal);
 	const nodes = new Map<string, { path: string; directory: boolean; explicit: boolean }>();
@@ -205,12 +224,18 @@ async function inspectZip(zip: ZipFile, signal?: AbortSignal): Promise<ArchiveEn
 	}
 
 	checked.sort((a, b) => a.start - b.start);
-	let end = 0;
-	for (const entry of checked) {
-		if (entry.start < end) {
+	for (let index = 0; index < checked.length; index++) {
+		signal?.throwIfAborted();
+		const { entry, end } = checked[index];
+		const nextHeader = checked[index + 1]?.start ?? centralDirectoryStart;
+		if (end > nextHeader) {
 			throw new Error('Overlapping ZIP entries.');
 		}
-		end = entry.end;
+		if (entry.generalPurposeBitFlag & dataDescriptorFlag) {
+			// Limit the complete entry, including its descriptor, to the bytes
+			// before the next header.
+			await validateDataDescriptor(snapshot, entry, end, nextHeader);
+		}
 	}
 	return checked;
 }
@@ -239,7 +264,13 @@ export async function extractZip(snapshot: string, destination: string, signal?:
 	});
 	let result: StagedArchive;
 	try {
-		const entries = await inspectZip(zip, signal);
+		const handle = await open(snapshot, constants.O_RDONLY | constants.O_NOFOLLOW);
+		let entries: ArchiveEntry[];
+		try {
+			entries = await inspectZip(zip, handle, signal);
+		} finally {
+			await handle.close();
+		}
 		const digestEntries: [string, number, string][] = [];
 		let total = 0;
 		for (const { entry, path: relative, directory } of entries) {

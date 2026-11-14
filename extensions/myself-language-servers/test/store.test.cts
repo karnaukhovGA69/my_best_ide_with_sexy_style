@@ -10,6 +10,7 @@ const { createWriteStream } = require('node:fs');
 const fs = require('node:fs/promises');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
+const { Readable } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 const { test, after } = require('node:test');
 const { promisify } = require('node:util');
@@ -138,6 +139,54 @@ function patchNames(archive, name, replacement, localOnly = false) {
 		to.copy(archive, second);
 	}
 }
+
+test('checks the CRC, sizes and bounds of streamed deflate descriptors', { skip: !darwinArm64 }, async t => {
+	const root = await temp(t);
+	const storage = join(root, 'storage');
+	const zip = join(root, 'server.zip');
+	const binary = await testBinary();
+	const archive = new ZipFile();
+	archive.addReadStream(Readable.from([binary]), entry);
+	archive.addBuffer(readme, resource, { compress: false });
+	archive.end();
+	await pipeline(archive.outputStream, createWriteStream(zip));
+
+	const original = await fs.readFile(zip);
+	const eocd = original.length - 22;
+	const central = original.readUInt32LE(eocd + 16);
+	const nextCentralRecord = central + 46 + original.readUInt16LE(central + 28)
+		+ original.readUInt16LE(central + 30) + original.readUInt16LE(central + 32);
+	const nextLocalHeader = original.readUInt32LE(nextCentralRecord + 42);
+	const descriptor = nextLocalHeader - 16;
+	assert.equal(original.readUInt32LE(descriptor), 0x08074b50);
+	const store = new PackageStore(storage);
+	const signed = await store.importZip(zip, selectFirst);
+	assert.equal(signed.entryRelative, entry);
+
+	// Remove the optional signature and adjust the two displaced offsets.
+	const unsigned = Buffer.concat([original.subarray(0, descriptor), original.subarray(descriptor + 4)]);
+	unsigned.writeUInt32LE(central - 4, eocd + 16 - 4);
+	unsigned.writeUInt32LE(nextLocalHeader - 4, nextCentralRecord + 42 - 4);
+	await fs.writeFile(zip, unsigned);
+	assert.equal((await store.importZip(zip, selectFirst)).entryRelative, entry);
+	const before = await store.list();
+
+	for (const [field, offset] of [['CRC', 4], ['compressed size', 8], ['uncompressed size', 12]]) {
+		await t.test(`rejects descriptor with altered ${field}`, async () => {
+			const tampered = Buffer.from(original);
+			tampered[descriptor + offset] ^= 1;
+			await fs.writeFile(zip, tampered);
+			await assert.rejects(store.importZip(zip, async () => assert.fail('invalid ZIP reached selection')), /data descriptor/i);
+		});
+	}
+	const truncated = Buffer.concat([original.subarray(0, descriptor + 8), original.subarray(nextLocalHeader)]);
+	truncated.writeUInt32LE(central - 8, eocd + 16 - 8);
+	truncated.writeUInt32LE(nextLocalHeader - 8, nextCentralRecord + 42 - 8);
+	await fs.writeFile(zip, truncated);
+	await assert.rejects(store.importZip(zip, async () => assert.fail('truncated ZIP reached selection')), /data descriptor/i);
+	assert.deepEqual(await store.list(), before);
+	assert.equal((await fs.readdir(join(storage, 'managed'))).length, before.length);
+});
 
 test('rejects hostile ZIP paths, types, metadata and payloads before publication', { skip: !darwinArm64 }, async t => {
 	const root = await temp(t);

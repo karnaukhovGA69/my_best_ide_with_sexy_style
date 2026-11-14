@@ -3,7 +3,7 @@
   "publisher": "myself",
   "displayName": "Nerded Code Language Server Packages",
   "description": "Import and manage local ZIP packages containing macOS ARM64 language servers.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "engines": { "vscode": "^1.146.0" },
   "categories": ["Other"],

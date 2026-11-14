@@ -4,13 +4,38 @@
  *--------------------------------------------------------------------------------------------*/
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const localFs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const { maxCatalogBytes, maxDocumentBytes } = require('../out/libraryModel.js');
 const { loadWithVscode, emitter, viewApi } = require('./helpers.cts');
 const tick = () => new Promise(resolve => setImmediate(resolve));
+function deferred() {
+	let resolve;
+	const promise = new Promise(done => { resolve = done; });
+	return { promise, resolve };
+}
 const uri = value => ({ path: value, fsPath: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
 	const actions = new Map(), files = new Map(), reads = [], writes = [], notices = [], external = [], sent = [], dialogs = [], opened = [];
 	const state = { imports: options.imports ?? [] };
-	let provider, readerProvider, readerOptions, reader, selection; let beforeRead = options.beforeRead;
+	let provider, readerProvider, readerOptions, reader, selection; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
+	const extensionsChange = emitter();
+	let installed;
+	let nextPost;
+	const post = async message => {
+		sent.push(message);
+		nextPost?.resolve(message);
+		nextPost = undefined;
+		return true;
+	};
+	const waitForTreeChange = () => new Promise(resolve => {
+		const sub = provider.onDidChangeTreeData(() => { sub.dispose(); resolve(); });
+	});
+	const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'myself-reader-')));
+	const bundled = path.join(root, 'extension');
+	const installedRoot = path.join(root, 'offline-vsix');
 	function openReader() {
 		if (reader?.visible) { return; }
 		if (reader && !reader.disposed) { reader.setVisible(true); return; }
@@ -20,7 +45,7 @@ async function fixture(options = {}) {
 			dispose() { this.disposed = true; this.visible = false; disposed.fire(); },
 			setVisible(value) { this.visible = value; visibility.fire(); },
 			onDidDispose: disposed.event, onDidChangeVisibility: visibility.event,
-			webview: { cspSource: 'https://local.invalid', asWebviewUri: resource => resource.toString(), onDidReceiveMessage: messages.event, postMessage: async message => { sent.push(message); return true; } }
+			webview: { cspSource: 'https://local.invalid', asWebviewUri: resource => resource.toString(), onDidReceiveMessage: messages.event, postMessage: post }
 		};
 		readerProvider.resolveWebviewView(reader);
 	}
@@ -28,11 +53,31 @@ async function fixture(options = {}) {
 		{ id: 'one', group: 'test', title: 'One', file: 'test/one.html', source: 'https://example.invalid/one.html', format: 'html' },
 		{ id: 'two', group: 'test', title: 'Two', file: 'test/two.html', source: 'https://example.invalid/two.html', format: 'html' },
 	] };
-	files.set('/extension/documentation/catalog.json', Buffer.from(JSON.stringify(catalog)));
-	files.set('/extension/documentation/test/one.html', Buffer.from('<h1>One</h1>'));
-	files.set('/extension/documentation/test/two.html', Buffer.from('<h1>Two</h1>'));
+	function writeCatalog(extensionPath, label = '') {
+		const docs = path.join(extensionPath, 'documentation');
+		fs.mkdirSync(path.join(docs, 'test'), { recursive: true });
+		const groups = catalog.groups.map(group => ({ ...group, title: label + group.title }));
+		fs.writeFileSync(path.join(docs, 'catalog.json'), JSON.stringify({ ...catalog, groups }));
+		fs.writeFileSync(path.join(docs, 'test/one.html'), '<h1>' + label + 'One</h1>');
+		fs.writeFileSync(path.join(docs, 'test/two.html'), '<h1>' + label + 'Two</h1>');
+	}
+
+	function setInstalled(location, version = '1') {
+		installed = location ? { extensionUri: location, packageJSON: { version }, isActive: false, activate: () => assert.fail('resource package must stay inactive') } : undefined;
+		extensionsChange.fire();
+	}
+	fs.mkdirSync(bundled);
+	if (options.bundled !== false) { writeCatalog(bundled); }
+	if (options.installed) {
+		writeCatalog(installedRoot, 'VSIX ');
+		setInstalled(uri(installedRoot));
+	}
+	if (options.prepare) { options.prepare({ bundled, installedRoot, root, catalog }); }
 	const vscode = {
-		...viewApi, Uri: { joinPath: (base, ...parts) => uri(base.path + '/' + parts.join('/')), parse: value => ({ toString: () => value }) },
+		...viewApi, extensions: {
+			getExtension: id => { assert.equal(id, 'myself.offline-documentation'); return installed; },
+			onDidChange: extensionsChange.event,
+		}, Uri: { joinPath: (base, ...parts) => uri(base.path + '/' + parts.join('/')), parse: value => ({ toString: () => value }) },
 		EventEmitter: class { constructor() { const e = emitter(); this.event = e.event; this.fire = e.fire; } dispose() {} },
 		TreeItem: class { constructor(label) { this.label = label; } }, TreeItemCollapsibleState: { None: 0, Collapsed: 1 }, ThemeIcon: class {},
 		Disposable: { from: (...disposables) => ({ dispose: () => disposables.forEach(d => d.dispose()) }) },
@@ -45,6 +90,7 @@ async function fixture(options = {}) {
 				readerOptions = options;
 				return { dispose() {} };
 			},
+			showQuickPick: async items => options.quickPick?.(items),
 			showOpenDialog: async () => { dialogs.push('open'); return options.dialog ? options.dialog(selection) : selection; },
 			showErrorMessage: async text => { notices.push(text); },
 			showInformationMessage: async (_text, action) => options.confirm ? options.confirm(action) : action,
@@ -60,11 +106,37 @@ async function fixture(options = {}) {
 			delete: async resource => { files.delete(resource.path); },
 		} },
 	};
-	const context = { subscriptions: [], extensionUri: uri('/extension'), globalStorageUri: uri('/profile'), globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
-	loadWithVscode('library.js', vscode).registerLibrary(context);
-	if (!options.deferCatalog) { await provider.getChildren(); }
-	return { actions, provider, files, reads, writes, notices, external, sent, state, dialogs, opened, readerOptions, reader: () => reader, select: value => { selection = value; }, delay: handler => { beforeRead = handler; },
-		message: async value => { reader.messages.fire(value); await tick(); }, dispose: () => context.subscriptions.forEach(d => d.dispose()) };
+	const context = { subscriptions: [], extensionUri: uri(bundled), globalStorageUri: uri('/profile'), globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
+	const openFile = localFs.open;
+	localFs.open = async (file, flags) => {
+		if (file.startsWith(root + path.sep) && file.includes(path.sep + 'documentation' + path.sep)) {
+			reads.push(file);
+			if (beforeOfficialRead) { await beforeOfficialRead(file); }
+		}
+		return openFile(file, flags);
+	};
+	const dispose = () => {
+		context.subscriptions.forEach(d => d.dispose());
+		localFs.open = openFile;
+		fs.rmSync(root, { recursive: true, force: true });
+	};
+	try {
+		loadWithVscode('library.js', vscode).registerLibrary(context);
+		if (!options.deferCatalog) { await waitForTreeChange(); }
+		return { actions, provider, files, reads, writes, notices, external, sent, state, dialogs, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
+			reader: () => reader, select: value => { selection = value; },
+			delay: handler => { beforeRead = handler; beforeOfficialRead = handler; },
+			change: () => extensionsChange.fire(),
+			message: async (value, response = false) => {
+				if (response) { nextPost = deferred(); }
+				const posted = nextPost?.promise;
+				reader.messages.fire(value);
+				await (response ? posted : tick());
+			}, dispose };
+	} catch (error) {
+		dispose();
+		throw error;
+	}
 }
 
 test('reader opens in the library view without taking editor focus and sends content only after ready', async () => {
@@ -77,10 +149,10 @@ test('reader opens in the library view without taking editor focus and sends con
 		await f.message({ type: 'ready' });
 		assert.equal(f.sent.at(-1).text, '<h1>One</h1>');
 		assert.ok(!f.reader().webview.html.includes('<h1>One</h1>'));
-		assert.deepEqual(f.reader().webview.options.localResourceRoots.map(r => r.path), ['/extension/media', '/extension/out/webview']);
-		await f.message({ type: 'link', href: 'two.html#section' });
+		assert.deepEqual(f.reader().webview.options.localResourceRoots.map(r => r.path), [path.join(f.bundled, 'media'), path.join(f.bundled, 'out/webview')]);
+		await f.message({ type: 'link', href: 'two.html#section' }, true);
 		assert.deepEqual([f.sent.at(-1).title, f.sent.at(-1).fragment, f.external.length], ['Two', 'section', 0]);
-		await f.message({ type: 'back' }); assert.equal(f.sent.at(-1).title, 'One');
+		await f.message({ type: 'back' }, true); assert.equal(f.sent.at(-1).title, 'One');
 	} finally { f.dispose(); }
 });
 
@@ -137,8 +209,9 @@ test('a slower earlier read never replaces the newly selected document', async (
 	const f = await fixture(); let release;
 	try {
 		const gate = new Promise(resolve => { release = resolve; });
-		f.delay(file => file.endsWith('one.html') ? gate : undefined);
-		const first = f.actions.get('myself.documentation.open')('one'); await tick();
+		const entered = deferred();
+		f.delay(file => file.endsWith('one.html') ? (entered.resolve(), gate) : undefined);
+		const first = f.actions.get('myself.documentation.open')('one'); await entered.promise;
 		await f.actions.get('myself.documentation.open')('two'); await f.message({ type: 'ready' });
 		release(); await first;
 		assert.equal(f.sent.at(-1).title, 'Two');
@@ -152,8 +225,9 @@ test('closing the reader cancels a pending navigation without reopening it', asy
 		await f.actions.get('myself.documentation.open')('one');
 		const originalReader = f.reader();
 		const gate = new Promise(resolve => { release = resolve; });
-		f.delay(file => file.endsWith('two.html') ? gate : undefined);
-		const pending = f.actions.get('myself.documentation.open')('two'); await tick();
+		const entered = deferred();
+		f.delay(file => file.endsWith('two.html') ? (entered.resolve(), gate) : undefined);
+		const pending = f.actions.get('myself.documentation.open')('two'); await entered.promise;
 		originalReader.dispose(); release(); await pending;
 		assert.equal(f.reader(), originalReader, 'completed navigation must not reopen the reader');
 		assert.deepEqual(f.notices, []);
@@ -165,12 +239,14 @@ test('closing the reader cancels a pending navigation without reopening it', asy
 test('disposal while the catalog loads prevents pending commands from opening a reader', async () => {
 	let release;
 	const gate = new Promise(resolve => { release = resolve; });
-	const f = await fixture({ deferCatalog: true, beforeRead: file => file.endsWith('catalog.json') ? gate : undefined });
+	const entered = deferred();
+	const f = await fixture({ deferCatalog: true, beforeRead: file => file.endsWith('catalog.json') ? (entered.resolve(), gate) : undefined });
 	try {
 		const pending = f.actions.get('myself.documentation.open')('one');
+		await entered.promise;
 		f.dispose(); release(); await pending;
 		assert.equal(f.reader(), undefined);
-		assert.deepEqual(f.reads, ['/extension/documentation/catalog.json']);
+		assert.deepEqual(f.reads, [path.join(f.bundled, 'documentation/catalog.json')]);
 		assert.deepEqual(f.notices, []);
 	} finally { release?.(); f.dispose(); }
 });
@@ -180,9 +256,10 @@ test('a failed read completed after closing the reader does not show a stale err
 	try {
 		await f.actions.get('myself.documentation.open')('one');
 		const gate = new Promise(resolve => { release = resolve; });
-		f.delay(file => file.endsWith('two.html') ? gate : undefined);
-		const pending = f.actions.get('myself.documentation.open')('two'); await tick();
-		f.reader().dispose(); f.files.delete('/extension/documentation/test/two.html'); release(); await pending;
+		const entered = deferred();
+		f.delay(file => file.endsWith('two.html') ? (entered.resolve(), gate) : undefined);
+		const pending = f.actions.get('myself.documentation.open')('two'); await entered.promise;
+		f.reader().dispose(); fs.unlinkSync(path.join(f.bundled, 'documentation/test/two.html')); release(); await pending;
 		assert.deepEqual(f.notices, []);
 	} finally { release?.(); f.dispose(); }
 });
@@ -390,7 +467,7 @@ test('Back skips a removed article and opens the previous available one', async 
 		await f.actions.get('myself.documentation.open')(imported.id);
 		await f.actions.get('myself.documentation.open')('two');
 		await f.actions.get('myself.documentation.remove')(imported);
-		await f.message({ type: 'back' });
+		await f.message({ type: 'back' }, true);
 		assert.equal(f.sent.at(-1).title, 'One');
 		assert.equal(f.sent.at(-1).back, false);
 	} finally { f.dispose(); }
@@ -450,4 +527,223 @@ test('removing an imported article during a Back read leaves the current article
 		assert.deepEqual(f.sent.filter(message => message.type === 'document').map(message => message.title), ['removed.html', 'Two']);
 		assert.deepEqual(f.notices, []);
 	} finally { release?.(); f.dispose(); }
+});
+
+test('the enabled resource VSIX takes precedence; test builds fall back to their bundled snapshot', async () => {
+	const f = await fixture({ installed: true });
+	try {
+		assert.deepEqual(f.provider.getChildren().map(group => group.title), ['VSIX Test', 'My Documents']);
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' });
+		assert.equal(f.sent.at(-1).text, '<h1>VSIX One</h1>');
+		assert.deepEqual(f.reads, ['catalog.json', 'test/one.html'].map(file => path.join(f.installedRoot, 'documentation', file)));
+		f.change();
+		assert.equal(f.provider.getChildren()[0].title, 'VSIX Test');
+		assert.equal(f.reads.length, 2, 'unrelated extension changes keep the active snapshot');
+
+		f.setInstalled(undefined);
+		await f.waitForTreeChange();
+		assert.deepEqual(f.sent.at(-1), { type: 'clear', back: false });
+		assert.deepEqual(f.provider.getChildren().map(group => group.title), ['Test', 'My Documents']);
+		await f.actions.get('myself.documentation.open')('one');
+		assert.equal(f.sent.at(-1).text, '<h1>One</h1>');
+	} finally { f.dispose(); }
+});
+
+test('a standalone reader loads personal imports while a catalog is pending or absent', async () => {
+	const entry = { id: 'legacy', group: 'imported', title: 'Personal', file: 'imports/abc-def.md', source: '', format: 'text' };
+	const entered = deferred(), release = deferred();
+	const f = await fixture({
+		bundled: false, installed: true, deferCatalog: true, imports: [entry],
+		beforeRead: file => { if (file.endsWith('catalog.json')) { entered.resolve(); return release.promise; } },
+	});
+	try {
+		f.files.set('/profile/' + entry.file, Buffer.from('# Personal'));
+		await entered.promise;
+		const [personal] = f.provider.getChildren();
+		assert.equal(personal.id, 'imported');
+		assert.deepEqual(f.provider.getChildren(personal), [entry]);
+		await f.actions.get('myself.documentation.open')(entry.id);
+		await f.message({ type: 'ready' });
+		const initial = f.sent.at(-1);
+		assert.equal(initial.text, '# Personal');
+
+		const stale = f.actions.get('myself.documentation.open')('one');
+		const settled = f.waitForTreeChange();
+		f.setInstalled(undefined);
+		await settled;
+		release.resolve();
+		await stale;
+		assert.deepEqual(f.provider.getChildren().map(group => group.title), ['My Documents']);
+		assert.deepEqual(f.sent, [initial]);
+		assert.deepEqual(f.notices, []);
+		assert.deepEqual(f.state.imports, [entry]);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('install and re-enable repopulate a standalone reader; removal clears an official article after visibility and ready', async () => {
+	const entry = { id: 'legacy', group: 'imported', title: 'Personal', file: 'imports/abc-def.md', source: '', format: 'text' };
+	const f = await fixture({ bundled: false, imports: [entry] });
+	try {
+		assert.deepEqual(f.provider.getChildren().map(group => group.title), ['My Documents']);
+		f.writeCatalog(f.installedRoot, 'VSIX ');
+		f.setInstalled(uri(f.installedRoot));
+		await f.waitForTreeChange();
+		assert.deepEqual(f.provider.getChildren().map(group => group.title), ['VSIX Test', 'My Documents']);
+
+		f.files.set('/profile/' + entry.file, Buffer.from('# Personal'));
+		await f.actions.get('myself.documentation.open')(entry.id);
+		await f.actions.get('myself.documentation.open')('one');
+		f.reader().setVisible(false);
+		f.setInstalled(undefined);
+		await f.waitForTreeChange();
+		await f.message({ type: 'ready' });
+		assert.deepEqual(f.sent, []);
+		f.reader().setVisible(true);
+		await tick();
+		assert.deepEqual(f.sent, [{ type: 'clear', back: true }]);
+		await f.message({ type: 'source' });
+		assert.deepEqual(f.external, []);
+		await f.message({ type: 'back' }, true);
+		assert.equal(f.sent.at(-1).text, '# Personal');
+
+		f.setInstalled(uri(f.installedRoot));
+		await f.waitForTreeChange();
+		await f.actions.get('myself.documentation.open')('two');
+		assert.equal(f.sent.at(-1).text, '<h1>VSIX Two</h1>');
+	} finally { f.dispose(); }
+});
+
+test('removal abandons a late official read and updates Back without resending the personal document', async () => {
+	const f = await fixture({ bundled: false, installed: true });
+	const entered = deferred(), release = deferred();
+	try {
+		f.files.set('/chosen/personal.md', Buffer.from('# Personal'));
+		f.select([uri('/chosen/personal.md')]);
+		await f.actions.get('myself.documentation.import')();
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' });
+		await f.actions.get('myself.documentation.open')(f.state.imports[0].id);
+		const current = f.sent.at(-1);
+		assert.equal(current.back, true);
+
+		f.delay(file => { if (file.endsWith('two.html')) { entered.resolve(); return release.promise; } });
+		const stale = f.actions.get('myself.documentation.open')('two');
+		await entered.promise;
+		const settled = f.waitForTreeChange();
+		f.setInstalled(undefined);
+		await settled;
+		release.resolve();
+		await stale;
+		assert.deepEqual(f.sent.slice(1), [current, { type: 'backState', back: false }]);
+		assert.deepEqual(f.notices, []);
+		assert.equal(f.opened.length, 1);
+		assert.equal(f.state.imports.length, 1);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('a late article from a disabled snapshot stays stale after that same VSIX is enabled again', async () => {
+	const f = await fixture({ bundled: false, installed: true });
+	const entered = deferred(), release = deferred();
+	try {
+		f.delay(file => { if (file.endsWith('one.html')) { entered.resolve(); return release.promise; } });
+		const stale = f.actions.get('myself.documentation.open')('one');
+		await entered.promise;
+		const disabled = f.waitForTreeChange();
+		f.setInstalled(undefined);
+		await disabled;
+		f.setInstalled(uri(f.installedRoot));
+		await f.waitForTreeChange();
+		release.resolve();
+		await stale;
+		assert.equal(f.reader(), undefined);
+		assert.deepEqual(f.notices, []);
+		await f.actions.get('myself.documentation.open')('two');
+		await f.message({ type: 'ready' });
+		assert.equal(f.sent.at(-1).text, '<h1>VSIX Two</h1>');
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('a malformed or oversized installed catalog leaves personal imports available', async () => {
+	for (const bytes of [Buffer.from('{'), Buffer.alloc(maxCatalogBytes + 1)]) {
+		const f = await fixture({ installed: true, prepare: ({ installedRoot }) => fs.writeFileSync(path.join(installedRoot, 'documentation/catalog.json'), bytes) });
+		try {
+			assert.deepEqual(f.provider.getChildren().map(group => group.id), ['imported']);
+			assert.deepEqual(f.notices, ['The local documentation catalog could not be loaded.']);
+			f.files.set('/chosen/personal.md', Buffer.from('# Personal'));
+			f.select([uri('/chosen/personal.md')]);
+			await f.actions.get('myself.documentation.import')();
+			await f.actions.get('myself.documentation.open')(f.state.imports[0].id);
+			await f.message({ type: 'ready' });
+			assert.equal(f.sent.at(-1).text, '# Personal');
+		} finally { f.dispose(); }
+	}
+});
+
+test('catalog/article links, redirected article folders, non-local roots and oversized articles are rejected', async () => {
+	const f = await fixture({ bundled: false, installed: true });
+	try {
+		const docs = path.join(f.installedRoot, 'documentation');
+		const group = path.join(docs, 'test');
+		const outside = path.join(f.root, 'outside');
+		fs.renameSync(group, outside);
+		fs.symlinkSync(outside, group, 'junction');
+		await f.actions.get('myself.documentation.open')('one');
+		fs.unlinkSync(group);
+		fs.renameSync(outside, group);
+		const article = path.join(group, 'one.html');
+		fs.renameSync(article, outside);
+		fs.symlinkSync(outside, article, 'file');
+		await f.actions.get('myself.documentation.open')('one');
+		fs.unlinkSync(article);
+		fs.writeFileSync(article, Buffer.alloc(maxDocumentBytes + 1));
+		await f.actions.get('myself.documentation.open')('one');
+		assert.equal(f.reader(), undefined);
+		assert.equal(f.notices.length, 3);
+
+		const remote = f.waitForTreeChange();
+		f.setInstalled({ ...uri(f.installedRoot + '/remote'), authority: 'server' });
+		await remote;
+		assert.deepEqual(f.provider.getChildren().map(group => group.id), ['imported']);
+		const catalog = path.join(docs, 'catalog.json');
+		const externalCatalog = path.join(f.root, 'outside.json');
+		fs.renameSync(catalog, externalCatalog);
+		fs.symlinkSync(externalCatalog, catalog, 'file');
+		f.setInstalled(uri(f.installedRoot));
+		await f.waitForTreeChange();
+		assert.deepEqual(f.provider.getChildren().map(group => group.id), ['imported']);
+		assert.deepEqual(f.notices.slice(3), Array(2).fill('The local documentation catalog could not be loaded.'));
+	} finally { f.dispose(); }
+});
+
+test('an update at the same path invalidates official search results but preserves personal selections', async () => {
+	const entry = { id: 'legacy', group: 'imported', title: 'Personal', file: 'imports/abc-def.md', source: '', format: 'text' };
+	let choose, choices;
+	const f = await fixture({
+		bundled: false, installed: true, imports: [entry],
+		quickPick: items => { choices = items; return new Promise(resolve => { choose = resolve; }); },
+	});
+	try {
+		f.files.set('/profile/' + entry.file, Buffer.from('# Personal'));
+		const search = () => f.actions.get('myself.documentation.search')();
+		const official = search();
+		const old = choices.find(item => item.label === 'One');
+		f.writeCatalog(f.installedRoot, 'Updated ');
+		f.setInstalled(uri(f.installedRoot), '2');
+		await f.waitForTreeChange();
+		assert.equal(f.provider.getChildren()[0].title, 'Updated Test');
+		choose(old);
+		await official;
+		assert.equal(f.reader(), undefined);
+
+		const personal = search();
+		const local = choices.find(item => item.label === 'Personal');
+		const removed = f.waitForTreeChange();
+		f.setInstalled(undefined);
+		await removed;
+		choose(local);
+		await personal;
+		await f.message({ type: 'ready' });
+		assert.equal(f.sent.at(-1).text, '# Personal');
+	} finally { f.dispose(); }
 });

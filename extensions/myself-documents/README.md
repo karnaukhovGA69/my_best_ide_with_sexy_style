@@ -17,7 +17,9 @@
 
 Откройте значок книги «Документация» в боковой панели. Выберите раздел и страницу; чтение открывается рядом с кодом. Кнопка поиска ищет по названиям, встроенный Find (`Ctrl/Cmd+F`) — по открытой странице. Оглавление переходит к заголовкам, Back возвращает предыдущий документ.
 
-Включены оригинальные английские материалы, снимок от 6 ноября 2026:
+Официальные английские материалы поставляются отдельно, в пакете `myself.offline-documentation`. Скачайте VSIX и выберите «Установить из VSIX…» в меню «Расширения». После включения пакета разделы появятся в библиотеке. Отключение или удаление пакета убирает официальные разделы. «Мои документы» и добавленные файлы сохраняются.
+
+В пакете содержится снимок от 6 ноября 2026:
 
 - Go: Language Specification, Effective Go, Memory Model.
 - Rust: The Rust Programming Language, The Rust Reference, Rust by Example (полные печатные версии).
@@ -52,7 +54,7 @@ Unit/provider tests проверяют Unicode, LF/CRLF, minimal edit, DTO, canc
 
 1. Добавить `myself-documents` в `distributionExtensions` в `build/lib/distributionExtensions.ts`; проверить соответствующие тесты allowlist.
 2. Добавить `extensions/myself-documents/tsconfig.json` и `extensions/myself-documents/webview/tsconfig.json` в список `compilations` в `build/gulpfile.extensions.ts` либо эквивалентный целевой build hook, вызывающий `pnpm --dir extensions/myself-documents run compile`. Расширение уже включено в allowlist и компиляции основного форка. Проверить наличие editor.js и library.js в out/webview, а также host entrypoint в упакованном расширении.
-3. Сохранить `out/**`, `media/**`, `l10n/**`, `documentation/**`, `package.json`, `package.nls*.json`; исключить `documentation/.downloads/**`. `.vscodeignore` исключает исходники и тесты. Общий packaging код не менялся; итоговый package проверяет интегратор.
+3. Сохранить `out/**`, `media/**`, `l10n/**`, `package.json` и `package.nls*.json`. `.vscodeignore` исключает `documentation/**`, исходники и тесты. Снимок из исходного дерева можно открыть при разработке. В готовой IDE он доступен после установки отдельного VSIX. Интегратор проверяет оба артефакта и цикл установки, отключения и удаления.
 4. Backend v1 уже зарегистрирован; новых IPC, зависимостей или изменений `product.json` расширению не нужно. Desktop-only MVP: отдельного web-extension entrypoint нет.
 5. В составе общего релизного пакета проверить пользовательский сценарий: New Document → ввод → Save As → reopen → undo/redo → PDF saved/cancel/error. Проверить реальные меню, CSP webview, загрузку локальных JS/CSS и русский язык, а также влияние host-команд Save/Undo на активную панель. Полную сборку ради отдельного изменения не запускать.
 

@@ -38,8 +38,15 @@ export function editorHtml(webview: vscode.Webview, media: vscode.Uri, scriptUri
 <div id="conflict" role="alert" hidden><p>${label('The file changed while you were typing. Your draft is kept below. Choose which version to use.')}</p>
 <button id="useFile">${label('Use File Version')}</button><button id="keepDraft">${label('Keep My Draft')}</button></div>
 <section class="find" aria-label="${label('Find in Document')}"><label for="query">${label('Find')}</label><input id="query" type="search"><button id="findNext">${label('Next Match')}</button></section>
+<div class="document-status">
+<span id="sync" role="status" aria-live="polite" data-saved="${label('Saved')}" data-dirty="${label('Unsaved Changes')}" data-pending="${label('Updating…')}" data-conflict="${label('Draft Needs Review')}">${label('Opening…')}</span>
+<div id="document-counts">
+<span>${label('Words:')} <span id="word-count">0</span></span>
+<span>${label('Characters with spaces:')} <span id="character-count">0</span></span>
+</div>
+</div>
 <main><div class="sheet"><textarea id="text" aria-label="${label('Document Text')}" aria-describedby="pageHelp" spellcheck="true" disabled></textarea></div></main>
-<footer><span id="sync" role="status" aria-live="polite" data-saved="${label('Saved')}" data-dirty="${label('Unsaved Changes')}" data-pending="${label('Updating…')}" data-conflict="${label('Draft Needs Review')}">${label('Opening…')}</span><span>${label('Plain text · Page settings are kept only in this editor')}</span></footer>
+<footer><span>${label('Plain text · Page settings are kept only in this editor')}</span></footer>
 <div id="notice" role="status" aria-live="polite"></div>
 <script nonce="${nonce}" src="${script}"></script></body></html>`;
 }

@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const { chromium } = require('@playwright/test');
+const { chromium, expect } = require('@playwright/test');
 const { loadWithVscode, viewApi, uri } = require('./helpers.cts');
 let server, browser, origin;
 const { editorHtml } = loadWithVscode('view.js', viewApi);
@@ -26,7 +26,7 @@ before(async () => {
 	browser = await chromium.launch({ headless: true });
 });
 after(async () => { await browser?.close(); await new Promise(resolve => server?.close(resolve)); });
-async function open(restored, forwardHistoryKeys = false) {
+async function open(restored, forwardHistoryKeys = false, initialText = 'а)1\n\nб)3') {
 	const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
 	await page.addInitScript(({ state, forwardHistoryKeys }) => {
 		window.messages = [];
@@ -45,7 +45,7 @@ async function open(restored, forwardHistoryKeys = false) {
 	await page.goto(origin);
 	await page.addStyleTag({ content: ':root { --vscode-foreground: #25282c; --vscode-sideBar-background: #f3f4f5; --vscode-editor-background: #fff; --vscode-editor-foreground: #25282c; --vscode-font-family: system-ui, sans-serif; --vscode-font-size: 13px; --vscode-descriptionForeground: #646a73; --vscode-input-foreground: #25282c; --vscode-input-background: #fff; --vscode-input-border: #c6cad0; --vscode-button-secondaryForeground: #25282c; --vscode-button-secondaryBackground: #e9ebee; --vscode-button-secondaryHoverBackground: #dce0e5; --vscode-button-foreground: #fff; --vscode-button-background: #2463bb; --vscode-button-hoverBackground: #19539f; --vscode-focusBorder: #2463bb; --vscode-panel-border: #d6d9de; }' });
 	await page.waitForFunction(() => window.messages.some(m => m.type === 'ready'));
-	await snapshot(page, { text: 'а)1\n\nб)3', version: 1, dirty: false, name: 'Essay.txt' });
+	await snapshot(page, { text: initialText, version: 1, dirty: false, name: 'Essay.txt' });
 	return page;
 }
 async function snapshot(page, value) {
@@ -53,6 +53,30 @@ async function snapshot(page, value) {
 	await page.waitForTimeout(20);
 }
 const messages = page => page.evaluate(() => window.messages);
+
+test('document counts follow typing, clipboard paste and deletion before any acknowledgement', async () => {
+	const page = await open(undefined, false, '');
+	try {
+		const text = page.locator('#text');
+		const counts = page.locator('#document-counts');
+		await expect(counts).toHaveText('Words: 0 Characters with spaces: 0');
+		await text.focus();
+		await page.keyboard.insertText('Привет');
+		await expect(counts).toHaveText('Words: 1 Characters with spaces: 6');
+		await page.keyboard.insertText(' мир');
+		await expect(counts).toHaveText('Words: 2 Characters with spaces: 10');
+
+		await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
+		await page.evaluate(() => navigator.clipboard.writeText('  cafe\u0301\n👩‍💻\t'));
+		await page.keyboard.press('ControlOrMeta+v');
+		assert.equal(await text.inputValue(), 'Привет мир  cafe\u0301\n👩‍💻\t');
+		await expect(counts).toHaveText('Words: 3 Characters with spaces: 19');
+		await page.keyboard.press('ControlOrMeta+a');
+		await page.keyboard.press('Backspace');
+		await expect(counts).toHaveText('Words: 0 Characters with spaces: 0');
+		assert.deepEqual((await messages(page)).map(message => message.type), ['ready', 'edit']);
+	} finally { await page.close(); }
+});
 
 test('fast typing survives delayed acknowledgements and export flushes the latest text', async () => {
 	const page = await open();
@@ -93,10 +117,12 @@ test('reload restores a pending draft and surfaces a conflict with changed disk 
 	const page = await open({ base: 'old text', draft: 'recovered draft', page: { size: 'A4', fontFamily: 'monospace', fontSizePt: 14, lineHeight: 1.8, marginMm: 15 } });
 	try {
 		assert.equal(await page.locator('#text').inputValue(), 'recovered draft');
+		await expect(page.locator('#document-counts')).toHaveText('Words: 2 Characters with spaces: 15');
 		assert.equal(await page.locator('#conflict').isVisible(), true);
 		assert.equal(await page.locator('#fontSize').inputValue(), '14');
 		await page.locator('#useFile').click();
 		assert.equal(await page.locator('#text').inputValue(), 'а)1\n\nб)3');
+		await expect(page.locator('#document-counts')).toHaveText('Words: 4 Characters with spaces: 8');
 		assert.equal((await messages(page)).some(m => m.type === 'edit'), false);
 	} finally { await page.close(); }
 });

@@ -17,6 +17,12 @@ function element<T extends HTMLElement>(id: string): T {
 	const vscode = acquireVsCodeApi();
 	const text = element<HTMLTextAreaElement>('text');
 	const sync = element<HTMLElement>('sync');
+	const wordCount = element<HTMLElement>('word-count');
+	const characterCount = element<HTMLElement>('character-count');
+	const locale = document.documentElement.lang || undefined;
+	const words = new Intl.Segmenter(locale, { granularity: 'word' });
+	const characters = new Intl.Segmenter(locale, { granularity: 'grapheme' });
+	const numberFormat = new Intl.NumberFormat(locale);
 	const notice = element<HTMLElement>('notice');
 	const conflictPanel = element<HTMLElement>('conflict');
 	const controls = [...document.querySelectorAll<HTMLButtonElement>('[data-action]')];
@@ -33,6 +39,8 @@ function element<T extends HTMLElement>(id: string): T {
 	let actionRunning = false;
 	let composing = false;
 	let numberedListEdit: { start: number; text: string } | undefined;
+	let countedText = '';
+	let countFrame: number | undefined;
 
 	function pageOptions(): PageOptions {
 		return { size: 'A4', fontFamily: fields.font.value as FontFamily, fontSizePt: Number(fields.size.value), lineHeight: Number(fields.leading.value), marginMm: Number(fields.margin.value) };
@@ -47,6 +55,26 @@ function element<T extends HTMLElement>(id: string): T {
 		text.style.height = 'auto';
 		text.style.height = `${text.scrollHeight}px`;
 	}
+	function renderCounts() {
+		countFrame = undefined;
+		const value = text.value;
+		if (value === countedText) {
+			return;
+		}
+		countedText = value;
+		let wordTotal = 0;
+		for (const segment of words.segment(value)) {
+			if (segment.isWordLike) {
+				wordTotal++;
+			}
+		}
+		let characterTotal = 0;
+		for (const _ of characters.segment(value)) {
+			characterTotal++;
+		}
+		wordCount.textContent = numberFormat.format(wordTotal);
+		characterCount.textContent = numberFormat.format(characterTotal);
+	}
 	function renderState() {
 		conflictPanel.hidden = !conflict;
 		const busy = actionRunning || Boolean(pendingAction);
@@ -55,6 +83,9 @@ function element<T extends HTMLElement>(id: string): T {
 			control.disabled = !initialized || conflict || busy || (control.dataset.action === 'export' && !validPage());
 		}
 		sync.textContent = (conflict ? sync.dataset.conflict : inFlight || text.value !== base ? sync.dataset.pending : dirty ? sync.dataset.dirty : sync.dataset.saved) || '';
+		if (text.value !== countedText && countFrame === undefined) {
+			countFrame = window.requestAnimationFrame(renderCounts);
+		}
 		persist();
 		resize();
 	}

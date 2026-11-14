@@ -104,6 +104,28 @@ test('updating Back availability preserves the rendered article and scroll posit
 	} finally { await page.close(); }
 });
 
+test('repeated Markdown headings keep unique anchors without rescanning previous suffixes', async () => {
+	const { page, errors } = await open();
+	try {
+		await page.evaluate(() => {
+			const has = Set.prototype.has;
+			window.anchorLookups = 0;
+			Set.prototype.has = function (id) {
+				if (typeof id === 'string' && id.startsWith('doc-')) { window.anchorLookups++; }
+				return has.call(this, id);
+			};
+		});
+		await show(page, `<p id="repeat-1">Existing anchor</p>\n\n${'## Repeat\n\n'.repeat(128)}<h2 id="repeat-4">Existing heading</h2>`, { format: 'markdown' });
+		const ids = await page.locator('#contents option').evaluateAll(nodes => nodes.map(node => node.value));
+		assert.deepEqual(ids.slice(0, 4), ['doc-repeat', 'doc-repeat-2', 'doc-repeat-3', 'doc-repeat-5']);
+		assert.equal(ids.at(-2), 'doc-repeat-129');
+		assert.equal(ids.at(-1), 'doc-repeat-4');
+		assert.equal(new Set(ids).size, ids.length);
+		assert.ok(await page.evaluate(() => window.anchorLookups <= 2 * document.querySelectorAll('#contents option').length));
+		assert.deepEqual(errors, []);
+	} finally { await page.close(); }
+});
+
 test('all five official sets render readable offline content with no external requests', async () => {
 	const catalog = JSON.parse(fs.readFileSync(path.join(root, 'documentation/catalog.json'), 'utf8'));
 	const files = ['go/go-spec.html', 'rust/rust-reference.html', 'postgresql/index.html', 'bash/bash.html', 'linux/open.2.html'];

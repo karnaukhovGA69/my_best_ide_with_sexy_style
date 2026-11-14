@@ -29,6 +29,7 @@ export const EXTENSION_INSTALL_SKIP_PUBLISHER_TRUST_CONTEXT = 'skipPublisherTrus
 export const EXTENSION_INSTALL_SOURCE_CONTEXT = 'extensionInstallSource';
 export const EXTENSION_INSTALL_DEP_PACK_CONTEXT = 'dependecyOrPackExtensionInstall';
 export const EXTENSION_INSTALL_CLIENT_TARGET_PLATFORM_CONTEXT = 'clientTargetPlatform';
+export const EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT = 'localVSIX';
 
 export const enum ExtensionInstallSource {
 	COMMAND = 'command',

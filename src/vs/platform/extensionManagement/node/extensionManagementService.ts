@@ -31,6 +31,7 @@ import {
 	Metadata, InstallOptions,
 	IProductVersion,
 	EXTENSION_INSTALL_CLIENT_TARGET_PLATFORM_CONTEXT,
+	EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT,
 	ExtensionSignatureVerificationCode,
 	computeSize,
 	IAllowedExtensionsService,
@@ -159,7 +160,16 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 				throw new Error(nls.localize('notAllowed', "This extension cannot be installed because {0}", allowedToInstall.value));
 			}
 
-			const results = await this.installExtensions([{ manifest, extension: location, options }]);
+			// Keep the original URL out of install events. The temporary file URI alone
+			// cannot distinguish a download from a local VSIX.
+			const results = await this.installExtensions([{
+				manifest,
+				extension: location,
+				options: {
+					...options,
+					context: { ...options.context, [EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT]: vsix.scheme === Schemas.file },
+				},
+			}]);
 			const result = results.find(({ identifier }) => areSameExtensions(identifier, { id: extensionId }));
 			if (result?.local) {
 				return result.local;
@@ -1173,7 +1183,7 @@ class InstallExtensionInProfileTask extends AbstractExtensionTask<ILocalExtensio
 			throw new ExtensionManagementError('Cannot find the installed extension', ExtensionManagementErrorCode.InstalledExtensionNotFound);
 		}
 
-		if (this.source instanceof URI) {
+		if (this.source instanceof URI && this.options.context?.[EXTENSION_INSTALL_LOCAL_VSIX_CONTEXT] === false) {
 			this.updateMetadata(local, token);
 		}
 

@@ -1,6 +1,7 @@
 {
   "Approximate page preview. PDF pagination may differ.": "Approximate page preview. PDF pagination may differ.",
   "Choose a .txt file to open as a document.": "Choose a .txt file to open as a document.",
+  "Characters with spaces:": "Characters with spaces:",
   "Document": "Document",
   "Document Actions": "Document Actions",
   "Document Text": "Document Text",
@@ -35,6 +36,7 @@
   "Untitled Document": "Untitled Document",
   "Updating…": "Updating…",
   "Use File Version": "Use File Version",
+  "Words:": "Words:",
   "Add to Local Library": "Add to Local Library",
   "Choose an article from the library.": "Choose an article from the library.",
   "No matches found.": "No matches found.",

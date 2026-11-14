@@ -33,6 +33,11 @@ test('bundled VSIX registers a working import, refresh and removal flow', { skip
 	assert.equal(manifest.capabilities.untrustedWorkspaces.supported, true);
 	assert.match(await fs.readFile(join(unpacked, 'extension.vsixmanifest'), 'utf8'), /TargetPlatform="darwin-arm64"/);
 	assert.match(await fs.readFile(join(unpacked, 'extension/ThirdPartyNotices.txt'), 'utf8'), /yauzl 3\.3\.1/);
+	const commandIds = ['importZip', 'refresh', 'remove'].map(command => 'myself.languageServers.' + command);
+	assert.deepEqual(manifest.contributes.commands.map(command => command.command).sort(), commandIds);
+	const bundle = await fs.readFile(join(unpacked, 'extension', manifest.main), 'utf8');
+	const runtimeHook = bundle.match(/stdio-server\.cts|nerded-lsp-stdio-fixture|\bchild_process\b|\bprocess\.(?:argv|env)\b/)?.[0];
+	assert.equal(runtimeHook, undefined, 'Unexpected process or test hook in the shipped VSIX');
 
 	const source = join(root, 'server.zip');
 	const zip = new ZipFile();
@@ -85,14 +90,16 @@ test('bundled VSIX registers a working import, refresh and removal flow', { skip
 	} finally {
 		Module._load = original;
 	}
-	for (const command of manifest.contributes.commands) {
-		assert.ok(commands.has(command.command));
-	}
+	assert.deepEqual([...commands.keys()].sort(), commandIds);
 	await commands.get('myself.languageServers.importZip')();
 	assert.deepEqual(choose, ['bin/fixture']);
 	const items = await provider.getChildren();
 	assert.equal(items.length, 1);
 	assert.equal(items[0].label, 'fixture');
+	const payload = join(storage, 'managed', items[0].installed.id, 'payload');
+	for (const file of ['bin/fixture', 'resource.txt']) {
+		assert.equal((await fs.stat(join(payload, file))).mode & 0o777, 0o600);
+	}
 	await commands.get('myself.languageServers.remove')(items[0]);
 	await commands.get('myself.languageServers.refresh')();
 	assert.deepEqual(await provider.getChildren(), []);

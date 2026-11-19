@@ -40,9 +40,10 @@
 Из корня форка, с его установленными зависимостями и версиями инструментов:
 
 ```sh
-pnpm --dir extensions/myself-documents run compile
 pnpm --dir extensions/myself-documents run test
 ```
+
+Для проверки только webview редактора и библиотеки: `pnpm --dir extensions/myself-documents run test-webview`. Обе команды сначала один раз компилируют расширение, затем запускают выбранные тесты; отдельный `compile` перед ними не нужен.
 
 Компилируются только host-код и webview этого расширения. Runtime-зависимостей нет. Тесты используют уже имеющиеся `node:test` и `@playwright/test`; Chromium должен быть установлен для Playwright. Новые package/lockfiles в корне не нужны. Исходники webview лежат в `webview/editor.ts`, результат — `out/webview/editor.js`; CSS находится в `media/editor.css`.
 

@@ -126,6 +126,7 @@ function element<T extends HTMLElement>(id: string): T {
 			return;
 		}
 		pendingAction = { action, directives: action === 'export' && pdfDirectives.checked };
+		renderState();
 		flush();
 	}
 	function enterConflict() {

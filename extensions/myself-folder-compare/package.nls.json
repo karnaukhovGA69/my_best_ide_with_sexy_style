@@ -1,0 +1,8 @@
+{
+	"displayName": "Folder Comparison",
+	"description": "Optional, explicit local folder comparison with bounded reads and read-only snapshot diffs.",
+	"compare": "Compare Two Folders…",
+	"category": "Folder Comparison",
+	"openDiff": "Open Snapshot Diff",
+	"view": "Folder Comparison"
+}

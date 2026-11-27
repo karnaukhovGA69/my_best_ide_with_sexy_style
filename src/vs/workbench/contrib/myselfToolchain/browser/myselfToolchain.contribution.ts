@@ -29,7 +29,7 @@ export function registerPythonInterpreterPickerAction(picker: Pick<PythonInterpr
 		constructor() {
 			super({
 				id: 'myself.project.setDefaultPythonInterpreter',
-				title: localize2('pickProjectPythonInterpreter', "Set Default Python Interpreter…"),
+				title: localize2('pickProjectPythonInterpreter', "Configure Project Python Interpreter…"),
 				icon: Codicon.settingsGear,
 				precondition: ContextKeyExpr.and(WorkspaceTrustContext.IsTrusted, RemoteNameContext.isEqualTo(''), WorkspaceFolderCountContext.notEqualsTo(0)),
 				f1: false,

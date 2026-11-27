@@ -18,9 +18,11 @@ import { IWorkspaceTrustManagementService } from '../../../../platform/workspace
 import { RemoteNameContext, WorkspaceFolderCountContext } from '../../../common/contextkeys.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { VIEW_ID } from '../../files/common/files.js';
 import { WorkspaceTrustContext } from '../../workspace/common/workspace.js';
+import { ClangdExecutablePicker, registerClangdExecutablePickerAction } from './clangdExecutablePicker.js';
 import { PythonInterpreterPicker } from './pythonInterpreterPicker.js';
 
 /** Expose the picker alongside Check Project and ignore caller-supplied paths or targets. */
@@ -57,6 +59,7 @@ class MyselfToolchainContribution extends Disposable {
 		@IDialogService dialogs: IDialogService,
 		@INotificationService notification: INotificationService,
 		@IWorkbenchEnvironmentService environment: IWorkbenchEnvironmentService,
+		@IExtensionService extensions: IExtensionService,
 		@ILifecycleService lifecycle: ILifecycleService,
 	) {
 		super();
@@ -65,6 +68,12 @@ class MyselfToolchainContribution extends Disposable {
 			isRemote: !!environment.remoteAuthority,
 		}));
 		this._register(registerPythonInterpreterPickerAction(picker));
+		const clangdPicker = this._register(new ClangdExecutablePicker({
+			context, trust, configuration, fileDialog, files, dialogs, notification,
+			registeredExtensions: () => extensions.extensions,
+			isRemote: !!environment.remoteAuthority,
+		}));
+		this._register(registerClangdExecutablePickerAction(clangdPicker));
 		this._register(lifecycle.onWillShutdown(() => this.dispose()));
 	}
 }

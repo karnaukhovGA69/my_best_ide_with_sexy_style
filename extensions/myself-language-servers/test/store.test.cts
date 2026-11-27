@@ -90,6 +90,7 @@ test('publishes the inspected Mach-O and its resource atomically, then removes o
 	const files = [[entry, binary], [resource, readme]];
 	const tuples = files.map(([name, bytes]) => [name, bytes.length, createHash('sha256').update(bytes).digest('hex')]);
 	assert.equal(installed.treeSha256, createHash('sha256').update(JSON.stringify(tuples)).digest('hex'));
+	assert.equal(await secondWindow.verify(installed.id), 'verified');
 	for (const [name, bytes] of files) {
 		assert.deepEqual(await fs.readFile(join(payload, name)), bytes);
 		assert.equal((await fs.stat(join(payload, name))).mode & 0o777, 0o600);

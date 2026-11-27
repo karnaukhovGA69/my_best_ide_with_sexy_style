@@ -1,0 +1,6 @@
+{
+  "displayName": "Local Data Preview",
+  "description": "Inspect local JSON and CSV files beside the editor.",
+  "preview": "Open Data Preview",
+  "category": "Data Preview"
+}

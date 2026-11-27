@@ -1,0 +1,18 @@
+{
+  "Data Preview supports input up to 1 MiB.": "Предпросмотр поддерживает входные данные объёмом до 1 МиБ.",
+  "The preview exceeds 512 KiB after formatting. Open a smaller file to preview it.": "Предпросмотр после форматирования превышает 512 КиБ. Откройте файл меньшего размера.",
+  "Data Preview could not read this file as strict JSON.": "Файл не удалось прочитать как строгий JSON.",
+  "Data Preview could not read this file as comma-separated CSV. Check the quoted fields.": "Файл не удалось прочитать как CSV с запятыми. Проверьте поля в кавычках.",
+  "CSV previews support up to {0} rows.": "В предпросмотре CSV поддерживается до {0} строк.",
+  "CSV previews support up to {0} columns per row.": "В предпросмотре CSV поддерживается до {0} столбцов в строке.",
+  "JSON previews support up to {0} nested object or array levels.": "В предпросмотре JSON поддерживается до {0} уровней вложенности объектов и массивов.",
+  "JSON previews support up to {0} values, including containers.": "В предпросмотре JSON поддерживается до {0} значений, включая объекты и массивы.",
+  "Open a local .json or .csv file in a text editor to preview it.": "Откройте локальный файл .json или .csv в текстовом редакторе.",
+  "Data Preview: {0}": "Предпросмотр данных: {0}",
+  "Snapshot of the editor. Open Data Preview again to refresh.": "Снимок редактора. Откройте предпросмотр снова, чтобы обновить данные.",
+  "Array": "Массив",
+  "Object": "Объект",
+  "Row": "Строка",
+  "The CSV document is empty.": "CSV-документ пуст.",
+  "The data preview could not be opened.": "Не удалось открыть предпросмотр данных."
+}

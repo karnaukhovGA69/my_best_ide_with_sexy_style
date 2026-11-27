@@ -75,11 +75,20 @@ suite('Myself IDE extension distribution', () => {
 		]);
 	});
 
-	test('keeps standalone data preview and language server packages out of the signed application', () => {
-		assert.strictEqual(isDistributionExtension('myself-data-preview'), false);
-		assert.strictEqual(isDistributionExtension('myself-language-servers'), false);
-		assert.strictEqual(isDistributionExtensionFile('myself-language-servers/dist/extension.js'), false);
-		assert.strictEqual(isDistributionExtensionFile('myself-data-preview/package.json'), false);
-		assert.strictEqual(isDistributionExtensionFile('myself-data-preview\\out\\extension.js'), false);
+	test('keeps standalone optional modules out of the signed application', () => {
+		const optionalExtensions = [
+			'myself-data-preview',
+			'myself-english-writing',
+			'myself-folder-compare',
+			'myself-http-client',
+			'myself-language-servers',
+			'myself-local-review',
+		];
+		assert.deepStrictEqual(optionalExtensions.filter(isDistributionExtension), []);
+		assert.deepStrictEqual(optionalExtensions.flatMap(name => [
+			`${name}/package.json`,
+			`${name}\\out\\extension.js`,
+			`${name}/dist/extension.js`,
+		]).filter(isDistributionExtensionFile), []);
 	});
 });

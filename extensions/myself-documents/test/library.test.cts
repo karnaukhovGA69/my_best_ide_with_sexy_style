@@ -81,3 +81,22 @@ test('case-distinct Linux manpages retain distinct original content and offline 
 		assert.match(fs.readFileSync(path.join(root, page(name).file), 'utf8'), /SYNOPSIS/);
 	}
 });
+
+test('context help topics resolve to articles and anchors in the packaged catalog', () => {
+	const { findContextHelp } = require('../out/libraryContextHelp.js');
+	const catalog = parseCatalog(fs.readFileSync(path.join(root, 'catalog.json'), 'utf8'));
+	const map = findContextHelp(catalog.entries, 'go', 'map');
+	assert.equal(map.entry.file, 'go/go-spec.html');
+	assert.equal(map.fragment, 'Map_types');
+	assert.match(fs.readFileSync(path.join(root, map.entry.file), 'utf8'), /<h3 id="Map_types">Map types<\/h3>/);
+	for (const [language, term, file] of [
+		['go', 'unknown', 'go/go-spec.html'],
+		['rust', 'unknown', 'rust/rust-reference.html'],
+		['sql', 'unknown', 'postgresql/index.html'],
+		['sql', 'SELECT', 'postgresql/sql-select.html'],
+		['sql', 'CREATE TABLE', 'postgresql/sql-createtable.html'],
+		['shellscript', 'unknown', 'bash/bash.html'],
+	]) {
+		assert.equal(findContextHelp(catalog.entries, language, term).entry.file, file);
+	}
+});

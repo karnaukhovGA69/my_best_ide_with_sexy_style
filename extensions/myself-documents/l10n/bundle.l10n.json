@@ -70,5 +70,8 @@
   "Search ended. Run it again for the current library.": "Search ended. Run it again for the current library.",
   "Documents that could not be searched: {0}.": "Documents that could not be searched: {0}.",
   "The official documentation catalog is unavailable.": "The official documentation catalog is unavailable.",
-  "Search Results": "Search Results"
+  "Search Results": "Search Results",
+  "Open a text editor to use local context help.": "Open a text editor to use local context help.",
+  "Local context help is available for Go, Rust, SQL and shell scripts.": "Local context help is available for Go, Rust, SQL and shell scripts.",
+  "Local documentation for this language is unavailable.": "Local documentation for this language is unavailable."
 }

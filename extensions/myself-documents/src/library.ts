@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { lstat, realpath } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { isRecord } from './document';
+import { contextHelpTerm, findContextHelp, hasContextHelp } from './libraryContextHelp';
 import { findLocalLink, LibraryCatalog, LibraryEntry, LibraryGroup, maxCatalogBytes, maxDocumentBytes, parseCatalog, readLocalDocument, readOfficialDocument, safeRelativeFile } from './libraryModel';
 import { readDocumentationFolder } from './libraryImport';
 import { maxSearchQueryLength, readSearchBatch } from './librarySearch';
@@ -44,6 +45,7 @@ export function registerLibrary(context: vscode.ExtensionContext): void {
 		vscode.window.registerWebviewViewProvider(readerViewId, library, { webviewOptions: { retainContextWhenHidden: true } }),
 		vscode.commands.registerCommand('myself.documentation.open', (id: string) => library.open(id)),
 		vscode.commands.registerCommand('myself.documentation.search', () => library.search()),
+		vscode.commands.registerCommand('myself.documentation.contextHelp', () => library.contextHelp()),
 		vscode.commands.registerCommand('myself.documentation.import', () => mutate(() => library.importFile())),
 		vscode.commands.registerCommand('myself.documentation.importFolder', () => mutate(() => library.importFolder())),
 		vscode.commands.registerCommand('myself.documentation.remove', (entry: LibraryEntry) => mutate(() => library.remove(entry))),
@@ -66,6 +68,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private sentBack: boolean | undefined;
 	private ready = false;
 	private generation = 0;
+	private contextHelpRequest = 0;
 	private disposed = false;
 	private history: LibraryEntry[] = [];
 	private searchSession: SearchSession | undefined;
@@ -167,6 +170,38 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 	}
 
+	async contextHelp(): Promise<void> {
+		if (this.disposed) { return; }
+		const request = ++this.contextHelpRequest;
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			void vscode.window.showInformationMessage(vscode.l10n.t('Open a text editor to use local context help.'));
+			return;
+		}
+		const { document, selection } = editor;
+		const { languageId, version } = document;
+		if (!hasContextHelp(languageId)) {
+			void vscode.window.showInformationMessage(vscode.l10n.t('Local context help is available for Go, Rust, SQL and shell scripts.'));
+			return;
+		}
+		const term = contextHelpTerm(editor);
+		const load = this.catalogLoad;
+		const generation = this.generation;
+		const isEditorCurrent = () => !this.disposed && request === this.contextHelpRequest && load === this.catalogLoad
+			&& vscode.window.activeTextEditor === editor && editor.document === document && document.version === version
+			&& document.languageId === languageId && editor.selection.anchor.isEqual(selection.anchor) && editor.selection.active.isEqual(selection.active);
+		await load;
+		if (!isEditorCurrent() || generation !== this.generation) { return; }
+
+		const catalog = this.catalog;
+		const target = catalog && findContextHelp(catalog.entries, languageId, term);
+		if (!target) {
+			void vscode.window.showInformationMessage(vscode.l10n.t('Local documentation for this language is unavailable.'));
+			return;
+		}
+		await this.open(target.entry.id, target.fragment, true, isEditorCurrent);
+	}
+
 	resolveWebviewView(reader: vscode.WebviewView): void {
 		if (this.disposed) { return; }
 		this.readerListeners?.dispose();
@@ -217,7 +252,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 	}
 
-	async open(id: string, fragment = '', addHistory = true): Promise<void> {
+	async open(id: string, fragment = '', addHistory = true, isSourceCurrent: () => boolean = () => true): Promise<void> {
 		if (this.disposed) { return; }
 		const imported = this.imports.find(entry => entry.id === id);
 		let catalog = this.catalog;
@@ -232,7 +267,8 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			entry = catalog?.entries.find(entry => entry.id === id);
 			if (!entry) { return; }
 		}
-		const isCurrent = () => generation === this.generation && (imported ? this.imports.includes(imported) : this.catalog === catalog);
+		const isCurrent = () => generation === this.generation && (imported ? this.imports.includes(imported) : this.catalog === catalog) && isSourceCurrent();
+		if (!isCurrent()) { return; }
 		try {
 			const text = await this.readEntry(entry, catalog);
 			if (!isCurrent()) { return; }

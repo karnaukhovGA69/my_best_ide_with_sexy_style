@@ -6,6 +6,7 @@
   "editor": "Document",
   "library.title": "Documentation",
   "library.reader": "Reader",
+  "library.contextHelp": "Local Context Help",
   "library.search": "Search Local Documentation",
   "library.import": "Add Local Document",
   "library.remove": "Remove from Library",

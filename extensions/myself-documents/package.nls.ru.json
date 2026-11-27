@@ -6,6 +6,7 @@
   "editor": "Документ",
   "library.title": "Документация",
   "library.reader": "Чтение",
+  "library.contextHelp": "Локальная справка по контексту",
   "library.search": "Поиск локальной документации",
   "library.import": "Добавить локальный документ",
   "library.remove": "Удалить из библиотеки",

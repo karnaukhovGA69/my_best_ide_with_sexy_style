@@ -73,5 +73,8 @@
   "Search ended. Run it again for the current library.": "Поиск завершён. Запустите его снова, чтобы проверить текущую библиотеку.",
   "Documents that could not be searched: {0}.": "Не удалось проверить документов: {0}.",
   "The official documentation catalog is unavailable.": "Каталог официальной документации недоступен.",
-  "Search Results": "Результаты поиска"
+  "Search Results": "Результаты поиска",
+  "Open a text editor to use local context help.": "Откройте текстовый редактор, чтобы воспользоваться локальной справкой.",
+  "Local context help is available for Go, Rust, SQL and shell scripts.": "Локальная справка по контексту доступна для Go, Rust, SQL и скриптов оболочки.",
+  "Local documentation for this language is unavailable.": "Локальная документация для этого языка недоступна."
 }

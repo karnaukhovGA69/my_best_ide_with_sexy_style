@@ -37,6 +37,11 @@
         "icon": "$(book)"
       },
       {
+        "command": "myself.documentation.contextHelp",
+        "title": "%library.contextHelp%",
+        "category": "Documentation"
+      },
+      {
         "command": "myself.documentation.search",
         "title": "%library.search%",
         "category": "Documentation",
@@ -89,6 +94,13 @@
           "command": "myself.documents.open",
           "when": "resourceExtname == .txt && !explorerResourceIsFolder",
           "group": "navigation@31"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "myself.documentation.contextHelp",
+          "when": "editorLangId == go || editorLangId == rust || editorLangId == sql || editorLangId == shellscript",
+          "group": "navigation@45"
         }
       ],
       "editor/title": [

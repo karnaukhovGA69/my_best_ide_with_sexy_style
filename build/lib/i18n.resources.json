@@ -701,6 +701,10 @@
 		{
 			"name": "vs/workbench/contrib/myselfProjectProcesses",
 			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfFileHistory",
+			"project": "vscode-workbench"
 		}
 	],
 	"sessions": [

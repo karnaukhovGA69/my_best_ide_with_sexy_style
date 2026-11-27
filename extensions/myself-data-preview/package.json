@@ -1,0 +1,51 @@
+{
+  "name": "myself-data-preview",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "myself",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.146.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "l10n": "./l10n",
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onCommand:myself.dataPreview.open"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "myself.dataPreview.open",
+        "title": "%preview%",
+        "category": "%category%",
+        "icon": "$(list-tree)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "myself.dataPreview.open",
+          "when": "resourceScheme == file && resourceExtname =~ /^\\.(json|csv)$/i && !activeCustomEditorId",
+          "group": "navigation@40"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-data-preview",
+    "test": "pnpm run compile && node --test test/*.test.cts"
+  }
+}

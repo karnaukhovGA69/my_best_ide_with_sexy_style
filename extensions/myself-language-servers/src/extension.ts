@@ -6,6 +6,7 @@
 import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { PackageBusyError, PackageStore, type InstalledPackage } from './store';
+import type { PackageVerificationResult } from './verification';
 
 const viewId = 'myself.languageServers.packages';
 
@@ -18,6 +19,29 @@ class PackageItem extends vscode.TreeItem {
 		this.contextValue = 'managedLanguageServerPackage';
 		this.iconPath = new vscode.ThemeIcon('package');
 	}
+}
+
+function showVerificationResult(result: PackageVerificationResult): void {
+	if (result === 'verified') {
+		void vscode.window.showInformationMessage(vscode.l10n.t('Stored files match the package checksum and the entry point has an ARM64 Mach-O executable header. Publisher, operating-system assessment, and permission to run are unverified.'));
+		return;
+	}
+	if (result === 'busy') {
+		void vscode.window.showInformationMessage(vscode.l10n.t('This package is busy. Try verifying it after the other operation finishes.'));
+		return;
+	}
+	const issues = {
+		'invalid-manifest': vscode.l10n.t('The stored package manifest is invalid.'),
+		'unexpected-layout': vscode.l10n.t('The package directory contains unexpected files.'),
+		'unsafe-entry': vscode.l10n.t('The package contains a link, special file, unsupported name, or non-private path.'),
+		'tree-mismatch': vscode.l10n.t('The stored checksum differs. Files may have been added, removed, or changed.'),
+		'invalid-entrypoint': vscode.l10n.t('The saved entry point is missing or has an unsupported executable header.'),
+		'limits-exceeded': vscode.l10n.t('The package exceeds the import limits for file size or count.'),
+		'path-encoding': vscode.l10n.t('The stored checksum differs. The original spelling of archive filenames cannot be confirmed on this filesystem.'),
+		'changed': vscode.l10n.t('The package changed during verification.'),
+		'unreadable': vscode.l10n.t('A stored package file could not be read.'),
+	};
+	void vscode.window.showErrorMessage(vscode.l10n.t('Could not verify the language server package. {0}', issues[result]));
 }
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -92,6 +116,36 @@ export function activate(context: vscode.ExtensionContext): void {
 			} catch (error) {
 				if (!controller.signal.aborted) {
 					void vscode.window.showErrorMessage(vscode.l10n.t('Could not import the language server ZIP. {0}', (error as Error).message));
+				}
+			}
+		}),
+		vscode.commands.registerCommand('myself.languageServers.verify', async (item?: PackageItem) => {
+			if (!(item instanceof PackageItem)) {
+				return;
+			}
+			const controller = new AbortController();
+			try {
+				const result = await vscode.window.withProgress({
+					location: vscode.ProgressLocation.Notification,
+					title: vscode.l10n.t('Verifying Language Server Package'),
+					cancellable: true,
+				}, async (_progress, token) => {
+					const cancellation = token.onCancellationRequested(() => controller.abort());
+					if (token.isCancellationRequested) {
+						controller.abort();
+					}
+					try {
+						return await store.verify(item.installed.id, controller.signal);
+					} finally {
+						cancellation.dispose();
+					}
+				});
+				if (!controller.signal.aborted) {
+					showVerificationResult(result);
+				}
+			} catch {
+				if (!controller.signal.aborted) {
+					showVerificationResult('unreadable');
 				}
 			}
 		}),

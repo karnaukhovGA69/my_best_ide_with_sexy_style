@@ -22,12 +22,13 @@
     "viewsWelcome": [
       {
         "view": "myself.languageServers.packages",
-        "contents": "Import a local ZIP containing a macOS ARM64 language server. Imported packages are shared across IDE profiles. Running them requires a separate verification step.\n[Import ZIP](command:myself.languageServers.importZip)"
+        "contents": "Import a local ZIP containing a macOS ARM64 language server. Imported packages are shared across IDE profiles. Running a package requires a separate publisher and operating-system assessment.\n[Import ZIP](command:myself.languageServers.importZip)"
       }
     ],
     "commands": [
       { "command": "myself.languageServers.importZip", "title": "Import Language Server ZIP", "icon": "$(add)" },
       { "command": "myself.languageServers.refresh", "title": "Refresh Language Server Packages", "icon": "$(refresh)" },
+      { "command": "myself.languageServers.verify", "title": "Verify Language Server Package", "icon": "$(check)" },
       { "command": "myself.languageServers.remove", "title": "Remove Language Server Package", "icon": "$(trash)" }
     ],
     "menus": {
@@ -36,9 +37,11 @@
         { "command": "myself.languageServers.refresh", "when": "view == myself.languageServers.packages", "group": "navigation@2" }
       ],
       "view/item/context": [
-        { "command": "myself.languageServers.remove", "when": "view == myself.languageServers.packages && viewItem == managedLanguageServerPackage", "group": "inline" }
+        { "command": "myself.languageServers.verify", "when": "view == myself.languageServers.packages && viewItem == managedLanguageServerPackage", "group": "inline@1" },
+        { "command": "myself.languageServers.remove", "when": "view == myself.languageServers.packages && viewItem == managedLanguageServerPackage", "group": "inline@2" }
       ],
       "commandPalette": [
+        { "command": "myself.languageServers.verify", "when": "false" },
         { "command": "myself.languageServers.remove", "when": "false" }
       ]
     }

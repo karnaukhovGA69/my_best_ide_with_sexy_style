@@ -14,9 +14,9 @@ import * as yauzl from 'yauzl';
 
 const MiB = 1024 * 1024;
 const zipLimit = 128 * MiB;
-const totalLimit = 512 * MiB;
-const fileLimit = 256 * MiB;
-const entryLimit = 4096;
+export const totalLimit = 512 * MiB;
+export const fileLimit = 256 * MiB;
+export const entryLimit = 4096;
 const depthLimit = 16;
 const dataDescriptorFlag = 1 << 3;
 const dataDescriptorSignature = 0x08074b50;
@@ -51,9 +51,19 @@ interface ArchiveEntry {
 	end: number;
 }
 
+export type TreeDigestEntry = [path: string, bytes: number, sha256: string];
+
 interface StagedArchive {
 	files: string[];
 	treeSha256: string;
+}
+
+export function computeTreeDigest(entries: TreeDigestEntry[]): StagedArchive {
+	entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+	return {
+		files: entries.map(([file]) => file),
+		treeSha256: createHash('sha256').update(JSON.stringify(entries)).digest('hex'),
+	};
 }
 
 export function isPortableArchivePath(relative: string): boolean {
@@ -173,7 +183,7 @@ async function validateDataDescriptor(snapshot: FileHandle, entry: ZipEntry, sta
 	throw new Error('ZIP data descriptor does not match its central directory.');
 }
 
-function registerPath(nodes: Map<string, { path: string; directory: boolean; explicit: boolean }>, relative: string, directory: boolean): void {
+export function registerArchivePath(nodes: Map<string, { path: string; directory: boolean; explicit: boolean }>, relative: string, directory: boolean): void {
 	const parts = relative.split('/');
 	for (let index = 0; index < parts.length; index++) {
 		const name = parts.slice(0, index + 1).join('/');
@@ -214,7 +224,7 @@ async function inspectZip(zip: ZipFile, snapshot: FileHandle, signal?: AbortSign
 			|| entry.extraFields.some(field => !extraFields.has(field.id))) {
 			throw new Error('Unsupported ZIP entry, path, or size.');
 		}
-		registerPath(nodes, relative, directory);
+		registerArchivePath(nodes, relative, directory);
 		const dataStart = await validateLocalHeader(zip, entry);
 		const dataEnd = dataStart + entry.compressedSize;
 		if (dataEnd > centralDirectoryStart) {
@@ -271,7 +281,7 @@ export async function extractZip(snapshot: string, destination: string, signal?:
 		} finally {
 			await handle.close();
 		}
-		const digestEntries: [string, number, string][] = [];
+		const digestEntries: TreeDigestEntry[] = [];
 		let total = 0;
 		for (const { entry, path: relative, directory } of entries) {
 			signal?.throwIfAborted();
@@ -309,11 +319,7 @@ export async function extractZip(snapshot: string, destination: string, signal?:
 				digestEntries.push([relative, bytes, hash.digest('hex')]);
 			}
 		}
-		digestEntries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-		result = {
-			files: digestEntries.map(([file]) => file),
-			treeSha256: createHash('sha256').update(JSON.stringify(digestEntries)).digest('hex'),
-		};
+		result = computeTreeDigest(digestEntries);
 	} finally {
 		zip.close();
 		await closed;
@@ -381,38 +387,43 @@ export async function isMacArm64Executable(path: string): Promise<boolean> {
 		if (!stat.isFile()) {
 			return false;
 		}
-		const header = await readHeader(handle, 0, 32);
-		if (!header) {
-			return false;
-		}
-		const magic = header.readUInt32BE(0);
-		if (magic !== 0xcafebabe && magic !== 0xcafebabf) {
-			return await isArm64ExecutableSlice(handle, 0, stat.size, header);
-		}
-		const fat64 = magic === 0xcafebabf;
-		const entrySize = fat64 ? 32 : 20;
-		const entries = header.readUInt32BE(4);
-		if (entries < 1 || entries > 32) {
-			return false;
-		}
-		const table = await readHeader(handle, 8, entries * entrySize);
-		if (!table) {
-			return false;
-		}
-		for (let index = 0; index < entries; index++) {
-			const base = index * entrySize;
-			if (table.readUInt32BE(base) !== cpuArm64) {
-				continue;
-			}
-			const offset = fat64 ? Number(table.readBigUInt64BE(base + 8)) : table.readUInt32BE(base + 8);
-			const size = fat64 ? Number(table.readBigUInt64BE(base + 16)) : table.readUInt32BE(base + 12);
-			if (offset >= 8 + table.length && size >= 32 && offset + size <= stat.size
-				&& await isArm64ExecutableSlice(handle, offset, size)) {
-				return true;
-			}
-		}
-		return false;
+		return await isMacArm64ExecutableHandle(handle, stat.size);
 	} finally {
 		await handle.close();
 	}
+}
+
+/** Reads the executable header from an already validated regular file. */
+export async function isMacArm64ExecutableHandle(handle: FileHandle, length: number): Promise<boolean> {
+	const header = await readHeader(handle, 0, 32);
+	if (!header) {
+		return false;
+	}
+	const magic = header.readUInt32BE(0);
+	if (magic !== 0xcafebabe && magic !== 0xcafebabf) {
+		return await isArm64ExecutableSlice(handle, 0, length, header);
+	}
+	const fat64 = magic === 0xcafebabf;
+	const entrySize = fat64 ? 32 : 20;
+	const entries = header.readUInt32BE(4);
+	if (entries < 1 || entries > 32) {
+		return false;
+	}
+	const table = await readHeader(handle, 8, entries * entrySize);
+	if (!table) {
+		return false;
+	}
+	for (let index = 0; index < entries; index++) {
+		const base = index * entrySize;
+		if (table.readUInt32BE(base) !== cpuArm64) {
+			continue;
+		}
+		const offset = fat64 ? Number(table.readBigUInt64BE(base + 8)) : table.readUInt32BE(base + 8);
+		const size = fat64 ? Number(table.readBigUInt64BE(base + 16)) : table.readUInt32BE(base + 12);
+		if (offset >= 8 + table.length && size >= 32 && offset + size <= length
+			&& await isArm64ExecutableSlice(handle, offset, size)) {
+			return true;
+		}
+	}
+	return false;
 }

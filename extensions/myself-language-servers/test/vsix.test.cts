@@ -18,7 +18,7 @@ const darwinArm64 = process.platform === 'darwin' && process.arch === 'arm64';
 const vsix = process.env.LANGUAGE_SERVERS_TEST_VSIX;
 const requireBuild = createRequire(resolve(__dirname, '../../../build/package.json'));
 
-test('bundled VSIX registers a working import, refresh and removal flow', { skip: !darwinArm64 || !vsix }, async t => {
+test('bundled VSIX registers a working import, verify, refresh and removal flow', { skip: !darwinArm64 || !vsix }, async t => {
 	const root = await fs.mkdtemp(join(tmpdir(), 'lsp-vsix-test-'));
 	t.after(() => fs.rm(root, { recursive: true, force: true }));
 	const unpacked = join(root, 'vsix');
@@ -33,7 +33,7 @@ test('bundled VSIX registers a working import, refresh and removal flow', { skip
 	assert.equal(manifest.capabilities.untrustedWorkspaces.supported, true);
 	assert.match(await fs.readFile(join(unpacked, 'extension.vsixmanifest'), 'utf8'), /TargetPlatform="darwin-arm64"/);
 	assert.match(await fs.readFile(join(unpacked, 'extension/ThirdPartyNotices.txt'), 'utf8'), /yauzl 3\.3\.1/);
-	const commandIds = ['importZip', 'refresh', 'remove'].map(command => 'myself.languageServers.' + command);
+	const commandIds = ['importZip', 'refresh', 'remove', 'verify'].map(command => 'myself.languageServers.' + command);
 	assert.deepEqual(manifest.contributes.commands.map(command => command.command).sort(), commandIds);
 	const bundle = await fs.readFile(join(unpacked, 'extension', manifest.main), 'utf8');
 	const runtimeHook = bundle.match(/stdio-server\.cts|nerded-lsp-stdio-fixture|\bchild_process\b|\bprocess\.(?:argv|env)\b/)?.[0];
@@ -55,6 +55,9 @@ test('bundled VSIX registers a working import, refresh and removal flow', { skip
 	const commands = new Map();
 	const errors = [];
 	const changes = [];
+	const messages = [];
+	let progressCalls = 0;
+	let cancelled = false;
 	const noOp = () => ({ dispose() {} });
 	const mock = {
 		TreeItem: class TreeItem { constructor(label) { this.label = label; } },
@@ -72,8 +75,11 @@ test('bundled VSIX registers a working import, refresh and removal flow', { skip
 			createOutputChannel: () => ({ ...noOp(), error: error => errors.push(error) }),
 			showOpenDialog: async () => [selection],
 			showQuickPick: async entries => { choose = entries; return entries[0]; },
-			withProgress: async (_options, run) => run(undefined, { isCancellationRequested: false, onCancellationRequested: noOp }),
-			showInformationMessage: async () => undefined,
+			withProgress: async (_options, run) => {
+				progressCalls++;
+				return run(undefined, { isCancellationRequested: cancelled, onCancellationRequested: noOp });
+			},
+			showInformationMessage: async message => { messages.push(message); },
 			showWarningMessage: async (_message, options, button) => {
 				assert.match(options.detail, /all IDE profiles/);
 				return button;
@@ -100,6 +106,23 @@ test('bundled VSIX registers a working import, refresh and removal flow', { skip
 	for (const file of ['bin/fixture', 'resource.txt']) {
 		assert.equal((await fs.stat(join(payload, file))).mode & 0o777, 0o600);
 	}
+	assert.equal(progressCalls, 1, 'Only the explicit import starts progress');
+	const verify = commands.get('myself.languageServers.verify');
+	await verify({ installed: items[0].installed });
+	assert.equal(progressCalls, 1, 'An ordinary command argument cannot select a package');
+	await verify(items[0]);
+	assert.match(messages.at(-1), /Stored files match the package checksum/);
+	assert.match(messages.at(-1), /Publisher, operating-system assessment, and permission to run are unverified/);
+	cancelled = true;
+	const messageCount = messages.length;
+	await verify(items[0]);
+	assert.equal(messages.length, messageCount);
+	assert.deepEqual(errors, []);
+	cancelled = false;
+	await fs.writeFile(join(payload, 'resource.txt'), 'changed');
+	await verify(items[0]);
+	assert.match(errors.pop(), /stored checksum differs/);
+	assert.equal(changes.length, 1, 'Verification does not refresh or write package state');
 	await commands.get('myself.languageServers.remove')(items[0]);
 	await commands.get('myself.languageServers.refresh')();
 	assert.deepEqual(await provider.getChildren(), []);

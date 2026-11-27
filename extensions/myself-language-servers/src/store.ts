@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { randomUUID } from 'node:crypto';
-import { constants } from 'node:fs';
-import { lstat, mkdir, mkdtemp, open, readdir, rename, rm, rmdir, writeFile } from 'node:fs/promises';
+import { constants, type BigIntStats } from 'node:fs';
+import { lstat, mkdir, mkdtemp, open, opendir, readdir, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join } from 'node:path';
 import { extractZip, isMacArm64Executable, isPortableArchivePath, snapshotZip } from './archive';
 import { tryAcquireLease } from './lease';
+import { assertPrivateDirectory, assertRegularPackageFile, assertUnchanged, PackageVerificationError, verifyPackageTree, type PackageVerificationResult } from './verification';
 
 const packageId = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const digest = /^[0-9a-f]{64}$/;
@@ -45,6 +46,39 @@ function isInstalledPackage(value: unknown, id: string): value is InstalledPacka
 		&& typeof manifest.entryRelative === 'string' && isPortableArchivePath(manifest.entryRelative)
 		&& typeof manifest.archiveSha256 === 'string' && digest.test(manifest.archiveSha256)
 		&& typeof manifest.treeSha256 === 'string' && digest.test(manifest.treeSha256);
+}
+
+async function readManifest(path: string, id: string, expected?: BigIntStats): Promise<InstalledPackage | undefined> {
+	const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+	try {
+		const stat = await handle.stat({ bigint: true });
+		if (expected) {
+			assertUnchanged(expected, stat);
+		}
+		if (!stat.isFile() || stat.nlink !== 1n || stat.size > BigInt(manifestSizeLimit)) {
+			return undefined;
+		}
+		const buffer = Buffer.alloc(manifestSizeLimit + 1);
+		let offset = 0;
+		while (offset < buffer.length) {
+			const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
+			if (!bytesRead) {
+				break;
+			}
+			offset += bytesRead;
+		}
+		if (expected) {
+			assertUnchanged(expected, await handle.stat({ bigint: true }));
+			assertUnchanged(expected, await lstat(path, { bigint: true }));
+		}
+		if (BigInt(offset) !== stat.size) {
+			return undefined;
+		}
+		const manifest: unknown = JSON.parse(buffer.toString('utf8', 0, offset));
+		return isInstalledPackage(manifest, id) ? manifest : undefined;
+	} finally {
+		await handle.close();
+	}
 }
 
 function fileWasRemoved(error: unknown): boolean {
@@ -173,34 +207,20 @@ export class PackageStore {
 			if (!(await lstat(payload)).isDirectory()) {
 				return undefined;
 			}
-			const handle = await open(join(directory, manifestName), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
-			try {
-				const stat = await handle.stat();
-				if (!stat.isFile() || stat.nlink !== 1 || stat.size > manifestSizeLimit) {
-					return undefined;
-				}
-				const buffer = Buffer.alloc(manifestSizeLimit + 1);
-				const { bytesRead } = await handle.read(buffer);
-				if (bytesRead !== stat.size) {
-					return undefined;
-				}
-				const manifest: unknown = JSON.parse(buffer.toString('utf8', 0, bytesRead));
-				if (!isInstalledPackage(manifest, id)) {
-					return undefined;
-				}
-				let target = payload;
-				const segments = manifest.entryRelative.split('/');
-				for (let index = 0; index < segments.length; index++) {
-					target = join(target, segments[index]);
-					const entry = await lstat(target);
-					if (index === segments.length - 1 ? !entry.isFile() : !entry.isDirectory()) {
-						return undefined;
-					}
-				}
-				return manifest;
-			} finally {
-				await handle.close();
+			const manifest = await readManifest(join(directory, manifestName), id);
+			if (!manifest) {
+				return undefined;
 			}
+			let target = payload;
+			const segments = manifest.entryRelative.split('/');
+			for (let index = 0; index < segments.length; index++) {
+				target = join(target, segments[index]);
+				const entry = await lstat(target);
+				if (index === segments.length - 1 ? !entry.isFile() : !entry.isDirectory()) {
+					return undefined;
+				}
+			}
+			return manifest;
 		} catch (error) {
 			if (!fileWasRemoved(error) && (error as NodeJS.ErrnoException)?.code !== 'ELOOP' && !(error instanceof SyntaxError)) {
 				throw error;
@@ -223,6 +243,55 @@ export class PackageStore {
 			return await operation();
 		} finally {
 			await lease.close();
+		}
+	}
+
+	async verify(id: string, signal?: AbortSignal): Promise<PackageVerificationResult> {
+		try {
+			signal?.throwIfAborted();
+			if (!packageId.test(id)) {
+				return 'invalid-manifest';
+			}
+			return await this.withPackageLease(id, async () => {
+				signal?.throwIfAborted();
+				const installation = join(this.root, id);
+				const initial = await lstat(installation, { bigint: true });
+				assertPrivateDirectory(initial);
+				for await (const item of await opendir(installation)) {
+					signal?.throwIfAborted();
+					if (item.name !== manifestName && item.name !== 'payload') {
+						return 'unexpected-layout';
+					}
+				}
+				assertUnchanged(initial, await lstat(installation, { bigint: true }));
+
+				const path = join(installation, manifestName);
+				const manifestStat = await lstat(path, { bigint: true });
+				assertRegularPackageFile(manifestStat);
+				const manifest = await readManifest(path, id, manifestStat);
+				if (!manifest || Object.keys(manifest).length !== 7) {
+					return 'invalid-manifest';
+				}
+				const result = await verifyPackageTree(join(installation, 'payload'), manifest.entryRelative, manifest.treeSha256, signal);
+				if (result === 'verified') {
+					assertUnchanged(manifestStat, await lstat(path, { bigint: true }));
+					assertUnchanged(initial, await lstat(installation, { bigint: true }));
+				}
+				signal?.throwIfAborted();
+				return result;
+			});
+		} catch (error) {
+			signal?.throwIfAborted();
+			if (error instanceof PackageBusyError) {
+				return 'busy';
+			}
+			if (error instanceof PackageVerificationError) {
+				return error.result;
+			}
+			if (error instanceof SyntaxError) {
+				return 'invalid-manifest';
+			}
+			return (error as NodeJS.ErrnoException)?.code === 'ELOOP' ? 'unsafe-entry' : 'unreadable';
 		}
 	}
 

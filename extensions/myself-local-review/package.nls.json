@@ -1,0 +1,16 @@
+{
+  "displayName": "Nerded Code Local Review",
+  "description": "Keep code review notes and a checklist in this workspace.",
+  "view": "Local Review",
+  "welcome": "Right-click a selection in a local file to add a note. Use the plus button to add a checklist item.",
+  "open": "Open Local Review",
+  "addNote": "Add Local Review Note…",
+  "openNote": "Open Review Note",
+  "editNote": "Edit Review Note…",
+  "resolveNote": "Resolve Review Note",
+  "reopenNote": "Reopen Review Note",
+  "deleteNote": "Delete Review Note…",
+  "addCheck": "Add Review Checklist Item…",
+  "toggleCheck": "Toggle Checklist Item",
+  "deleteCheck": "Delete Checklist Item…"
+}

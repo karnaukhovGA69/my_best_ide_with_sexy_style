@@ -1,0 +1,76 @@
+{
+  "name": "myself-local-review",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "myself",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": { "vscode": "^1.95.0" },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": true },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "views": {
+      "explorer": [
+        { "id": "myself.localReview", "name": "%view%", "visibility": "collapsed" }
+      ]
+    },
+    "viewsWelcome": [
+      { "view": "myself.localReview", "contents": "%welcome%" }
+    ],
+    "commands": [
+      { "command": "myself.localReview.open", "title": "%open%" },
+      { "command": "myself.localReview.addNote", "title": "%addNote%", "icon": "$(comment)" },
+      { "command": "myself.localReview.openNote", "title": "%openNote%" },
+      { "command": "myself.localReview.editNote", "title": "%editNote%" },
+      { "command": "myself.localReview.resolveNote", "title": "%resolveNote%" },
+      { "command": "myself.localReview.reopenNote", "title": "%reopenNote%" },
+      { "command": "myself.localReview.deleteNote", "title": "%deleteNote%" },
+      { "command": "myself.localReview.addCheck", "title": "%addCheck%", "icon": "$(add)" },
+      { "command": "myself.localReview.toggleCheck", "title": "%toggleCheck%" },
+      { "command": "myself.localReview.deleteCheck", "title": "%deleteCheck%" }
+    ],
+    "menus": {
+      "explorer/context": [
+        { "command": "myself.localReview.open", "when": "resourceScheme == file", "group": "navigation@32" }
+      ],
+      "editor/context": [
+        { "command": "myself.localReview.addNote", "when": "resourceScheme == file", "group": "navigation@32" }
+      ],
+      "view/title": [
+        { "command": "myself.localReview.addNote", "when": "view == myself.localReview", "group": "navigation@0" },
+        { "command": "myself.localReview.addCheck", "when": "view == myself.localReview", "group": "navigation@1" }
+      ],
+      "view/item/context": [
+        { "command": "myself.localReview.editNote", "when": "view == myself.localReview && viewItem =~ /^localReviewNote/" },
+        { "command": "myself.localReview.resolveNote", "when": "view == myself.localReview && viewItem == localReviewNoteOpen" },
+        { "command": "myself.localReview.reopenNote", "when": "view == myself.localReview && viewItem == localReviewNoteResolved" },
+        { "command": "myself.localReview.deleteNote", "when": "view == myself.localReview && viewItem =~ /^localReviewNote/" },
+        { "command": "myself.localReview.toggleCheck", "when": "view == myself.localReview && viewItem == localReviewCheck" },
+        { "command": "myself.localReview.deleteCheck", "when": "view == myself.localReview && viewItem == localReviewCheck" }
+      ],
+      "comments/commentThread/title": [
+        { "command": "myself.localReview.editNote", "when": "commentThread =~ /^localReviewNote/" },
+        { "command": "myself.localReview.resolveNote", "when": "commentThread == localReviewNoteOpen" },
+        { "command": "myself.localReview.reopenNote", "when": "commentThread == localReviewNoteResolved" },
+        { "command": "myself.localReview.deleteNote", "when": "commentThread =~ /^localReviewNote/" }
+      ],
+      "commandPalette": [
+        { "command": "myself.localReview.openNote", "when": "false" },
+        { "command": "myself.localReview.editNote", "when": "false" },
+        { "command": "myself.localReview.resolveNote", "when": "false" },
+        { "command": "myself.localReview.reopenNote", "when": "false" },
+        { "command": "myself.localReview.deleteNote", "when": "false" },
+        { "command": "myself.localReview.toggleCheck", "when": "false" },
+        { "command": "myself.localReview.deleteCheck", "when": "false" }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-local-review",
+    "test": "pnpm run compile && node --test test/*.test.cjs"
+  }
+}

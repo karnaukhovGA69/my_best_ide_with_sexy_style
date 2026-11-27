@@ -10,7 +10,7 @@ import { isRecord } from './document';
 import { contextHelpTerm, findContextHelp, hasContextHelp } from './libraryContextHelp';
 import { findLocalLink, isLibraryTextEntry, LibraryCatalog, LibraryEntry, LibraryGroup, LibraryTextEntry, maxCatalogBytes, maxDocumentBytes, parseCatalog, readLocalDocument, readOfficialDocument, safeRelativeFile } from './libraryModel';
 import { readDocumentationFolder } from './libraryImport';
-import { pdfCopyFile, readSelectedPdf, removePdfCopy, storePdfCopy } from './libraryPdf';
+import { isPdfCopyDigest, pdfCopyDigest, pdfCopyFile, readSelectedPdf, removePdfCopy, storePdfCopy } from './libraryPdf';
 import { maxSearchQueryLength, readSearchBatch } from './librarySearch';
 import { libraryHtml } from './libraryView';
 
@@ -93,7 +93,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			if (entry?.group !== 'imported' || typeof entry.file !== 'string' || !safeRelativeFile(entry.file)
 				|| typeof entry.id !== 'string' || typeof entry.title !== 'string') { return false; }
 			if (entry.format === 'pdf') {
-				return entry.file === pdfCopyFile(entry.id) && entry.source === '' && entry.collection === undefined;
+				return entry.file === pdfCopyFile(entry.id) && entry.source === '' && entry.collection === undefined && isPdfCopyDigest(entry.sha256);
 			}
 			return /^imports\/[a-f0-9-]+\.(html|md|txt)$/.test(entry.file)
 				&& (entry.collection === undefined || (typeof entry.collection === 'string' && /^[a-f0-9-]+$/.test(entry.collection) && typeof entry.importPath === 'string' && safeRelativeFile(entry.importPath)))
@@ -553,7 +553,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			const file = pdfCopyFile(id)!;
 			rollback = await storePdfCopy(storage.fsPath, file, bytes, () => this.disposed);
 			if (this.disposed) { return; }
-			const entry: LibraryEntry = { id, group: 'imported', title: path.basename(selected.fsPath), file, source: '', format: 'pdf' };
+			const entry: LibraryEntry = { id, group: 'imported', title: path.basename(selected.fsPath), file, source: '', format: 'pdf', sha256: pdfCopyDigest(bytes) };
 			const entries = [...this.imports, entry];
 			await this.context.globalState.update('documentation.imports', entries);
 			rollback = undefined;
@@ -632,7 +632,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			try {
 				const storage = this.context.globalStorageUri;
 				if (storage.scheme !== 'file' || storage.authority) { throw new Error('PDF library requires local storage'); }
-				await removePdfCopy(storage.fsPath, entry.file);
+				await removePdfCopy(storage.fsPath, entry.file, entry.sha256);
 			} catch {
 				// Preserve the registration when its copy cannot be deleted.
 				try {

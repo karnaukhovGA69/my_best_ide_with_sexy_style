@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 const { test } = require('node:test');
+const { createHash } = require('node:crypto');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const localFs = require('node:fs/promises');
@@ -1199,6 +1200,7 @@ test('an explicitly imported PDF is listed, keeps its bytes and never enters the
 		assert.deepEqual([entry.group, entry.format, entry.title, entry.source], ['imported', 'pdf', 'Synthetic.PDF', '']);
 		assert.match(entry.id, /^[a-f0-9-]{36}$/);
 		assert.equal(entry.file, `pdf-imports/${entry.id}.pdf`);
+		assert.equal(entry.sha256, createHash('sha256').update(pdfFixture).digest('hex'));
 		assert.deepEqual(fs.readFileSync(copy), pdfFixture);
 		assert.deepEqual(fs.readFileSync(original), pdfFixture);
 		assert.deepEqual(f.dialogOptions, [{
@@ -1346,9 +1348,10 @@ test('a PDF copy replaced by a symlink is rejected for removal and its registrat
 
 test('the library restores only registered PDF entries with managed copy paths', async () => {
 	const id = '09f83155-38a9-4e78-a20f-99cb8dd22f40';
-	const entry = { id, format: 'pdf', group: 'imported', title: 'Document.pdf', file: `pdf-imports/${id}.pdf`, source: '' };
+	const entry = { id, format: 'pdf', group: 'imported', title: 'Document.pdf', file: `pdf-imports/${id}.pdf`, source: '', sha256: createHash('sha256').update(pdfFixture).digest('hex') };
 	const f = await fixture({ imports: [
 		entry,
+		{ ...entry, sha256: undefined },
 		{ ...entry, id: 'another', file: 'imports/abc.pdf' },
 		{ ...entry, id: 'mismatch', file: entry.file },
 		{ ...entry, id: 'remote', source: 'https://outside.invalid/original.pdf' },
@@ -1378,3 +1381,39 @@ test('a failed PDF removal registration update leaves the confirmed copy intact'
 		assert.deepEqual(f.notices, ['The imported PDF copy could not be removed.']);
 	} finally { f.dispose(); }
 });
+
+for (const timing of ['before', 'during']) {
+	test(`normal Remove preserves a regular PDF replacement ${timing} confirmation`, async () => {
+		const entered = deferred(), release = deferred();
+		const f = await fixture({ confirmPdfRemoval: async button => {
+			entered.resolve();
+			if (timing === 'during') { await release.promise; }
+			return button;
+		} });
+		try {
+			const original = writePdfFixture(f);
+			f.select([uri(original)]);
+			await f.actions.get('myself.documentation.importPdf')();
+			const [entry] = f.state.imports;
+			const copy = path.join(f.root, 'profile', entry.file);
+			const replacement = Buffer.from(pdfFixture);
+			replacement[replacement.indexOf('fixture')] = 0x52;
+			const replace = () => {
+				fs.renameSync(copy, copy + '.saved');
+				fs.writeFileSync(copy, replacement);
+			};
+			if (timing === 'before') { replace(); }
+			const removing = f.actions.get('myself.documentation.remove')(entry);
+			await entered.promise;
+			if (timing === 'during') { replace(); }
+			release.resolve();
+			await removing;
+			assert.equal(fs.existsSync(copy), true);
+			assert.deepEqual(fs.readFileSync(copy), replacement);
+			assert.deepEqual(fs.readFileSync(copy + '.saved'), pdfFixture);
+			assert.deepEqual(fs.readFileSync(original), pdfFixture);
+			assert.deepEqual(f.state.imports, [entry]);
+			assert.deepEqual(f.notices, ['The imported PDF copy could not be removed.']);
+		} finally { release.resolve(); f.dispose(); }
+	});
+}

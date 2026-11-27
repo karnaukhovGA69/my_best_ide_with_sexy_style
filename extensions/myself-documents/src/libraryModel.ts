@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { constants } from 'node:fs';
+import { constants, type Stats } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
@@ -13,6 +13,7 @@ export interface LibraryEntry {
 	file: string;
 	source: string;
 	format: 'html' | 'markdown' | 'text' | 'pdf';
+	sha256?: string;
 	selector?: string;
 	collection?: string;
 	collectionTitle?: string;
@@ -61,7 +62,7 @@ export function parseCatalog(text: string): LibraryCatalog {
 }
 
 /** Reads a bounded regular file under a canonical directory, rejecting linked paths and changed files. */
-export async function readLocalBytes(root: string, file: string, limit: number): Promise<Buffer> {
+export async function readLocalSnapshot(root: string, file: string, limit: number): Promise<{ bytes: Buffer; stat: Stats }> {
 	if (!safeRelativeFile(file)) { throw new Error('Invalid documentation path'); }
 	const target = path.join(root, file);
 	const checkPath = async () => {
@@ -89,10 +90,14 @@ export async function readLocalBytes(root: string, file: string, limit: number):
 		}
 		if (length !== stat.size) { throw new Error('Documentation file changed'); }
 		await checkHandlePath();
-		return buffer.subarray(0, length);
+		return { bytes: buffer.subarray(0, length), stat };
 	} finally {
 		await handle.close();
 	}
+}
+
+export async function readLocalBytes(root: string, file: string, limit: number): Promise<Buffer> {
+	return (await readLocalSnapshot(root, file, limit)).bytes;
 }
 
 export async function readLocalDocument(root: string, file: string, limit: number): Promise<string> {

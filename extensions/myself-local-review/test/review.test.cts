@@ -2,7 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
@@ -105,13 +104,6 @@ function fixture() {
 	const vscode = {
 		Uri, Range, EventEmitter,
 		l10n: { t: (message, ...args) => message.replace(/\{(\d+)\}/g, (_match, index) => String(args[index])) },
-		MarkdownString: class {
-			appendCodeblock(value, language) {
-				this.text = value;
-				this.language = language;
-				return this;
-			}
-		},
 		TreeItem: class {
 			constructor(label) { this.label = label; }
 		},
@@ -229,13 +221,19 @@ test('comment text renders literally and cancellation does not persist or delete
 	try {
 		await f.invoke('addNote');
 		assert.strictEqual(f.writes, 0);
-		const text = '[Example](command:sample) ![Image](https://example.invalid/picture) <b>literal</b>';
+		const text = [
+			'Before',
+			'   ```',
+			'[Example](command:sample) ![Image](https://example.invalid/picture) <b>literal</b> $(zap)',
+			'```',
+			'After',
+		].join('\n');
 		f.input.push(text);
 		await f.invoke('addNote');
 		const [thread] = f.threads;
 		const body = thread.comments[0].body;
-		assert.deepStrictEqual([body.text, body.language, body.isTrusted, body.supportHtml, body.supportThemeIcons],
-			[text, 'plaintext', false, false, false]);
+		assert.strictEqual(typeof body, 'string');
+		assert.strictEqual(body, text);
 		await f.invoke('resolveNote', thread);
 		assert.strictEqual(f.stored.notes[0].resolved, true);
 		await f.invoke('reopenNote', thread);

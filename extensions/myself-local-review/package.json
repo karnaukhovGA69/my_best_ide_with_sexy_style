@@ -71,6 +71,6 @@
   },
   "scripts": {
     "compile": "pnpm -C ../.. exec tsc -p extensions/myself-local-review",
-    "test": "pnpm run compile && node --test test/*.test.cjs"
+    "test": "pnpm run compile && node --experimental-strip-types --test test/*.test.cts"
   }
 }

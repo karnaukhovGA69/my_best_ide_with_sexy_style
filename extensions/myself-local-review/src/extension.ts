@@ -19,15 +19,6 @@ interface RenderedNote {
 	readonly revision: string;
 }
 
-function plainBody(text: string): vscode.MarkdownString {
-	const body = new vscode.MarkdownString();
-	body.isTrusted = false;
-	body.supportHtml = false;
-	body.supportThemeIcons = false;
-	body.appendCodeblock(text, 'plaintext');
-	return body;
-}
-
 function plainLabel(text: string): string {
 	return text.replace(/\s+/gu, ' ').replace(/\$\(/g, '\\$(');
 }
@@ -181,7 +172,7 @@ class LocalReview implements vscode.TreeDataProvider<ReviewNode>, vscode.Disposa
 				continue;
 			}
 			const comment: vscode.Comment = {
-				body: plainBody(note.body),
+				body: note.body,
 				mode: vscode.CommentMode.Preview,
 				author: { name: vscode.l10n.t('Local Review') },
 			};

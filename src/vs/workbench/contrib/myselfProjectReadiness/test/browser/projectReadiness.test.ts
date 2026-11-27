@@ -40,7 +40,7 @@ suite('Project readiness UI', () => {
 		return new WorkspaceFolder({ uri: URI.file(isWindows ? `C:${path}` : path), name, index });
 	}
 
-	function registerBasedPyrightSetting(extensionId = 'detachhead.basedpyright'): void {
+	function registerBasedPyrightSetting(extensionId = 'detachhead.basedpyright') {
 		const registry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
 		const definition: IConfigurationNode = {
 			id: 'python',
@@ -48,7 +48,7 @@ suite('Project readiness UI', () => {
 			properties: { [basedPyrightPythonPathKey]: { scope: ConfigurationScope.RESOURCE, type: 'string', default: 'python' } },
 		};
 		registry.registerConfiguration(definition);
-		store.add({ dispose: () => registry.deregisterConfigurations([definition]) });
+		return store.add({ dispose: () => registry.deregisterConfigurations([definition]) });
 	}
 
 	function fixture(statMarker: (resource: URI) => Promise<FileType> = async () => FileType.Unknown, initialFolders = [first], withProvider = true, isRemote = false) {
@@ -257,6 +257,27 @@ suite('Project readiness UI', () => {
 		state.basedPyrightSettings.set(first.uri, { value: 'private', userValue: 'private' });
 		await state.dialog.run();
 		assert.deepStrictEqual(state.basedPyrightInspected, []);
+		assert.doesNotMatch(state.detail(), /BasedPyright|private/);
+	});
+
+	test('omits the BasedPyright observation if ownership changes while metadata is pending', async () => {
+		const registration = registerBasedPyrightSetting();
+		const started = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const state = fixture(async () => {
+			void started.complete();
+			await release.p;
+			return FileType.File;
+		});
+		state.basedPyrightSettings.set(first.uri, { value: 'private', userValue: 'private' });
+		const checking = state.dialog.run();
+		await started.p;
+		assert.deepStrictEqual(state.basedPyrightInspected, [first.uri.toString()]);
+		registration.dispose();
+		registerBasedPyrightSetting('unrelated.extension');
+		await release.complete();
+		await checking;
+		assert.match(state.detail(), /pyproject\.toml — Found/);
 		assert.doesNotMatch(state.detail(), /BasedPyright|private/);
 	});
 

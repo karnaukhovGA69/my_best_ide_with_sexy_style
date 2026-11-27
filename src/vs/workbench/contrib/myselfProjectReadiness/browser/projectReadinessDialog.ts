@@ -16,7 +16,7 @@ import type { IFileService } from '../../../../platform/files/common/files.js';
 import type { IWorkspaceContextService, IWorkspaceFolderData } from '../../../../platform/workspace/common/workspace.js';
 import type { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { evaluateProjectReadiness } from '../common/projectReadiness.js';
-import { basedPyrightPythonPathKey, collectProjectReadiness, pythonInterpreterKey } from './projectReadinessCollector.js';
+import { basedPyrightPythonPathKey, collectProjectReadiness, hasBasedPyrightPythonPath, pythonInterpreterKey } from './projectReadinessCollector.js';
 
 type Readiness = ReturnType<typeof evaluateProjectReadiness>;
 type LocalAssessment = Extract<Readiness['folders'][number], { kind: 'local' }>;
@@ -67,6 +67,9 @@ function describeReadiness(result: Readiness, roots: readonly IWorkspaceFolderDa
 		'wrong-type': localize('markerWrongType', "Unexpected type"),
 		'unverified-link': localize('markerLink', "Symbolic link, target unverified"),
 	};
+	// The registered setting can change while the provider checks markers.
+	const showBasedPyright = result.folders.some(folder => folder.kind === 'local' && folder.python.basedPyright)
+		&& hasBasedPyrightPythonPath();
 	const byRoot = new Map(result.folders.map(assessment => [assessment.folder, assessment]));
 	for (const { uri, name } of roots) {
 		const label = folderLabel(name) || localize('projectReadinessFolder', "Workspace Folder");
@@ -80,7 +83,7 @@ function describeReadiness(result: Readiness, roots: readonly IWorkspaceFolderDa
 		const markerLines = Object.entries(markers).map(([marker, status]) => localize('projectReadinessMarker', "{0} — {1}", marker, statuses[status]));
 		const interpreter = localize('projectReadinessDefaultInterpreter', "Default Python Interpreter Setting — {0}", describeInterpreter(folder.python.interpreter));
 		const lines = [heading, ...markerLines, interpreter];
-		if (folder.python.basedPyright) {
+		if (showBasedPyright && folder.python.basedPyright) {
 			lines.push(localize('projectReadinessBasedPyrightPath', "BasedPyright Python Path — {0}", describeInterpreter(folder.python.basedPyright)));
 		}
 		sections.push(lines.join('\n'));

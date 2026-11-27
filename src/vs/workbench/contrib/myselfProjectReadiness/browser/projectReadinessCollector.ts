@@ -53,7 +53,7 @@ function inspectPythonInterpreter(configuration: Pick<IConfigurationService, 'in
 }
 
 /** Only attribute the legacy key to BasedPyright when its registered declaration matches. */
-function hasBasedPyrightPythonPath(): boolean {
+export function hasBasedPyrightPythonPath(): boolean {
 	const property = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties()[basedPyrightPythonPathKey];
 	return property?.scope === ConfigurationScope.RESOURCE && property.type === 'string'
 		&& !!property.source && typeof property.source === 'object' && property.source.id.toLowerCase() === 'detachhead.basedpyright';

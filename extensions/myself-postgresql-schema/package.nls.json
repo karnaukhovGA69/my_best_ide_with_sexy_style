@@ -1,0 +1,5 @@
+{
+  "displayName": "Nerded Code PostgreSQL Schema",
+  "description": "Inspect PostgreSQL schema metadata over a local Unix socket.",
+  "openSchema": "Inspect Local PostgreSQL Schema…"
+}

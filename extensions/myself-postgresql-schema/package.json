@@ -1,0 +1,35 @@
+{
+  "name": "myself-postgresql-schema",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "myself",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": { "vscode": "^1.95.0" },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "l10n": "./l10n",
+  "extensionKind": ["ui"],
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": false },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "commands": [
+      { "command": "myself.postgresqlSchema.open", "title": "%openSchema%", "icon": "$(database)" }
+    ],
+    "menus": {
+      "editor/title": [
+        { "command": "myself.postgresqlSchema.open", "when": "editorLangId == sql && resourceScheme == file && isWorkspaceTrusted && remoteName == '' && (isMac || isLinux)", "group": "navigation@60" }
+      ],
+      "editor/context": [
+        { "command": "myself.postgresqlSchema.open", "when": "editorLangId == sql && resourceScheme == file && isWorkspaceTrusted && remoteName == '' && (isMac || isLinux)", "group": "navigation@60" }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-postgresql-schema",
+    "test": "pnpm run compile && node --test test/*.test.cts",
+    "vscode:prepublish": "pnpm run compile"
+  }
+}

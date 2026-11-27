@@ -68,7 +68,7 @@ function host(t, scan = async () => changed()) {
 						throw new Error('fixture error');
 					}
 					state.lastContents = args.slice(0, 2).map(value => state.contentProvider.provideTextDocumentContent(value));
-					for (const value of args.slice(0, 2)) {
+					for (const value of state.delayDocuments ? [] : args.slice(0, 2)) {
 						if (!state.documents.some(document => document.uri.toString() === value.toString())) {
 						state.documents.push({ uri: value });
 						}
@@ -297,4 +297,16 @@ test('incomplete empty results are never described as identical', async t => {
 	await h.controller.compare();
 	assert.doesNotMatch(h.state.view.message, /identical/);
 	assert.match(h.state.view.message, /Incomplete/);
+});
+
+test('requested snapshots survive delayed textDocuments notification after diff dispatch', async t => {
+	const h = host(t);
+	h.state.delayDocuments = true;
+	await h.controller.compare();
+	await h.controller.open(h.controller.provider.getChildren()[0]);
+	const diff = h.calls.dispatch.find(args => args[0] === 'vscode.diff');
+	assert.deepEqual(diff.slice(1, 3).map(value => h.state.contentProvider.provideTextDocumentContent(value)), ['old', 'new']);
+	h.state.documents = diff.slice(1, 3).map(value => ({ uri: value }));
+	h.closeDocuments();
+	assert.throws(() => h.state.contentProvider.provideTextDocumentContent(diff[1]), /unavailable/);
 });

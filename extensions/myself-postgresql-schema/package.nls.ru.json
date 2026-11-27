@@ -1,0 +1,5 @@
+{
+  "displayName": "Схема PostgreSQL в Nerded Code",
+  "description": "Просмотр метаданных схемы PostgreSQL через локальный Unix-сокет.",
+  "openSchema": "Посмотреть локальную схему PostgreSQL…"
+}

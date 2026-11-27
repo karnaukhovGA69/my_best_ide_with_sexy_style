@@ -1,0 +1,9 @@
+{
+  "displayName": "Nerded Code English Writing",
+  "description": "Open editor diagnostics, code actions, and local text statistics for Markdown and plain text.",
+  "writingMenu": "English Writing",
+  "problems": "Show Problems",
+  "codeActions": "Show Code Actions",
+  "analyzeText": "Analyze Text",
+  "tools": "Writing Tool Availability"
+}

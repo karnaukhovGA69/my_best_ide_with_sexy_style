@@ -1,0 +1,87 @@
+{
+  "name": "myself-english-writing",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "myself",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "l10n": "./l10n",
+  "extensionKind": ["ui"],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "myself.englishWriting.problems",
+        "title": "%problems%"
+      },
+      {
+        "command": "myself.englishWriting.codeActions",
+        "title": "%codeActions%"
+      },
+      {
+        "command": "myself.englishWriting.analyzeText",
+        "title": "%analyzeText%"
+      },
+      {
+        "command": "myself.englishWriting.tools",
+        "title": "%tools%"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "myself.englishWriting",
+        "label": "%writingMenu%",
+        "icon": "$(checklist)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "submenu": "myself.englishWriting",
+          "when": "editorLangId =~ /^(markdown|plaintext)$/",
+          "group": "navigation@60"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "myself.englishWriting",
+          "when": "editorLangId =~ /^(markdown|plaintext)$/",
+          "group": "1_modification@30"
+        }
+      ],
+      "myself.englishWriting": [
+        {
+          "command": "myself.englishWriting.problems",
+          "group": "1_review@1"
+        },
+        {
+          "command": "myself.englishWriting.codeActions",
+          "group": "1_review@2"
+        },
+        {
+          "command": "myself.englishWriting.analyzeText",
+          "group": "1_review@3"
+        },
+        {
+          "command": "myself.englishWriting.tools",
+          "group": "2_tools"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-english-writing",
+    "test": "pnpm run compile && node --test test/*.test.cts",
+    "vscode:prepublish": "pnpm run compile"
+  }
+}

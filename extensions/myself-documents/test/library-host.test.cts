@@ -18,7 +18,7 @@ function deferred() {
 }
 const uri = value => ({ path: value, fsPath: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
-	const actions = new Map(), reads = [], writes = [], notices = [], information = [], external = [], sent = [], dialogs = [], opened = [];
+	const actions = new Map(), reads = [], writes = [], notices = [], information = [], warnings = [], dialogOptions = [], external = [], sent = [], dialogs = [], opened = [];
 	const state = { imports: options.imports ?? [] };
 	let provider, readerProvider, readerOptions, reader, selection, activeEditor, reveal; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
 	const extensionsChange = emitter();
@@ -95,7 +95,7 @@ async function fixture(options = {}) {
 			onDidChange: extensionsChange.event,
 		}, Uri: { joinPath: (base, ...parts) => uri(base.path + '/' + parts.join('/')), parse: value => ({ toString: () => value }) },
 		EventEmitter: class { constructor() { const e = emitter(); this.event = e.event; this.fire = e.fire; } dispose() {} },
-		TreeItem: class { constructor(label) { this.label = label; } }, TreeItemCollapsibleState: { None: 0, Collapsed: 1 }, ThemeIcon: class {},
+		TreeItem: class { constructor(label) { this.label = label; } }, TreeItemCollapsibleState: { None: 0, Collapsed: 1 }, ThemeIcon: class { constructor(id) { this.id = id; } },
 		Disposable: { from: (...disposables) => ({ dispose: () => disposables.forEach(d => d.dispose()) }) },
 		env: { language: 'en', openExternal: async value => { external.push(value.toString()); return true; } },
 		window: {
@@ -108,8 +108,16 @@ async function fixture(options = {}) {
 				return { dispose() {} };
 			},
 			showQuickPick: async items => options.quickPick?.(items),
-			showOpenDialog: async () => { dialogs.push('open'); return options.dialog ? options.dialog(selection) : selection; },
+			showOpenDialog: async settings => {
+				dialogs.push('open');
+				dialogOptions.push(settings);
+				return options.dialog ? options.dialog(selection) : selection;
+			},
 			showErrorMessage: async text => { notices.push(text); },
+			showWarningMessage: async (message, settings, button) => {
+				warnings.push({ message, settings, button });
+				return options.confirmPdfRemoval?.(button);
+			},
 			showInformationMessage: async (message, action) => {
 				information.push(message);
 				return options.confirm ? options.confirm(action) : action;
@@ -150,7 +158,7 @@ async function fixture(options = {}) {
 	try {
 		loadWithVscode('library.js', vscode).registerLibrary(context);
 		if (!options.deferCatalog) { await waitForTreeChange(); }
-		return { actions, provider, files, reads, writes, notices, information, external, sent, state, dialogs, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
+		return { actions, provider, files, reads, writes, notices, information, warnings, external, sent, state, dialogs, dialogOptions, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
 			reader: () => reader, select: value => { selection = value; }, setEditor: value => { activeEditor = value; },
 			delay: handler => { beforeRead = handler; beforeOfficialRead = handler; },
 			delayReveal: handler => { reveal = handler; },
@@ -1167,5 +1175,206 @@ test('a failed context delivery is revalidated before a later ready message', as
 		f.reader().webview.postMessage = post;
 		await f.message({ type: 'ready' });
 		assert.deepEqual(f.sent, []);
+	} finally { f.dispose(); }
+});
+
+const pdfFixture = Buffer.from('%PDF-1.7\n%\xff\xfe\nfixture bytes\n%%EOF\n', 'latin1');
+
+function writePdfFixture(f, name = 'Synthetic.PDF') {
+	const original = path.join(f.root, name);
+	fs.writeFileSync(original, pdfFixture);
+	return original;
+}
+
+test('an explicitly imported PDF is listed, keeps its bytes and never enters the preview or full-text reader', async () => {
+	const f = await fixture({
+		quickPick: items => items.find(item => item.entry.format === 'pdf'),
+	});
+	try {
+		const original = writePdfFixture(f);
+		f.select([uri(original)]);
+		await f.actions.get('myself.documentation.importPdf')('https://outside.invalid/fake.pdf');
+		const [entry] = f.state.imports;
+		const copy = path.join(f.root, 'profile', entry.file);
+		assert.deepEqual([entry.group, entry.format, entry.title, entry.source], ['imported', 'pdf', 'Synthetic.PDF', '']);
+		assert.match(entry.id, /^[a-f0-9-]{36}$/);
+		assert.equal(entry.file, `pdf-imports/${entry.id}.pdf`);
+		assert.deepEqual(fs.readFileSync(copy), pdfFixture);
+		assert.deepEqual(fs.readFileSync(original), pdfFixture);
+		assert.deepEqual(f.dialogOptions, [{
+			canSelectFiles: true, canSelectFolders: false, canSelectMany: false, filters: { PDF: ['pdf'] }, openLabel: 'Add PDF to Local Library',
+		}]);
+
+		const [listed] = f.provider.getChildren({ id: 'imported' });
+		const treeItem = f.provider.getTreeItem(listed);
+		assert.deepEqual([listed, treeItem.description, treeItem.iconPath.id, treeItem.command.arguments], [entry, 'PDF', 'file-pdf', [entry.id]]);
+		const before = f.reads.length;
+		await f.actions.get('myself.documentation.open')(original);
+		await f.actions.get(treeItem.command.command)(...treeItem.command.arguments);
+		await f.actions.get('myself.documentation.search')();
+		const unavailable = 'A verified built-in preview is not yet available for PDFs in the library.';
+		assert.deepEqual([f.information, f.opened, f.external, f.reads.length], [[unavailable, unavailable], [], [], before]);
+
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' }, true);
+		f.reads.length = 0;
+		await f.message({ type: 'librarySearchStart', id: 1, query: 'fixture' }, true);
+		assert.deepEqual([f.sent.at(-1).total, f.sent.at(-1).skipped, f.sent.at(-1).documents.map(document => document.title)], [2, 0, ['One', 'Two']]);
+		assert.ok(f.reads.every(file => file.endsWith('.html')));
+	} finally { f.dispose(); }
+});
+
+test('PDF import rejects nonlocal, nonregular, linked, oversized and mislabeled selections', async () => {
+	const f = await fixture();
+	try {
+		const source = writePdfFixture(f, 'Source.pdf');
+		const linked = path.join(f.root, 'Link.pdf');
+		const folder = path.join(f.root, 'Directory.pdf');
+		const wrong = path.join(f.root, 'HTML.pdf');
+		const large = writePdfFixture(f, 'Large.pdf');
+		fs.symlinkSync(source, linked);
+		fs.mkdirSync(folder);
+		fs.writeFileSync(wrong, '<html>This is not a PDF</html>');
+		fs.truncateSync(large, maxDocumentBytes + 1);
+
+		const importPdf = f.actions.get('myself.documentation.importPdf');
+		await importPdf();
+		f.select([uri(source), uri(large)]);
+		await importPdf();
+		assert.deepEqual(f.notices, []);
+
+		for (const rejected of [
+			{ ...uri(source), scheme: 'https' },
+			{ ...uri(source), authority: 'not-local' },
+			uri(linked), uri(folder), uri(wrong), uri(large),
+		]) {
+			f.select([rejected]);
+			await importPdf();
+		}
+		assert.equal(f.notices.length, 6);
+		assert.deepEqual(f.state.imports, []);
+		assert.equal(fs.existsSync(path.join(f.root, 'profile/pdf-imports')), false);
+		assert.deepEqual([f.opened, f.external], [[], []]);
+		assert.deepEqual(fs.readFileSync(source), pdfFixture);
+	} finally { f.dispose(); }
+});
+
+test('failed registration rolls back just the new PDF file and leaves the originals and other copies', async () => {
+	const f = await fixture({ beforeUpdate: async () => { throw new Error('storage unavailable'); } });
+	try {
+		const original = writePdfFixture(f);
+		const folder = path.join(f.root, 'profile/pdf-imports');
+		fs.mkdirSync(folder);
+		const existing = path.join(folder, 'existing.pdf');
+		fs.writeFileSync(existing, 'previous copy');
+
+		f.select([uri(original)]);
+		await f.actions.get('myself.documentation.importPdf')();
+		assert.deepEqual(fs.readdirSync(folder), ['existing.pdf']);
+		assert.equal(fs.readFileSync(existing, 'utf8'), 'previous copy');
+		assert.deepEqual(fs.readFileSync(original), pdfFixture);
+		assert.deepEqual(f.state.imports, []);
+		assert.equal(f.notices.length, 1);
+	} finally { f.dispose(); }
+});
+
+test('disposal during exclusive PDF copy creation rolls back before registration', async () => {
+	const f = await fixture();
+	const entered = deferred(), release = deferred();
+	try {
+		const original = writePdfFixture(f);
+		f.select([uri(original)]);
+		f.delay(file => { if (file.startsWith('/profile/pdf-imports/')) { entered.resolve(); return release.promise; } });
+		const importing = f.actions.get('myself.documentation.importPdf')();
+		await entered.promise;
+		f.provider.dispose();
+		release.resolve();
+		await importing;
+		assert.deepEqual(fs.readdirSync(path.join(f.root, 'profile/pdf-imports')), []);
+		assert.deepEqual(f.state.imports, []);
+		assert.deepEqual(f.notices, []);
+		assert.deepEqual(fs.readFileSync(original), pdfFixture);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('PDF removal asks for explicit confirmation and affects only the imported copy', async () => {
+	let confirmed = false;
+	const f = await fixture({ confirmPdfRemoval: button => confirmed ? button : undefined });
+	try {
+		const original = writePdfFixture(f);
+		f.select([uri(original)]);
+		await f.actions.get('myself.documentation.importPdf')();
+		const [entry] = f.state.imports;
+		const copy = path.join(f.root, 'profile', entry.file);
+		const remove = f.actions.get('myself.documentation.remove');
+		await remove({ ...entry, id: 'not-registered' });
+		assert.deepEqual(f.warnings, []);
+		await remove(entry);
+		assert.deepEqual(f.warnings, [{
+			message: 'Remove the imported PDF copy?',
+			settings: { modal: true, detail: 'The original file is kept.' },
+			button: 'Remove PDF Copy',
+		}]);
+		assert.equal(fs.existsSync(copy), true);
+		assert.deepEqual(f.state.imports, [entry]);
+
+		confirmed = true;
+		await remove({ ...entry, file: original });
+		assert.equal(fs.existsSync(copy), false);
+		assert.deepEqual(f.state.imports, []);
+		assert.deepEqual(fs.readFileSync(original), pdfFixture);
+	} finally { f.dispose(); }
+});
+
+test('a PDF copy replaced by a symlink is rejected for removal and its registration is restored', async () => {
+	const f = await fixture({ confirmPdfRemoval: button => button });
+	try {
+		const original = writePdfFixture(f);
+		f.select([uri(original)]);
+		await f.actions.get('myself.documentation.importPdf')();
+		const [entry] = f.state.imports;
+		const copy = path.join(f.root, 'profile', entry.file);
+		fs.unlinkSync(copy);
+		fs.symlinkSync(original, copy);
+		await f.actions.get('myself.documentation.remove')(entry);
+		assert.equal(fs.lstatSync(copy).isSymbolicLink(), true);
+		assert.deepEqual(fs.readFileSync(original), pdfFixture);
+		assert.deepEqual(f.state.imports, [entry]);
+		assert.deepEqual(f.notices, ['The imported PDF copy could not be removed.']);
+	} finally { f.dispose(); }
+});
+
+test('the library restores only registered PDF entries with managed copy paths', async () => {
+	const id = '09f83155-38a9-4e78-a20f-99cb8dd22f40';
+	const entry = { id, format: 'pdf', group: 'imported', title: 'Document.pdf', file: `pdf-imports/${id}.pdf`, source: '' };
+	const f = await fixture({ imports: [
+		entry,
+		{ ...entry, id: 'another', file: 'imports/abc.pdf' },
+		{ ...entry, id: 'mismatch', file: entry.file },
+		{ ...entry, id: 'remote', source: 'https://outside.invalid/original.pdf' },
+	] });
+	try {
+		assert.deepEqual(f.provider.getChildren({ id: 'imported' }), [entry]);
+		assert.deepEqual(f.opened, []);
+	} finally { f.dispose(); }
+});
+
+test('a failed PDF removal registration update leaves the confirmed copy intact', async () => {
+	let failUpdate = false;
+	const f = await fixture({
+		confirmPdfRemoval: button => button,
+		beforeUpdate: async () => { if (failUpdate) { throw new Error('storage unavailable'); } },
+	});
+	try {
+		const original = writePdfFixture(f);
+		f.select([uri(original)]);
+		await f.actions.get('myself.documentation.importPdf')();
+		const [entry] = f.state.imports;
+		failUpdate = true;
+		await f.actions.get('myself.documentation.remove')(entry);
+		assert.deepEqual(f.state.imports, [entry]);
+		assert.deepEqual(fs.readFileSync(path.join(f.root, 'profile', entry.file)), pdfFixture);
+		assert.deepEqual(fs.readFileSync(original), pdfFixture);
+		assert.deepEqual(f.notices, ['The imported PDF copy could not be removed.']);
 	} finally { f.dispose(); }
 });

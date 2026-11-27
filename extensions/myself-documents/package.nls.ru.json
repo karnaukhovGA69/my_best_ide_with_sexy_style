@@ -9,6 +9,7 @@
   "library.contextHelp": "Локальная справка по контексту",
   "library.search": "Поиск локальной документации",
   "library.import": "Добавить локальный документ",
+  "library.importPdf": "Добавить PDF в библиотеку",
   "library.remove": "Удалить из библиотеки",
   "library.importFolder": "Добавить папку документации"
 }

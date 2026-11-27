@@ -58,7 +58,7 @@
   "The local documentation catalog could not be loaded.": "The local documentation catalog could not be loaded.",
   "This link is not included in the local library.": "This link is not included in the local library.",
   "Search Document Contents": "Search Document Contents",
-  "Search all local documents": "Search all local documents",
+  "Search HTML, Markdown and text documents": "Search HTML, Markdown and text documents",
   "Search": "Search",
   "Cancel Search": "Cancel Search",
   "Loading the local documentation catalog…": "Loading the local documentation catalog…",
@@ -73,5 +73,13 @@
   "Search Results": "Search Results",
   "Open a text editor to use local context help.": "Open a text editor to use local context help.",
   "Local context help is available for Go, Rust, SQL and shell scripts.": "Local context help is available for Go, Rust, SQL and shell scripts.",
-  "Local documentation for this language is unavailable.": "Local documentation for this language is unavailable."
+  "Local documentation for this language is unavailable.": "Local documentation for this language is unavailable.",
+  "Add PDF to Local Library": "Add PDF to Local Library",
+  "A verified built-in preview is not yet available for PDFs in the library.": "A verified built-in preview is not yet available for PDFs in the library.",
+  "The PDF could not be added. Choose a local PDF file up to 16 MiB.": "The PDF could not be added. Choose a local PDF file up to 16 MiB.",
+  "The unfinished PDF copy could not be removed.": "The unfinished PDF copy could not be removed.",
+  "Remove PDF Copy": "Remove PDF Copy",
+  "Remove the imported PDF copy?": "Remove the imported PDF copy?",
+  "The original file is kept.": "The original file is kept.",
+  "The imported PDF copy could not be removed.": "The imported PDF copy could not be removed."
 }

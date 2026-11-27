@@ -61,7 +61,7 @@
   "No HTML, Markdown or text documents were found in this folder.": "В папке не найдены документы HTML, Markdown или текстовые файлы.",
   "The folder could not be added. Use UTF-8 HTML, Markdown or text files up to 16 MiB each, 64 MiB and 5000 documents in total.": "Не удалось добавить папку. Используйте HTML, Markdown или текст в UTF-8: до 16 МиБ на файл, до 64 МиБ и 5000 документов всего.",
   "Search Document Contents": "Поиск по содержимому документов",
-  "Search all local documents": "Поиск по всем локальным документам",
+  "Search HTML, Markdown and text documents": "Поиск по HTML, Markdown и текстовым документам",
   "Search": "Найти",
   "Cancel Search": "Отменить поиск",
   "Loading the local documentation catalog…": "Загружается каталог локальной документации…",
@@ -76,5 +76,13 @@
   "Search Results": "Результаты поиска",
   "Open a text editor to use local context help.": "Откройте текстовый редактор, чтобы воспользоваться локальной справкой.",
   "Local context help is available for Go, Rust, SQL and shell scripts.": "Локальная справка по контексту доступна для Go, Rust, SQL и скриптов оболочки.",
-  "Local documentation for this language is unavailable.": "Локальная документация для этого языка недоступна."
+  "Local documentation for this language is unavailable.": "Локальная документация для этого языка недоступна.",
+  "Add PDF to Local Library": "Добавить PDF в локальную библиотеку",
+  "A verified built-in preview is not yet available for PDFs in the library.": "Проверенный просмотр PDF внутри библиотеки пока недоступен.",
+  "The PDF could not be added. Choose a local PDF file up to 16 MiB.": "Не удалось добавить PDF. Выберите локальный файл PDF размером до 16 МиБ.",
+  "The unfinished PDF copy could not be removed.": "Не удалось удалить незавершённую копию PDF.",
+  "Remove PDF Copy": "Удалить копию PDF",
+  "Remove the imported PDF copy?": "Удалить импортированную копию PDF?",
+  "The original file is kept.": "Исходный файл сохранится.",
+  "The imported PDF copy could not be removed.": "Не удалось удалить импортированную копию PDF."
 }

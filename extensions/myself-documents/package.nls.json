@@ -9,6 +9,7 @@
   "library.contextHelp": "Local Context Help",
   "library.search": "Search Local Documentation",
   "library.import": "Add Local Document",
+  "library.importPdf": "Add PDF to Library",
   "library.remove": "Remove from Library",
   "library.importFolder": "Add Documentation Folder"
 }

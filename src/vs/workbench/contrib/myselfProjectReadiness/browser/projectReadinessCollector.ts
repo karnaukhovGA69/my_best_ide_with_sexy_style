@@ -9,7 +9,7 @@ import { Schemas } from '../../../../base/common/network.js';
 import { isWindows } from '../../../../base/common/platform.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import type { URI } from '../../../../base/common/uri.js';
-import type { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import type { IConfigurationService, IConfigurationValue } from '../../../../platform/configuration/common/configuration.js';
 import { FileSystemProviderErrorCode, FileType, toFileSystemProviderErrorCode, type IFileService, type IFileSystemProvider } from '../../../../platform/files/common/files.js';
 import { WorkbenchState, type IWorkspaceFolderData } from '../../../../platform/workspace/common/workspace.js';
 import type { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
@@ -41,7 +41,16 @@ function isLocalAbsolutePath(path: string, uriPath = false): boolean {
 
 /** Read only the effective explicit setting for this root. Never expand variables or probe its value. */
 function inspectPythonInterpreter(configuration: Pick<IConfigurationService, 'inspect'>, root: URI, workbenchState: WorkbenchState): FolderSnapshot['pythonInterpreter'] {
-	const setting = configuration.inspect<unknown>(pythonInterpreterKey, { resource: root });
+	try {
+		return classifyPythonInterpreter(configuration.inspect<unknown>(pythonInterpreterKey, { resource: root }), root, workbenchState);
+	} catch {
+		// Keep this root's other observations if inspection or a lazy layer lookup fails.
+		return undefined;
+	}
+}
+
+/** Use an explicit layer only when it matches the effective value. */
+function classifyPythonInterpreter(setting: IConfigurationValue<unknown>, root: URI, workbenchState: WorkbenchState): FolderSnapshot['pythonInterpreter'] {
 	const entries = [
 		[setting.policyValue, 'unknown'],
 		[setting.memoryValue, 'unknown'],
@@ -52,7 +61,9 @@ function inspectPythonInterpreter(configuration: Pick<IConfigurationService, 'in
 	] as const;
 	const entry = entries.find(([value]) => value !== undefined);
 	if (!entry) {
-		return { kind: 'unset' };
+		return setting.value === undefined || setting.value === setting.defaultValue
+			? { kind: 'unset' }
+			: { kind: 'unresolved', source: 'unknown' };
 	}
 
 	const [value, source] = entry;

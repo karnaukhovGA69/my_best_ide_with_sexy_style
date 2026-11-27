@@ -45,7 +45,7 @@ suite('Project readiness UI', () => {
 		const trustChanged = store.add(new Emitter<boolean>());
 		const configurationChanged = store.add(new Emitter<IConfigurationChangeEvent>());
 		const inspected: string[] = [];
-		const settings = new Map<URI, IConfigurationValue<unknown>>();
+		const settings = new Map<URI, IConfigurationValue<unknown> | Error>();
 		const prompts: IPrompt<unknown>[] = [];
 		const activations: string[] = [];
 		const lookups: string[] = [];
@@ -58,7 +58,11 @@ suite('Project readiness UI', () => {
 				assert.strictEqual(key, pythonInterpreterKey);
 				assert.ok(overrides?.resource);
 				inspected.push(overrides.resource.toString());
-				return (settings.get(overrides.resource) ?? {}) as IConfigurationValue<Readonly<T>>;
+				const setting = settings.get(overrides.resource);
+				if (setting instanceof Error) {
+					throw setting;
+				}
+				return (setting ?? {}) as IConfigurationValue<Readonly<T>>;
 			},
 		};
 		const files = store.add(new class extends FileService {
@@ -256,7 +260,23 @@ suite('Project readiness UI', () => {
 		state.settings.set(second.uri, { value: absolute, workspaceFolderValue: '.venv' });
 		await state.dialog.run();
 		assert.match(state.detail(), /Configured, path unresolved \(Unknown Source\)/);
+		state.settings.set(second.uri, { value: absolute, defaultValue: 'python' });
+		await state.dialog.run();
+		assert.match(state.detail(), /Configured, path unresolved \(Unknown Source\)/);
 		assert.deepStrictEqual(state.stats, []);
+	});
+
+	test('keeps marker results and other roots when configuration inspection fails', async () => {
+		const state = fixture(async () => FileType.File, [first, second]);
+		state.settings.set(first.uri, new Error('private configuration error'));
+		state.settings.set(second.uri, { value: '.venv', workspaceFolderValue: '.venv' });
+		await state.dialog.run();
+		const detail = state.detail();
+		const [, unchecked, checked] = detail.split('\n\n');
+		assert.match(unchecked, /Python Interpreter Setting — Not checked/);
+		assert.match(unchecked, /requirements\.txt — Found/);
+		assert.match(checked, /Folder-relative path \(Folder Settings\)/);
+		assert.doesNotMatch(detail, /private configuration error/);
 	});
 
 	test('bounds metadata concurrency across roots and coalesces repeated clicks', async () => {

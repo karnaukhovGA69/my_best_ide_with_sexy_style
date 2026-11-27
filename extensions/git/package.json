@@ -1219,6 +1219,28 @@
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "submenu": "git.explorerChanges",
+          "when": "view == workbench.explorer.fileView && config.git.enabled && !git.missing && git.state == initialized && gitOpenRepositoryCount > 0 && isWorkspaceTrusted",
+          "group": "navigation@4"
+        }
+      ],
+      "git.explorerChanges": [
+        {
+          "command": "git.viewChanges",
+          "group": "1_changes@1"
+        },
+        {
+          "command": "git.viewStagedChanges",
+          "group": "1_changes@2"
+        },
+        {
+          "command": "git.viewUntrackedChanges",
+          "when": "config.git.untrackedChanges == separate",
+          "group": "1_changes@3"
+        }
+      ],
       "commandPalette": [
         {
           "command": "git.continueInLocalClone",
@@ -3241,6 +3263,11 @@
       ]
     },
     "submenus": [
+      {
+        "id": "git.explorerChanges",
+        "label": "%submenu.explorerChanges%",
+        "icon": "$(diff-multiple)"
+      },
       {
         "id": "git.commit",
         "label": "%submenu.commit%"

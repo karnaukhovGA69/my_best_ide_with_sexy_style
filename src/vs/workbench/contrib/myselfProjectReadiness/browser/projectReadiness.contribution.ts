@@ -7,6 +7,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, type IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
@@ -14,6 +15,7 @@ import { IFileService } from '../../../../platform/files/common/files.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { VIEW_ID } from '../../files/common/files.js';
 import { ProjectReadinessDialog } from './projectReadinessDialog.js';
@@ -47,10 +49,12 @@ class ProjectReadinessContribution extends Disposable {
 		@IConfigurationService configuration: IConfigurationService,
 		@IFileService files: IFileService,
 		@IDialogService dialogs: IDialogService,
+		@ICommandService commands: ICommandService,
+		@IWorkbenchEnvironmentService environment: IWorkbenchEnvironmentService,
 		@ILifecycleService lifecycleService: ILifecycleService,
 	) {
 		super();
-		const dialog = this._register(new ProjectReadinessDialog(context, trust, configuration, files, dialogs));
+		const dialog = this._register(new ProjectReadinessDialog(context, trust, configuration, files, dialogs, commands, !!environment.remoteAuthority));
 		this._register(registerProjectReadinessAction(dialog));
 		this._register(lifecycleService.onWillShutdown(() => this.dispose()));
 	}

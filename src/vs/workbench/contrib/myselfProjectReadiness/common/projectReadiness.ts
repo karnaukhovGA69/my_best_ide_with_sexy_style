@@ -30,6 +30,8 @@ interface FolderSnapshot {
 	/** Omitted facts are unknown. File and directory observations require a verified root entry of that type. */
 	readonly markers?: Readonly<Partial<Record<RootMarker, RootMarkerObservation>>>;
 	readonly pythonInterpreter?: PythonInterpreterSnapshot;
+	/** Present only when the collector recognized the registered BasedPyright setting. */
+	readonly basedPyright?: { readonly pythonPath: PythonInterpreterSnapshot | undefined };
 }
 
 export interface ProjectReadinessSnapshot {
@@ -78,7 +80,7 @@ function assessInterpreter(folder: URI, interpreter: PythonInterpreterSnapshot |
 type ReviewTopic = 'python-interpreter' | 'c-build-configuration' | 'c-compilation-database';
 
 /** Assess only local roots. A review topic describes evidence worth inspecting. */
-function assessFolder({ folder, markers, pythonInterpreter }: FolderSnapshot) {
+function assessFolder({ folder, markers, pythonInterpreter, basedPyright }: FolderSnapshot) {
 	if (folder.scheme !== 'file') {
 		return { folder, kind: 'unsupported-root', reason: 'non-file-scheme' } as const;
 	}
@@ -111,7 +113,11 @@ function assessFolder({ folder, markers, pythonInterpreter }: FolderSnapshot) {
 	return {
 		folder,
 		kind: 'local',
-		python: { markers: pythonMarkers, interpreter: assessInterpreter(folder, pythonInterpreter) },
+		python: {
+			markers: pythonMarkers,
+			interpreter: assessInterpreter(folder, pythonInterpreter),
+			...(basedPyright ? { basedPyright: assessInterpreter(folder, basedPyright.pythonPath) } : {}),
+		},
 		c: { buildMarkers, compilationDatabase },
 		review,
 	} as const;

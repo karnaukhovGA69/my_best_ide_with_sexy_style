@@ -4,18 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 import { randomUUID } from 'node:crypto';
 import { lstat, realpath } from 'node:fs/promises';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { isRecord } from './document';
 import { contextHelpTerm, findContextHelp, hasContextHelp } from './libraryContextHelp';
-import { findLocalLink, LibraryCatalog, LibraryEntry, LibraryGroup, maxCatalogBytes, maxDocumentBytes, parseCatalog, readLocalDocument, readOfficialDocument, safeRelativeFile } from './libraryModel';
+import { findLocalLink, isLibraryTextEntry, LibraryCatalog, LibraryEntry, LibraryGroup, LibraryTextEntry, maxCatalogBytes, maxDocumentBytes, parseCatalog, readLocalDocument, readOfficialDocument, safeRelativeFile } from './libraryModel';
 import { readDocumentationFolder } from './libraryImport';
+import { pdfCopyFile, readSelectedPdf, removePdfCopy, storePdfCopy } from './libraryPdf';
 import { maxSearchQueryLength, readSearchBatch } from './librarySearch';
 import { libraryHtml } from './libraryView';
 
 type LibraryNode = LibraryGroup | LibraryEntry;
 interface CatalogLocation { uri: vscode.Uri; installed: boolean; version?: string }
 type CatalogSnapshot = LibraryCatalog & { root: string };
-interface SearchSnapshot { catalog: CatalogSnapshot | undefined; imports: LibraryEntry[] }
+interface SearchSnapshot { catalog: CatalogSnapshot | undefined; imports: LibraryTextEntry[] }
 interface PendingContextHelp {
 	readonly entry: LibraryEntry;
 	readonly payload: object;
@@ -54,6 +56,7 @@ export function registerLibrary(context: vscode.ExtensionContext): void {
 		vscode.commands.registerCommand('myself.documentation.search', () => library.search()),
 		vscode.commands.registerCommand('myself.documentation.contextHelp', () => library.contextHelp()),
 		vscode.commands.registerCommand('myself.documentation.import', () => mutate(() => library.importFile())),
+		vscode.commands.registerCommand('myself.documentation.importPdf', () => mutate(() => library.importPdf())),
 		vscode.commands.registerCommand('myself.documentation.importFolder', () => mutate(() => library.importFolder())),
 		vscode.commands.registerCommand('myself.documentation.remove', (entry: LibraryEntry) => mutate(() => library.remove(entry))),
 	);
@@ -86,10 +89,16 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 		const imported = context.globalState.get<LibraryEntry[]>('documentation.imports', []);
-		this.imports = Array.isArray(imported) ? imported.filter(entry => entry?.group === 'imported' && typeof entry.file === 'string' && safeRelativeFile(entry.file)
-			&& /^imports\/[a-f0-9-]+\.(html|md|txt)$/.test(entry.file) && typeof entry.id === 'string' && typeof entry.title === 'string'
-			&& (entry.collection === undefined || (typeof entry.collection === 'string' && /^[a-f0-9-]+$/.test(entry.collection) && typeof entry.importPath === 'string' && safeRelativeFile(entry.importPath)))
-			&& (entry.format === 'html' || entry.format === 'markdown' || entry.format === 'text')) : [];
+		this.imports = Array.isArray(imported) ? imported.filter(entry => {
+			if (entry?.group !== 'imported' || typeof entry.file !== 'string' || !safeRelativeFile(entry.file)
+				|| typeof entry.id !== 'string' || typeof entry.title !== 'string') { return false; }
+			if (entry.format === 'pdf') {
+				return entry.file === pdfCopyFile(entry.id) && entry.source === '' && entry.collection === undefined;
+			}
+			return /^imports\/[a-f0-9-]+\.(html|md|txt)$/.test(entry.file)
+				&& (entry.collection === undefined || (typeof entry.collection === 'string' && /^[a-f0-9-]+$/.test(entry.collection) && typeof entry.importPath === 'string' && safeRelativeFile(entry.importPath)))
+				&& (entry.format === 'html' || entry.format === 'markdown' || entry.format === 'text');
+		}) : [];
 		this.extensionChanges = vscode.extensions.onDidChange(() => this.refreshCatalog());
 		this.refreshCatalog();
 	}
@@ -160,7 +169,8 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		item.id = node.id;
 		if (isEntry(node)) {
 			item.command = { command: 'myself.documentation.open', title: node.title, arguments: [node.id] };
-			item.iconPath = new vscode.ThemeIcon('file-text');
+			item.iconPath = new vscode.ThemeIcon(node.format === 'pdf' ? 'file-pdf' : 'file-text');
+			if (node.format === 'pdf') { item.description = 'PDF'; }
 			item.contextValue = node.group === 'imported' ? 'importedDocumentation' : 'bundledDocumentation';
 		} else {
 			item.iconPath = new vscode.ThemeIcon('book');
@@ -313,6 +323,11 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		const imported = this.imports.find(entry => entry.id === id);
 		let catalog = this.catalog;
 		let entry = imported ?? catalog?.entries.find(entry => entry.id === id);
+		if (entry?.format === 'pdf') {
+			this.invalidateNavigation();
+			void vscode.window.showInformationMessage(vscode.l10n.t('A verified built-in preview is not yet available for PDFs in the library.'));
+			return;
+		}
 		if (!entry && catalog) { return; }
 		const generation = this.invalidateNavigation();
 		if (!entry) {
@@ -324,7 +339,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			if (!entry) { return; }
 		}
 		const isCurrent = () => generation === this.generation && (imported ? this.imports.includes(imported) : this.catalog === catalog) && (isSourceCurrent?.() ?? true);
-		if (!isCurrent()) { return; }
+		if (!isLibraryTextEntry(entry) || !isCurrent()) { return; }
 		try {
 			const text = await this.readEntry(entry, catalog);
 			if (!isCurrent()) { return; }
@@ -350,7 +365,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 	}
 
-	private async readEntry(entry: LibraryEntry, catalog: CatalogSnapshot | undefined): Promise<string> {
+	private async readEntry(entry: LibraryTextEntry, catalog: CatalogSnapshot | undefined): Promise<string> {
 		if (entry.group !== 'imported') {
 			if (!catalog) { throw new Error('Documentation catalog unavailable'); }
 			return readOfficialDocument(catalog.root, entry.file, maxDocumentBytes);
@@ -379,7 +394,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 	}
 
-	private searchEntry(snapshot: SearchSnapshot, index: number): LibraryEntry | undefined {
+	private searchEntry(snapshot: SearchSnapshot, index: number): LibraryTextEntry | undefined {
 		const official = snapshot.catalog?.entries;
 		const officialCount = official?.length ?? 0;
 		return index < officialCount ? official?.[index] : snapshot.imports[index - officialCount];
@@ -422,7 +437,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 				if (!session.snapshot) {
 					await this.catalogLoad;
 					if (!isCurrent()) { continue; }
-					session.snapshot = { catalog: this.catalog, imports: this.imports };
+					session.snapshot = { catalog: this.catalog, imports: this.imports.filter(isLibraryTextEntry) };
 				}
 				const snapshot = session.snapshot;
 				const total = (snapshot.catalog?.entries.length ?? 0) + snapshot.imports.length;
@@ -459,7 +474,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			await vscode.env.openExternal(vscode.Uri.parse(this.current.source));
 		} else if (message.type === 'link' && typeof message.href === 'string' && this.current) {
 			const current = this.current;
-			const target = findLocalLink(current, message.href, [...(this.catalog?.entries ?? []), ...this.imports]);
+			const target = findLocalLink(current, message.href, [...(this.catalog?.entries ?? []), ...this.imports.filter(isLibraryTextEntry)]);
 			if (target) { await this.open(target.entry.id, target.fragment); }
 			else {
 				let url: URL | undefined;
@@ -519,6 +534,43 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 	}
 
+	async importPdf(): Promise<void> {
+		if (this.disposed) { return; }
+		const selection = await vscode.window.showOpenDialog({ canSelectFiles: true, canSelectFolders: false, canSelectMany: false,
+			filters: { PDF: ['pdf'] }, openLabel: vscode.l10n.t('Add PDF to Local Library') });
+		if (this.disposed || selection?.length !== 1) { return; }
+
+		const selected = selection[0];
+		const storage = this.context.globalStorageUri;
+		let rollback: (() => Promise<void>) | undefined;
+		try {
+			if (selected.scheme !== 'file' || selected.authority || storage.scheme !== 'file' || storage.authority) {
+				throw new Error('PDF import requires local files');
+			}
+			const bytes = await readSelectedPdf(selected.fsPath);
+			if (this.disposed) { return; }
+			const id = randomUUID();
+			const file = pdfCopyFile(id)!;
+			rollback = await storePdfCopy(storage.fsPath, file, bytes, () => this.disposed);
+			if (this.disposed) { return; }
+			const entry: LibraryEntry = { id, group: 'imported', title: path.basename(selected.fsPath), file, source: '', format: 'pdf' };
+			const entries = [...this.imports, entry];
+			await this.context.globalState.update('documentation.imports', entries);
+			rollback = undefined;
+			this.imports = entries;
+			if (!this.disposed) { this.changes.fire(); }
+		} catch {
+			if (!this.disposed) {
+				void vscode.window.showErrorMessage(vscode.l10n.t('The PDF could not be added. Choose a local PDF file up to 16 MiB.'));
+			}
+		} finally {
+			try {
+				await rollback?.();
+			} catch {
+				if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The unfinished PDF copy could not be removed.')); }
+			}
+		}
+	}
 
 	async importFolder(): Promise<void> {
 		if (this.disposed) { return; }
@@ -559,9 +611,40 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		if (this.disposed) { return; }
 		const entry = this.imports.find(entry => entry.id === candidate?.id);
 		if (!entry) { return; }
-		const entries = this.imports.filter(item => item !== entry);
-		await this.context.globalState.update('documentation.imports', entries);
+		if (entry.format === 'pdf') {
+			const remove = vscode.l10n.t('Remove PDF Copy');
+			const choice = await vscode.window.showWarningMessage(vscode.l10n.t('Remove the imported PDF copy?'),
+				{ modal: true, detail: vscode.l10n.t('The original file is kept.') }, remove);
+			if (this.disposed || choice !== remove) { return; }
+		}
+
+		const previous = this.imports;
+		const entries = previous.filter(item => item !== entry);
+		try {
+			await this.context.globalState.update('documentation.imports', entries);
+		} catch (error) {
+			if (entry.format !== 'pdf') { throw error; }
+			if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The imported PDF copy could not be removed.')); }
+			return;
+		}
 		this.imports = entries;
+		if (entry.format === 'pdf') {
+			try {
+				const storage = this.context.globalStorageUri;
+				if (storage.scheme !== 'file' || storage.authority) { throw new Error('PDF library requires local storage'); }
+				await removePdfCopy(storage.fsPath, entry.file);
+			} catch {
+				// Preserve the registration when its copy cannot be deleted.
+				try {
+					await this.context.globalState.update('documentation.imports', previous);
+					this.imports = previous;
+				} catch { /* The visible list follows the last successful update. */ }
+				if (!this.disposed) { void vscode.window.showErrorMessage(vscode.l10n.t('The imported PDF copy could not be removed.')); }
+			}
+			if (!this.disposed) { this.changes.fire(); }
+			return;
+		}
+
 		this.invalidateSearch();
 		this.history = this.history.filter(item => item !== entry);
 		if (!this.disposed) { this.changes.fire(); }

@@ -54,6 +54,12 @@
         "icon": "$(add)"
       },
       {
+        "command": "myself.documentation.importPdf",
+        "title": "%library.importPdf%",
+        "category": "Documentation",
+        "icon": "$(file-pdf)"
+      },
+      {
         "command": "myself.documentation.remove",
         "title": "%library.remove%",
         "category": "Documentation",
@@ -125,6 +131,11 @@
           "command": "myself.documentation.importFolder",
           "when": "view == myself.documentation.library",
           "group": "navigation@2"
+        },
+        {
+          "command": "myself.documentation.importPdf",
+          "when": "view == myself.documentation.library",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [

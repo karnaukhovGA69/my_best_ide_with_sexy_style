@@ -100,3 +100,12 @@ test('context help topics resolve to articles and anchors in the packaged catalo
 		assert.equal(findContextHelp(catalog.entries, language, term).entry.file, file);
 	}
 });
+
+test('the packaged text catalog cannot register a PDF document', () => {
+	const catalog = { groups: [{ id: 'example', title: 'Example', version: '', license: '' }], entries: [
+		{ id: 'pdf', group: 'example', title: 'PDF', file: 'example/document.pdf', source: '', format: 'pdf' },
+	] };
+	assert.throws(() => parseCatalog(JSON.stringify(catalog)), /Invalid documentation entry/);
+	catalog.entries[0].file = 'example/document.html';
+	assert.throws(() => parseCatalog(JSON.stringify(catalog)), /Invalid documentation entry/);
+});

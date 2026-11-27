@@ -12,15 +12,21 @@ export interface LibraryEntry {
 	title: string;
 	file: string;
 	source: string;
-	format: 'html' | 'markdown' | 'text';
+	format: 'html' | 'markdown' | 'text' | 'pdf';
 	selector?: string;
 	collection?: string;
 	collectionTitle?: string;
 	importPath?: string;
 }
 
+export type LibraryTextEntry = LibraryEntry & { format: Exclude<LibraryEntry['format'], 'pdf'> };
+
+export function isLibraryTextEntry(entry: LibraryEntry): entry is LibraryTextEntry {
+	return entry.format !== 'pdf';
+}
+
 export interface LibraryGroup { id: string; title: string; version: string; license: string }
-export interface LibraryCatalog { groups: LibraryGroup[]; entries: LibraryEntry[] }
+export interface LibraryCatalog { groups: LibraryGroup[]; entries: LibraryTextEntry[] }
 export const maxDocumentBytes = 16 * 1024 * 1024;
 export const maxCatalogBytes = 4 * 1024 * 1024;
 
@@ -54,8 +60,8 @@ export function parseCatalog(text: string): LibraryCatalog {
 	return value;
 }
 
-/** Reads a bounded UTF-8 file under a canonical directory, rejecting linked paths and changed files. */
-export async function readLocalDocument(root: string, file: string, limit: number): Promise<string> {
+/** Reads a bounded regular file under a canonical directory, rejecting linked paths and changed files. */
+export async function readLocalBytes(root: string, file: string, limit: number): Promise<Buffer> {
 	if (!safeRelativeFile(file)) { throw new Error('Invalid documentation path'); }
 	const target = path.join(root, file);
 	const checkPath = async () => {
@@ -69,7 +75,9 @@ export async function readLocalDocument(root: string, file: string, limit: numbe
 		const checkHandlePath = async () => {
 			await checkPath();
 			const current = await fs.stat(target);
-			if (current.dev !== stat.dev || current.ino !== stat.ino) { throw new Error('Documentation file changed'); }
+			if (current.dev !== stat.dev || current.ino !== stat.ino || current.size !== stat.size || current.mtimeMs !== stat.mtimeMs) {
+				throw new Error('Documentation file changed');
+			}
 		};
 		await checkHandlePath();
 		const buffer = Buffer.alloc(stat.size + 1);
@@ -79,12 +87,16 @@ export async function readLocalDocument(root: string, file: string, limit: numbe
 			if (!bytesRead) { break; }
 			length += bytesRead;
 		}
-		if (length > stat.size) { throw new Error('Documentation file limit'); }
+		if (length !== stat.size) { throw new Error('Documentation file changed'); }
 		await checkHandlePath();
-		return new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, length));
+		return buffer.subarray(0, length);
 	} finally {
 		await handle.close();
 	}
+}
+
+export async function readLocalDocument(root: string, file: string, limit: number): Promise<string> {
+	return new TextDecoder('utf-8', { fatal: true }).decode(await readLocalBytes(root, file, limit));
 }
 
 export async function readOfficialDocument(extensionPath: string, file: string, limit: number): Promise<string> {

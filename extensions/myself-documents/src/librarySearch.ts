@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { LibraryEntry } from './libraryModel';
+import { LibraryTextEntry } from './libraryModel';
 
 export const maxSearchQueryLength = 256;
 const batchEntries = 32;
@@ -11,7 +11,7 @@ const batchCharacters = 256 * 1024;
 interface SearchDocument {
 	index: number;
 	title: string;
-	format: LibraryEntry['format'];
+	format: LibraryTextEntry['format'];
 	selector?: string;
 	text: string;
 }
@@ -19,8 +19,8 @@ interface SearchDocument {
 export async function readSearchBatch(
 	count: number,
 	offset: number,
-	entryAt: (index: number) => LibraryEntry,
-	read: (entry: LibraryEntry) => Promise<string>,
+	entryAt: (index: number) => LibraryTextEntry,
+	read: (entry: LibraryTextEntry) => Promise<string>,
 	isCurrent: () => boolean,
 ): Promise<{ offset: number; skipped: number; documents: SearchDocument[] } | undefined> {
 	const documents: SearchDocument[] = [];

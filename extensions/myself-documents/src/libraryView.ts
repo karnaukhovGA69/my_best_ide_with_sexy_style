@@ -17,7 +17,7 @@ export function libraryHtml(webview: vscode.Webview, extensionUri: vscode.Uri): 
 <body><details id="library-search">
 <summary>${escape(vscode.l10n.t('Search Document Contents'))}</summary>
 <form id="library-search-form" aria-label="${escape(vscode.l10n.t('Search Document Contents'))}">
-<input id="library-search-query" type="search" required maxlength="${maxSearchQueryLength}" aria-label="${escape(vscode.l10n.t('Search Document Contents'))}" placeholder="${escape(vscode.l10n.t('Search all local documents'))}">
+<input id="library-search-query" type="search" required maxlength="${maxSearchQueryLength}" aria-label="${escape(vscode.l10n.t('Search Document Contents'))}" placeholder="${escape(vscode.l10n.t('Search HTML, Markdown and text documents'))}">
 <button type="submit">${escape(vscode.l10n.t('Search'))}</button>
 <button id="library-search-cancel" type="button" hidden>${escape(vscode.l10n.t('Cancel Search'))}</button>
 </form>

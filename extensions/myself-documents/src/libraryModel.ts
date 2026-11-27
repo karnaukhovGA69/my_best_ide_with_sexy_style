@@ -54,10 +54,10 @@ export function parseCatalog(text: string): LibraryCatalog {
 	return value;
 }
 
-/** Reads bounded UTF-8 files from the official snapshot under a canonical extension directory. */
-export async function readOfficialDocument(extensionPath: string, file: string, limit: number): Promise<string> {
+/** Reads a bounded UTF-8 file under a canonical directory, rejecting linked paths and changed files. */
+export async function readLocalDocument(root: string, file: string, limit: number): Promise<string> {
 	if (!safeRelativeFile(file)) { throw new Error('Invalid documentation path'); }
-	const target = path.join(extensionPath, 'documentation', file);
+	const target = path.join(root, file);
 	const checkPath = async () => {
 		if (path.relative(target, await fs.realpath(target)) !== '') { throw new Error('Invalid documentation path'); }
 	};
@@ -66,6 +66,12 @@ export async function readOfficialDocument(extensionPath: string, file: string, 
 	try {
 		const stat = await handle.stat();
 		if (!stat.isFile() || stat.size > limit) { throw new Error('Documentation file limit'); }
+		const checkHandlePath = async () => {
+			await checkPath();
+			const current = await fs.stat(target);
+			if (current.dev !== stat.dev || current.ino !== stat.ino) { throw new Error('Documentation file changed'); }
+		};
+		await checkHandlePath();
 		const buffer = Buffer.alloc(stat.size + 1);
 		let length = 0;
 		while (length < buffer.length) {
@@ -74,13 +80,15 @@ export async function readOfficialDocument(extensionPath: string, file: string, 
 			length += bytesRead;
 		}
 		if (length > stat.size) { throw new Error('Documentation file limit'); }
-		await checkPath();
-		const current = await fs.stat(target);
-		if (current.dev !== stat.dev || current.ino !== stat.ino) { throw new Error('Documentation file changed'); }
+		await checkHandlePath();
 		return new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, length));
 	} finally {
 		await handle.close();
 	}
+}
+
+export async function readOfficialDocument(extensionPath: string, file: string, limit: number): Promise<string> {
+	return readLocalDocument(extensionPath, 'documentation/' + file, limit);
 }
 
 /** Resolves links only to catalog entries; never grants a document arbitrary filesystem access. */

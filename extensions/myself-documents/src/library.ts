@@ -3,15 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { randomUUID } from 'node:crypto';
-import { realpath } from 'node:fs/promises';
+import { lstat, realpath } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { isRecord } from './document';
-import { findLocalLink, LibraryCatalog, LibraryEntry, LibraryGroup, maxCatalogBytes, maxDocumentBytes, parseCatalog, readOfficialDocument, safeRelativeFile } from './libraryModel';
+import { findLocalLink, LibraryCatalog, LibraryEntry, LibraryGroup, maxCatalogBytes, maxDocumentBytes, parseCatalog, readLocalDocument, readOfficialDocument, safeRelativeFile } from './libraryModel';
 import { readDocumentationFolder } from './libraryImport';
+import { maxSearchQueryLength, readSearchBatch } from './librarySearch';
 import { libraryHtml } from './libraryView';
 
 type LibraryNode = LibraryGroup | LibraryEntry;
 interface CatalogLocation { uri: vscode.Uri; installed: boolean; version?: string }
+type CatalogSnapshot = LibraryCatalog & { root: string };
+interface SearchSnapshot { catalog: CatalogSnapshot | undefined; imports: LibraryEntry[] }
+interface SearchSession {
+	id: number;
+	reader: vscode.WebviewView;
+	snapshot?: SearchSnapshot;
+	offset: number;
+	batch: number;
+	requested: boolean;
+	waiting: boolean;
+}
 const readerViewId = 'myself.documentation.reader';
 const offlineDocumentationId = 'myself.offline-documentation';
 
@@ -44,7 +56,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private readonly extensionChanges: vscode.Disposable;
 	private catalogLocation: CatalogLocation | undefined;
 	private catalogLoad: Promise<void> | undefined;
-	private catalog: (LibraryCatalog & { root: string }) | undefined;
+	private catalog: CatalogSnapshot | undefined;
 	private imports: LibraryEntry[];
 	private reader: vscode.WebviewView | undefined;
 	private readerListeners: vscode.Disposable | undefined;
@@ -56,6 +68,10 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private generation = 0;
 	private disposed = false;
 	private history: LibraryEntry[] = [];
+	private searchSession: SearchSession | undefined;
+	private lastSearchId = 0;
+	private invalidatedSearchId: number | undefined;
+	private searchRunning = false;
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 		const imported = context.globalState.get<LibraryEntry[]>('documentation.imports', []);
@@ -74,6 +90,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		const previous = this.catalogLocation;
 		if (previous?.installed === location.installed && previous.version === location.version && previous.uri.toString() === location.uri.toString()) { return; }
 		this.catalogLocation = location;
+		this.invalidateSearch();
 
 		// The old snapshot must stop accepting navigation as soon as the registered extension changes.
 		const hadCatalog = !!this.catalog;
@@ -154,6 +171,9 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		if (this.disposed) { return; }
 		this.readerListeners?.dispose();
 		this.reader = reader;
+		this.searchSession = undefined;
+		this.invalidatedSearchId = undefined;
+		this.lastSearchId = 0;
 		this.ready = false;
 		this.sentPayload = false;
 		reader.webview.options = {
@@ -162,17 +182,19 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		};
 		this.readerListeners = vscode.Disposable.from(
 			reader.webview.onDidReceiveMessage(message => {
+				if (this.reader !== reader) { return; }
 				void this.message(message).catch(() => {
 					if (this.reader === reader) { void vscode.window.showErrorMessage(vscode.l10n.t('The documentation action could not be completed.')); }
 				});
 			}),
 			reader.onDidChangeVisibility(() => {
-				if (reader.visible) { void this.sendDocument(); }
-				else { this.generation++; }
+				if (reader.visible) { this.flushSearchInvalidation(); void this.sendDocument(); }
+				else { this.generation++; this.invalidateSearch(); }
 			}),
 			reader.onDidDispose(() => {
 				this.generation++;
 				this.reader = undefined;
+				this.searchSession = undefined;
 				this.readerListeners?.dispose();
 				this.readerListeners = undefined;
 			}),
@@ -212,17 +234,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 		const isCurrent = () => generation === this.generation && (imported ? this.imports.includes(imported) : this.catalog === catalog);
 		try {
-			let text: string;
-			if (imported) {
-				const uri = vscode.Uri.joinPath(this.context.globalStorageUri, entry.file);
-				if ((await vscode.workspace.fs.stat(uri)).size > maxDocumentBytes) { throw new Error('large'); }
-				if (!isCurrent()) { return; }
-				const bytes = await vscode.workspace.fs.readFile(uri);
-				if (bytes.length > maxDocumentBytes) { throw new Error('large'); }
-				text = new TextDecoder().decode(bytes);
-			} else {
-				text = await readOfficialDocument(catalog!.root, entry.file, maxDocumentBytes);
-			}
+			const text = await this.readEntry(entry, catalog);
 			if (!isCurrent()) { return; }
 			if (addHistory && this.current && this.current.id !== entry.id && (this.current.group !== 'imported' || this.imports.includes(this.current))) {
 				this.history.push(this.current);
@@ -245,12 +257,105 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 	}
 
+	private async readEntry(entry: LibraryEntry, catalog: CatalogSnapshot | undefined): Promise<string> {
+		if (entry.group !== 'imported') {
+			if (!catalog) { throw new Error('Documentation catalog unavailable'); }
+			return readOfficialDocument(catalog.root, entry.file, maxDocumentBytes);
+		}
+		const storage = this.context.globalStorageUri;
+		if (storage.scheme !== 'file' || storage.authority || !/^imports\/[a-f0-9-]+\.(html|md|txt)$/.test(entry.file) || !(await lstat(storage.fsPath)).isDirectory()) {
+			throw new Error('Invalid documentation storage');
+		}
+		return readLocalDocument(await realpath(storage.fsPath), entry.file, maxDocumentBytes);
+	}
+
+	private invalidateSearch(): void {
+		const session = this.searchSession;
+		this.searchSession = undefined;
+		if (session) {
+			this.invalidatedSearchId = session.id;
+			this.flushSearchInvalidation();
+		}
+	}
+
+	private flushSearchInvalidation(): void {
+		const id = this.invalidatedSearchId;
+		if (this.reader?.visible && id !== undefined) {
+			this.invalidatedSearchId = undefined;
+			void this.reader.webview.postMessage({ type: 'librarySearchInvalidated', id });
+		}
+	}
+
+	private searchEntry(snapshot: SearchSnapshot, index: number): LibraryEntry | undefined {
+		const official = snapshot.catalog?.entries;
+		const officialCount = official?.length ?? 0;
+		return index < officialCount ? official?.[index] : snapshot.imports[index - officialCount];
+	}
+
+	private async searchMessage(message: Record<string, unknown>): Promise<void> {
+		const reader = this.reader;
+		const id = message.id;
+		if (!reader?.visible || typeof id !== 'number' || !Number.isSafeInteger(id) || id <= 0) { return; }
+		const session = this.searchSession;
+		if (message.type === 'librarySearchStart') {
+			const query = message.query;
+			if (id <= this.lastSearchId || typeof query !== 'string' || query.length > maxSearchQueryLength || !query.trim()) { return; }
+			this.lastSearchId = id;
+			this.searchSession = { id, reader, offset: 0, batch: 0, requested: true, waiting: false };
+		} else if (session?.id !== id) {
+			return;
+		} else if (message.type === 'librarySearchCancel') {
+			this.searchSession = undefined;
+		} else if (message.type === 'librarySearchNext' && session.waiting && message.batch === session.batch) {
+			session.waiting = false;
+			session.requested = true;
+		} else if (message.type === 'librarySearchOpen' && session.snapshot && typeof message.index === 'number'
+			&& Number.isSafeInteger(message.index) && message.index >= 0 && message.index < session.offset) {
+			const entry = this.searchEntry(session.snapshot, message.index);
+			if (entry) { await this.open(entry.id); }
+			return;
+		}
+		await this.runSearch();
+	}
+
+	private async runSearch(): Promise<void> {
+		if (this.searchRunning) { return; }
+		this.searchRunning = true;
+		try {
+			while (this.searchSession?.requested) {
+				const session = this.searchSession;
+				const isCurrent = () => this.searchSession === session && this.reader === session.reader && session.reader.visible;
+				session.requested = false;
+				if (!session.snapshot) {
+					await this.catalogLoad;
+					if (!isCurrent()) { continue; }
+					session.snapshot = { catalog: this.catalog, imports: this.imports };
+				}
+				const snapshot = session.snapshot;
+				const total = (snapshot.catalog?.entries.length ?? 0) + snapshot.imports.length;
+				const result = await readSearchBatch(total, session.offset, index => this.searchEntry(snapshot, index)!,
+					entry => this.readEntry(entry, snapshot.catalog), isCurrent);
+				if (!result || !isCurrent()) { continue; }
+				session.offset = result.offset;
+				const done = session.offset === total;
+				session.waiting = !done;
+				const sent = await session.reader.webview.postMessage({ type: 'librarySearchBatch', id: session.id, batch: ++session.batch,
+					total, done, catalogUnavailable: !snapshot.catalog, ...result });
+				if (!sent && this.searchSession === session) { this.searchSession = undefined; }
+			}
+		} finally {
+			this.searchRunning = false;
+		}
+	}
+
 	private async message(message: unknown): Promise<void> {
 		if (this.disposed || !isRecord(message)) { return; }
 		if (message.type === 'ready') {
 			this.ready = true;
 			this.sentPayload = false;
 			await this.sendDocument();
+		} else if (typeof message.type === 'string' && message.type.startsWith('librarySearch')) {
+			await this.searchMessage(message);
 		} else if (message.type === 'back') {
 			const previous = this.history.pop();
 			if (previous) {
@@ -312,6 +417,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 				const entries: LibraryEntry[] = [...this.imports, { id, group: 'imported', title, file, source: '', format }];
 				await this.context.globalState.update('documentation.imports', entries);
 				this.imports = entries;
+				this.invalidateSearch();
 				if (!this.disposed) { this.changes.fire(); }
 			} catch {
 				if (target) { await vscode.workspace.fs.delete(target).then(undefined, () => undefined); }
@@ -348,6 +454,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			const imported = [...this.imports, ...entries];
 			await this.context.globalState.update('documentation.imports', imported);
 			this.imports = imported;
+			this.invalidateSearch();
 			if (!this.disposed) { this.changes.fire(); }
 		} catch {
 			await Promise.all(copies.map(copy => vscode.workspace.fs.delete(copy).then(undefined, () => undefined)));
@@ -362,6 +469,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		const entries = this.imports.filter(item => item !== entry);
 		await this.context.globalState.update('documentation.imports', entries);
 		this.imports = entries;
+		this.invalidateSearch();
 		this.history = this.history.filter(item => item !== entry);
 		if (!this.disposed) { this.changes.fire(); }
 		await vscode.workspace.fs.delete(vscode.Uri.joinPath(this.context.globalStorageUri, entry.file)).then(undefined, () => undefined);
@@ -370,6 +478,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 
 	dispose(): void {
 		this.disposed = true;
+		this.searchSession = undefined;
 		this.generation++;
 		this.extensionChanges.dispose();
 		this.readerListeners?.dispose();

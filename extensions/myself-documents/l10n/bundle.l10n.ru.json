@@ -56,5 +56,19 @@
   "This link is not included in the local library.": "Эта страница отсутствует в локальной библиотеке.",
   "Add Documentation Folder": "Добавить папку документации",
   "No HTML, Markdown or text documents were found in this folder.": "В папке не найдены документы HTML, Markdown или текстовые файлы.",
-  "The folder could not be added. Use UTF-8 HTML, Markdown or text files up to 16 MiB each, 64 MiB and 5000 documents in total.": "Не удалось добавить папку. Используйте HTML, Markdown или текст в UTF-8: до 16 МиБ на файл, до 64 МиБ и 5000 документов всего."
+  "The folder could not be added. Use UTF-8 HTML, Markdown or text files up to 16 MiB each, 64 MiB and 5000 documents in total.": "Не удалось добавить папку. Используйте HTML, Markdown или текст в UTF-8: до 16 МиБ на файл, до 64 МиБ и 5000 документов всего.",
+  "Search Document Contents": "Поиск по содержимому документов",
+  "Search all local documents": "Поиск по всем локальным документам",
+  "Search": "Найти",
+  "Cancel Search": "Отменить поиск",
+  "Loading the local documentation catalog…": "Загружается каталог локальной документации…",
+  "Searched {0} of {1} documents…": "Проверено документов: {0} из {1}…",
+  "Matching documents: {0}. Showing: {1}.": "Найдено документов: {0}. Показано: {1}.",
+  "No matching documents.": "Совпадений нет.",
+  "No matches in the documents searched.": "В проверенных документах совпадений нет.",
+  "Search cancelled.": "Поиск отменён.",
+  "Search ended. Run it again for the current library.": "Поиск завершён. Запустите его снова, чтобы проверить текущую библиотеку.",
+  "Documents that could not be searched: {0}.": "Не удалось проверить документов: {0}.",
+  "The official documentation catalog is unavailable.": "Каталог официальной документации недоступен.",
+  "Search Results": "Результаты поиска"
 }

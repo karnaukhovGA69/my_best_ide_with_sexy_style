@@ -689,6 +689,10 @@
 		{
 			"name": "vs/workbench/contrib/myselfProjectReadiness",
 			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfProjectNotes",
+			"project": "vscode-workbench"
 		}
 	],
 	"sessions": [

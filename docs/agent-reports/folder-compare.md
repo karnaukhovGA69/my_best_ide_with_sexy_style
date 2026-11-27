@@ -56,7 +56,7 @@ No comparison action merges, copies, restores, saves, executes files, invokes Gi
 - Metadata checks cover no dependencies/proposed API/install hooks, visible menus, manifest/runtime English and Russian keys/placeholders, and source/test packaging exclusions. This is not an actual VSIX archive audit.
 - A new scanner edge case was reproduced before fixing: synthetic zero-size metadata on two differing nonempty files falsely returned equality (one targeted test, exit 1). Actual bounded EOF verification fixes it; regression and conservative exact-byte-boundary refusal are included in the final suite. This was found in this new implementation, not claimed as an inherited product defect.
 - A provider lifetime regression was reproduced after the initial checkpoint: delaying the document-list notification until after diff dispatch caused the original pruning logic to expire already-requested snapshots (one targeted test, exit 1). The fix tracks actual provider requests and document-close events, with conservative bounded retention. Final 55 includes that regression. This fixture demonstrates the ordering assumption in the new controller, not proof of a particular native RPC ordering.
-- Targeted strict TypeScript compilation of the three production files and existing `vscode.d.ts`: **0 diagnostics**. Existing compiler and Node type declarations were used read-only; no dependency installation, symlinks, shared output or compiler change.
+- Targeted strict TypeScript compilation of the three production files and existing `vscode.d.ts`: **0 diagnostics**, including the actual repository `node_modules/.bin/tsc` native compiler. The integrator caught `moduleResolution=node10` removal in native TypeScript 7 after an initial successful run with the older JS compiler. The final configuration uses the supported `module=Node16` / `moduleResolution=Node16` pair; without package `type=module`, emitted runtime stays CommonJS. The full 55 tests passed again on the native compiler output. Existing compiler and Node type declarations were used read-only; no dependency installation, symlinks, shared output or compiler change.
 - Targeted repository ESLint on the six source/test files: **0 errors, 0 warnings**. Invoked existing ESLint with the repository configuration; no rules disabled.
 - `git diff --check` is clean. No full client check/build or package was necessary for this independent optional extension.
 
@@ -67,10 +67,10 @@ pnpm --dir extensions/myself-folder-compare test
 pnpm run eslint extensions/myself-folder-compare/src extensions/myself-folder-compare/test
 ```
 
-The author used the pre-existing Node 24 executable and repository compiler directly because this isolated worktree has no dependency tree. Equivalent targeted invocation, with environment variables set to existing tool locations:
+The author used the pre-existing Node 24 executable and actual repository `.bin/tsc` directly because this isolated worktree has no dependency tree. Equivalent targeted invocation, with environment variables set to existing tool locations (`TSC` is the repository executable, not `typescript/lib/tsc.js`):
 
 ```sh
-"$NODE24" "$TSC" -p extensions/myself-folder-compare --typeRoots "$NODE_TYPES"
+"$TSC" -p extensions/myself-folder-compare --typeRoots "$NODE_TYPES"
 "$NODE24" --test extensions/myself-folder-compare/test/*.test.cts
 ```
 
@@ -84,6 +84,7 @@ Native acceptance still needs the actual Files overflow/view button, both picker
 
 ## Review and commits
 
-Architecture and Security approved the design boundaries before implementation. Exact-SHA independent code/QA reviews are pending at the implementation checkpoint. Final results and commit IDs are recorded after handoff; no native tests are implied by source approval.
+Architecture and Security approved the design boundaries before implementation and gave **PASS SOURCE** for exact `ae57bc2f7950708ed1ceef53604b92f2cdaefc18` including the implementation checkpoint. Their reviews did not execute tests, GUI or VSIX. Independent QA of the provider lifetime regression is still pending. Final configuration correction changes only the supported module-resolution pair and report; scanner/controller runtime source is unchanged. No native tests are implied by source approval.
 
 - Implementation checkpoint `a0d0a5f9940ceb166115414ba3a331ed2ad9fb61`. Hold this alone until the incremental provider-lifetime fix is included.
+- Provider-lifetime fix `ae57bc2f7950708ed1ceef53604b92f2cdaefc18`. Include the following TypeScript 7 configuration correction as well.

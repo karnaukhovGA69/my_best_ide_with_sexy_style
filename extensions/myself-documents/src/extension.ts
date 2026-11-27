@@ -111,13 +111,13 @@ class DocumentEditor implements vscode.CustomTextEditorProvider {
 								await vscode.commands.executeCommand('vscode.openWith', document.uri, 'default');
 								break;
 							case 'export': {
-								if (!isPageOptions(message.page)) {
+								if (!isPageOptions(message.page) || (message.directives !== undefined && typeof message.directives !== 'boolean')) {
 									throw new Error('invalid-page');
 								}
 								const result = await exportDocument({
 									getCommands: () => vscode.commands.getCommands(true),
 									execute: request => vscode.commands.executeCommand(exportCommand, request)
-								}, document.getText(), (document.uri.path.split('/').pop() || 'Document').replace(/\.txt$/i, '') + '.pdf', message.page);
+								}, document.getText(), (document.uri.path.split('/').pop() || 'Document').replace(/\.txt$/i, '') + '.pdf', message.page, message.directives === true);
 								post({ type: 'notice', text: result.status === 'saved' ? vscode.l10n.t('PDF saved.') : vscode.l10n.t('Export cancelled.') });
 								break;
 							}
@@ -128,9 +128,11 @@ class DocumentEditor implements vscode.CustomTextEditorProvider {
 				}
 			}).catch((error: unknown) => {
 				const code = error instanceof Error ? error.message : '';
+				const formattedExport = isRecord(message) && message.type === 'action' && message.action === 'export' && message.directives === true;
 				const text = code === 'missing-backend' ? vscode.l10n.t('PDF export is not available in this build. Your text is unchanged.')
 					: code === 'too-large' ? vscode.l10n.t('PDF export supports up to 2 MiB of text. Save your text or export a shorter document.')
-						: vscode.l10n.t('The operation could not be completed. Your text is still available; try again or use the text editor.');
+					: formattedExport ? vscode.l10n.t('PDF export with formatting commands failed. Turn off formatting commands to try a plain export.')
+					: vscode.l10n.t('The operation could not be completed. Your text is still available; try again or use the text editor.');
 				post({ type: 'notice', text });
 				if (isRecord(message) && message.type === 'edit') {
 					snapshot({ ack: message.id, conflict: true });

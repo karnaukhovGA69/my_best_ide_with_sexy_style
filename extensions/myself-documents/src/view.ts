@@ -33,6 +33,8 @@ export function editorHtml(webview: vscode.Webview, media: vscode.Uri, scriptUri
 <label>${label('Size (pt)')}<input id="fontSize" type="number" min="10" max="24" step="1" value="12"></label>
 <label>${label('Line Spacing')}<input id="lineHeight" type="number" min="1" max="2" step="0.1" value="1.5"></label>
 <label>${label('Margins (mm)')}<input id="margin" type="number" min="10" max="30" step="1" value="20"></label>
+<label class="pdf-directives"><input id="pdfDirectives" type="checkbox" aria-describedby="pdfDirectivesHelp">${label('Apply PDF Formatting Commands')}</label>
+<span id="pdfDirectivesHelp">${label('Start a line with @title, @note or @page. Use @@ for a literal @.')}</span>
 <span id="pageHelp">${label('Approximate page preview. PDF pagination may differ.')}</span>
 </section>
 <div id="conflict" role="alert" hidden><p>${label('The file changed while you were typing. Your draft is kept below. Choose which version to use.')}</p>

@@ -23,6 +23,9 @@ export interface DocumentPdfRequestV1 {
 	page: PageOptions;
 }
 
+type DocumentPdfRequestV2 = Omit<DocumentPdfRequestV1, 'version'> & { version: 2; format: 'directives' };
+type DocumentPdfRequest = DocumentPdfRequestV1 | DocumentPdfRequestV2;
+
 export type DocumentPdfResultV1 = { status: 'saved'; uri: string } | { status: 'cancelled' };
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -63,11 +66,11 @@ export function textChange(previous: string, next: string, eol: string): { start
 
 export interface ExportCommands {
 	getCommands(): Thenable<string[]>;
-	execute(request: DocumentPdfRequestV1): Thenable<unknown>;
+	execute(request: DocumentPdfRequest): Thenable<unknown>;
 }
 
-/** No PDF implementation here: all exports go through the workbench's DTO v1. */
-export async function exportDocument(commands: ExportCommands, text: string, fileName: string, page: PageOptions): Promise<DocumentPdfResultV1> {
+/** The workbench renders the selected format from the unchanged editor buffer. */
+export async function exportDocument(commands: ExportCommands, text: string, fileName: string, page: PageOptions, directives = false): Promise<DocumentPdfResultV1> {
 	if (!isPageOptions(page)) {
 		throw new Error('invalid-page');
 	}
@@ -77,10 +80,12 @@ export async function exportDocument(commands: ExportCommands, text: string, fil
 	if (!(await commands.getCommands()).includes(exportCommand)) {
 		throw new Error('missing-backend');
 	}
-	const result = await commands.execute({
-		version: 1, text, suggestedFileName: fileName,
+	const content = {
+		text, suggestedFileName: fileName,
 		page: { size: 'A4', marginMm: page.marginMm, fontFamily: page.fontFamily, fontSizePt: page.fontSizePt, lineHeight: page.lineHeight }
-	});
+	} satisfies Omit<DocumentPdfRequestV1, 'version'>;
+	const request: DocumentPdfRequest = directives ? { version: 2, format: 'directives', ...content } : { version: 1, ...content };
+	const result = await commands.execute(request);
 	if (isRecord(result) && result.status === 'cancelled') {
 		return { status: 'cancelled' };
 	}

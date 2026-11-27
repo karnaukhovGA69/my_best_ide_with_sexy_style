@@ -98,6 +98,29 @@ test('fast typing survives delayed acknowledgements and export flushes the lates
 	} finally { await page.close(); }
 });
 
+test('PDF formatting is opt-in, waits for the current buffer, and can be disabled again', async () => {
+	const page = await open(undefined, false, '@title Начало');
+	try {
+		const toggle = page.getByRole('checkbox', { name: 'Apply PDF Formatting Commands' });
+		await expect(toggle).not.toBeChecked();
+		await toggle.check();
+		const draft = '@title Начало\n@page\n@note Последняя правка';
+		await page.locator('#text').fill(draft);
+		await page.locator('#export').click();
+		await expect(toggle).toBeDisabled();
+		assert.equal((await messages(page)).some(message => message.type === 'action'), false);
+		const edit = (await messages(page)).find(message => message.type === 'edit');
+		await snapshot(page, { text: draft, version: 2, dirty: true, ack: edit.id });
+		assert.equal((await messages(page)).find(message => message.type === 'action').directives, true);
+		await page.evaluate(() => window.postMessage({ type: 'actionDone' }, '*'));
+		await toggle.uncheck();
+		await page.locator('#export').click();
+		const actions = (await messages(page)).filter(message => message.type === 'action');
+		assert.deepEqual(actions.map(({ version, directives }) => [version, directives]), [[2, true], [2, undefined]]);
+		assert.equal(await page.locator('#text').inputValue(), draft);
+	} finally { await page.close(); }
+});
+
 test('external change preserves the draft until an explicit conflict decision', async () => {
 	const page = await open();
 	try {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from 'fs';
-import { DocumentPdfRequestV1, DocumentPdfResultV1 } from '../../documentExport/common/documentExport.js';
+import { DocumentPdfRequest, DocumentPdfResultV1 } from '../../documentExport/common/documentExport.js';
 import { exec } from 'child_process';
 import { app, BrowserWindow, clipboard, contentTracing, desktopCapturer, Display, Menu, MessageBoxOptions, MessageBoxReturnValue, nativeImage, Notification, OpenDevToolsOptions, OpenDialogOptions, OpenDialogReturnValue, powerMonitor, powerSaveBlocker, SaveDialogOptions, SaveDialogReturnValue, screen, shell, systemPreferences, webContents } from 'electron';
 import { arch, cpus, freemem, loadavg, platform, release, totalmem, type } from 'os';
@@ -646,7 +646,7 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 		return this.dialogMainService.showMessageBox(options, window?.win ?? undefined);
 	}
 
-	async exportDocumentPdf(windowId: number | undefined, request: DocumentPdfRequestV1): Promise<DocumentPdfResultV1> {
+	async exportDocumentPdf(windowId: number | undefined, request: DocumentPdfRequest): Promise<DocumentPdfResultV1> {
 		const owner = this.windowById(undefined, windowId)?.win;
 		if (!owner) { throw new Error('No document window is available.'); }
 		const { exportDocumentPdf } = await import('../../documentExport/electron-main/documentExport.js');

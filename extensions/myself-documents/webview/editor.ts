@@ -5,7 +5,7 @@
 
 type FontFamily = 'serif' | 'sans-serif' | 'monospace';
 interface PageOptions { size: 'A4'; fontFamily: FontFamily; fontSizePt: number; lineHeight: number; marginMm: number }
-interface SavedState { base: string; draft: string; page: PageOptions; selectionStart: number; selectionEnd: number }
+interface SavedState { base: string; draft: string; page: PageOptions; selectionStart: number; selectionEnd: number; pdfDirectives?: boolean }
 type HostMessage = { type: 'notice'; text: string } | { type: 'actionDone' } | { type: 'snapshot'; text: string; version: number; name: string; dirty: boolean; ack?: number; conflict?: boolean };
 declare function acquireVsCodeApi(): { postMessage(message: object): void; getState(): SavedState | undefined; setState(state: SavedState): void };
 
@@ -27,7 +27,9 @@ function element<T extends HTMLElement>(id: string): T {
 	const conflictPanel = element<HTMLElement>('conflict');
 	const controls = [...document.querySelectorAll<HTMLButtonElement>('[data-action]')];
 	const fields = { font: element<HTMLSelectElement>('font'), size: element<HTMLInputElement>('fontSize'), leading: element<HTMLInputElement>('lineHeight'), margin: element<HTMLInputElement>('margin') };
+	const pdfDirectives = element<HTMLInputElement>('pdfDirectives');
 	const restored = vscode.getState();
+	pdfDirectives.checked = restored?.pdfDirectives === true;
 	let base = '';
 	let version = 0;
 	let dirty = false;
@@ -35,7 +37,7 @@ function element<T extends HTMLElement>(id: string): T {
 	let inFlight: { id: number; text: string } | undefined;
 	let nextId = 0;
 	let conflict = false;
-	let pendingAction: string | undefined;
+	let pendingAction: { action: string; directives: boolean } | undefined;
 	let actionRunning = false;
 	let composing = false;
 	let numberedListEdit: { start: number; text: string } | undefined;
@@ -49,7 +51,7 @@ function element<T extends HTMLElement>(id: string): T {
 		return Object.values(fields).every(field => field.checkValidity() && field.value !== '');
 	}
 	function persist() {
-		vscode.setState({ base, draft: text.value, page: pageOptions(), selectionStart: text.selectionStart, selectionEnd: text.selectionEnd });
+		vscode.setState({ base, draft: text.value, page: pageOptions(), selectionStart: text.selectionStart, selectionEnd: text.selectionEnd, pdfDirectives: pdfDirectives.checked });
 	}
 	function resize() {
 		text.style.height = 'auto';
@@ -79,6 +81,7 @@ function element<T extends HTMLElement>(id: string): T {
 		conflictPanel.hidden = !conflict;
 		const busy = actionRunning || Boolean(pendingAction);
 		text.readOnly = busy;
+		pdfDirectives.disabled = !initialized || busy;
 		for (const control of controls) {
 			control.disabled = !initialized || conflict || busy || (control.dataset.action === 'export' && !validPage());
 		}
@@ -107,10 +110,10 @@ function element<T extends HTMLElement>(id: string): T {
 			inFlight = { id: ++nextId, text: text.value };
 			vscode.postMessage({ type: 'edit', version, ...inFlight });
 		} else if (pendingAction) {
-			const action = pendingAction;
+			const { action, directives } = pendingAction;
 			pendingAction = undefined;
 			actionRunning = true;
-			vscode.postMessage({ type: 'action', action, version, page: pageOptions() });
+			vscode.postMessage({ type: 'action', action, version, page: pageOptions(), ...(directives ? { directives: true } : {}) });
 		}
 		renderState();
 	}
@@ -122,7 +125,7 @@ function element<T extends HTMLElement>(id: string): T {
 			Object.values(fields).find(field => !field.checkValidity() || field.value === '')?.reportValidity();
 			return;
 		}
-		pendingAction = action;
+		pendingAction = { action, directives: action === 'export' && pdfDirectives.checked };
 		flush();
 	}
 	function enterConflict() {
@@ -254,6 +257,7 @@ function element<T extends HTMLElement>(id: string): T {
 	for (const field of Object.values(fields)) {
 		field.addEventListener('input', applyPage);
 	}
+	pdfDirectives.addEventListener('change', persist);
 	element<HTMLElement>('useFile').addEventListener('click', () => {
 		text.value = base; conflict = false; renderState(); text.focus();
 	});

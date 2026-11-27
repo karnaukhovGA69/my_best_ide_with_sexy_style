@@ -35,6 +35,18 @@ test('PDF cancel, missing backend, rejection and malformed results stay distinct
 	await assert.rejects(exportDocument(commands(async () => undefined), '', 'Blank.pdf', defaultPage), /invalid-result/);
 });
 
+test('explicit PDF formatting sends the untouched text in the version 2 request', async () => {
+	const text = '@title Заголовок\n@@page\n@note <текст>';
+	const requests = [];
+	const commands = { getCommands: async () => [exportCommand], execute: async request => { requests.push(request); return { status: 'cancelled' }; } };
+	assert.deepEqual(await exportDocument(commands, text, 'Draft.pdf', defaultPage, true), { status: 'cancelled' });
+	await exportDocument(commands, text, 'Draft.pdf', defaultPage);
+	assert.deepEqual(requests, [
+		{ version: 2, format: 'directives', text, suggestedFileName: 'Draft.pdf', page: defaultPage },
+		{ version: 1, text, suggestedFileName: 'Draft.pdf', page: defaultPage },
+	]);
+});
+
 test('page constraints and UTF-8 limit are enforced before invoking the backend', async () => {
 	for (const page of [{ ...defaultPage, marginMm: 31 }, { ...defaultPage, fontSizePt: NaN }, { ...defaultPage, fontFamily: 'url(http://example.invalid)' }, { ...defaultPage, lineHeight: 0 }, { ...defaultPage, fontFamily: ['serif'] }]) {
 		assert.equal(isPageOptions(page), false);

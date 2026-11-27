@@ -237,6 +237,10 @@ export class OrganizeImportsAction extends EditorAction {
 				primary: KeyMod.Shift | KeyMod.Alt | KeyCode.KeyO,
 				weight: KeybindingWeight.EditorContrib
 			},
+			contextMenuOpts: {
+				group: '1_modification',
+				order: 1.2,
+			},
 			metadata: {
 				description: nls.localize2('organizeImports.description', "Organize imports in the current file. Also called 'Optimize Imports' by some tools")
 			}

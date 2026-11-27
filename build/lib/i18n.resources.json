@@ -713,6 +713,10 @@
 		{
 			"name": "vs/workbench/contrib/myselfVsixSets",
 			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfExtensionResources",
+			"project": "vscode-workbench"
 		}
 	],
 	"sessions": [

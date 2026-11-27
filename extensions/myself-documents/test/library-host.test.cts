@@ -20,7 +20,7 @@ const uri = value => ({ path: value, fsPath: value, scheme: 'file', authority: '
 async function fixture(options = {}) {
 	const actions = new Map(), reads = [], writes = [], notices = [], information = [], external = [], sent = [], dialogs = [], opened = [];
 	const state = { imports: options.imports ?? [] };
-	let provider, readerProvider, readerOptions, reader, selection, activeEditor; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
+	let provider, readerProvider, readerOptions, reader, selection, activeEditor, reveal; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
 	const extensionsChange = emitter();
 	let installed;
 	let nextPost;
@@ -117,7 +117,10 @@ async function fixture(options = {}) {
 		},
 		commands: {
 			registerCommand: (id, action) => { actions.set(id, action); return { dispose() {} }; },
-			executeCommand: async (id, options) => { opened.push([id, options]); openReader(); }
+			executeCommand: async (id, options) => {
+				opened.push([id, options]);
+				if (reveal) { await reveal(openReader); } else { openReader(); }
+			}
 		},
 		workspace: { fs: {
 			readFile: async resource => { reads.push(resource.path); if (beforeRead) { await beforeRead(resource.path); } if (!files.has(resource.path)) { throw new Error('missing'); } return files.get(resource.path); },
@@ -150,6 +153,7 @@ async function fixture(options = {}) {
 		return { actions, provider, files, reads, writes, notices, information, external, sent, state, dialogs, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
 			reader: () => reader, select: value => { selection = value; }, setEditor: value => { activeEditor = value; },
 			delay: handler => { beforeRead = handler; beforeOfficialRead = handler; },
+			delayReveal: handler => { reveal = handler; },
 			change: () => extensionsChange.fire(),
 			message: async (value, response = false) => {
 				if (response) { nextPost = deferred(); }
@@ -1074,3 +1078,94 @@ for (const [change, update] of [
 		} finally { release.resolve(); f.dispose(); }
 	});
 }
+
+for (const timing of ['before', 'after']) {
+	test(`a stale context article is discarded when ready arrives ${timing} the reveal command settles`, async () => {
+		const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+		const entered = deferred(), release = deferred();
+		try {
+			f.setEditor(contextEditor('go', 'map'));
+			f.delayReveal(open => { open(); entered.resolve(); return release.promise; });
+			const requested = f.actions.get('myself.documentation.contextHelp')();
+			await entered.promise;
+			if (timing === 'after') {
+				release.resolve();
+				await requested;
+			}
+			f.setEditor(contextEditor('sql', 'SELECT'));
+			await f.message({ type: 'ready' });
+			release.resolve();
+			await requested;
+			assert.deepEqual(f.sent, []);
+		} finally { release.resolve(); f.dispose(); }
+	});
+
+	test(`a stale context article preserves the previous article when visibility changes ${timing} the reveal command settles`, async () => {
+		const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+		const entered = deferred(), release = deferred();
+		try {
+			await f.actions.get('myself.documentation.open')('one');
+			await f.message({ type: 'ready' }, true);
+			f.reader().setVisible(false);
+
+			const editor = contextEditor('go', 'map');
+			f.setEditor(editor);
+			f.delayReveal(() => { entered.resolve(); return release.promise; });
+			const requested = f.actions.get('myself.documentation.contextHelp')();
+			await entered.promise;
+			if (timing === 'after') {
+				release.resolve();
+				await requested;
+			}
+			editor.selection = selectText(0);
+			f.reader().setVisible(true);
+			await tick();
+			release.resolve();
+			await requested;
+
+			assert.deepEqual(f.sent.map(({ type, title, back }) => [type, title, back]), [['document', 'One', false]]);
+		} finally { release.resolve(); f.dispose(); }
+	});
+}
+
+test('a current context result commits once after reveal and retains Back to the previous article', async () => {
+	const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+	const entered = deferred(), release = deferred();
+	try {
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' }, true);
+		f.reader().setVisible(false);
+
+		f.setEditor(contextEditor('go', 'map'));
+		f.delayReveal(open => { open(); entered.resolve(); return release.promise; });
+		const requested = f.actions.get('myself.documentation.contextHelp')();
+		await entered.promise;
+		await f.message({ type: 'ready' }, true);
+		assert.ok(f.sent.every(({ title }) => title === 'One'));
+		release.resolve();
+		await requested;
+		const topics = f.sent.filter(({ title }) => title === 'Go Specification');
+		assert.equal(topics.length, 1);
+		assert.deepEqual([topics[0].fragment, topics[0].back], ['Map_types', true]);
+
+		await f.message({ type: 'back' }, true);
+		assert.deepEqual([f.sent.at(-1).title, f.sent.at(-1).back], ['One', false]);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('a failed context delivery is revalidated before a later ready message', async () => {
+	const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+	try {
+		const editor = contextEditor('go', 'map');
+		f.setEditor(editor);
+		await f.actions.get('myself.documentation.contextHelp')();
+		const post = f.reader().webview.postMessage;
+		f.reader().webview.postMessage = async () => false;
+		await f.message({ type: 'ready' });
+
+		editor.document.version++;
+		f.reader().webview.postMessage = post;
+		await f.message({ type: 'ready' });
+		assert.deepEqual(f.sent, []);
+	} finally { f.dispose(); }
+});

@@ -16,6 +16,13 @@ type LibraryNode = LibraryGroup | LibraryEntry;
 interface CatalogLocation { uri: vscode.Uri; installed: boolean; version?: string }
 type CatalogSnapshot = LibraryCatalog & { root: string };
 interface SearchSnapshot { catalog: CatalogSnapshot | undefined; imports: LibraryEntry[] }
+interface PendingContextHelp {
+	readonly entry: LibraryEntry;
+	readonly payload: object;
+	readonly addHistory: boolean;
+	readonly isCurrent: () => boolean;
+	sending: boolean;
+}
 interface SearchSession {
 	id: number;
 	reader: vscode.WebviewView;
@@ -69,6 +76,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	private ready = false;
 	private generation = 0;
 	private contextHelpRequest = 0;
+	private pendingContextHelp: PendingContextHelp | undefined;
 	private disposed = false;
 	private history: LibraryEntry[] = [];
 	private searchSession: SearchSession | undefined;
@@ -93,6 +101,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		const previous = this.catalogLocation;
 		if (previous?.installed === location.installed && previous.version === location.version && previous.uri.toString() === location.uri.toString()) { return; }
 		this.catalogLocation = location;
+		this.pendingContextHelp = undefined;
 		this.invalidateSearch();
 
 		// The old snapshot must stop accepting navigation as soon as the registered extension changes.
@@ -173,6 +182,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	async contextHelp(): Promise<void> {
 		if (this.disposed) { return; }
 		const request = ++this.contextHelpRequest;
+		this.pendingContextHelp = undefined;
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			void vscode.window.showInformationMessage(vscode.l10n.t('Open a text editor to use local context help.'));
@@ -224,10 +234,10 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			}),
 			reader.onDidChangeVisibility(() => {
 				if (reader.visible) { this.flushSearchInvalidation(); void this.sendDocument(); }
-				else { this.generation++; this.invalidateSearch(); }
+				else { this.invalidateNavigation(); this.invalidateSearch(); }
 			}),
 			reader.onDidDispose(() => {
-				this.generation++;
+				this.invalidateNavigation();
 				this.reader = undefined;
 				this.searchSession = undefined;
 				this.readerListeners?.dispose();
@@ -238,8 +248,16 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	}
 
 	private async sendDocument(): Promise<void> {
-		const { reader, payload } = this;
-		if (!reader?.visible || !this.ready || !payload) { return; }
+		const { reader, pendingContextHelp: pending } = this;
+		if (!reader?.visible || !this.ready) { return; }
+		if (pending?.isCurrent()) {
+			await this.sendContextHelp(reader, pending);
+			return;
+		}
+		this.pendingContextHelp = undefined;
+
+		const { payload } = this;
+		if (!payload) { return; }
 		const back = this.history.length > 0;
 		const newDocument = !this.sentPayload;
 		if (!newDocument && this.sentBack === back) { return; }
@@ -252,13 +270,51 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		}
 	}
 
-	async open(id: string, fragment = '', addHistory = true, isSourceCurrent: () => boolean = () => true): Promise<void> {
+	private invalidateNavigation(): number {
+		this.pendingContextHelp = undefined;
+		return ++this.generation;
+	}
+
+	private historyEntry(entry: LibraryEntry, addHistory: boolean): LibraryEntry | undefined {
+		const current = this.current;
+		if (addHistory && current && current.id !== entry.id && (current.group !== 'imported' || this.imports.includes(current))) {
+			return current;
+		}
+		return undefined;
+	}
+
+	private commitDocument(entry: LibraryEntry, payload: object, previous: LibraryEntry | undefined): void {
+		if (previous) { this.history.push(previous); }
+		this.current = entry;
+		this.payload = payload;
+		this.sentPayload = false;
+	}
+
+	private async sendContextHelp(reader: vscode.WebviewView, pending: PendingContextHelp): Promise<void> {
+		if (pending.sending) { return; }
+		pending.sending = true;
+		try {
+			const back = !!this.historyEntry(pending.entry, pending.addHistory) || this.history.length > 0;
+			const sent = await reader.webview.postMessage({ ...pending.payload, back });
+			if (sent && this.reader === reader && this.pendingContextHelp === pending) {
+				this.pendingContextHelp = undefined;
+				this.commitDocument(pending.entry, pending.payload, this.historyEntry(pending.entry, pending.addHistory));
+				this.sentPayload = true;
+				this.sentBack = back;
+				if (back !== (this.history.length > 0)) { await this.sendDocument(); }
+			}
+		} finally {
+			pending.sending = false;
+		}
+	}
+
+	async open(id: string, fragment = '', addHistory = true, isSourceCurrent?: () => boolean): Promise<void> {
 		if (this.disposed) { return; }
 		const imported = this.imports.find(entry => entry.id === id);
 		let catalog = this.catalog;
 		let entry = imported ?? catalog?.entries.find(entry => entry.id === id);
 		if (!entry && catalog) { return; }
-		const generation = ++this.generation;
+		const generation = this.invalidateNavigation();
 		if (!entry) {
 			const load = this.catalogLoad;
 			await load;
@@ -267,23 +323,24 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			entry = catalog?.entries.find(entry => entry.id === id);
 			if (!entry) { return; }
 		}
-		const isCurrent = () => generation === this.generation && (imported ? this.imports.includes(imported) : this.catalog === catalog) && isSourceCurrent();
+		const isCurrent = () => generation === this.generation && (imported ? this.imports.includes(imported) : this.catalog === catalog) && (isSourceCurrent?.() ?? true);
 		if (!isCurrent()) { return; }
 		try {
 			const text = await this.readEntry(entry, catalog);
 			if (!isCurrent()) { return; }
-			if (addHistory && this.current && this.current.id !== entry.id && (this.current.group !== 'imported' || this.imports.includes(this.current))) {
-				this.history.push(this.current);
-			}
-			this.current = entry;
-			this.sentPayload = false;
 			const group = catalog?.groups.find(group => group.id === entry.group);
-			this.payload = { type: 'document', text, format: /\.md$/i.test(entry.file) ? 'markdown' : entry.format, selector: entry.selector,
+			const payload = { type: 'document', text, format: /\.md$/i.test(entry.file) ? 'markdown' : entry.format, selector: entry.selector,
 				title: entry.title, metadata: [group?.title, group?.version, group?.license].filter(Boolean).join(' · '),
 				source: !!entry.source, fragment,
 				notice: vscode.l10n.t('Offline copy. Scripts, forms and external media are disabled.') };
+			if (!isSourceCurrent) { this.commitDocument(entry, payload, this.historyEntry(entry, addHistory)); }
 			if (!this.reader?.visible) {
 				await vscode.commands.executeCommand(`${readerViewId}.open`, { preserveFocus: true });
+			}
+			if (isSourceCurrent) {
+				if (!isCurrent()) { return; }
+				// Readiness and visibility can arrive on either side of the reveal command.
+				this.pendingContextHelp = { entry, payload, addHistory, isCurrent, sending: false };
 			}
 			await this.sendDocument();
 		} catch {
@@ -515,7 +572,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 	dispose(): void {
 		this.disposed = true;
 		this.searchSession = undefined;
-		this.generation++;
+		this.invalidateNavigation();
 		this.extensionChanges.dispose();
 		this.readerListeners?.dispose();
 		this.reader = undefined;

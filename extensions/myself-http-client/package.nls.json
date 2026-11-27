@@ -1,0 +1,6 @@
+{
+  "displayName": "Local HTTP Client",
+  "description": "Send one explicit HTTP request to your own loopback API.",
+  "request": "Send Local HTTP Request…",
+  "category": "Local HTTP"
+}

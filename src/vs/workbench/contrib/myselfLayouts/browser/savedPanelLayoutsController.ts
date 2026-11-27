@@ -11,15 +11,14 @@ import { localize } from '../../../../nls.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IQuickInputService, IQuickPickItem } from '../../../../platform/quickinput/common/quickInput.js';
-import { isProfileUsingDefaultStorage, IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
-import type { IUserDataProfile } from '../../../../platform/userDataProfile/common/userDataProfile.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../common/views.js';
 import { IWorkbenchLayoutService, isHorizontal, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
-import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { isContainerId, layoutName, layoutStorageKey, readLayout, savedPanelLayoutPrefix, SavedPanelLayout, SavedPanelPart } from './savedPanelLayout.js';
+import { SavedPanelLayoutProfileTracker } from './savedPanelLayoutProfiles.js';
 
 export type SavedLayoutAction = 'save' | 'apply' | 'delete';
 
@@ -45,15 +44,13 @@ interface LayoutPick extends IQuickPickItem {
 /** Save and apply explicit, local-profile pane snapshots. */
 export class SavedPanelLayoutsController extends Disposable {
 	private readonly active = this._register(new MutableDisposable<CancellationTokenSource>());
-	private profileReady = Promise.resolve(true);
-	private observedProfile: IUserDataProfile | undefined;
 
 	constructor(
 		private readonly layout: Pick<IWorkbenchLayoutService, 'isVisible' | 'setPartHidden' | 'getPanelPosition' | 'setPanelPosition' | 'getPanelAlignment' | 'setPanelAlignment'>,
 		private readonly views: Pick<IViewsService, 'getVisibleViewContainer' | 'isViewContainerActive' | 'openViewContainer'>,
 		private readonly viewDescriptors: Pick<IViewDescriptorService, 'getViewContainerById' | 'getViewContainerLocation'>,
 		private readonly paneComposites: Pick<IPaneCompositePartService, 'getPaneComposite'>,
-		private readonly profiles: Pick<IUserDataProfileService, 'currentProfile' | 'onDidChangeCurrentProfile'>,
+		private readonly profiles: Pick<SavedPanelLayoutProfileTracker, 'current' | 'onDidChange'>,
 		private readonly storage: Pick<IStorageService, 'get' | 'keys' | 'store' | 'remove' | 'hasScope'>,
 		private readonly quickInput: Pick<IQuickInputService, 'input' | 'pick'>,
 		private readonly dialogs: Pick<IDialogService, 'confirm'>,
@@ -61,11 +58,7 @@ export class SavedPanelLayoutsController extends Disposable {
 		private readonly trust: Pick<IWorkspaceTrustManagementService, 'workspaceTrustInitialized' | 'isWorkspaceTrusted' | 'onDidChangeTrust'>,
 	) {
 		super();
-		this._register(this.profiles.onDidChangeCurrentProfile(event => {
-			this.observedProfile = event.profile;
-			this.profileReady = event.whenSettled ?? Promise.resolve(true);
-			this.active.value?.cancel();
-		}));
+		this._register(this.profiles.onDidChange(() => this.active.value?.cancel()));
 	}
 
 	override dispose(): void {
@@ -79,11 +72,13 @@ export class SavedPanelLayoutsController extends Disposable {
 		}
 		const source = new CancellationTokenSource();
 		this.active.value = source;
-		const profile = this.profiles.currentProfile;
+		const profile = this.profiles.current;
 		const request: LayoutRequest = {
 			token: source.token,
 			isCurrent: () => !source.token.isCancellationRequested
-				&& this.profiles.currentProfile === profile,
+				&& this.profiles.current === profile
+				&& (this.storage.hasScope(profile.profile)
+					|| (profile.storageOwner !== profile.profile && this.storage.hasScope(profile.storageOwner))),
 		};
 		const trustListener = action === 'apply' ? this.trust.onDidChangeTrust(trusted => {
 			if (!trusted) {
@@ -91,12 +86,7 @@ export class SavedPanelLayoutsController extends Disposable {
 			}
 		}) : undefined;
 		try {
-			if (await raceCancellation(this.profileReady, request.token) !== true || !request.isCurrent()) {
-				return;
-			}
-			// A settled switch between profiles that share default global state
-			// keeps the same storage instance and its original profile identity.
-			if (!this.storage.hasScope(profile) && !(this.observedProfile === profile && isProfileUsingDefaultStorage(profile))) {
+			if (await raceCancellation(profile.whenSettled, request.token) !== true || !request.isCurrent()) {
 				return;
 			}
 			switch (action) {

@@ -677,6 +677,10 @@
 		{
 			"name": "vs/workbench/contrib/documentExport",
 			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfProjectActions",
+			"project": "vscode-workbench"
 		}
 	],
 	"sessions": [

@@ -22,6 +22,7 @@ import './workbench.common.main.js';
 import './electron-browser/desktop.main.js';
 import './electron-browser/desktop.contribution.js';
 import './contrib/documentExport/electron-browser/documentExport.contribution.js';
+import './contrib/myselfProjectActions/browser/myselfProjectActions.contribution.js';
 
 //#endregion
 

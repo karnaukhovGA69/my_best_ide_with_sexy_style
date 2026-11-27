@@ -7,6 +7,7 @@ import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { isWindows } from '../../../../../base/common/platform.js';
+import { dirname, joinPath } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -16,6 +17,7 @@ import { IDialogService, IFileDialogService, IOpenDialogOptions, IPrompt } from 
 import { FileSystemProviderCapabilities, FileType, IFileOpenOptions, IFileService, IFileSystemProviderWithOpenReadWriteCloseCapability } from '../../../../../platform/files/common/files.js';
 import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
+import { IProgress, IProgressOptions, IProgressService, IProgressStep, Progress } from '../../../../../platform/progress/common/progress.js';
 import { VIEWLET_ID } from '../../../extensions/common/extensions.js';
 import { localVsixSetMaxBytes } from '../../common/localVsixSet.js';
 import '../../browser/localVsixSetPreview.contribution.js';
@@ -24,6 +26,9 @@ suite('Preview Local VSIX Set', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const commandId = 'myself.extensions.previewLocalVsixSet';
 	const manifest = URI.file(isWindows ? 'C:\\example\\set.json' : '/example/set.json');
+	const directory = dirname(manifest);
+	const archive = joinPath(directory, 'extension.vsix');
+	const archiveBytes = new TextEncoder().encode('abc');
 	const validBytes = new TextEncoder().encode(JSON.stringify({ version: 1, entries: [
 		{ id: 'publisher.extension', version: '1.2.3', file: 'extension.vsix', sha256: 'ab'.repeat(32) }
 	] }));
@@ -38,21 +43,46 @@ suite('Preview Local VSIX Set', () => {
 		let bytes: Uint8Array = validBytes;
 		let statSize = validBytes.length;
 		let readFails = false;
+		let confirmChecksums = false;
+		let cancelProgressOnRead = false;
+		let cancelProgress: (() => void) | undefined;
 		let selection: Promise<URI[] | undefined> = Promise.resolve([manifest]);
 		const provider = new class extends mock<IFileSystemProviderWithOpenReadWriteCloseCapability>() {
 			override readonly capabilities = FileSystemProviderCapabilities.FileOpenReadWriteClose;
 			override async stat(resource: URI) {
+				if (resource.toString() === directory.toString()) {
+					operations.push('stat-directory');
+					return { type: FileType.Directory, ctime: 0, mtime: 0, size: 0 };
+				}
+				if (resource.toString() === archive.toString()) {
+					operations.push('stat-archive');
+					return { type: FileType.File, ctime: 0, mtime: 0, size: archiveBytes.length };
+				}
 				assert.strictEqual(resource, manifest);
 				operations.push('stat');
 				return { type: fileType, ctime: 0, mtime: 0, size: statSize };
 			}
 			override async open(resource: URI, options: IFileOpenOptions): Promise<number> {
-				assert.strictEqual(resource, manifest);
 				assert.deepStrictEqual(options, { create: false });
+				if (resource.toString() === archive.toString()) {
+					operations.push('open-archive');
+					return 43;
+				}
+				assert.strictEqual(resource, manifest);
 				operations.push('open');
 				return 42;
 			}
 			override async read(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number> {
+				if (fd === 43) {
+					const chunk = archiveBytes.subarray(pos, pos + length);
+					operations.push('read-archive');
+					data.set(chunk, offset);
+					if (cancelProgressOnRead) {
+						assert.ok(cancelProgress);
+						cancelProgress();
+					}
+					return chunk.length;
+				}
 				assert.strictEqual(fd, 42);
 				assert.ok(pos + length <= localVsixSetMaxBytes + 1);
 				if (readFails) {
@@ -64,6 +94,10 @@ suite('Preview Local VSIX Set', () => {
 				return chunk.length;
 			}
 			override async close(fd: number): Promise<void> {
+				if (fd === 43) {
+					operations.push('close-archive');
+					return;
+				}
 				assert.strictEqual(fd, 42);
 				operations.push('close');
 			}
@@ -84,12 +118,20 @@ suite('Preview Local VSIX Set', () => {
 		const dialogs = new class extends mock<IDialogService>() {
 			override prompt = (async (prompt: IPrompt<unknown>) => {
 				preview.push(prompt);
-				return { result: undefined };
+				const result = preview.length === 1 && confirmChecksums ? await prompt.buttons?.[0].run({ checkboxChecked: false }) : undefined;
+				return { result };
 			}) as IDialogService['prompt'];
 			override async error(message: string, detail?: string): Promise<void> { errors.push({ message, detail }); }
 		}();
+		const progress = new class extends mock<IProgressService>() {
+			override withProgress<R>(_options: IProgressOptions, task: (progress: IProgress<IProgressStep>) => Promise<R>, onDidCancel?: (choice?: number) => void): Promise<R> {
+				operations.push('progress');
+				cancelProgress = onDidCancel;
+				return task(Progress.None);
+			}
+		}();
 		const instantiation = store.add(new InstantiationService(new ServiceCollection(
-			[IFileDialogService, fileDialog], [IFileService, files], [IDialogService, dialogs],
+			[IFileDialogService, fileDialog], [IFileService, files], [IDialogService, dialogs], [IProgressService, progress],
 		), true));
 		return {
 			pickerOptions, preview, errors, operations,
@@ -97,6 +139,8 @@ suite('Preview Local VSIX Set', () => {
 			setBytes: (value: Uint8Array) => { bytes = value; },
 			setStat: (type: FileType, size: number) => { fileType = type; statSize = size; },
 			failRead: () => { readFails = true; },
+			confirmChecksums: () => { confirmChecksums = true; },
+			cancelProgressOnRead: () => { cancelProgressOnRead = true; },
 			getReadBytes: () => readBytes,
 			async run(...args: URI[]): Promise<void> {
 				await instantiation.invokeFunction(CommandsRegistry.getCommand(commandId)!.handler, ...args);
@@ -150,7 +194,36 @@ suite('Preview Local VSIX Set', () => {
 		assert.match(preview.detail, /publisher\.extension · 1\.2\.3/);
 		assert.match(preview.detail, /File: extension\.vsix/);
 		assert.match(preview.detail, new RegExp('Declared SHA-256: ' + 'ab'.repeat(32)));
-		assert.strictEqual(preview.buttons, undefined);
+		assert.deepStrictEqual(preview.buttons?.map(button => button.label), ['Check SHA-256']);
+		assert.strictEqual(preview.cancelButton, 'Close');
+		assert.match(preview.detail, /reads only the listed VSIX files beside the manifest\. Archives must be no larger than 32 MiB\. The total read limit is 128 MiB/);
+	});
+
+	test('explicitly checking starts new local reads and shows the checksum without an install action', async () => {
+		const state = fixture();
+		state.confirmChecksums();
+		await state.run();
+		assert.deepStrictEqual(state.errors, []);
+		assert.strictEqual(state.preview.length, 2);
+		assert.deepStrictEqual(state.operations.filter(operation => operation !== 'getProvider'), [
+			'stat', 'open', 'close', 'progress', 'stat-directory', 'stat-archive', 'open-archive', 'read-archive', 'read-archive', 'close-archive', 'stat-archive',
+		]);
+		const detail = state.preview[1].detail;
+		assert.ok(typeof detail === 'string');
+		assert.match(detail, /extension\.vsix — Mismatch/);
+		assert.match(detail, /Checksum matches do not verify a package signature or installation safety/);
+		assert.strictEqual(state.preview[1].buttons, undefined);
+	});
+
+	test('cancelling the progress while reading closes the handle and leaves no partial result', async () => {
+		const state = fixture();
+		state.confirmChecksums();
+		state.cancelProgressOnRead();
+		await state.run();
+		assert.deepStrictEqual(state.errors, []);
+		assert.strictEqual(state.preview.length, 1);
+		assert.strictEqual(state.operations.filter(operation => operation === 'read-archive').length, 1);
+		assert.strictEqual(state.operations.at(-1), 'close-archive');
 	});
 
 	test('accepts a valid manifest exactly at the byte limit', async () => {

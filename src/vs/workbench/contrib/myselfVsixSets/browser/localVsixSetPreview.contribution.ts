@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { isWindows } from '../../../../base/common/platform.js';
+import { dirname } from '../../../../base/common/resources.js';
 import { hasKey } from '../../../../base/common/types.js';
 import type { URI } from '../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -13,8 +15,10 @@ import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextke
 import { IDialogService, IFileDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { FileType, hasOpenReadWriteCloseCapability, IFileService } from '../../../../platform/files/common/files.js';
 import type { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { VIEWLET_ID } from '../../extensions/common/extensions.js';
 import { localVsixSetMaxBytes, localVsixSetMaxEntries, parseLocalVsixSet, type LocalVsixSetIssue } from '../common/localVsixSet.js';
+import { checkLocalVsixSetChecksums, localVsixArchiveMaxMiB, localVsixSetReadMaxMiB } from './localVsixSetChecksums.js';
 
 type ManifestReadResult = { readonly bytes: Uint8Array } | { readonly issue: 'size' | 'unavailable' };
 
@@ -97,6 +101,7 @@ registerAction2(class PreviewLocalVsixSetAction extends Action2 {
 		const fileDialog = accessor.get(IFileDialogService);
 		const files = accessor.get(IFileService);
 		const dialogs = accessor.get(IDialogService);
+		const progress = accessor.get(IProgressService);
 		const title = localize('localVsixSetTitle', "Local VSIX Set");
 		const errorTitle = localize('vsixSetCouldNotPreview', "Could not preview the VSIX set");
 		this.previewInProgress = true;
@@ -118,7 +123,8 @@ registerAction2(class PreviewLocalVsixSetAction extends Action2 {
 				return;
 			}
 
-			const read = await readManifest(files, selection[0]);
+			const resource = selection[0];
+			const read = await readManifest(files, resource);
 			if (hasKey(read, { issue: true })) {
 				await dialogs.error(errorTitle, read.issue === 'size'
 					? describeIssue({ kind: 'size' })
@@ -133,9 +139,44 @@ registerAction2(class PreviewLocalVsixSetAction extends Action2 {
 
 			const detail = [
 				localize('vsixSetPreviewStatus', "Package files, hashes, and signatures are unverified."),
+				localize('vsixSetChecksumConsent', "Check SHA-256 reads only the listed VSIX files beside the manifest. Archives must be no larger than {0} MiB. The total read limit is {1} MiB.", localVsixArchiveMaxMiB, localVsixSetReadMaxMiB),
 				...manifest.set.entries.map(entry => localize('vsixSetEntryPreview', "{0} · {1}\nFile: {2}\nDeclared SHA-256: {3}", entry.id, entry.version, entry.file, entry.sha256)),
 			].join('\n\n');
-			await dialogs.prompt({ type: 'info', message: title, detail, custom: true });
+			const { result } = await dialogs.prompt({
+				type: 'info', message: title, detail, custom: true,
+				buttons: [{ label: localize('checkVsixSetChecksums', "Check SHA-256"), run: () => true }],
+				cancelButton: localize('closeVsixPreview', "Close"),
+			});
+			if (result !== true) {
+				return;
+			}
+
+			const cancellation = new CancellationTokenSource();
+			try {
+				const token = cancellation.token;
+				const checksums = await progress.withProgress({
+					location: ProgressLocation.Notification,
+					title: localize('checkingVsixSetChecksums', "Checking Local VSIX Checksums"),
+					cancellable: true,
+				}, () => checkLocalVsixSetChecksums(files, dirname(resource), manifest.set, token), () => cancellation.cancel());
+				if (!checksums || token.isCancellationRequested) {
+					return;
+				}
+
+				const statuses = {
+					match: localize('vsixChecksumMatch', "Match"),
+					mismatch: localize('vsixChecksumMismatch', "Mismatch"),
+					missing: localize('vsixChecksumMissing', "File missing"),
+					unavailable: localize('vsixChecksumUnavailable', "Unavailable"),
+				};
+				const results = [
+					localize('vsixChecksumResultsScope', "Checksum matches do not verify a package signature or installation safety."),
+					...manifest.set.entries.map((entry, index) => localize('vsixChecksumResult', "{0} · {1}\n{2} — {3}", entry.id, entry.version, entry.file, statuses[checksums[index]])),
+				].join('\n\n');
+				await dialogs.prompt({ type: 'info', message: localize('vsixChecksumResultsTitle', "Local VSIX Checksums"), detail: results, custom: true });
+			} finally {
+				cancellation.dispose();
+			}
 		} finally {
 			this.previewInProgress = false;
 		}

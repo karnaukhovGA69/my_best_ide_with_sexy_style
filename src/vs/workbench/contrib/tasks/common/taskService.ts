@@ -63,6 +63,11 @@ export interface IWorkspaceFolderTaskResult extends IWorkspaceTaskResult {
 	workspaceFolder: IWorkspaceFolder;
 }
 
+export interface ITaskTerminationOptions {
+	/** Require the same running Task object after the workspace trust check. */
+	readonly requireActiveInstance?: boolean;
+}
+
 export interface ITaskService {
 	readonly _serviceBrand: undefined;
 	readonly onDidStateChange: Event<ITaskEvent>;
@@ -77,7 +82,7 @@ export interface ITaskService {
 	inTerminal(): boolean;
 	getActiveTasks(): Promise<Task[]>;
 	getBusyTasks(): Promise<Task[]>;
-	terminate(task: Task): Promise<ITaskTerminateResponse>;
+	terminate(task: Task, options?: ITaskTerminationOptions): Promise<ITaskTerminateResponse>;
 	tasks(filter?: ITaskFilter): Promise<Task[]>;
 	rerun(terminalInstanceId: number): void;
 	/**

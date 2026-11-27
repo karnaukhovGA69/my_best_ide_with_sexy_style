@@ -83,7 +83,7 @@ registerAction2(class RunningProjectTasksAction extends Action2 {
 			}
 
 			if (choice.operation === 'stop') {
-				const result = await tasks.terminate(selected.task);
+				const result = await tasks.terminate(selected.task, { requireActiveInstance: true });
 				if (!result.success || !result.task) {
 					notifications.warn(localize('projectTaskNotStopped', "The selected task could not be stopped."));
 				}

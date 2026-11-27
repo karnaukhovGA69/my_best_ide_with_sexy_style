@@ -169,6 +169,8 @@ import './contrib/performance/electron-browser/performance.contribution.js';
 import './contrib/tasks/electron-browser/taskService.js';
 import './contrib/myselfProjectActions/browser/myselfProjectActions.contribution.js';
 import './contrib/myselfProjectReadiness/browser/projectReadiness.contribution.js';
+import './contrib/myselfToolchain/browser/myselfToolchain.contribution.js';
+import './contrib/myselfProjectProcesses/browser/projectTaskOutput.contribution.js';
 import './contrib/myselfProjectNotes/browser/projectNotes.contribution.js';
 
 // External terminal

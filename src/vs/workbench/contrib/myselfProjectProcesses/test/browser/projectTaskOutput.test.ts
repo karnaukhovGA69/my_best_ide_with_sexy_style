@@ -50,7 +50,8 @@ suite('Running project tasks', () => {
 				activeReads++;
 				return active;
 			}
-			override async terminate(task: Task) {
+			override async terminate(task: Task, options?: Parameters<ITaskService['terminate']>[1]) {
+				assert.deepStrictEqual(options, { requireActiveInstance: true });
 				terminated.push(task);
 				return { success: true, task };
 			}

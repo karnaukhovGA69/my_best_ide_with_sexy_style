@@ -693,6 +693,14 @@
 		{
 			"name": "vs/workbench/contrib/myselfProjectNotes",
 			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfToolchain",
+			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfProjectProcesses",
+			"project": "vscode-workbench"
 		}
 	],
 	"sessions": [

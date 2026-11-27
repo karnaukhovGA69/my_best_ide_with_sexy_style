@@ -49,7 +49,7 @@ import { ITerminalProfileResolverService } from '../../terminal/common/terminal.
 
 import { CommandString, ConfiguringTask, ContributedTask, CustomTask, ExecutionEngine, InMemoryTask, InstancePolicy, ITaskConfig, ITaskEvent, ITaskIdentifier, ITaskInactiveEvent, ITaskProcessEndedEvent, ITaskSet, JsonSchemaVersion, KeyedTaskIdentifier, RerunAllRunningTasksCommandId, RuntimeType, Task, TASK_RUNNING_STATE, TaskDefinition, TaskEventKind, TaskGroup, TaskRunSource, TaskSettingId, TaskSorter, TaskSourceKind, TasksSchemaProperties, USER_TASKS_GROUP_KEY } from '../common/tasks.js';
 import { ChatAgentLocation, ChatModeKind } from '../../chat/common/constants.js';
-import { CustomExecutionSupportedContext, ICustomizationProperties, IProblemMatcherRunOptions, ITaskFilter, ITaskProvider, ITaskService, IWorkspaceFolderTaskResult, ProcessExecutionSupportedContext, ServerlessWebContext, ShellExecutionSupportedContext, TaskCommandsRegistered, TaskExecutionSupportedContext, TasksAvailableContext } from '../common/taskService.js';
+import { CustomExecutionSupportedContext, ICustomizationProperties, IProblemMatcherRunOptions, ITaskFilter, ITaskProvider, ITaskService, ITaskTerminationOptions, IWorkspaceFolderTaskResult, ProcessExecutionSupportedContext, ServerlessWebContext, ShellExecutionSupportedContext, TaskCommandsRegistered, TaskExecutionSupportedContext, TasksAvailableContext } from '../common/taskService.js';
 import { ITaskExecuteResult, ITaskResolver, ITaskSummary, ITaskSystem, ITaskSystemInfo, ITaskTerminateResponse, TaskError, TaskErrors, TaskExecuteKind, Triggers, VerifiedTask } from '../common/taskSystem.js';
 import { getTemplates as getTaskTemplates } from '../common/taskTemplates.js';
 
@@ -2239,15 +2239,20 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		return undefined;
 	}
 
-	public async terminate(task: Task): Promise<ITaskTerminateResponse> {
+	public async terminate(task: Task, options?: ITaskTerminationOptions): Promise<ITaskTerminateResponse> {
 		if (!(await this._trust())) {
-			return { success: true, task: undefined };
+			return { success: !options?.requireActiveInstance, task: undefined };
 		}
 
-		if (!this._taskSystem) {
-			return { success: true, task: undefined };
+		const taskSystem = this._taskSystem;
+		if (!taskSystem) {
+			return { success: !options?.requireActiveInstance, task: undefined };
 		}
-		return this._taskSystem.terminate(task);
+		// A task key can be reused. The check and terminal selection must share this synchronous step.
+		if (options?.requireActiveInstance && (!this._workspaceTrustManagementService.isWorkspaceTrusted() || !taskSystem.getActiveTasks().includes(task))) {
+			return { success: false, task: undefined };
+		}
+		return taskSystem.terminate(task);
 	}
 
 	private _terminateAll(): Promise<ITaskTerminateResponse[]> {

@@ -18,9 +18,9 @@ function deferred() {
 }
 const uri = value => ({ path: value, fsPath: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
-	const actions = new Map(), reads = [], writes = [], notices = [], external = [], sent = [], dialogs = [], opened = [];
+	const actions = new Map(), reads = [], writes = [], notices = [], information = [], external = [], sent = [], dialogs = [], opened = [];
 	const state = { imports: options.imports ?? [] };
-	let provider, readerProvider, readerOptions, reader, selection; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
+	let provider, readerProvider, readerOptions, reader, selection, activeEditor; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
 	const extensionsChange = emitter();
 	let installed;
 	let nextPost;
@@ -99,6 +99,7 @@ async function fixture(options = {}) {
 		Disposable: { from: (...disposables) => ({ dispose: () => disposables.forEach(d => d.dispose()) }) },
 		env: { language: 'en', openExternal: async value => { external.push(value.toString()); return true; } },
 		window: {
+			get activeTextEditor() { return activeEditor; },
 			createTreeView: (_id, options) => { provider = options.treeDataProvider; return { dispose() {} }; },
 			registerWebviewViewProvider: (id, provider, options) => {
 				assert.equal(id, 'myself.documentation.reader');
@@ -109,7 +110,10 @@ async function fixture(options = {}) {
 			showQuickPick: async items => options.quickPick?.(items),
 			showOpenDialog: async () => { dialogs.push('open'); return options.dialog ? options.dialog(selection) : selection; },
 			showErrorMessage: async text => { notices.push(text); },
-			showInformationMessage: async (_text, action) => options.confirm ? options.confirm(action) : action,
+			showInformationMessage: async (message, action) => {
+				information.push(message);
+				return options.confirm ? options.confirm(action) : action;
+			},
 		},
 		commands: {
 			registerCommand: (id, action) => { actions.set(id, action); return { dispose() {} }; },
@@ -143,8 +147,8 @@ async function fixture(options = {}) {
 	try {
 		loadWithVscode('library.js', vscode).registerLibrary(context);
 		if (!options.deferCatalog) { await waitForTreeChange(); }
-		return { actions, provider, files, reads, writes, notices, external, sent, state, dialogs, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
-			reader: () => reader, select: value => { selection = value; },
+		return { actions, provider, files, reads, writes, notices, information, external, sent, state, dialogs, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
+			reader: () => reader, select: value => { selection = value; }, setEditor: value => { activeEditor = value; },
 			delay: handler => { beforeRead = handler; beforeOfficialRead = handler; },
 			change: () => extensionsChange.fire(),
 			message: async (value, response = false) => {
@@ -875,3 +879,198 @@ test('full-text scan skips a linked import and completes an oversized batch with
 		assert.ok(!f.reads.some(file => /d1\.md|outside\.txt/.test(file)));
 	} finally { f.dispose(); }
 });
+
+function selectText(anchorOffset, activeOffset = anchorOffset) {
+	const position = offset => ({ offset, isEqual: other => other.offset === offset });
+	return {
+		anchor: position(anchorOffset),
+		active: position(activeOffset),
+		start: position(Math.min(anchorOffset, activeOffset)),
+		end: position(Math.max(anchorOffset, activeOffset)),
+		isEmpty: anchorOffset === activeOffset,
+	};
+}
+
+function contextEditor(languageId, text, selection = selectText(0, text.length)) {
+	return {
+		selection,
+		document: {
+			languageId,
+			version: 1,
+			offsetAt: position => position.offset,
+			getText: range => text.slice(range.start.offset, range.end.offset),
+			getWordRangeAtPosition: (position, pattern) => {
+				const match = Array.from(text.matchAll(new RegExp(pattern))).find(match => match.index <= position.offset && position.offset <= match.index + match[0].length);
+				return match && selectText(match.index, match.index + match[0].length);
+			},
+		},
+	};
+}
+
+const contextDocuments = [
+	['go/go-spec.html', 'Go Specification'],
+	['rust/rust-reference.html', 'Rust Reference'],
+	['postgresql/index.html', 'PostgreSQL'],
+	['postgresql/sql-select.html', 'SELECT'],
+	['postgresql/sql-createtable.html', 'CREATE TABLE'],
+	['bash/bash.html', 'Bash Manual'],
+];
+
+function writeContextCatalog(bundled, catalog, documents = contextDocuments) {
+	const documentation = path.join(bundled, 'documentation');
+	for (const [file, title] of documents) {
+		const group = file.split('/')[0];
+		if (!catalog.groups.some(entry => entry.id === group)) {
+			catalog.groups.push({ id: group, title: group, version: '', license: '' });
+		}
+		catalog.entries.push({ id: 'fixture-' + file, group, file, title, format: 'html', source: '' });
+		fs.mkdirSync(path.dirname(path.join(documentation, file)), { recursive: true });
+		fs.writeFileSync(path.join(documentation, file), '<h1>' + title + '</h1><h2 id="Map_types">Map types</h2>');
+	}
+	fs.writeFileSync(path.join(documentation, 'catalog.json'), JSON.stringify(catalog));
+}
+
+test('context help opens vetted Go and SQL topics in the right reader and ignores invocation arguments', async () => {
+	const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+	try {
+		const help = f.actions.get('myself.documentation.contextHelp');
+		f.setEditor(contextEditor('go', 'x := map[string]int{}', selectText(6)));
+		await help('postgresql/sql-select.html', 'https://outside.invalid/#unsafe');
+		await f.message({ type: 'ready' }, true);
+		assert.deepEqual([f.sent.at(-1).title, f.sent.at(-1).fragment], ['Go Specification', 'Map_types']);
+		assert.deepEqual(f.opened, [['myself.documentation.reader.open', { preserveFocus: true }]]);
+
+		for (const [term, selection, title] of [
+			['select', selectText(3), 'SELECT'],
+			['Create\n TABLE', selectText(0, 13), 'CREATE TABLE'],
+			['create table t', selectText(9), 'CREATE TABLE'],
+		]) {
+			f.setEditor(contextEditor('sql', term, selection));
+			await help();
+			assert.deepEqual([f.sent.at(-1).title, f.sent.at(-1).fragment], [title, '']);
+		}
+		assert.deepEqual(f.external, []);
+		assert.deepEqual(f.information, []);
+	} finally { f.dispose(); }
+});
+
+test('unknown terms and unsuitable selection sizes fall back to the language reference', async () => {
+	const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+	try {
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' }, true);
+		const help = f.actions.get('myself.documentation.contextHelp');
+		for (const [language, text, title] of [
+			['go', 'Map', 'Go Specification'],
+			['go', 'αmap', 'Go Specification'],
+			['go', 'https://outside.invalid/map', 'Go Specification'],
+			['sql', 'CREATE TABLESPACE', 'PostgreSQL'],
+			['rust', 'arbitrary', 'Rust Reference'],
+			['shellscript', 'arbitrary', 'Bash Manual'],
+		]) {
+			f.setEditor(contextEditor(language, text));
+			await help();
+			assert.deepEqual([f.sent.at(-1).title, f.sent.at(-1).fragment], [title, '']);
+		}
+		const editor = contextEditor('go', 'x'.repeat(65));
+		editor.document.getText = () => assert.fail('oversized selection must not be read');
+		f.setEditor(editor);
+		await help();
+		assert.deepEqual([f.sent.at(-1).title, f.sent.at(-1).fragment], ['Go Specification', '']);
+		assert.deepEqual(f.external, []);
+	} finally { f.dispose(); }
+});
+
+test('context help reports no editor, unsupported language and missing local documentation without opening a view', async () => {
+	const f = await fixture({ bundled: false });
+	try {
+		const help = f.actions.get('myself.documentation.contextHelp');
+		await help('go', 'map');
+		f.setEditor(contextEditor('plaintext', 'map'));
+		await help('go', 'map');
+		f.setEditor(contextEditor('go', 'map'));
+		await help();
+		assert.deepEqual(f.information, [
+			'Open a text editor to use local context help.',
+			'Local context help is available for Go, Rust, SQL and shell scripts.',
+			'Local documentation for this language is unavailable.',
+		]);
+		assert.deepEqual([f.opened, f.reads, f.external], [[], [], []]);
+	} finally { f.dispose(); }
+});
+
+test('an exact topic missing from the snapshot falls back only to a vetted reference in that snapshot', async () => {
+	const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog, [
+		['postgresql/index.html', 'PostgreSQL'],
+	]) });
+	try {
+		f.setEditor(contextEditor('sql', 'SELECT'));
+		await f.actions.get('myself.documentation.contextHelp')();
+		await f.message({ type: 'ready' }, true);
+		assert.equal(f.sent.at(-1).title, 'PostgreSQL');
+		assert.equal(f.reads.at(-1), path.join(f.bundled, 'documentation/postgresql/index.html'));
+		assert.deepEqual(f.external, []);
+	} finally { f.dispose(); }
+});
+
+test('changing selection while catalog loading discards the request before any article read', async () => {
+	const entered = deferred(), release = deferred();
+	const f = await fixture({
+		deferCatalog: true,
+		prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog),
+		beforeRead: file => { if (file.endsWith('catalog.json')) { entered.resolve(); return release.promise; } },
+	});
+	try {
+		await entered.promise;
+		const editor = contextEditor('go', 'map name', selectText(0, 3));
+		f.setEditor(editor);
+		const requested = f.actions.get('myself.documentation.contextHelp')();
+		editor.selection = selectText(4, 8);
+		release.resolve();
+		await requested;
+		assert.deepEqual(f.reads, [path.join(f.bundled, 'documentation/catalog.json')]);
+		assert.deepEqual([f.opened, f.information], [[], []]);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('a stale article completion cannot replace help for the latest selection', async () => {
+	const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+	const entered = deferred(), release = deferred();
+	try {
+		const editor = contextEditor('sql', 'SELECT CREATE TABLE', selectText(0, 6));
+		f.setEditor(editor);
+		f.delay(file => { if (file.endsWith('sql-select.html')) { entered.resolve(); return release.promise; } });
+		const help = f.actions.get('myself.documentation.contextHelp');
+		const firstRequest = help();
+		await entered.promise;
+		editor.selection = selectText(7, 19);
+		await help();
+		await f.message({ type: 'ready' }, true);
+		release.resolve();
+		await firstRequest;
+		assert.deepEqual(f.sent.filter(message => message.type === 'document').map(message => message.title), ['CREATE TABLE']);
+		assert.deepEqual(f.opened, [['myself.documentation.reader.open', { preserveFocus: true }]]);
+		assert.deepEqual(f.notices, []);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+for (const [change, update] of [
+	['document version', editor => { editor.document.version++; }],
+	['selection', editor => { editor.selection = selectText(0); }],
+]) {
+	test(`changing the ${change} during a context help read discards it`, async () => {
+		const f = await fixture({ prepare: ({ bundled, catalog }) => writeContextCatalog(bundled, catalog) });
+		const entered = deferred(), release = deferred();
+		try {
+			const editor = contextEditor('go', 'map');
+			f.setEditor(editor);
+			f.delay(file => { if (file.endsWith('go-spec.html')) { entered.resolve(); return release.promise; } });
+			const requested = f.actions.get('myself.documentation.contextHelp')();
+			await entered.promise;
+			update(editor);
+			release.resolve();
+			await requested;
+			assert.deepEqual([f.opened, f.sent, f.notices], [[], [], []]);
+		} finally { release.resolve(); f.dispose(); }
+	});
+}

@@ -140,6 +140,7 @@ import './contrib/debug/electron-browser/extensionHostDebugService.js';
 import './contrib/extensions/electron-browser/extensions.contribution.js';
 import './contrib/extensions/electron-browser/devtoolsExtensionHost.contribution.js';
 import './contrib/myselfDiagnostics/browser/installationDiagnostics.contribution.js';
+import './contrib/myselfVsixSets/browser/localVsixSetPreview.contribution.js';
 
 // Issues
 import './contrib/issue/electron-browser/issue.contribution.js';

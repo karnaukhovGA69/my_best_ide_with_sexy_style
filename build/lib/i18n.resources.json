@@ -709,6 +709,10 @@
 		{
 			"name": "vs/workbench/contrib/myselfLayouts",
 			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfVsixSets",
+			"project": "vscode-workbench"
 		}
 	],
 	"sessions": [

@@ -1,0 +1,20 @@
+{
+  "Choose GET or POST.": "Выберите GET или POST.",
+  "Enter an HTTP or HTTPS URL using 127.0.0.1 or [::1], up to 2048 characters. Omit credentials and fragments.": "Введите HTTP- или HTTPS-адрес с 127.0.0.1 или [::1] длиной до 2048 символов. Уберите учётные данные и фрагмент.",
+  "The POST body exceeds 16 KiB of UTF-8 text.": "Объём тела POST превышает 16 КиБ текста UTF-8.",
+  "The local request timed out after 10 seconds.": "Локальный запрос не завершился за 10 секунд.",
+  "The local HTTPS request failed. Check that the service is listening and its certificate is trusted for the selected address.": "Локальный HTTPS-запрос завершился ошибкой. Проверьте, что служба отвечает, а её сертификат доверен для выбранного адреса.",
+  "The local HTTP request failed.": "Локальный HTTP-запрос завершился ошибкой.",
+  "Local HTTP Response": "Локальный HTTP-ответ",
+  "HTTP status {0}": "Статус HTTP {0}",
+  "Showing the first 64 KiB of response bytes.": "Показаны первые 64 КиБ ответа.",
+  "Choose a method for one local HTTP request": "Выберите метод для одного локального HTTP-запроса",
+  "Enter the loopback URL to request": "Введите адрес локального сервиса",
+  "Enter a one-line POST body as plain text": "Введите тело POST одной строкой обычного текста",
+  "Send Once": "Отправить один раз",
+  "The request includes {0} UTF-8 body bytes.": "Запрос содержит {0} байт тела в UTF-8.",
+  "The query you entered will be included in this request.": "Введённая строка запроса будет отправлена вместе с этим запросом.",
+  "Send one {0} request to {1}?": "Отправить один запрос {0} на {1}?",
+  "Sending local HTTP request": "Отправка локального HTTP-запроса",
+  "The request was stopped. A server that already received it may still finish processing.": "Запрос остановлен. Сервер, который уже его получил, может завершить обработку."
+}

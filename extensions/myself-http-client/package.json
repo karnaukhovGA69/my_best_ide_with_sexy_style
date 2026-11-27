@@ -1,0 +1,58 @@
+{
+  "name": "myself-http-client",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "0.1.0",
+  "publisher": "myself",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.146.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "l10n": "./l10n",
+  "main": "./out/extension.js",
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onCommand:myself.localHttp.request"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "myself.localHttp.request",
+        "title": "%request%",
+        "category": "%category%",
+        "icon": "$(arrow-right)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "myself.localHttp.request",
+          "when": "resourceScheme == file && isWorkspaceTrusted && !remoteName && !activeCustomEditorId",
+          "group": "navigation@41"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "myself.localHttp.request",
+          "when": "view == workbench.explorer.fileView && isWorkspaceTrusted && !remoteName",
+          "group": "localApi@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "pnpm -C ../.. exec tsc -p extensions/myself-http-client",
+    "test": "pnpm run compile && node --test test/*.test.cts"
+  }
+}

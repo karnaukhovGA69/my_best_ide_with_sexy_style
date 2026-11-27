@@ -13,12 +13,23 @@ import { Registry } from '../../../../platform/registry/common/platform.js';
 import { WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 
 export const pythonInterpreterSetting = 'python.defaultInterpreterPath';
+export const basedPyrightInterpreterSetting = 'python.pythonPath';
 
-/** Check the registered Python setting without activating its extension. */
-export function supportsFolderInterpreterSetting(): boolean {
-	const property = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties()[pythonInterpreterSetting];
-	return !!property && typeof property.source === 'object' && property.source.id.toLowerCase() === 'ms-python.python'
-		&& property.scope === ConfigurationScope.MACHINE_OVERRIDABLE && property.type === 'string';
+export const interpreterSettings = [
+	{ key: pythonInterpreterSetting, provider: 'Microsoft Python', owner: 'ms-python.python', scope: ConfigurationScope.MACHINE_OVERRIDABLE },
+	{ key: basedPyrightInterpreterSetting, provider: 'BasedPyright', owner: 'detachhead.basedpyright', scope: ConfigurationScope.RESOURCE },
+] as const;
+
+export type InterpreterSetting = typeof interpreterSettings[number];
+
+/** Check the exact registered contracts without activating either extension. */
+export function getAvailableInterpreterSettings(defaultKeys: readonly string[]): readonly InterpreterSetting[] {
+	const properties = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties();
+	return interpreterSettings.filter(({ key, owner, scope }) => {
+		const property = properties[key];
+		return !!property && typeof property.source === 'object' && property.source.id.toLowerCase() === owner
+			&& property.scope === scope && property.type === 'string' && defaultKeys.includes(key);
+	});
 }
 
 /** Only accept absolute local URI syntax. Mount locality is a property of the OS. */
@@ -77,8 +88,16 @@ function describeValue(value: unknown): string {
 		: localize('interpreterOtherValue', "Non-text value");
 }
 
-/** Describe the old and new scopes and the exact persisted value. */
-export function describeInterpreterChange(setting: InterpreterSettingSnapshot, path: string, folder: URI): string {
+/** Explain how the selected extension may use the saved value. */
+export function describeInterpreterApplicability(setting: InterpreterSetting): string {
+	if (setting.key === basedPyrightInterpreterSetting) {
+		return localize('basedPyrightApplicability', "BasedPyright may run the selected Python to resolve imports. An interpreter selected by Microsoft Python can take precedence.");
+	}
+	return localize('previewSelection', "The Python extension uses this value for its initial choice and keeps any interpreter it has already selected.");
+}
+
+/** Describe the provider, old and new scopes, and the exact persisted value. */
+export function describeInterpreterChange(target: InterpreterSetting, setting: InterpreterSettingSnapshot, path: string, folder: URI): string {
 	const scopes: Record<InterpreterSettingSnapshot['scope'], string> = {
 		policy: localize('scopePolicy', "System Policy"),
 		session: localize('scopeSession', "Current Session"),
@@ -93,7 +112,7 @@ export function describeInterpreterChange(setting: InterpreterSettingSnapshot, p
 		localize('previewFolder', "Project Folder — {0}", describeValue(folder.fsPath)),
 		localize('previewCurrent', "Current Value ({0}) — {1}", scopes[setting.scope], describeValue(setting.current)),
 		localize('previewDestination', "Destination — Folder Settings (.vscode/settings.json)"),
-		localize('previewSet', "{0}\n{1} → {2}", pythonInterpreterSetting, describeValue(setting.folderValue), describeValue(path)),
-		localize('previewSelection', "The Python extension uses this value for its initial choice and keeps any interpreter it has already selected."),
+		localize('previewSet', "{0} — {1}\n{2} → {3}", target.provider, target.key, describeValue(setting.folderValue), describeValue(path)),
+		describeInterpreterApplicability(target),
 	].join('\n\n');
 }

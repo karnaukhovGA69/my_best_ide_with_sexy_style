@@ -24,7 +24,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { WorkbenchState, WorkspaceFolder, type IWorkspaceFoldersChangeEvent } from '../../../../../platform/workspace/common/workspace.js';
 import { registerPythonInterpreterPickerAction } from '../../browser/myselfToolchain.contribution.js';
 import { PythonInterpreterPicker } from '../../browser/pythonInterpreterPicker.js';
-import { pythonInterpreterSetting } from '../../browser/pythonInterpreterSetting.js';
+import { basedPyrightInterpreterSetting, pythonInterpreterSetting } from '../../browser/pythonInterpreterSetting.js';
 
 suite('Project Python interpreter picker', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -44,7 +44,17 @@ suite('Project Python interpreter picker', () => {
 		store.add({ dispose: () => registry.deregisterConfigurations([definition]) });
 	});
 
-	function fixture({ initialFolders = [first], state = WorkbenchState.FOLDER, isRemote = false, declaresSetting = true, initialized = Promise.resolve() } = {}) {
+	function registerBasedPyright(owner = 'detachhead.basedpyright', scope = ConfigurationScope.RESOURCE, type: 'string' | 'boolean' = 'string') {
+		const contribution: IConfigurationNode = {
+			id: 'basedpyright',
+			extensionInfo: { id: owner },
+			properties: { [basedPyrightInterpreterSetting]: { scope, type, default: type === 'string' ? 'python' : false } },
+		};
+		registry.registerConfiguration(contribution);
+		return store.add({ dispose: () => registry.deregisterConfigurations([contribution]) });
+	}
+
+	function fixture({ initialFolders = [first], state = WorkbenchState.FOLDER, isRemote = false, defaultKeys = [pythonInterpreterSetting] as string[], initialized = Promise.resolve() } = {}) {
 		let folders = initialFolders;
 		let trusted = true;
 		const foldersChanged = store.add(new Emitter<IWorkspaceFoldersChangeEvent>());
@@ -57,10 +67,12 @@ suite('Project Python interpreter picker', () => {
 		const writes: { key: string; value: unknown; overrides?: IConfigurationOverrides | IConfigurationUpdateOverrides | ConfigurationTarget; target?: ConfigurationTarget; options?: IConfigurationUpdateOptions }[] = [];
 		const notifications: string[] = [];
 		const folderChoices: IQuickPickItem[][] = [];
+		const settingChoices: IQuickPickItem[][] = [];
 		let choice: number | undefined = 1;
+		let settingChoice: number | undefined;
 		let fileResult = async (): Promise<URI[] | undefined> => [interpreter];
 		let confirmResult = async (): Promise<boolean> => true;
-		let setting: IConfigurationValue<unknown> = { value: 'python', defaultValue: 'python' };
+		const settings = new Map<string, IConfigurationValue<unknown>>();
 		let writeResult = async (): Promise<void> => { };
 		let statResult = async (resource: URI): Promise<FileType> => {
 			if (resource.path.endsWith('/settings.json')) {
@@ -79,6 +91,10 @@ suite('Project Python interpreter picker', () => {
 			pick<T extends IQuickPickItem>(items: Promise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: IPickOptions<T>): Promise<T | undefined>;
 			async pick<T extends IQuickPickItem>(items: Promise<QuickPickInput<T>[]> | QuickPickInput<T>[]): Promise<T | undefined> {
 				const picks = (await items).filter((item): item is T => item.type !== 'separator');
+				if (picks[0] && Object.hasOwn(picks[0], 'candidate')) {
+					settingChoices.push(picks);
+					return settingChoice === undefined ? undefined : picks[settingChoice];
+				}
 				folderChoices.push(picks);
 				return choice === undefined ? undefined : picks[choice];
 			}
@@ -94,12 +110,12 @@ suite('Project Python interpreter picker', () => {
 			trust: { isWorkspaceTrusted: () => trusted, onDidChangeTrust: trustChanged.event, workspaceTrustInitialized: initialized },
 			configuration: {
 				inspect<T>(key: string, overrides?: IConfigurationOverrides): IConfigurationValue<Readonly<T>> {
-					assert.strictEqual(key, pythonInterpreterSetting);
+					assert.ok(defaultKeys.includes(key));
 					assert.ok(overrides?.resource);
 					inspected.push(overrides.resource);
-					return setting as IConfigurationValue<Readonly<T>>;
+					return (settings.get(key) ?? { value: 'python', defaultValue: 'python' }) as IConfigurationValue<Readonly<T>>;
 				},
-				keys: () => ({ default: declaresSetting ? [pythonInterpreterSetting] : [], policy: [], user: [], workspace: [], workspaceFolder: [] }),
+				keys: () => ({ default: defaultKeys, policy: [], user: [], workspace: [], workspaceFolder: [] }),
 				onDidChangeConfiguration: configurationChanged.event,
 				async updateValue(key: string, value: unknown, overrides?: IConfigurationOverrides | IConfigurationUpdateOverrides | ConfigurationTarget, target?: ConfigurationTarget, options?: IConfigurationUpdateOptions) {
 					writes.push({ key, value, overrides, target, options });
@@ -123,8 +139,9 @@ suite('Project Python interpreter picker', () => {
 			isRemote,
 		}));
 		return {
-			picker, writes, probed, previews, inspected, opened, notifications, folderChoices,
+			picker, writes, probed, previews, inspected, opened, notifications, folderChoices, settingChoices,
 			selectFolder(index: number | undefined) { choice = index; },
+			selectSetting(index: number | undefined) { settingChoice = index; },
 			fileResult(result: () => Promise<URI[] | undefined>) { fileResult = result; },
 			confirmResult(result: () => Promise<boolean>) { confirmResult = result; },
 			statResult(result: (resource: URI) => Promise<FileType>) { statResult = result; },
@@ -137,13 +154,13 @@ suite('Project Python interpreter picker', () => {
 					foldersChanged.fire({ added: value, removed, changed: [] });
 				}
 			},
-			setSetting(value: IConfigurationValue<unknown>, fire = false) {
-				setting = value;
+			setSetting(value: IConfigurationValue<unknown>, fire = false, key: string = pythonInterpreterSetting) {
+				settings.set(key, value);
 				if (fire) {
 					configurationChanged.fire({
-						source: ConfigurationTarget.WORKSPACE_FOLDER, affectedKeys: new Set([pythonInterpreterSetting]),
-						change: { keys: [pythonInterpreterSetting], overrides: [] },
-						affectsConfiguration: key => key === pythonInterpreterSetting,
+						source: ConfigurationTarget.WORKSPACE_FOLDER, affectedKeys: new Set([key]),
+						change: { keys: [key], overrides: [] },
+						affectsConfiguration: candidate => candidate === key,
 					});
 				}
 			},
@@ -214,13 +231,13 @@ suite('Project Python interpreter picker', () => {
 		const notTrusted = fixture();
 		notTrusted.setTrust(false);
 		const remote = fixture({ isRemote: true });
-		const missing = fixture({ declaresSetting: false });
+		const missing = fixture({ defaultKeys: [] });
 		for (const view of [notTrusted, remote, missing]) {
 			await view.picker.run();
 			assert.deepStrictEqual({ opened: view.opened, inspected: view.inspected, writes: view.writes }, { opened: [], inspected: [], writes: [] });
 		}
 		assert.match(notTrusted.notifications[0], /Trust this workspace/);
-		assert.match(missing.notifications[0], /Microsoft Python extension/);
+		assert.match(missing.notifications[0], /BasedPyright or Microsoft Python/);
 	});
 
 	test('ignores caller-supplied arguments and exposes the action alongside Check Project', async () => {
@@ -342,5 +359,89 @@ suite('Project Python interpreter picker', () => {
 		assert.strictEqual(view.writes.length, 1);
 		assert.match(view.notifications[0], /Unable to update/);
 		assert.doesNotMatch(view.notifications.join(), /private backend failure|Saved/);
+	});
+
+	test('uses the registered BasedPyright contract as the sole target and reports applicability', async () => {
+		registerBasedPyright('DetachHead.basedpyright');
+		const view = fixture({ defaultKeys: [basedPyrightInterpreterSetting], initialFolders: [first, second], state: WorkbenchState.WORKSPACE });
+		await view.picker.run();
+		const detail = view.previews[0].detail;
+		assert.ok(typeof detail === 'string');
+		assert.match(detail, /BasedPyright — python\.pythonPath/);
+		assert.match(detail, /may run the selected Python to resolve imports/);
+		assert.doesNotMatch(detail, /python\.defaultInterpreterPath/);
+		assert.match(view.notifications[0], /Saved python\.pythonPath \(BasedPyright\).*can take precedence/);
+		assert.deepStrictEqual(view.settingChoices, []);
+		assert.deepStrictEqual(view.writes.map(write => [write.key, write.overrides, write.target]), [
+			[basedPyrightInterpreterSetting, { resource: second.uri }, ConfigurationTarget.WORKSPACE_FOLDER],
+		]);
+	});
+
+	test('rejects a BasedPyright key with the wrong registered owner, type, or scope', async () => {
+		const variants = [
+			['another.extension', ConfigurationScope.RESOURCE, 'string'],
+			['detachhead.basedpyright', ConfigurationScope.RESOURCE, 'boolean'],
+			['detachhead.basedpyright', ConfigurationScope.MACHINE_OVERRIDABLE, 'string'],
+		] as const;
+		for (const [owner, scope, type] of variants) {
+			const registration = registerBasedPyright(owner, scope, type);
+			try {
+				const view = fixture({ defaultKeys: [basedPyrightInterpreterSetting] });
+				await view.picker.run();
+				assert.deepStrictEqual({ inspected: view.inspected, opened: view.opened, writes: view.writes }, { inspected: [], opened: [], writes: [] });
+			} finally {
+				registration.dispose();
+			}
+		}
+	});
+
+	test('asks which setting to edit when both contracts are available and neither folder key is set', async () => {
+		registerBasedPyright();
+		const view = fixture({ defaultKeys: [pythonInterpreterSetting, basedPyrightInterpreterSetting] });
+		view.selectSetting(1);
+		await view.picker.run();
+		assert.deepStrictEqual(view.settingChoices[0].map(({ label, description }) => [label, description]), [
+			['Microsoft Python', pythonInterpreterSetting], ['BasedPyright', basedPyrightInterpreterSetting],
+		]);
+		assert.deepStrictEqual(view.writes.map(write => write.key), [basedPyrightInterpreterSetting]);
+	});
+
+	test('uses the sole effective folder setting when the other provider is only configured at user scope', async () => {
+		registerBasedPyright();
+		const view = fixture({ defaultKeys: [pythonInterpreterSetting, basedPyrightInterpreterSetting] });
+		view.setSetting({ value: 'global-python', userValue: 'global-python' });
+		view.setSetting({ value: 'project-python', workspaceValue: 'project-python' }, false, basedPyrightInterpreterSetting);
+		await view.picker.run();
+		assert.deepStrictEqual({ choices: view.settingChoices, keys: view.writes.map(write => write.key) }, { choices: [], keys: [basedPyrightInterpreterSetting] });
+	});
+
+	test('preserves both configured keys when choice is canceled and only updates the explicitly chosen key', async () => {
+		registerBasedPyright();
+		const view = fixture({ defaultKeys: [pythonInterpreterSetting, basedPyrightInterpreterSetting] });
+		view.setSetting({ value: 'python-one', workspaceValue: 'python-one' });
+		view.setSetting({ value: 'python-two', workspaceValue: 'python-two' }, false, basedPyrightInterpreterSetting);
+		await view.picker.run();
+		assert.deepStrictEqual({ choices: view.settingChoices.length, opened: view.opened, writes: view.writes }, { choices: 1, opened: [], writes: [] });
+		view.selectSetting(0);
+		await view.picker.run();
+		assert.deepStrictEqual(view.writes.map(write => write.key), [pythonInterpreterSetting]);
+	});
+
+	test('discards a preview if another contract becomes configured or the chosen schema disappears', async () => {
+		const registration = registerBasedPyright();
+		const conflict = fixture({ defaultKeys: [pythonInterpreterSetting, basedPyrightInterpreterSetting] });
+		conflict.setSetting({ value: 'initial', workspaceValue: 'initial' }, false, basedPyrightInterpreterSetting);
+		conflict.confirmResult(async () => {
+			conflict.setSetting({ value: 'other', workspaceValue: 'other' });
+			return true;
+		});
+		await conflict.picker.run();
+		assert.deepStrictEqual(conflict.writes, []);
+
+		const removed = fixture({ defaultKeys: [pythonInterpreterSetting, basedPyrightInterpreterSetting] });
+		removed.selectSetting(1);
+		removed.confirmResult(async () => { registration.dispose(); return true; });
+		await removed.picker.run();
+		assert.deepStrictEqual(removed.writes, []);
 	});
 });

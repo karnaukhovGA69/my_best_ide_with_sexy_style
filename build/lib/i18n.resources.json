@@ -705,6 +705,10 @@
 		{
 			"name": "vs/workbench/contrib/myselfFileHistory",
 			"project": "vscode-workbench"
+		},
+		{
+			"name": "vs/workbench/contrib/myselfLayouts",
+			"project": "vscode-workbench"
 		}
 	],
 	"sessions": [

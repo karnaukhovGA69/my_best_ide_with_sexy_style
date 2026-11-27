@@ -1,0 +1,5 @@
+test/**
+**/*.vsix
+src/**
+tsconfig.json
+**/*.tsbuildinfo

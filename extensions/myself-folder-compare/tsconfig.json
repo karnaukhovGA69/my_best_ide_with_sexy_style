@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"rootDir": "src",
+		"outDir": "out",
+		"strict": true,
+		"skipLibCheck": true,
+		"types": ["node"],
+		"ignoreDeprecations": "6.0"
+	},
+	"include": ["src/**/*.ts", "../../src/vscode-dts/vscode.d.ts"]
+}

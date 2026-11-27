@@ -1,0 +1,39 @@
+{
+	"name": "myself-folder-compare",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"publisher": "myself",
+	"version": "0.1.0",
+	"license": "MIT",
+	"engines": { "vscode": "^1.95.0" },
+	"categories": ["Other"],
+	"main": "./out/extension.js",
+	"l10n": "./l10n",
+	"extensionKind": ["ui"],
+	"activationEvents": ["onView:myself.folderCompare.results"],
+	"capabilities": {
+		"untrustedWorkspaces": { "supported": true },
+		"virtualWorkspaces": false
+	},
+	"contributes": {
+		"commands": [
+			{ "command": "myself.folderCompare.compare", "title": "%compare%", "category": "%category%", "icon": "$(diff)" },
+			{ "command": "myself.folderCompare.openDiff", "title": "%openDiff%", "category": "%category%" }
+		],
+		"views": {
+			"explorer": [{ "id": "myself.folderCompare.results", "name": "%view%", "visibility": "collapsed" }]
+		},
+		"menus": {
+			"view/title": [
+				{ "command": "myself.folderCompare.compare", "when": "view == workbench.explorer.fileView", "group": "myselfFolderCompare@1" },
+				{ "command": "myself.folderCompare.compare", "when": "view == myself.folderCompare.results", "group": "navigation@1" }
+			],
+			"commandPalette": [{ "command": "myself.folderCompare.openDiff", "when": "false" }]
+		}
+	},
+	"scripts": {
+		"compile": "pnpm -C ../.. exec tsc -p extensions/myself-folder-compare",
+		"vscode:prepublish": "pnpm run compile",
+		"test": "pnpm run compile && node --test test/*.test.cts"
+	}
+}

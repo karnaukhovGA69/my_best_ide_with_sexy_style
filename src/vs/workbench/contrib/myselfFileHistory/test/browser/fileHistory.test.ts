@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Emitter } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { extUri } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
@@ -13,15 +14,16 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
-import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IQuickInputService, IQuickPickItem } from '../../../../../platform/quickinput/common/quickInput.js';
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { GroupActivationReason, IEditorGroup, IEditorGroupActivationEvent, IEditorGroupContextKeyProvider, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IWorkingCopyHistoryEntry, IWorkingCopyHistoryService } from '../../../../services/workingCopy/common/workingCopyHistory.js';
 import { LocalHistoryFileSystemProvider } from '../../../localHistory/browser/localHistoryFileSystemProvider.js';
 import { FileHistoryPreviewContext } from '../../browser/fileHistory.contribution.js';
@@ -55,6 +57,33 @@ suite('Current file history preview', () => {
 		const notices: string[] = [];
 		const picks: IQuickPickItem[][] = [];
 		const changed = store.add(new Emitter<void>());
+		const activated = store.add(new Emitter<IEditorGroupActivationEvent>());
+		let activeGroupId = 1;
+		const groupEditors = new Map<number, EditorInput | undefined>([[1, active]]);
+		const groupValues = new Map<string, ContextKeyValue>();
+		const providers = new Map<string, IEditorGroupContextKeyProvider<ContextKeyValue>>();
+		const group = (id: number) => new class extends mock<IEditorGroup>() {
+			override readonly id = id;
+			override get activeEditor() { return groupEditors.get(id) ?? null; }
+		}();
+		const allGroups = [group(1), group(2)];
+		const update = () => {
+			for (const provider of providers.values()) {
+				for (const group of allGroups) {
+					groupValues.set(group.id + ':' + provider.contextKey.key, provider.getGroupContextKeyValue(group));
+				}
+			}
+		};
+		const groups = new class extends mock<IEditorGroupsService>() {
+			override get activeGroup() { return allGroups.find(group => group.id === activeGroupId)!; }
+			override readonly onDidActivateGroup = activated.event;
+			override registerContextKeyProvider<T extends ContextKeyValue>(provider: IEditorGroupContextKeyProvider<T>) {
+				providers.set(provider.contextKey.key, provider);
+				update();
+				const listener = provider.onDidChange?.(update);
+				return toDisposable(() => { listener?.dispose(); providers.delete(provider.contextKey.key); });
+			}
+		}();
 		const editors = new class extends mock<IEditorService>() {
 			override get activeEditor(): EditorInput | undefined { return active; }
 			override readonly onDidActiveEditorChange = changed.event;
@@ -86,14 +115,22 @@ suite('Current file history preview', () => {
 			override info(text: string): void { notices.push(text); }
 		}();
 		const identity = upcastPartial<IUriIdentityService>({ extUri });
-		const services = new ServiceCollection([IEditorService, editors], [IWorkingCopyHistoryService, history], [IConfigurationService, configuration], [IQuickInputService, picker], [ICommandService, commands], [INotificationService, noticesService], [IUriIdentityService, identity]);
+		const services = new ServiceCollection([IEditorService, editors], [IEditorGroupsService, groups], [IWorkingCopyHistoryService, history], [IConfigurationService, configuration], [IQuickInputService, picker], [ICommandService, commands], [INotificationService, noticesService], [IUriIdentityService, identity]);
 		const instantiation = store.add(new InstantiationService(services, true));
 		const run = (id: string, ...args: object[]) => Promise.resolve(instantiation.invokeFunction(CommandsRegistry.getCommand(id)!.handler, ...args));
 		const file = (uri: URI) => store.add(new FileInput(uri));
-		const setActive = (editor: EditorInput | undefined) => { active = editor; changed.fire(); };
+		const setActive = (editor: EditorInput | undefined) => { active = editor; groupEditors.set(activeGroupId, editor); changed.fire(); update(); };
 		const diff = (original = LocalHistoryFileSystemProvider.toLocalHistoryFileSystem({ location: entry().location, associatedResource: resource }), modified = resource) => store.add(new DiffEditorInput(undefined, undefined, file(original), file(modified), undefined, editors));
 		return {
-			run, reads, calls, notices, picks, editors, identity, file, diff, setActive,
+			run, reads, calls, notices, picks, editors, groups, identity, file, diff, setActive,
+			getContext: (id: number) => groupValues.get(id + ':myselfFileHistoryHasPreview'),
+			providerCount: () => providers.size,
+			setGroupEditor: (id: number, editor: EditorInput) => { groupEditors.set(id, editor); update(); },
+			activateGroup: (id: number) => {
+				activeGroupId = id;
+				active = groupEditors.get(id);
+				activated.fire({ group: groups.activeGroup, reason: GroupActivationReason.DEFAULT });
+			},
 			setEntries: (value: IWorkingCopyHistoryEntry[]) => { entries = value; },
 			setEnabled: (value: boolean) => { enabled = value; },
 			setChoice: (value: number | undefined) => { choice = value; },
@@ -235,20 +272,66 @@ suite('Current file history preview', () => {
 
 	test('passive preview context follows real input changes and disposal without history or command calls', () => {
 		const state = fixture();
-		const keys = store.add(new MockContextKeyService());
-		const context = store.add(new FileHistoryPreviewContext(state.editors, keys, state.identity));
-		assert.strictEqual(keys.getContextKeyValue('myselfFileHistoryHasPreview'), false);
+		const context = store.add(new FileHistoryPreviewContext(state.editors, state.groups, state.identity));
+		assert.strictEqual(state.getContext(1), false);
 		const preview = state.diff();
 		state.setActive(preview);
-		assert.strictEqual(keys.getContextKeyValue('myselfFileHistoryHasPreview'), true);
+		assert.strictEqual(state.getContext(1), true);
 		(preview.modified as FileInput).changeResource(other);
-		assert.strictEqual(keys.getContextKeyValue('myselfFileHistoryHasPreview'), false);
+		assert.strictEqual(state.getContext(1), false);
 		(preview.modified as FileInput).changeResource(resource);
-		assert.strictEqual(keys.getContextKeyValue('myselfFileHistoryHasPreview'), true);
+		assert.strictEqual(state.getContext(1), true);
 		preview.dispose();
-		assert.strictEqual(keys.getContextKeyValue('myselfFileHistoryHasPreview'), false);
+		assert.strictEqual(state.getContext(1), false);
 		context.dispose();
+		assert.strictEqual(state.providerCount(), 0);
 		assert.deepStrictEqual({ reads: state.reads, calls: state.calls }, { reads: [], calls: [] });
+	});
+
+	test('restore visibility belongs only to the active group, including the same diff input in two groups', () => {
+		const state = fixture();
+		const context = store.add(new FileHistoryPreviewContext(state.editors, state.groups, state.identity));
+		const preview = state.diff();
+		state.setActive(preview);
+		state.setGroupEditor(2, state.file(other));
+		assert.deepStrictEqual([state.getContext(1), state.getContext(2)], [true, false]);
+		state.setGroupEditor(2, state.diff());
+		assert.deepStrictEqual([state.getContext(1), state.getContext(2)], [true, false]);
+		state.setGroupEditor(2, preview);
+		state.activateGroup(2);
+		assert.deepStrictEqual([state.getContext(1), state.getContext(2)], [false, true]);
+		state.activateGroup(1);
+		assert.deepStrictEqual([state.getContext(1), state.getContext(2)], [true, false]);
+		context.dispose();
+		assert.deepStrictEqual([state.getContext(1), state.getContext(2)], [false, false]);
+		assert.deepStrictEqual({ reads: state.reads, calls: state.calls }, { reads: [], calls: [] });
+	});
+
+	test('a stale inactive editor-title context cannot redirect or execute a history action', async () => {
+		for (const command of ['myself.fileHistory.open', 'myself.fileHistory.preview', 'myself.fileHistory.restorePreview']) {
+			const state = fixture();
+			if (command.endsWith('restorePreview')) { state.setActive(state.diff()); }
+			await state.run(command, resource, { groupId: 2 });
+			assert.deepStrictEqual({ reads: state.reads, calls: state.calls }, { reads: [], calls: [] });
+		}
+	});
+
+	test('restore aborts on active-group change during history lookup even with the same diff input', async () => {
+		const state = fixture();
+		const preview = state.diff();
+		state.setActive(preview);
+		state.setGroupEditor(2, preview);
+		state.setReadEntries(async () => { state.activateGroup(2); return [entry()]; });
+		await state.run('myself.fileHistory.restorePreview', resource, { groupId: 1 });
+		assert.deepStrictEqual(state.calls, []);
+	});
+
+	test('preview aborts when its editor moves to another active group while the picker is open', async () => {
+		const state = fixture();
+		state.setGroupEditor(2, state.editors.activeEditor!);
+		state.setBeforePick(async () => { state.activateGroup(2); });
+		await state.run('myself.fileHistory.preview', resource, { groupId: 1 });
+		assert.deepStrictEqual(state.calls, []);
 	});
 
 	test('history lookup and native command failures release the per-file restore guard', async () => {

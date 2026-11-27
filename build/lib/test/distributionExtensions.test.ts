@@ -75,8 +75,10 @@ suite('Myself IDE extension distribution', () => {
 		]);
 	});
 
-	test('keeps the standalone data preview out of the signed application', () => {
+	test('keeps standalone data preview and language server packages out of the signed application', () => {
 		assert.strictEqual(isDistributionExtension('myself-data-preview'), false);
+		assert.strictEqual(isDistributionExtension('myself-language-servers'), false);
+		assert.strictEqual(isDistributionExtensionFile('myself-language-servers/dist/extension.js'), false);
 		assert.strictEqual(isDistributionExtensionFile('myself-data-preview/package.json'), false);
 		assert.strictEqual(isDistributionExtensionFile('myself-data-preview\\out\\extension.js'), false);
 	});

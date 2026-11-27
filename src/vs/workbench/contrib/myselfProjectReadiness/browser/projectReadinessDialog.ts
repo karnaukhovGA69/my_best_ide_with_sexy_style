@@ -9,16 +9,18 @@ import { CancellationTokenSource } from '../../../../base/common/cancellation.js
 import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { localize } from '../../../../nls.js';
+import { CommandsRegistry, type ICommandService } from '../../../../platform/commands/common/commands.js';
 import type { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import type { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import type { IFileService } from '../../../../platform/files/common/files.js';
 import type { IWorkspaceContextService, IWorkspaceFolderData } from '../../../../platform/workspace/common/workspace.js';
 import type { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { evaluateProjectReadiness } from '../common/projectReadiness.js';
-import { collectProjectReadiness, pythonInterpreterKey } from './projectReadinessCollector.js';
+import { basedPyrightPythonPathKey, collectProjectReadiness, hasBasedPyrightPythonPath, pythonInterpreterKey } from './projectReadinessCollector.js';
 
 type Readiness = ReturnType<typeof evaluateProjectReadiness>;
 type LocalAssessment = Extract<Readiness['folders'][number], { kind: 'local' }>;
+const choosePythonInterpreterCommand = 'myself.project.setDefaultPythonInterpreter';
 
 /** Render the configuration's scope without showing its raw value. */
 function describeInterpreter(setting: LocalAssessment['python']['interpreter']): string {
@@ -50,7 +52,7 @@ function folderLabel(value: string): string {
 
 /** Build read-only plain-text details for the workbench dialog. */
 function describeReadiness(result: Readiness, roots: readonly IWorkspaceFolderData[]): string {
-	const sections = [localize('projectReadinessSummary', "This check reports root markers and the Python interpreter setting. The project language, tools, and interpreter availability are unverified.")];
+	const sections = [localize('projectReadinessSummary', "This check reports root markers and Python settings. The project language, tools, and interpreter availability are unverified.")];
 	if (result.execution === 'blocked-by-workspace-trust') {
 		sections.push(localize('projectReadinessRestricted', "Restricted Mode is active. Folder metadata and interpreter settings were skipped."));
 	}
@@ -65,6 +67,9 @@ function describeReadiness(result: Readiness, roots: readonly IWorkspaceFolderDa
 		'wrong-type': localize('markerWrongType', "Unexpected type"),
 		'unverified-link': localize('markerLink', "Symbolic link, target unverified"),
 	};
+	// The registered setting can change while the provider checks markers.
+	const showBasedPyright = result.folders.some(folder => folder.kind === 'local' && folder.python.basedPyright)
+		&& hasBasedPyrightPythonPath();
 	const byRoot = new Map(result.folders.map(assessment => [assessment.folder, assessment]));
 	for (const { uri, name } of roots) {
 		const label = folderLabel(name) || localize('projectReadinessFolder', "Workspace Folder");
@@ -76,8 +81,12 @@ function describeReadiness(result: Readiness, roots: readonly IWorkspaceFolderDa
 		const heading = localize('projectReadinessRootLabel', "{0} ({1})", label, folderLabel(uri.fsPath));
 		const markers = { ...folder.python.markers, ...folder.c.buildMarkers, 'compile_commands.json': folder.c.compilationDatabase };
 		const markerLines = Object.entries(markers).map(([marker, status]) => localize('projectReadinessMarker', "{0} — {1}", marker, statuses[status]));
-		const interpreter = localize('projectReadinessInterpreter', "Python Interpreter Setting — {0}", describeInterpreter(folder.python.interpreter));
-		sections.push([heading, ...markerLines, interpreter].join('\n'));
+		const interpreter = localize('projectReadinessDefaultInterpreter', "Default Python Interpreter Setting — {0}", describeInterpreter(folder.python.interpreter));
+		const lines = [heading, ...markerLines, interpreter];
+		if (showBasedPyright && folder.python.basedPyright) {
+			lines.push(localize('projectReadinessBasedPyrightPath', "BasedPyright Python Path — {0}", describeInterpreter(folder.python.basedPyright)));
+		}
+		sections.push(lines.join('\n'));
 	}
 	return sections.join('\n\n');
 }
@@ -92,6 +101,8 @@ export class ProjectReadinessDialog extends Disposable {
 		private readonly configuration: Pick<IConfigurationService, 'inspect' | 'onDidChangeConfiguration'>,
 		private readonly files: Pick<IFileService, 'getProvider' | 'onDidChangeFileSystemProviderRegistrations'>,
 		private readonly dialogs: Pick<IDialogService, 'prompt'>,
+		private readonly commands: Pick<ICommandService, 'executeCommand'>,
+		private readonly isRemote: boolean,
 	) {
 		super();
 		const invalidate = () => this.active.value?.cancel();
@@ -99,7 +110,7 @@ export class ProjectReadinessDialog extends Disposable {
 		this._register(this.context.onDidChangeWorkbenchState(invalidate));
 		this._register(this.trust.onDidChangeTrust(invalidate));
 		this._register(this.configuration.onDidChangeConfiguration(event => {
-			if (event.affectsConfiguration(pythonInterpreterKey)) {
+			if (event.affectsConfiguration(pythonInterpreterKey) || event.affectsConfiguration(basedPyrightPythonPathKey)) {
 				invalidate();
 			}
 		}));
@@ -126,28 +137,37 @@ export class ProjectReadinessDialog extends Disposable {
 			const { id, folders } = this.context.getWorkspace();
 			const roots = folders.map(({ uri, name, index }) => ({ uri, name, index }));
 			const workbenchState = this.context.getWorkbenchState();
+			const isCurrent = (trusted: boolean) => {
+				if (token.isCancellationRequested || this._store.isDisposed || this.trust.isWorkspaceTrusted() !== trusted) {
+					return false;
+				}
+				const currentWorkspace = this.context.getWorkspace();
+				return id === currentWorkspace.id && workbenchState === this.context.getWorkbenchState()
+					&& equals(roots, currentWorkspace.folders, (a, b) => a.uri.toString() === b.uri.toString() && a.name === b.name);
+			};
 			await raceCancellation(this.trust.workspaceTrustInitialized, token);
 			if (token.isCancellationRequested) {
 				return;
 			}
 
 			const snapshot = await collectProjectReadiness(roots, workbenchState, this.trust, this.files, this.configuration, token);
-			if (token.isCancellationRequested || this._store.isDisposed) {
+			if (!isCurrent(snapshot.isTrusted)) {
 				return;
 			}
-			const currentWorkspace = this.context.getWorkspace();
-			if (snapshot.isTrusted !== this.trust.isWorkspaceTrusted()
-				|| id !== currentWorkspace.id || workbenchState !== this.context.getWorkbenchState()
-				|| !equals(roots, currentWorkspace.folders, (a, b) => a.uri.toString() === b.uri.toString() && a.name === b.name)) {
-				return;
-			}
-			await this.dialogs.prompt({
+			const canChooseInterpreter = snapshot.isTrusted && !this.isRemote && snapshot.folders.length > 0
+				&& !!CommandsRegistry.getCommand(choosePythonInterpreterCommand);
+			const { result } = await this.dialogs.prompt<boolean>({
 				type: 'info',
 				message: localize('projectReadinessTitle', "Project Check"),
 				detail: describeReadiness(evaluateProjectReadiness(snapshot), roots),
 				custom: true,
 				token,
+				buttons: canChooseInterpreter ? [{ label: localize('choosePythonInterpreter', "Choose Python Interpreter…"), run: () => true }] : undefined,
+				cancelButton: canChooseInterpreter ? localize('closeProjectCheck', "Close") : undefined,
 			});
+			if (result === true && canChooseInterpreter && isCurrent(true) && CommandsRegistry.getCommand(choosePythonInterpreterCommand)) {
+				await this.commands.executeCommand(choosePythonInterpreterCommand);
+			}
 		} finally {
 			this.active.clear();
 		}

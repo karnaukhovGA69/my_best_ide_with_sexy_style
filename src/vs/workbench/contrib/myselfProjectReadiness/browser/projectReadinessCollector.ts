@@ -10,12 +10,15 @@ import { isWindows } from '../../../../base/common/platform.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import type { URI } from '../../../../base/common/uri.js';
 import type { IConfigurationService, IConfigurationValue } from '../../../../platform/configuration/common/configuration.js';
+import { ConfigurationScope, Extensions, type IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { FileSystemProviderErrorCode, FileType, toFileSystemProviderErrorCode, type IFileService, type IFileSystemProvider } from '../../../../platform/files/common/files.js';
+import { Registry } from '../../../../platform/registry/common/platform.js';
 import { WorkbenchState, type IWorkspaceFolderData } from '../../../../platform/workspace/common/workspace.js';
 import type { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
 import type { ProjectReadinessSnapshot } from '../common/projectReadiness.js';
 
 export const pythonInterpreterKey = 'python.defaultInterpreterPath';
+export const basedPyrightPythonPathKey = 'python.pythonPath';
 
 const markers = ['pyproject.toml', 'requirements.txt', '.venv', 'CMakeLists.txt', 'Makefile', 'compile_commands.json'] as const;
 type Marker = typeof markers[number];
@@ -34,19 +37,26 @@ function isLocalAbsolutePath(path: string, uriPath = false): boolean {
 		return false;
 	}
 	if (isWindows) {
-		return uriPath ? /^\/[a-z]:\//i.test(path) && !path.includes('\\') : /^[a-z]:[/\\]/i.test(path);
+		return uriPath ? /^\/[a-z]:\//i.test(path) && !path.includes('\\') && !path.slice(3).includes(':') : /^[a-z]:[/\\]/i.test(path);
 	}
 	return path.startsWith('/');
 }
 
 /** Read only the effective explicit setting for this root. Never expand variables or probe its value. */
-function inspectPythonInterpreter(configuration: Pick<IConfigurationService, 'inspect'>, root: URI, workbenchState: WorkbenchState): FolderSnapshot['pythonInterpreter'] {
+function inspectPythonInterpreter(configuration: Pick<IConfigurationService, 'inspect'>, key: string, root: URI, workbenchState: WorkbenchState): FolderSnapshot['pythonInterpreter'] {
 	try {
-		return classifyPythonInterpreter(configuration.inspect<unknown>(pythonInterpreterKey, { resource: root }), root, workbenchState);
+		return classifyPythonInterpreter(configuration.inspect<unknown>(key, { resource: root }), root, workbenchState);
 	} catch {
 		// Keep this root's other observations if inspection or a lazy layer lookup fails.
 		return undefined;
 	}
+}
+
+/** Only attribute the legacy key to BasedPyright when its registered declaration matches. */
+export function hasBasedPyrightPythonPath(): boolean {
+	const property = Registry.as<IConfigurationRegistry>(Extensions.Configuration).getConfigurationProperties()[basedPyrightPythonPathKey];
+	return property?.scope === ConfigurationScope.RESOURCE && property.type === 'string'
+		&& !!property.source && typeof property.source === 'object' && property.source.id.toLowerCase() === 'detachhead.basedpyright';
 }
 
 /** Use an explicit layer only when it matches the effective value. */
@@ -118,10 +128,20 @@ export async function collectProjectReadiness(
 	token: CancellationToken,
 ): Promise<ProjectReadinessSnapshot> {
 	const isTrusted = trust.isWorkspaceTrusted();
-	const folders = roots.filter(root => isLocalRoot(root.uri)).map(({ uri: folder }) => ({
-		folder,
-		pythonInterpreter: isTrusted && !token.isCancellationRequested ? inspectPythonInterpreter(configuration, folder, workbenchState) : undefined,
-	}));
+	const localRoots = roots.filter(root => isLocalRoot(root.uri));
+	const basedPyrightAvailable = isTrusted && !token.isCancellationRequested && localRoots.length > 0 && hasBasedPyrightPythonPath();
+	const folders = localRoots.map(({ uri: folder }): FolderSnapshot => {
+		if (!isTrusted || token.isCancellationRequested) {
+			return { folder };
+		}
+		return {
+			folder,
+			pythonInterpreter: inspectPythonInterpreter(configuration, pythonInterpreterKey, folder, workbenchState),
+			...(basedPyrightAvailable && !token.isCancellationRequested ? {
+				basedPyright: { pythonPath: inspectPythonInterpreter(configuration, basedPyrightPythonPathKey, folder, workbenchState) },
+			} : {}),
+		};
+	});
 	if (!isTrusted || token.isCancellationRequested || !folders.length) {
 		return { isTrusted, folders };
 	}
@@ -134,14 +154,15 @@ export async function collectProjectReadiness(
 	}
 	const limiter = new Limiter<readonly [Marker, MarkerObservation]>(4);
 	try {
-		const observed = await Promise.all(folders.map(async ({ folder, pythonInterpreter }): Promise<FolderSnapshot> => {
+		const observed = await Promise.all(folders.map(async evidence => {
+			const { folder } = evidence;
 			const entries = await Promise.all(markers.map(marker => limiter.queue(async () => [
 				marker,
 				token.isCancellationRequested || !trust.isWorkspaceTrusted() || files.getProvider(Schemas.file) !== provider
 					? 'unknown'
 					: await observeMarker(provider, folder, marker),
 			])));
-			return { folder, pythonInterpreter, markers: Object.fromEntries(entries) };
+			return { ...evidence, markers: Object.fromEntries(entries) };
 		}));
 		return { isTrusted, folders: observed };
 	} finally {

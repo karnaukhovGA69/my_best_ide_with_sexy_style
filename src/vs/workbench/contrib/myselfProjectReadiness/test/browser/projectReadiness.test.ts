@@ -14,6 +14,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { ConfigurationTarget, type IConfigurationChangeEvent, type IConfigurationOverrides, type IConfigurationValue } from '../../../../../platform/configuration/common/configuration.js';
+import { ConfigurationScope, Extensions, type IConfigurationNode, type IConfigurationRegistry } from '../../../../../platform/configuration/common/configurationRegistry.js';
 import type { IContext } from '../../../../../platform/contextkey/common/contextkey.js';
 import type { IPrompt, IPromptResult, IPromptResultWithCancel, IPromptWithCustomCancel } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
@@ -22,9 +23,10 @@ import { FileSystemProviderErrorCode, FileType, createFileSystemProviderError, t
 import { InMemoryFileSystemProvider } from '../../../../../platform/files/common/inMemoryFilesystemProvider.js';
 import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { WorkbenchState, WorkspaceFolder, type IWorkspaceFoldersChangeEvent } from '../../../../../platform/workspace/common/workspace.js';
 import { registerProjectReadinessAction } from '../../browser/projectReadiness.contribution.js';
-import { pythonInterpreterKey } from '../../browser/projectReadinessCollector.js';
+import { basedPyrightPythonPathKey, pythonInterpreterKey } from '../../browser/projectReadinessCollector.js';
 import { ProjectReadinessDialog } from '../../browser/projectReadinessDialog.js';
 
 suite('Project readiness UI', () => {
@@ -32,21 +34,38 @@ suite('Project readiness UI', () => {
 	const first = localFolder('/workspace/first', 'Sample');
 	const second = localFolder('/workspace/second', 'Sample', 1);
 	const markerNames = ['pyproject.toml', 'requirements.txt', '.venv', 'CMakeLists.txt', 'Makefile', 'compile_commands.json'];
+	const pickerCommand = 'myself.project.setDefaultPythonInterpreter';
 
 	function localFolder(path: string, name: string, index = 0): WorkspaceFolder {
 		return new WorkspaceFolder({ uri: URI.file(isWindows ? `C:${path}` : path), name, index });
 	}
 
-	function fixture(statMarker: (resource: URI) => Promise<FileType> = async () => FileType.Unknown, initialFolders = [first], withProvider = true) {
+	function registerBasedPyrightSetting(extensionId = 'detachhead.basedpyright') {
+		const registry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
+		const definition: IConfigurationNode = {
+			id: 'python',
+			extensionInfo: { id: extensionId },
+			properties: { [basedPyrightPythonPathKey]: { scope: ConfigurationScope.RESOURCE, type: 'string', default: 'python' } },
+		};
+		registry.registerConfiguration(definition);
+		return store.add({ dispose: () => registry.deregisterConfigurations([definition]) });
+	}
+
+	function fixture(statMarker: (resource: URI) => Promise<FileType> = async () => FileType.Unknown, initialFolders = [first], withProvider = true, isRemote = false) {
 		let folders = initialFolders;
 		let trusted = true;
+		let workspaceId = 'example';
 		let workbenchState = WorkbenchState.WORKSPACE;
+		let respondToPrompt: (prompt: IPrompt<unknown>) => unknown = () => undefined;
 		const rootsChanged = store.add(new Emitter<IWorkspaceFoldersChangeEvent>());
 		const trustChanged = store.add(new Emitter<boolean>());
 		const configurationChanged = store.add(new Emitter<IConfigurationChangeEvent>());
 		const inspected: string[] = [];
+		const basedPyrightInspected: string[] = [];
 		const settings = new Map<URI, IConfigurationValue<unknown> | Error>();
+		const basedPyrightSettings = new Map<URI, IConfigurationValue<unknown> | Error>();
 		const prompts: IPrompt<unknown>[] = [];
+		const dispatches: { readonly command: string; readonly args: readonly unknown[] }[] = [];
 		const activations: string[] = [];
 		const lookups: string[] = [];
 		const operations: string[] = [];
@@ -55,10 +74,11 @@ suite('Project readiness UI', () => {
 		const configuration = {
 			onDidChangeConfiguration: configurationChanged.event,
 			inspect<T>(key: string, overrides?: IConfigurationOverrides): IConfigurationValue<Readonly<T>> {
-				assert.strictEqual(key, pythonInterpreterKey);
+				assert.ok(key === pythonInterpreterKey || key === basedPyrightPythonPathKey);
 				assert.ok(overrides?.resource);
-				inspected.push(overrides.resource.toString());
-				const setting = settings.get(overrides.resource);
+				const isBasedPyright = key === basedPyrightPythonPathKey;
+				(isBasedPyright ? basedPyrightInspected : inspected).push(overrides.resource.toString());
+				const setting = (isBasedPyright ? basedPyrightSettings : settings).get(overrides.resource);
 				if (setting instanceof Error) {
 					throw setting;
 				}
@@ -88,21 +108,25 @@ suite('Project readiness UI', () => {
 			override prompt<T>(prompt: IPrompt<T>): Promise<IPromptResult<T>>;
 			override async prompt<T>(prompt: IPrompt<T>): Promise<IPromptResult<T>> {
 				prompts.push(prompt);
-				return super.prompt(prompt);
+				return { result: await respondToPrompt(prompt) as T | undefined };
 			}
 		}();
 		const dialog = store.add(new ProjectReadinessDialog(
 			{
-				getWorkspace: () => ({ id: 'example', folders }),
+				getWorkspace: () => ({ id: workspaceId, folders }),
 				getWorkbenchState: () => workbenchState,
 				onDidChangeWorkbenchState: Event.None,
 				onDidChangeWorkspaceFolders: rootsChanged.event,
 			},
 			{ isWorkspaceTrusted: () => trusted, onDidChangeTrust: trustChanged.event, workspaceTrustInitialized: Promise.resolve() },
 			configuration, files, dialogs,
+			{ async executeCommand<T>(command: string, ...args: unknown[]): Promise<T | undefined> { dispatches.push({ command, args }); return undefined; } },
+			isRemote,
 		));
 		return {
-			dialog, registration, prompts, inspected, settings, activations, lookups, operations, stats,
+			dialog, registration, prompts, dispatches, inspected, settings, basedPyrightInspected, basedPyrightSettings, activations, lookups, operations, stats,
+			setPromptResponse(value: typeof respondToPrompt) { respondToPrompt = value; },
+			changeWorkspaceId(value: string) { workspaceId = value; },
 			changeRoots(next: WorkspaceFolder[], fire = true) {
 				const previous = folders;
 				folders = next;
@@ -198,6 +222,7 @@ suite('Project readiness UI', () => {
 	});
 
 	test('shows Restricted Mode guidance without querying providers or reading interpreter settings', async () => {
+		registerBasedPyrightSetting();
 		const state = fixture(async () => assert.fail('Unexpected metadata request'), [first, second]);
 		state.changeTrust(false);
 		state.settings.set(first.uri, { value: 'private setting', workspaceFolderValue: 'private setting' });
@@ -207,6 +232,110 @@ suite('Project readiness UI', () => {
 		assert.deepStrictEqual({ inspect: state.inspected, lookup: state.lookups, stats: state.stats, activation: state.activations }, {
 			inspect: [], lookup: [], stats: [], activation: [],
 		});
+		assert.deepStrictEqual(state.basedPyrightInspected, []);
+	});
+
+	test('reads only the registered BasedPyright key and reports it separately from the default setting', async () => {
+		registerBasedPyrightSetting();
+		const state = fixture(undefined, [first, second], false);
+		const absolute = isWindows ? 'C:\\private\\basedpyright.exe' : '/private/basedpyright';
+		state.settings.set(first.uri, { value: '.venv', workspaceFolderValue: '.venv' });
+		state.basedPyrightSettings.set(first.uri, { value: absolute, userValue: absolute });
+		state.basedPyrightSettings.set(second.uri, new Error('private BasedPyright error'));
+		await state.dialog.run();
+		assert.deepStrictEqual(state.basedPyrightInspected, [first.uri.toString(), second.uri.toString()]);
+		const [, firstSection, secondSection] = state.detail().split('\n\n');
+		assert.match(firstSection, /Default Python Interpreter Setting — Folder-relative path \(Folder Settings\)/);
+		assert.match(firstSection, /BasedPyright Python Path — Absolute path \(User Settings\)/);
+		assert.match(secondSection, /BasedPyright Python Path — Not checked/);
+		assert.doesNotMatch(state.detail(), /private|\.exe/);
+	});
+
+	test('does not read or attribute the legacy interpreter setting when another extension owns it', async () => {
+		registerBasedPyrightSetting('unrelated.extension');
+		const state = fixture(undefined, [first], false);
+		state.basedPyrightSettings.set(first.uri, { value: 'private', userValue: 'private' });
+		await state.dialog.run();
+		assert.deepStrictEqual(state.basedPyrightInspected, []);
+		assert.doesNotMatch(state.detail(), /BasedPyright|private/);
+	});
+
+	test('omits the BasedPyright observation if ownership changes while metadata is pending', async () => {
+		const registration = registerBasedPyrightSetting();
+		const started = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const state = fixture(async () => {
+			void started.complete();
+			await release.p;
+			return FileType.File;
+		});
+		state.basedPyrightSettings.set(first.uri, { value: 'private', userValue: 'private' });
+		const checking = state.dialog.run();
+		await started.p;
+		assert.deepStrictEqual(state.basedPyrightInspected, [first.uri.toString()]);
+		registration.dispose();
+		registerBasedPyrightSetting('unrelated.extension');
+		await release.complete();
+		await checking;
+		assert.match(state.detail(), /pyproject\.toml — Found/);
+		assert.doesNotMatch(state.detail(), /BasedPyright|private/);
+	});
+
+	test('the dialog only dispatches the fixed picker after an explicit choose result', async () => {
+		store.add(CommandsRegistry.registerCommand(pickerCommand, () => undefined));
+		const state = fixture(undefined, [first, second], false);
+		await state.dialog.run();
+		assert.deepStrictEqual(state.prompts[0].buttons?.map(button => button.label), ['Choose Python Interpreter…']);
+		assert.deepStrictEqual(state.dispatches, []);
+		state.setPromptResponse(prompt => prompt.buttons?.[0].run({ checkboxChecked: false }));
+		await state.dialog.run();
+		assert.deepStrictEqual(state.dispatches, [{ command: pickerCommand, args: [] }]);
+	});
+
+	test('a direct Restricted Mode check ignores supplied paths and cannot launch the picker', async () => {
+		store.add(CommandsRegistry.registerCommand(pickerCommand, () => undefined));
+		const state = fixture(undefined, [first], false);
+		state.changeTrust(false);
+		state.setPromptResponse(() => true);
+		store.add(registerProjectReadinessAction(state.dialog));
+		const instantiation = store.add(new InstantiationService());
+		const action = CommandsRegistry.getCommand('myself.project.checkReadiness');
+		assert.ok(action);
+		await instantiation.invokeFunction(action.handler, first.uri, '/ignored/path');
+		assert.strictEqual(state.prompts[0].buttons, undefined);
+		assert.deepStrictEqual(state.dispatches, []);
+	});
+
+	test('omits the picker in remote and empty workbenches or when the picker command is unavailable', async () => {
+		const local = fixture(undefined, [first], false);
+		await local.dialog.run();
+		assert.strictEqual(local.prompts[0].buttons, undefined);
+		store.add(CommandsRegistry.registerCommand(pickerCommand, () => undefined));
+		for (const state of [fixture(undefined, [first], false, true), fixture(undefined, [], false)]) {
+			state.setPromptResponse(() => true);
+			await state.dialog.run();
+			assert.strictEqual(state.prompts[0].buttons, undefined);
+			assert.deepStrictEqual(state.dispatches, []);
+		}
+	});
+
+	test('discards an affirmative response if the workspace, trust, or observed setting changed in the prompt', async () => {
+		store.add(CommandsRegistry.registerCommand(pickerCommand, () => undefined));
+		for (const invalidate of [
+			(state: ReturnType<typeof fixture>) => state.changeWorkspaceId('replacement'),
+			(state: ReturnType<typeof fixture>) => state.changeRoots([second], false),
+			(state: ReturnType<typeof fixture>) => state.changeTrust(false, false),
+			(state: ReturnType<typeof fixture>) => state.changeSetting(basedPyrightPythonPathKey),
+		]) {
+			const state = fixture(undefined, [first], false);
+			state.setPromptResponse(prompt => {
+				invalidate(state);
+				assert.ok(prompt.buttons?.length);
+				return prompt.buttons[0].run({ checkboxChecked: false });
+			});
+			await state.dialog.run();
+			assert.deepStrictEqual(state.dispatches, []);
+		}
 	});
 
 	test('rejects unsupported URI forms before provider lookup or configuration inspection', async () => {

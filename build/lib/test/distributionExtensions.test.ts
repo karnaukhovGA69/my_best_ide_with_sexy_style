@@ -83,6 +83,7 @@ suite('Myself IDE extension distribution', () => {
 			'myself-http-client',
 			'myself-language-servers',
 			'myself-local-review',
+			'myself-postgresql-schema',
 		];
 		assert.deepStrictEqual(optionalExtensions.filter(isDistributionExtension), []);
 		assert.deepStrictEqual(optionalExtensions.flatMap(name => [

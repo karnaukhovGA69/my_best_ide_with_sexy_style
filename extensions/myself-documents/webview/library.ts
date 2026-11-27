@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { marked } from '../../../src/vs/base/common/marked/marked.js';
+import { discardedDocumentationElements, registerLibrarySearch } from './librarySearch';
 
 (() => {
 	const api = (globalThis as typeof globalThis & { acquireVsCodeApi(): { postMessage(message: object): void } }).acquireVsCodeApi();
@@ -17,14 +18,14 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 	const query = document.getElementById('query') as HTMLInputElement;
 	const findStatus = document.getElementById('find-status')!;
 	const allowed = new Set('a abbr b blockquote br caption code col colgroup dd del details div dl dt em figcaption figure h1 h2 h3 h4 h5 h6 hr i kbd li main mark ol p pre s samp section small span strong sub summary sup table tbody td th thead tfoot tr ul var'.split(' '));
-	const discarded = new Set('script style iframe object embed link meta base form input button select option textarea noscript svg math canvas video audio source picture'.split(' '));
+	registerLibrarySearch(message => api.postMessage(message));
 
 	function clean(node: Node): Node {
 		if (node.nodeType === Node.TEXT_NODE) { return document.createTextNode(node.textContent ?? ''); }
 		const fragment = document.createDocumentFragment();
 		if (!(node instanceof Element)) { return fragment; }
 		const tag = node.tagName.toLowerCase();
-		if (discarded.has(tag)) { return fragment; }
+		if (discardedDocumentationElements.has(tag)) { return fragment; }
 		if (tag === 'img') {
 			// Keep accessible image descriptions without activating any document-provided URL.
 			const alt = node.getAttribute('alt');
@@ -136,6 +137,7 @@ import { marked } from '../../../src/vs/base/common/marked/marked.js';
 		if (!text) { return; }
 		// Chromium's find scrolls to and selects each match, including text split across inline tags.
 		const browser = window as Window & { find?(text: string, caseSensitive: boolean, backwards: boolean, wrapAround: boolean): boolean };
+		(document.getElementById('library-search') as HTMLDetailsElement).open = false;
 		query.blur();
 		// Chromium searches input values too. Exclude the query from its own results.
 		query.value = '';

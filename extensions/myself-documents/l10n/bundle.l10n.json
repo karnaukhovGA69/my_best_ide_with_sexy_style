@@ -53,5 +53,19 @@
   "The documentation action could not be completed.": "The documentation action could not be completed.",
   "The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.": "The local document could not be read. Files must be UTF-8 text or HTML, up to 16 MiB.",
   "The local documentation catalog could not be loaded.": "The local documentation catalog could not be loaded.",
-  "This link is not included in the local library.": "This link is not included in the local library."
+  "This link is not included in the local library.": "This link is not included in the local library.",
+  "Search Document Contents": "Search Document Contents",
+  "Search all local documents": "Search all local documents",
+  "Search": "Search",
+  "Cancel Search": "Cancel Search",
+  "Loading the local documentation catalog…": "Loading the local documentation catalog…",
+  "Searched {0} of {1} documents…": "Searched {0} of {1} documents…",
+  "Matching documents: {0}. Showing: {1}.": "Matching documents: {0}. Showing: {1}.",
+  "No matching documents.": "No matching documents.",
+  "No matches in the documents searched.": "No matches in the documents searched.",
+  "Search cancelled.": "Search cancelled.",
+  "Search ended. Run it again for the current library.": "Search ended. Run it again for the current library.",
+  "Documents that could not be searched: {0}.": "Documents that could not be searched: {0}.",
+  "The official documentation catalog is unavailable.": "The official documentation catalog is unavailable.",
+  "Search Results": "Search Results"
 }

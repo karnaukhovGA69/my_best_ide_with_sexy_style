@@ -18,7 +18,7 @@ function deferred() {
 }
 const uri = value => ({ path: value, fsPath: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
-	const actions = new Map(), files = new Map(), reads = [], writes = [], notices = [], external = [], sent = [], dialogs = [], opened = [];
+	const actions = new Map(), reads = [], writes = [], notices = [], external = [], sent = [], dialogs = [], opened = [];
 	const state = { imports: options.imports ?? [] };
 	let provider, readerProvider, readerOptions, reader, selection; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
 	const extensionsChange = emitter();
@@ -35,6 +35,22 @@ async function fixture(options = {}) {
 	});
 	const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'myself-reader-')));
 	const bundled = path.join(root, 'extension');
+	const profileRoot = path.join(root, 'profile');
+	fs.mkdirSync(profileRoot);
+	const files = new class extends Map {
+		set(key, value) {
+			if (key.startsWith('/profile/')) {
+				const target = path.join(root, key);
+				fs.mkdirSync(path.dirname(target), { recursive: true });
+				fs.writeFileSync(target, value);
+			}
+			return super.set(key, value);
+		}
+		delete(key) {
+			if (key.startsWith('/profile/')) { fs.rmSync(path.join(root, key), { force: true }); }
+			return super.delete(key);
+		}
+	}();
 	const installedRoot = path.join(root, 'offline-vsix');
 	function openReader() {
 		if (reader?.visible) { return; }
@@ -106,12 +122,16 @@ async function fixture(options = {}) {
 			delete: async resource => { files.delete(resource.path); },
 		} },
 	};
-	const context = { subscriptions: [], extensionUri: uri(bundled), globalStorageUri: uri('/profile'), globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
+	const context = { subscriptions: [], extensionUri: uri(bundled), globalStorageUri: { ...uri('/profile'), fsPath: profileRoot }, globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
 	const openFile = localFs.open;
 	localFs.open = async (file, flags) => {
 		if (file.startsWith(root + path.sep) && file.includes(path.sep + 'documentation' + path.sep)) {
 			reads.push(file);
 			if (beforeOfficialRead) { await beforeOfficialRead(file); }
+		} else if (file.startsWith(profileRoot + path.sep)) {
+			const resource = '/' + path.relative(root, file);
+			reads.push(resource);
+			if (beforeRead) { await beforeRead(resource); }
 		}
 		return openFile(file, flags);
 	};
@@ -426,11 +446,11 @@ test('folder import preserves internal links and rolls back a failed metadata co
 		try {
 			for (const entry of entries) { reopened.files.set('/profile/' + entry.file, f.files.get('/profile/' + entry.file)); }
 			await reopened.actions.get('myself.documentation.open')(index.id); await reopened.message({ type: 'ready' });
-			await reopened.message({ type: 'link', href: 'chapters/one.md#intro' });
+			await reopened.message({ type: 'link', href: 'chapters/one.md#intro' }, true);
 			assert.equal(reopened.sent.at(-1).text, '# Intro');
 		} finally { reopened.dispose(); }
 		await f.actions.get('myself.documentation.open')(index.id); await f.message({ type: 'ready' });
-		await f.message({ type: 'link', href: 'chapters/one.md#intro' });
+		await f.message({ type: 'link', href: 'chapters/one.md#intro' }, true);
 		assert.equal(f.sent.at(-1).text, '# Intro'); assert.equal(f.sent.at(-1).fragment, 'intro'); assert.deepEqual(f.external, []);
 		const before = new Set(f.files.keys()); fail = true;
 		await f.actions.get('myself.documentation.importFolder')();
@@ -517,8 +537,10 @@ test('removing an imported article during a Back read leaves the current article
 		await f.message({ type: 'ready' });
 		await f.actions.get('myself.documentation.open')('two');
 		const gate = new Promise(resolve => { release = resolve; });
-		f.delay(file => file.endsWith(imported.file) ? gate : undefined);
+		const entered = deferred();
+		f.delay(file => { if (file.endsWith(imported.file)) { entered.resolve(); return gate; } });
 		await f.message({ type: 'back' });
+		await entered.promise;
 		assert.equal(f.reads.at(-1), '/profile/' + imported.file);
 		await f.actions.get('myself.documentation.remove')(imported);
 		release();
@@ -745,5 +767,111 @@ test('an update at the same path invalidates official search results but preserv
 		await personal;
 		await f.message({ type: 'ready' });
 		assert.equal(f.sent.at(-1).text, '# Personal');
+	} finally { f.dispose(); }
+});
+
+test('full-text scan reads the final catalog document and local imports without following links', async () => {
+	const imported = { id: 'personal', group: 'imported', title: 'Personal', file: 'imports/d1.md', source: '', format: 'markdown' };
+	const f = await fixture({ imports: [imported], prepare({ bundled, root, catalog }) {
+		const dir = path.join(bundled, 'documentation');
+		for (let i = 0; i < 39; i++) {
+			const file = `test/item-${i}.html`;
+			catalog.entries.push({ id: 'item-' + i, group: 'test', title: 'Item ' + i, file, source: '', format: 'html' });
+			fs.writeFileSync(path.join(dir, file), i === 38 ? '<p>Last page</p><a href="https://outside.invalid/">Link</a>' : '<p>Earlier page</p>');
+		}
+		catalog.entries.push({ id: 'alias', group: 'test', title: 'Alias', file: 'test/alias.html', source: '', format: 'html' });
+		fs.writeFileSync(path.join(root, 'outside.html'), 'must never be read');
+		fs.symlinkSync(path.join(root, 'outside.html'), path.join(dir, 'test/alias.html'));
+		fs.writeFileSync(path.join(dir, 'test/unlisted.html'), '<p>Unlisted</p>');
+		fs.writeFileSync(path.join(dir, 'catalog.json'), JSON.stringify(catalog));
+	} });
+	try {
+		f.files.set('/profile/' + imported.file, Buffer.from('Imported body'));
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' }, true);
+		f.reads.length = 0;
+		await f.message({ type: 'librarySearchStart', id: 1, query: 'Last page' }, true);
+		const first = f.sent.at(-1);
+		assert.deepEqual([first.type, first.offset, first.done, f.reads.length], ['librarySearchBatch', 32, false, 32]);
+		await f.message({ type: 'librarySearchNext', id: 1, batch: 0 });
+		assert.equal(f.reads.length, 32);
+		await f.message({ type: 'librarySearchNext', id: 1, batch: 1 }, true);
+		const last = f.sent.at(-1);
+		assert.deepEqual([last.offset, last.total, last.skipped, last.done], [43, 43, 1, true]);
+		assert.ok(last.documents.some(entry => entry.text.includes('Last page')));
+		assert.equal(last.documents.at(-1).text, 'Imported body');
+		assert.ok(!f.reads.some(file => /outside|alias|unlisted/.test(file)));
+		assert.deepEqual(f.external, []);
+		await f.message({ type: 'librarySearchOpen', id: 1, index: -1 });
+		assert.equal(f.sent.at(-1), last);
+		await f.message({ type: 'librarySearchOpen', id: 1, index: 40 }, true);
+		assert.deepEqual([f.sent.at(-1).type, f.sent.at(-1).title], ['document', 'Item 38']);
+	} finally { f.dispose(); }
+});
+
+test('cancelling or replacing a scan discards its in-flight batch and serializes reads', async () => {
+	const f = await fixture();
+	try {
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' }, true);
+		f.reads.length = 0;
+		const entered = deferred(), release = deferred();
+		f.delay(file => { if (file.endsWith('test/one.html')) { entered.resolve(); return release.promise; } });
+		await f.message({ type: 'librarySearchStart', id: 1, query: 'one' });
+		await entered.promise;
+		await f.message({ type: 'librarySearchCancel', id: 1 });
+		await f.message({ type: 'librarySearchStart', id: 2, query: 'two' });
+		assert.equal(f.reads.length, 1);
+		f.delay(undefined);
+		release.resolve();
+		const posted = deferred();
+		const originalPost = f.reader().webview.postMessage;
+		f.reader().webview.postMessage = async message => { posted.resolve(message); return originalPost(message); };
+		const latest = await posted.promise;
+		assert.deepEqual([latest.type, latest.id, latest.done, f.reads.length], ['librarySearchBatch', 2, true, 3]);
+		assert.ok(!f.sent.some(message => message.type === 'librarySearchBatch' && message.id === 1));
+		await f.message({ type: 'librarySearchOpen', id: 1, index: 1 });
+		assert.equal(f.sent.at(-1), latest);
+	} finally { f.dispose(); }
+});
+
+test('switching library snapshots invalidates search and prevents opening stale result indices', async () => {
+	const f = await fixture({ installed: true });
+	try {
+		await f.actions.get('myself.documentation.open')('one');
+		await f.message({ type: 'ready' }, true);
+		await f.message({ type: 'librarySearchStart', id: 1, query: 'One' }, true);
+		const updated = f.waitForTreeChange();
+		f.setInstalled(uri(f.installedRoot), '2');
+		await updated;
+		await tick();
+		assert.ok(f.sent.some(message => message.type === 'librarySearchInvalidated' && message.id === 1));
+		const reads = f.reads.length;
+		await f.message({ type: 'librarySearchOpen', id: 1, index: 0 });
+		assert.equal(f.reads.length, reads);
+	} finally { f.dispose(); }
+});
+
+test('full-text scan skips a linked import and completes an oversized batch without truncating the next document', async () => {
+	const imported = { id: 'personal', group: 'imported', title: 'Personal', file: 'imports/d1.md', source: '', format: 'markdown' };
+	const f = await fixture({ imports: [imported], prepare({ bundled, root }) {
+		const dir = path.join(root, 'profile/imports');
+		fs.mkdirSync(dir);
+		fs.writeFileSync(path.join(root, 'outside.txt'), 'outside');
+		fs.symlinkSync(path.join(root, 'outside.txt'), path.join(dir, 'd1.md'));
+		fs.writeFileSync(path.join(bundled, 'documentation/test/one.html'), '<p>' + 'large '.repeat(50_000) + '</p>');
+	} });
+	try {
+		await f.actions.get('myself.documentation.open')('two');
+		await f.message({ type: 'ready' }, true);
+		f.reads.length = 0;
+		await f.message({ type: 'librarySearchStart', id: 1, query: 'x'.repeat(257) });
+		assert.equal(f.reads.length, 0);
+		await f.message({ type: 'librarySearchStart', id: 2, query: 'Two' }, true);
+		assert.deepEqual([f.sent.at(-1).offset, f.sent.at(-1).documents.length, f.sent.at(-1).done], [1, 1, false]);
+		await f.message({ type: 'librarySearchNext', id: 2, batch: 1 }, true);
+		const final = f.sent.at(-1);
+		assert.deepEqual([final.offset, final.done, final.skipped, final.documents[0].text], [3, true, 1, '<h1>Two</h1>']);
+		assert.ok(!f.reads.some(file => /d1\.md|outside\.txt/.test(file)));
 	} finally { f.dispose(); }
 });

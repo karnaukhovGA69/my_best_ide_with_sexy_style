@@ -8,16 +8,20 @@ import { promises as fs } from 'fs';
 import { dirname, join } from '../../../base/common/path.js';
 import { generateUuid } from '../../../base/common/uuid.js';
 import { URI } from '../../../base/common/uri.js';
-import { documentPdfFileName, documentPdfHtml, DocumentPdfResultV1, validateDocumentPdfRequest } from '../common/documentExport.js';
+import { documentPdfFileName, documentPdfHtml, DocumentPdfRequest, DocumentPdfResultV1, validateDocumentPdfRequest } from '../common/documentExport.js';
 
 const activeExports = new Set<number>();
 
 export async function renderDocumentPdf(input: unknown, owner?: BrowserWindow): Promise<Buffer> {
 	const request = validateDocumentPdfRequest(input);
+	return printDocumentPdf(request, documentPdfHtml(request), owner);
+}
+
+async function printDocumentPdf(request: DocumentPdfRequest, html: string, owner?: BrowserWindow): Promise<Buffer> {
+	const url = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 	const printSession = session.fromPartition(`myself-document-pdf-${generateUuid()}`, { cache: false });
 	printSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
 	printSession.setPermissionCheckHandler(() => false);
-	const url = `data:text/html;charset=utf-8,${encodeURIComponent(documentPdfHtml(request))}`;
 	printSession.webRequest.onBeforeRequest((details, callback) => callback({ cancel: details.url !== url }));
 	const window = new BrowserWindow({ show: false, parent: owner, width: 794, height: 1123, webPreferences: { session: printSession, sandbox: true, contextIsolation: true, nodeIntegration: false, javascript: false, webSecurity: true, spellcheck: false } });
 	window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -54,9 +58,10 @@ export async function exportDocumentPdf(owner: BrowserWindow, input: unknown, ch
 	activeExports.add(owner.id);
 	let temporaryPath: string | undefined;
 	try {
+		const html = documentPdfHtml(request);
 		const destination = await chooseDestination(documentPdfFileName(request.suggestedFileName));
 		if (!destination || owner.isDestroyed()) { return { status: 'cancelled' }; }
-		const pdf = await renderDocumentPdf(request, owner);
+		const pdf = await printDocumentPdf(request, html, owner);
 		if (owner.isDestroyed()) { return { status: 'cancelled' }; }
 		temporaryPath = join(dirname(destination), `.myself-pdf-${generateUuid()}.tmp`);
 		await fs.writeFile(temporaryPath, pdf, { flag: 'wx', mode: 0o600 });

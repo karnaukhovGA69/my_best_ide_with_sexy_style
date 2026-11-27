@@ -22,8 +22,6 @@ import './workbench.common.main.js';
 import './electron-browser/desktop.main.js';
 import './electron-browser/desktop.contribution.js';
 import './contrib/documentExport/electron-browser/documentExport.contribution.js';
-import './contrib/myselfDiagnostics/browser/installationDiagnostics.contribution.js';
-import './contrib/myselfProjectActions/browser/myselfProjectActions.contribution.js';
 
 //#endregion
 
@@ -139,6 +137,7 @@ import './contrib/debug/electron-browser/extensionHostDebugService.js';
 // Extensions Management
 import './contrib/extensions/electron-browser/extensions.contribution.js';
 import './contrib/extensions/electron-browser/devtoolsExtensionHost.contribution.js';
+import './contrib/myselfDiagnostics/browser/installationDiagnostics.contribution.js';
 
 // Issues
 import './contrib/issue/electron-browser/issue.contribution.js';
@@ -168,6 +167,7 @@ import './contrib/performance/electron-browser/performance.contribution.js';
 
 // Tasks
 import './contrib/tasks/electron-browser/taskService.js';
+import './contrib/myselfProjectActions/browser/myselfProjectActions.contribution.js';
 
 // External terminal
 import './contrib/externalTerminal/electron-browser/externalTerminal.contribution.js';

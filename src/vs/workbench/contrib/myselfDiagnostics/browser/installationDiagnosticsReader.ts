@@ -24,24 +24,23 @@ interface IDiagnosticsSnapshot {
 	readonly extensions: readonly IExtensionDiagnostic[];
 }
 
-export class InstallationDiagnosticsReader extends Disposable {
+export class InstallationDiagnosticsProfileTracker extends Disposable {
+	static readonly ID = 'workbench.contrib.installationDiagnosticsProfileTracker';
+
 	private profileRevision = 0;
 	private profileSettled = true;
 	private pendingInventoryResets = 0;
-	private inventoryResetsOverlapped = false;
+	private inventoryResetUnconfirmed = false;
 
 	constructor(
-		private readonly profiles: Pick<IUserDataProfileService, 'currentProfile' | 'onDidChangeCurrentProfile'>,
-		private readonly inventory: ILocalInventory,
-		private readonly enablement: Pick<IWorkbenchExtensionEnablementService, 'isEnabled'>,
-		private readonly runtime: Pick<IExtensionService, 'extensions' | 'getExtensionsStatus'>,
+		@IUserDataProfileService private readonly profiles: IUserDataProfileService,
 	) {
 		super();
 		this._register(this.profiles.onDidChangeCurrentProfile(event => {
 			const revision = ++this.profileRevision;
 			this.profileSettled = false;
 			if (!isEqual(event.previous.extensionsResource, event.profile.extensionsResource)) {
-				this.inventoryResetsOverlapped = this.pendingInventoryResets > 0;
+				this.inventoryResetUnconfirmed = this.pendingInventoryResets > 0;
 				this.pendingInventoryResets++;
 			}
 			void event.whenSettled?.then(settled => {
@@ -50,27 +49,51 @@ export class InstallationDiagnosticsReader extends Disposable {
 				}
 			});
 		}));
-		this._register(this.inventory.onReset(() => {
-			// The cache signals completion without identifying the profile it loaded.
-			if (this.pendingInventoryResets > 0) {
-				this.pendingInventoryResets--;
-			}
-		}));
+	}
+
+	get revision(): number { return this.profileRevision; }
+	get profileName(): string { return this.profiles.currentProfile.name; }
+
+	get inventoryStatus(): 'available' | 'unavailable' | 'profileUnconfirmed' {
+		if (this.inventoryResetUnconfirmed) {
+			return 'profileUnconfirmed';
+		}
+		return this.profileSettled && this.pendingInventoryResets === 0 ? 'available' : 'unavailable';
+	}
+
+	acceptInventoryReset(inventoryInitialized: boolean): void {
+		// Reset does not identify the profile, and a startup scan can still overwrite an early reset.
+		if (this.pendingInventoryResets > 0) {
+			this.pendingInventoryResets--;
+			this.inventoryResetUnconfirmed ||= !inventoryInitialized;
+		}
+	}
+}
+
+export class InstallationDiagnosticsReader extends Disposable {
+	constructor(
+		private readonly profile: InstallationDiagnosticsProfileTracker,
+		private readonly inventory: ILocalInventory,
+		private readonly enablement: Pick<IWorkbenchExtensionEnablementService, 'isEnabled'>,
+		private readonly runtime: Pick<IExtensionService, 'extensions' | 'getExtensionsStatus'>,
+	) {
+		super();
+		let inventoryInitialized = false;
+		this._register(this.inventory.onReset(() => this.profile.acceptInventoryReset(inventoryInitialized)));
+		void this.inventory.whenInitialized.then(() => { inventoryInitialized = true; }, () => {});
 	}
 
 	async collect(): Promise<IDiagnosticsSnapshot> {
-		const revision = this.profileRevision;
-		const profileName = this.profiles.currentProfile.name;
+		const revision = this.profile.revision;
+		const profileName = this.profile.profileName;
 		try {
 			await this.inventory.whenInitialized;
-			if (this.profileRevision !== revision) {
-				return this.unavailable(this.profiles.currentProfile.name, 'profileChanged');
+			if (this.profile.revision !== revision) {
+				return this.unavailable(this.profile.profileName, 'profileChanged');
 			}
-			if (this.inventoryResetsOverlapped) {
-				return this.unavailable(profileName, 'profileUnconfirmed');
-			}
-			if (!this.profileSettled || this.pendingInventoryResets > 0) {
-				return this.unavailable(profileName, 'unavailable');
+			const inventoryStatus = this.profile.inventoryStatus;
+			if (inventoryStatus !== 'available') {
+				return this.unavailable(profileName, inventoryStatus);
 			}
 
 			const installed = new Map<string, ILocalExtension>();
@@ -98,7 +121,7 @@ export class InstallationDiagnosticsReader extends Disposable {
 				}),
 			};
 		} catch {
-			return this.unavailable(this.profiles.currentProfile.name, this.profileRevision === revision ? 'unavailable' : 'profileChanged');
+			return this.unavailable(this.profile.profileName, this.profile.revision === revision ? 'unavailable' : 'profileChanged');
 		}
 	}
 

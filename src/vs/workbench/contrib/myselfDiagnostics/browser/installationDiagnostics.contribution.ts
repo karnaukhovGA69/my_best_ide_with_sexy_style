@@ -8,14 +8,13 @@ import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
-import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { getWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IWorkbenchExtensionEnablementService } from '../../../services/extensionManagement/common/extensionManagement.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
 import { ActivationStatus, EnablementStatus, InstallationStatus, SelectedExtension } from '../common/installationDiagnostics.js';
-import { InstallationDiagnosticsReader } from './installationDiagnosticsReader.js';
+import { InstallationDiagnosticsProfileTracker, InstallationDiagnosticsReader } from './installationDiagnosticsReader.js';
 
 function formatExtensionName(id: SelectedExtension['id']): string {
 	switch (id) {
@@ -57,7 +56,6 @@ class InstallationDiagnosticsContribution extends Disposable {
 
 	constructor(
 		@IProductService product: IProductService,
-		@IUserDataProfileService profiles: IUserDataProfileService,
 		@IExtensionsWorkbenchService extensions: IExtensionsWorkbenchService,
 		@IWorkbenchExtensionEnablementService enablement: IWorkbenchExtensionEnablementService,
 		@IExtensionService runtime: IExtensionService,
@@ -68,7 +66,8 @@ class InstallationDiagnosticsContribution extends Disposable {
 		if (environment.remoteAuthority) {
 			return;
 		}
-		const reader = this._register(new InstallationDiagnosticsReader(profiles, extensions, enablement, runtime));
+		const profile = getWorkbenchContribution<InstallationDiagnosticsProfileTracker>(InstallationDiagnosticsProfileTracker.ID);
+		const reader = this._register(new InstallationDiagnosticsReader(profile, extensions, enablement, runtime));
 		// Command dispatch can otherwise queue an activation event during extension registration.
 		void runtime.whenInstalledExtensionsRegistered().then(() => {
 			if (!this._store.isDisposed) {
@@ -119,4 +118,6 @@ class InstallationDiagnosticsContribution extends Disposable {
 	}
 }
 
+// Observe profile changes before restoring the window without instantiating the extensions workbench service.
+registerWorkbenchContribution2(InstallationDiagnosticsProfileTracker.ID, InstallationDiagnosticsProfileTracker, WorkbenchPhase.BlockStartup);
 registerWorkbenchContribution2(InstallationDiagnosticsContribution.ID, InstallationDiagnosticsContribution, WorkbenchPhase.AfterRestored);

@@ -13,7 +13,7 @@ import { ExtensionType, TargetPlatform } from '../../../../../platform/extension
 import { toUserDataProfile } from '../../../../../platform/userDataProfile/common/userDataProfile.js';
 import { ActivationTimes, IExtensionService, toExtensionDescription } from '../../../../services/extensions/common/extensions.js';
 import { UserDataProfileService } from '../../../../services/userDataProfile/common/userDataProfileService.js';
-import { InstallationDiagnosticsReader } from '../../browser/installationDiagnosticsReader.js';
+import { InstallationDiagnosticsProfileTracker, InstallationDiagnosticsReader } from '../../browser/installationDiagnosticsReader.js';
 
 suite('Installation Diagnostics Reader', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -29,8 +29,9 @@ suite('Installation Diagnostics Reader', () => {
 		pinned: false, forceAutoUpdate: false, source: 'vsix', size: 0,
 	};
 
-	function createReader(initialized = Promise.resolve()) {
+	function createFixture(initialized = Promise.resolve()) {
 		const profiles = store.add(new UserDataProfileService(profileA));
+		const profileTracker = store.add(new InstallationDiagnosticsProfileTracker(profiles));
 		const reset = store.add(new Emitter<void>());
 		const inventory = { installed: [{ local: clangd }], whenInitialized: initialized, onReset: reset.event };
 		const enablement = { isEnabled: () => true };
@@ -48,7 +49,12 @@ suite('Installation Diagnostics Reader', () => {
 				}
 			}),
 		};
-		return { profiles, reset, inventory, enablement, runtime, reader: store.add(new InstallationDiagnosticsReader(profiles, inventory, enablement, runtime)) };
+		return { profiles, reset, inventory, enablement, runtime, createReader: () => store.add(new InstallationDiagnosticsReader(profileTracker, inventory, enablement, runtime)) };
+	}
+
+	function createReader(initialized?: Promise<void>) {
+		const fixture = createFixture(initialized);
+		return { ...fixture, reader: fixture.createReader() };
 	}
 
 	test('reads the actual profile and rejects old cached extensions during a profile switch', async () => {
@@ -69,6 +75,49 @@ suite('Installation Diagnostics Reader', () => {
 		);
 	});
 
+	test('rejects the old inventory when switching profiles before the reader is created', async () => {
+		const { profiles, reset, inventory, createReader } = createFixture();
+		const transition = new DeferredPromise<void>();
+		store.add(profiles.onDidChangeCurrentProfile(event => event.join(transition.p)));
+		const switching = profiles.updateCurrentProfile(profileB);
+		const reader = createReader();
+		try {
+			const pending = await reader.collect();
+			assert.deepStrictEqual([pending.profileName, pending.inventory, pending.extensions[0].installation], ['Teaching', 'unavailable', 'unavailable']);
+		} finally {
+			await transition.complete();
+			await switching;
+		}
+
+		inventory.installed = [];
+		reset.fire();
+		const current = await reader.collect();
+		assert.deepStrictEqual([current.profileName, current.inventory, current.extensions[0].installation], ['Teaching', 'available', 'notListed']);
+	});
+
+	test('keeps inventory unavailable if a startup reset finished before the reader could observe it', async () => {
+		const { profiles, reset, inventory, createReader } = createFixture();
+		await profiles.updateCurrentProfile(profileB);
+		inventory.installed = [];
+		reset.fire();
+
+		const snapshot = await createReader().collect();
+		assert.deepStrictEqual([snapshot.profileName, snapshot.inventory], ['Teaching', 'unavailable']);
+	});
+
+	test('does not trust a reset that an in-flight startup scan can overwrite', async () => {
+		const initialized = new DeferredPromise<void>();
+		const { reader, profiles, reset, inventory } = createReader(initialized.p);
+		await profiles.updateCurrentProfile(profileB);
+		inventory.installed = [];
+		reset.fire();
+		inventory.installed = [{ local: clangd }];
+		await initialized.complete();
+
+		const snapshot = await reader.collect();
+		assert.deepStrictEqual([snapshot.profileName, snapshot.inventory, snapshot.extensions[0].installation], ['Teaching', 'profileUnconfirmed', 'unavailable']);
+	});
+
 	test('discards a snapshot when the profile changes and switches back during startup', async () => {
 		const initialized = new DeferredPromise<void>();
 		const { reader, profiles, reset } = createReader(initialized.p);
@@ -82,6 +131,9 @@ suite('Installation Diagnostics Reader', () => {
 
 		const invalidated = await pending;
 		assert.deepStrictEqual([invalidated.profileName, invalidated.inventory], ['Development', 'profileChanged']);
+		assert.strictEqual((await reader.collect()).inventory, 'profileUnconfirmed');
+
+		await profiles.updateCurrentProfile({ ...profileA, name: 'Renamed' });
 		assert.strictEqual((await reader.collect()).inventory, 'profileUnconfirmed');
 
 		await profiles.updateCurrentProfile(profileB);

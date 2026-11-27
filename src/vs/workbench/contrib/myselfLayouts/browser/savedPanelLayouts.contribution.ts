@@ -11,13 +11,13 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IWorkspaceTrustManagementService } from '../../../../platform/workspace/common/workspaceTrust.js';
-import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
+import { getWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { ILifecycleService } from '../../../services/lifecycle/common/lifecycle.js';
 import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
-import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { SavedPanelLayoutProfileTracker } from './savedPanelLayoutProfiles.js';
 import { SavedPanelLayoutsController } from './savedPanelLayoutsController.js';
 
 const savedPanelLayoutsMenu = new MenuId('MyselfSavedPanelLayouts');
@@ -28,7 +28,6 @@ class SavedPanelLayoutsContribution extends Disposable {
 		@IViewsService views: IViewsService,
 		@IViewDescriptorService descriptors: IViewDescriptorService,
 		@IPaneCompositePartService paneComposites: IPaneCompositePartService,
-		@IUserDataProfileService profiles: IUserDataProfileService,
 		@IStorageService storage: IStorageService,
 		@IQuickInputService quickInput: IQuickInputService,
 		@IDialogService dialogs: IDialogService,
@@ -37,6 +36,7 @@ class SavedPanelLayoutsContribution extends Disposable {
 		@ILifecycleService lifecycle: ILifecycleService,
 	) {
 		super();
+		const profiles = getWorkbenchContribution<SavedPanelLayoutProfileTracker>(SavedPanelLayoutProfileTracker.ID);
 		const controller = this._register(new SavedPanelLayoutsController(layout, views, descriptors, paneComposites, profiles, storage, quickInput, dialogs, notifications, trust));
 		this._register(MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
 			submenu: savedPanelLayoutsMenu,
@@ -68,4 +68,5 @@ class SavedPanelLayoutsContribution extends Disposable {
 	}
 }
 
+registerWorkbenchContribution2(SavedPanelLayoutProfileTracker.ID, SavedPanelLayoutProfileTracker, WorkbenchPhase.BlockStartup);
 registerWorkbenchContribution2('workbench.contrib.myselfSavedPanelLayouts', SavedPanelLayoutsContribution, WorkbenchPhase.AfterRestored);

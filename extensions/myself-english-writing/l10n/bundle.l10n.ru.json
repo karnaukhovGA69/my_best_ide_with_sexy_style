@@ -1,0 +1,11 @@
+{
+  "Open a Markdown or plain-text document to use English Writing.": "Откройте Markdown или обычный текст, чтобы воспользоваться инструментами для английского текста.",
+  "Text Analyzer is unavailable in this window. Enable it, or use Extensions (…) → Install from VSIX… with a local Text Analyzer VSIX.": "Text Analyzer недоступен в этом окне. Включите расширение или выберите «Расширения» → «…» → «Установить из VSIX…» и укажите локальный VSIX Text Analyzer.",
+  "Could not open Problems.": "Не удалось открыть панель «Проблемы».",
+  "Could not open Code Actions.": "Не удалось открыть список действий.",
+  "Could not open Text Analyzer.": "Не удалось открыть Text Analyzer.",
+  "available": "доступно",
+  "unavailable": "недоступно",
+  "Harper — {0}. Text Analyzer — {1}. Availability reflects extension registration.": "Harper — {0}. Text Analyzer — {1}. Статус отражает регистрацию расширений.",
+  "Enable missing tools, or use Extensions (…) → Install from VSIX… with a local VSIX.": "Включите недоступные инструменты или выберите «Расширения» → «…» → «Установить из VSIX…» и укажите локальный VSIX."
+}

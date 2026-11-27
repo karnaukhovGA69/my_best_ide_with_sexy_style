@@ -29,6 +29,8 @@ interface Row {
 interface Snapshot {
 	uri: vscode.Uri;
 	content: string;
+	requested: boolean;
+	closed: boolean;
 }
 
 interface SnapshotPair {
@@ -94,9 +96,9 @@ export function activateWithApi(context: Pick<vscode.ExtensionContext, 'subscrip
 		}
 	};
 	const prune = () => {
-		const open = new Set(api.workspace.textDocuments.map(document => document.uri.toString()));
 		for (const pair of pairs) {
-			if (!pair.opening && !pair.entries.some(entry => open.has(entry.uri.toString()))) {
+			// A document list can lag the content request. Only a close event proves release.
+			if (!pair.opening && pair.entries.every(entry => !entry.requested || entry.closed)) {
 				removePair(pair);
 			}
 		}
@@ -108,6 +110,8 @@ export function activateWithApi(context: Pick<vscode.ExtensionContext, 'subscrip
 			if (!entry) {
 				throw unavailable();
 			}
+			entry.requested = true;
+			entry.closed = false;
 			return entry.content;
 		}
 	};
@@ -242,7 +246,7 @@ export function activateWithApi(context: Pick<vscode.ExtensionContext, 'subscrip
 			pair = { generation, item: element, bytes: element.bytes, opening: true, entries: [] };
 			for (const [side, content] of [['left', element.original], ['right', element.modified]]) {
 				const uri = api.Uri.from({ scheme, path: `/${generation}/${pairId}/${side}.txt` });
-				const entry = { uri, content };
+				const entry = { uri, content, requested: false, closed: false };
 				pair.entries.push(entry);
 				snapshots.set(uri.toString(), entry);
 			}
@@ -267,7 +271,13 @@ export function activateWithApi(context: Pick<vscode.ExtensionContext, 'subscrip
 	view.message = title;
 	context.subscriptions.push(
 		api.workspace.registerTextDocumentContentProvider(scheme, contentProvider),
-		api.workspace.onDidCloseTextDocument(() => prune()),
+		api.workspace.onDidCloseTextDocument(document => {
+			const entry = snapshots.get(document.uri.toString());
+			if (entry) {
+				entry.closed = true;
+			}
+			prune();
+		}),
 		api.commands.registerCommand(compareCommand, compare),
 		api.commands.registerCommand(openCommand, open),
 		{ dispose() { disposed = true; cancellation?.cancel(); generation = randomUUID(); items.clear(); rows = []; snapshots.clear(); pairs.clear(); pairByItem.clear(); } });

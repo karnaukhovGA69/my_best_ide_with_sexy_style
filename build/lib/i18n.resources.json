@@ -679,6 +679,10 @@
 			"project": "vscode-workbench"
 		},
 		{
+			"name": "vs/workbench/contrib/myselfDiagnostics",
+			"project": "vscode-workbench"
+		},
+		{
 			"name": "vs/workbench/contrib/myselfProjectActions",
 			"project": "vscode-workbench"
 		}

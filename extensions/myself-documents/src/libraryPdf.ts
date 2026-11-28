@@ -34,13 +34,17 @@ async function storageRoot(storage: string): Promise<string> {
 	return fs.realpath(storage);
 }
 
+function checkPdfHeader(bytes: Buffer): void {
+	if (!/^%PDF-\d\.\d(?:\r|\n)/.test(bytes.subarray(0, 10).toString('latin1'))) {
+		throw new Error('PDF header required');
+	}
+}
+
 export async function readSelectedPdf(file: string): Promise<Buffer> {
 	const name = path.basename(file);
 	if (!path.isAbsolute(file) || !/\.pdf$/i.test(name)) { throw new Error('PDF filename required'); }
 	const bytes = await readLocalBytes(await fs.realpath(path.dirname(file)), name, maxDocumentBytes);
-	if (!/^%PDF-\d\.\d(?:\r|\n)/.test(bytes.subarray(0, 10).toString('latin1'))) {
-		throw new Error('PDF header required');
-	}
+	checkPdfHeader(bytes);
 	return bytes;
 }
 
@@ -102,12 +106,29 @@ export async function storePdfCopy(storage: string, file: string, bytes: Uint8Ar
 	}
 }
 
-export async function removePdfCopy(storage: string, file: string, digest: string | undefined): Promise<void> {
+async function readVerifiedCopy(storage: string, file: string, digest: string | undefined): Promise<{ root: string; bytes: Buffer; stat: Stats }> {
 	if (pdfCopyFile(path.basename(file, '.pdf')) !== file || !isPdfCopyDigest(digest)) { throw new Error('Invalid PDF copy record'); }
+	const root = await storageRoot(storage);
+	const target = path.join(root, file);
+	await checkPdfFolder(path.dirname(target));
+	const expected = await fs.lstat(target);
+	if (!expected.isFile() || expected.nlink !== 1) { throw new Error('Invalid PDF copy'); }
+	const { bytes, stat } = await readLocalSnapshot(root, file, maxDocumentBytes);
+	if (stat.dev !== expected.dev || stat.ino !== expected.ino || stat.nlink !== 1 || pdfCopyDigest(bytes) !== digest) { throw new Error('PDF copy changed'); }
+	return { root, bytes, stat };
+}
+
+export async function readPdfCopy(storage: string, id: string, digest: string | undefined): Promise<Uint8Array> {
+	const file = pdfCopyFile(id);
+	if (!file) { throw new Error('Invalid PDF library ID'); }
+	const { bytes } = await readVerifiedCopy(storage, file, digest);
+	checkPdfHeader(bytes);
+	return new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+}
+
+export async function removePdfCopy(storage: string, file: string, digest: string | undefined): Promise<void> {
 	try {
-		const root = await storageRoot(storage);
-		const { bytes, stat } = await readLocalSnapshot(root, file, maxDocumentBytes);
-		if (pdfCopyDigest(bytes) !== digest) { throw new Error('PDF copy changed'); }
+		const { root, stat } = await readVerifiedCopy(storage, file, digest);
 		await unlinkPdfCopy(path.join(root, file), stat);
 	} catch (error) {
 		if (error.code !== 'ENOENT') { throw error; }

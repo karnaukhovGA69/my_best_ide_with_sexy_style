@@ -11,6 +11,9 @@ const os = require('node:os');
 const path = require('node:path');
 const { maxCatalogBytes, maxDocumentBytes } = require('../out/libraryModel.js');
 const { loadWithVscode, emitter, viewApi } = require('./helpers.cts');
+const pdfViewerId = 'myself.myself-local-pdf-viewer';
+const pdfViewerRequired = 'PDF preview requires a compatible local Nerded Code PDF Viewer. Use Extensions → Install from VSIX… to install it from a local VSIX.';
+const pdfCopyUnverified = 'The library PDF copy is missing, has changed, or could not be verified. Import a new copy to preview it.';
 const tick = () => new Promise(resolve => setImmediate(resolve));
 function deferred() {
 	let resolve;
@@ -19,11 +22,12 @@ function deferred() {
 }
 const uri = value => ({ path: value, fsPath: value, scheme: 'file', authority: '', toString: () => value });
 async function fixture(options = {}) {
-	const actions = new Map(), reads = [], writes = [], notices = [], information = [], warnings = [], dialogOptions = [], external = [], sent = [], dialogs = [], opened = [];
+	const actions = new Map(), reads = [], localReads = [], writes = [], notices = [], information = [], warnings = [], dialogOptions = [], external = [], sent = [], dialogs = [], opened = [];
 	const state = { imports: options.imports ?? [] };
 	let provider, readerProvider, readerOptions, reader, selection, activeEditor, reveal; let beforeRead = options.beforeRead, beforeOfficialRead = options.beforeRead;
 	const extensionsChange = emitter();
-	let installed;
+	let installed, viewer = options.pdfViewer;
+	const viewerLookups = [];
 	let nextPost;
 	const post = async message => {
 		sent.push(message);
@@ -92,9 +96,17 @@ async function fixture(options = {}) {
 	if (options.prepare) { options.prepare({ bundled, installedRoot, root, catalog }); }
 	const vscode = {
 		...viewApi, extensions: {
-			getExtension: id => { assert.equal(id, 'myself.offline-documentation'); return installed; },
+			getExtension: id => {
+				if (id === pdfViewerId) {
+					viewerLookups.push(id);
+					return viewer && Object.create(viewer);
+				}
+				assert.equal(id, 'myself.offline-documentation');
+				return installed;
+			},
 			onDidChange: extensionsChange.event,
 		}, Uri: { joinPath: (base, ...parts) => uri(base.path + '/' + parts.join('/')), parse: value => ({ toString: () => value }) },
+		ExtensionKind: { UI: 1, Workspace: 2 },
 		EventEmitter: class { constructor() { const e = emitter(); this.event = e.event; this.fire = e.fire; } dispose() {} },
 		TreeItem: class { constructor(label) { this.label = label; } }, TreeItemCollapsibleState: { None: 0, Collapsed: 1 }, ThemeIcon: class { constructor(id) { this.id = id; } },
 		Disposable: { from: (...disposables) => ({ dispose: () => disposables.forEach(d => d.dispose()) }) },
@@ -138,9 +150,10 @@ async function fixture(options = {}) {
 			delete: async resource => { files.delete(resource.path); },
 		} },
 	};
-	const context = { subscriptions: [], extensionUri: uri(bundled), globalStorageUri: { ...uri('/profile'), fsPath: profileRoot }, globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
+	const context = { subscriptions: [], extensionUri: uri(bundled), globalStorageUri: { ...uri('/profile'), fsPath: profileRoot, ...options.storage }, globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
 	const openFile = localFs.open;
 	localFs.open = async (file, flags) => {
+		if (file.startsWith(root + path.sep)) { localReads.push(file); }
 		if (file.startsWith(root + path.sep) && file.includes(path.sep + 'documentation' + path.sep)) {
 			reads.push(file);
 			if (beforeOfficialRead) { await beforeOfficialRead(file); }
@@ -157,9 +170,11 @@ async function fixture(options = {}) {
 		fs.rmSync(root, { recursive: true, force: true });
 	};
 	try {
+		delete require.cache[require.resolve('../out/libraryPdfViewer.js')];
 		loadWithVscode('library.js', vscode).registerLibrary(context);
 		if (!options.deferCatalog) { await waitForTreeChange(); }
-		return { actions, provider, files, reads, writes, notices, information, warnings, external, sent, state, dialogs, dialogOptions, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
+		return { actions, provider, files, reads, localReads, writes, viewerLookups, notices, information, warnings, external, sent, state, dialogs, dialogOptions, opened, readerOptions, bundled, installedRoot, root, writeCatalog, setInstalled, waitForTreeChange,
+			setViewer: (value, announce = true) => { viewer = value; if (announce) { extensionsChange.fire(); } },
 			reader: () => reader, select: value => { selection = value; }, setEditor: value => { activeEditor = value; },
 			delay: handler => { beforeRead = handler; beforeOfficialRead = handler; },
 			delayReveal: handler => { reveal = handler; },
@@ -1187,7 +1202,7 @@ function writePdfFixture(f, name = 'Synthetic.PDF') {
 	return original;
 }
 
-test('an explicitly imported PDF is listed, keeps its bytes and never enters the preview or full-text reader', async () => {
+test('an imported PDF stays listed without the optional viewer and never enters the text reader', async () => {
 	const f = await fixture({
 		quickPick: items => items.find(item => item.entry.format === 'pdf'),
 	});
@@ -1214,8 +1229,7 @@ test('an explicitly imported PDF is listed, keeps its bytes and never enters the
 		await f.actions.get('myself.documentation.open')(original);
 		await f.actions.get(treeItem.command.command)(...treeItem.command.arguments);
 		await f.actions.get('myself.documentation.search')();
-		const unavailable = 'A verified built-in preview is not yet available for PDFs in the library.';
-		assert.deepEqual([f.information, f.opened, f.external, f.reads.length], [[unavailable, unavailable], [], [], before]);
+		assert.deepEqual([f.information, f.opened, f.external, f.reads.length], [[pdfViewerRequired, pdfViewerRequired], [], [], before]);
 
 		await f.actions.get('myself.documentation.open')('one');
 		await f.message({ type: 'ready' }, true);
@@ -1224,6 +1238,227 @@ test('an explicitly imported PDF is listed, keeps its bytes and never enters the
 		assert.deepEqual([f.sent.at(-1).total, f.sent.at(-1).skipped, f.sent.at(-1).documents.map(document => document.title)], [2, 0, ['One', 'Two']]);
 		assert.ok(f.reads.every(file => file.endsWith('.html')));
 	} finally { f.dispose(); }
+});
+
+function pdfViewer(options = {}) {
+	let active = !!options.active;
+	const activations = [], opened = [];
+	const api = { apiVersion: options.apiVersion ?? 1, async openBytes(...args) {
+		opened.push(args);
+		return options.open ? options.open() : true;
+	} };
+	const extension = {
+		id: options.id ?? pdfViewerId,
+		extensionUri: options.extensionUri ?? uri('/fixture/extensions/viewer'),
+		extensionKind: options.kind ?? 1,
+		packageJSON: { version: options.version ?? '0.1.0' },
+		get isActive() { return active; },
+		get exports() { assert.ok(active, 'exports accessed before activation'); return api; },
+		async activate() { activations.push(pdfViewerId); await options.beforeActivate?.(); active = true; return api; },
+	};
+	return { extension, activations, opened };
+}
+
+async function preparePdf(f) {
+	const original = writePdfFixture(f);
+	f.select([uri(original)]);
+	await f.actions.get('myself.documentation.importPdf')();
+	const [entry] = f.state.imports;
+	assert.ok(entry);
+	const copy = path.join(f.root, 'profile', entry.file);
+	const item = f.provider.getTreeItem(f.provider.getChildren({ id: 'imported' })[0]);
+	f.localReads.length = 0;
+	f.reads.length = 0;
+	return { original, copy, entry, open: () => f.actions.get(item.command.command)(...item.command.arguments) };
+}
+
+test('only explicit open of a registered PDF sends verified UUID copy bytes to the exact local viewer', async () => {
+	const viewer = pdfViewer();
+	const f = await fixture({ pdfViewer: viewer.extension, quickPick: items => items.find(item => item.entry.format === 'pdf') });
+	try {
+		const { original, copy, entry, open } = await preparePdf(f);
+		assert.deepEqual([viewer.activations, viewer.opened, f.viewerLookups], [[], [], []]);
+		fs.writeFileSync(original, 'different original');
+		const command = f.actions.get('myself.documentation.open');
+		await command(original);
+		await command('file://' + original);
+		await command({ id: entry.id, file: original, sha256: entry.sha256 });
+		await command('unregistered.pdf', entry.id);
+		assert.deepEqual([viewer.activations, viewer.opened, f.viewerLookups, f.localReads], [[], [], [], []]);
+
+		await open();
+		assert.deepEqual(viewer.activations, [pdfViewerId]);
+		assert.equal(viewer.opened.length, 1);
+		const [args] = viewer.opened;
+		assert.equal(args.length, 1);
+		assert.equal(args[0].constructor, Uint8Array);
+		assert.deepEqual(Buffer.from(args[0]), pdfFixture);
+		assert.deepEqual(f.localReads, [copy]);
+		assert.deepEqual([f.opened, f.external, f.sent, f.notices], [[], [], [], []]);
+
+		await f.actions.get('myself.documentation.search')();
+		assert.equal(viewer.opened.length, 2);
+		assert.equal(viewer.activations.length, 1);
+		assert.deepEqual(f.localReads, [copy, copy]);
+	} finally { f.dispose(); }
+});
+
+test('remote, wrong-ID and incompatible active viewers cause no file read or activation', async () => {
+	const f = await fixture();
+	try {
+		const { open } = await preparePdf(f);
+		for (const options of [
+			{ extensionUri: { ...uri('/fake-remote'), scheme: 'vscode-remote' } },
+			{ extensionUri: { ...uri('/fake-share'), authority: 'nfs-host' } },
+			{ id: 'different.viewer' },
+			{ kind: 2 },
+			{ version: '0.1.1' },
+			{ apiVersion: 2, active: true },
+		]) {
+			const viewer = pdfViewer(options);
+			f.setViewer(viewer.extension);
+			await open();
+			assert.deepEqual([viewer.activations, viewer.opened, f.localReads, f.opened], [[], [], [], []]);
+		}
+		assert.deepEqual(f.information, Array(6).fill(pdfViewerRequired));
+	} finally { f.dispose(); }
+});
+
+test('changed, linked and oversized library PDFs never activate the viewer', async () => {
+	const viewer = pdfViewer();
+	const f = await fixture({ pdfViewer: viewer.extension });
+	try {
+		const { original, copy, open } = await preparePdf(f);
+		const changed = Buffer.from(pdfFixture);
+		changed[changed.length - 2] ^= 1;
+		fs.writeFileSync(copy, changed);
+		await open();
+		fs.unlinkSync(copy);
+		fs.symlinkSync(original, copy);
+		await open();
+		fs.unlinkSync(copy);
+		fs.linkSync(original, copy);
+		await open();
+		fs.unlinkSync(copy);
+		fs.writeFileSync(copy, pdfFixture);
+		fs.truncateSync(copy, maxDocumentBytes + 1);
+		await open();
+		assert.deepEqual([viewer.activations, viewer.opened, f.information, f.opened, f.external], [[], [], [], [], []]);
+		assert.deepEqual(f.notices, Array(4).fill(pdfCopyUnverified));
+		assert.deepEqual(f.localReads, [copy, copy]);
+	} finally { f.dispose(); }
+});
+
+test('a wrong API version discovered after activation receives no bytes', async () => {
+	const viewer = pdfViewer({ apiVersion: 2 });
+	const f = await fixture({ pdfViewer: viewer.extension });
+	try {
+		const { copy, open } = await preparePdf(f);
+		await open();
+		assert.deepEqual([f.localReads, viewer.activations, viewer.opened], [[copy], [pdfViewerId], []]);
+		assert.deepEqual(f.information, [pdfViewerRequired]);
+		assert.deepEqual([f.opened, f.external], [[], []]);
+	} finally { f.dispose(); }
+});
+
+test('the bridge rejects remote library storage before consulting the viewer', async () => {
+	const id = 'fa1972c6-6cd0-4b8d-b2a1-e40c261b480b';
+	const viewer = pdfViewer();
+	const entry = { id, group: 'imported', format: 'pdf', title: 'Remote.pdf', file: `pdf-imports/${id}.pdf`, source: '',
+		sha256: createHash('sha256').update(pdfFixture).digest('hex') };
+	const f = await fixture({ pdfViewer: viewer.extension, imports: [entry], storage: { scheme: 'vscode-remote' } });
+	try {
+		f.localReads.length = 0;
+		await f.actions.get('myself.documentation.open')(id);
+		assert.deepEqual([f.localReads, f.viewerLookups, viewer.activations, viewer.opened, f.opened], [[], [], [], [], []]);
+		assert.deepEqual(f.notices, ['PDF preview requires a local library copy.']);
+	} finally { f.dispose(); }
+});
+
+test('a viewer refusal is reported without a text or external fallback', async () => {
+	const viewer = pdfViewer({ open: () => false });
+	const f = await fixture({ pdfViewer: viewer.extension });
+	try {
+		const { open } = await preparePdf(f);
+		await open();
+		assert.equal(viewer.opened.length, 1);
+		assert.deepEqual([f.opened, f.external], [[], []]);
+		assert.deepEqual(f.notices, ['The local PDF viewer could not open the verified library copy.']);
+	} finally { f.dispose(); }
+});
+
+test('a new navigation while a PDF copy is being read prevents viewer activation', async () => {
+	const viewer = pdfViewer();
+	const entered = deferred(), release = deferred();
+	const f = await fixture({ pdfViewer: viewer.extension });
+	try {
+		const { open } = await preparePdf(f);
+		f.delay(file => file.startsWith('/profile/pdf-imports/') ? (entered.resolve(), release.promise) : undefined);
+		const opening = open();
+		await entered.promise;
+		await f.actions.get('myself.documentation.open')('one');
+		release.resolve();
+		await opening;
+		assert.deepEqual([viewer.activations, viewer.opened, f.notices], [[], [], []]);
+		assert.equal(f.opened.length, 1);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('viewer activation cannot dispatch after replacement, even if version and URI match', async () => {
+	const entered = deferred(), release = deferred();
+	const viewer = pdfViewer({ beforeActivate: () => { entered.resolve(); return release.promise; } });
+	const replacement = pdfViewer({ active: true });
+	const f = await fixture({ pdfViewer: viewer.extension });
+	try {
+		const { open } = await preparePdf(f);
+		const opening = open();
+		await entered.promise;
+		f.setViewer(replacement.extension, false);
+		release.resolve();
+		await opening;
+		assert.deepEqual([viewer.opened, replacement.opened, f.opened, f.external], [[], [], [], []]);
+		assert.deepEqual(f.information, [pdfViewerRequired]);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('disposing the library while the viewer activates drops the verified bytes', async () => {
+	const entered = deferred(), release = deferred();
+	const viewer = pdfViewer({ beforeActivate: () => { entered.resolve(); return release.promise; } });
+	const f = await fixture({ pdfViewer: viewer.extension });
+	try {
+		const { open } = await preparePdf(f);
+		const opening = open();
+		await entered.promise;
+		f.dispose();
+		release.resolve();
+		await opening;
+		assert.deepEqual([viewer.opened, f.opened, f.information, f.notices], [[], [], [], []]);
+	} finally { release.resolve(); f.dispose(); }
+});
+
+test('a confirmed PDF removal immediately invalidates pending viewer dispatch and blocks another open', async () => {
+	const activating = deferred(), finishActivate = deferred(), saving = deferred(), finishSave = deferred();
+	const viewer = pdfViewer({ beforeActivate: () => { activating.resolve(); return finishActivate.promise; } });
+	let pauseSave = false;
+	const f = await fixture({
+		pdfViewer: viewer.extension, confirmPdfRemoval: button => button,
+		beforeUpdate: () => { if (pauseSave) { saving.resolve(); return finishSave.promise; } },
+	});
+	try {
+		const { entry, open } = await preparePdf(f);
+		const opening = open();
+		await activating.promise;
+		pauseSave = true;
+		const removal = f.actions.get('myself.documentation.remove')(entry);
+		await saving.promise;
+		await open();
+		finishActivate.resolve();
+		await opening;
+		assert.deepEqual([viewer.activations, viewer.opened, f.opened, f.notices], [[pdfViewerId], [], [], []]);
+		finishSave.resolve();
+		await removal;
+		assert.deepEqual(f.state.imports, []);
+	} finally { finishActivate.resolve(); finishSave.resolve(); f.dispose(); }
 });
 
 test('PDF import rejects nonlocal, nonregular, linked, oversized and mislabeled selections', async () => {

@@ -12,15 +12,11 @@ import type { CancellationToken } from '../../../base/common/cancellation.js';
 import { CancellationError } from '../../../base/common/errors.js';
 import { Schemas } from '../../../base/common/network.js';
 import type { URI } from '../../../base/common/uri.js';
+import type { ILocalVsixInspection } from '../common/extensionManagementIpc.js';
 import { inspectStagedVsix, type ILocalVsixMetadata } from './localVsixInspect.js';
 
 const maxBytes = 32 * 1024 * 1024;
 const copyChunkBytes = 64 * 1024;
-
-export interface ILocalVsixInspection extends ILocalVsixMetadata {
-	readonly sha256: string;
-	readonly bytes: number;
-}
 
 export interface IStagedLocalVsix {
 	/** Internal path valid only during the consumer callback. */

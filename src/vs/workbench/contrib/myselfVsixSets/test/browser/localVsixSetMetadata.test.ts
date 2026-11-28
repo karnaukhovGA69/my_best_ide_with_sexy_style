@@ -11,8 +11,9 @@ import { joinPath } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { ILocalVsixInspection } from '../../../../../platform/extensionManagement/common/extensionManagementIpc.js';
 import { createFileSystemProviderError, FileSystemProviderErrorCode, FileType, type IFileSystemProvider, type IStat } from '../../../../../platform/files/common/files.js';
-import { inspectLocalVsixSet, type ILocalVsixInspection, type LocalVsixInspector } from '../../browser/localVsixSetMetadata.js';
+import { inspectLocalVsixSet, type LocalVsixInspector } from '../../browser/localVsixSetMetadata.js';
 import type { ILocalVsixSet } from '../../common/localVsixSet.js';
 
 suite('Local VSIX Metadata', () => {
@@ -73,7 +74,8 @@ suite('Local VSIX Metadata', () => {
 		state.file('regular.vsix');
 		state.file('link.vsix', { type: FileType.File | FileType.SymbolicLink });
 		state.file('special.vsix', { type: FileType.Unknown });
-		const set = declarations('regular.vsix', 'link.vsix', 'special.vsix', 'missing.vsix', '../outside.vsix');
+		const declared = declarations('regular.vsix', 'link.vsix', 'special.vsix', 'missing.vsix', '../outside.vsix');
+		const set = { ...declared, entries: [{ ...declared.entries[0], id: 'Publisher.Extension-0' }, ...declared.entries.slice(1)] };
 		const results = await state.verify(set, async () => payload);
 		assert.deepStrictEqual(results, [
 			{ kind: 'checked', inspection: payload, idMatches: true, versionMatches: true, sha256Matches: true },

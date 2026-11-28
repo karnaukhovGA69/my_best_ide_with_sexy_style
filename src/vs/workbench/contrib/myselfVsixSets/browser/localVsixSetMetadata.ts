@@ -9,6 +9,7 @@ import { joinPath } from '../../../../base/common/resources.js';
 import { parse } from '../../../../base/common/semver/semver.js';
 import type { URI } from '../../../../base/common/uri.js';
 import { EXTENSION_IDENTIFIER_REGEX } from '../../../../platform/extensionManagement/common/extensionManagement.js';
+import type { ILocalVsixInspection } from '../../../../platform/extensionManagement/common/extensionManagementIpc.js';
 import { isValidVersionStr } from '../../../../platform/extensions/common/extensionValidator.js';
 import { FileSystemProviderErrorCode, FileType, type IFileService, type IStat, toFileSystemProviderErrorCode } from '../../../../platform/files/common/files.js';
 import { isLocalVsixArchiveBasename, type ILocalVsixSet, type ILocalVsixSetEntry } from '../common/localVsixSet.js';
@@ -16,14 +17,6 @@ import { localVsixArchiveMaxMiB, localVsixSetReadMaxMiB } from './localVsixSetCh
 
 const MiB = 1024 * 1024;
 const metadataLimits = { archiveBytes: localVsixArchiveMaxMiB * MiB, totalSourceBytes: localVsixSetReadMaxMiB * MiB };
-
-export interface ILocalVsixInspection {
-	readonly id: string;
-	readonly version: string;
-	readonly engine: string;
-	readonly sha256: string;
-	readonly bytes: number;
-}
 
 /** The backend must enforce maxBytes before reading, with at most one extra byte to detect growth. */
 export type LocalVsixInspector = (resource: URI, maxBytes: number, token: CancellationToken) => Promise<ILocalVsixInspection | undefined>;
@@ -106,7 +99,7 @@ export async function inspectLocalVsixSet(
 			}
 			return {
 				kind: 'checked', inspection: actual,
-				idMatches: actual.id === entry.id,
+				idMatches: actual.id === entry.id.toLowerCase(),
 				versionMatches: actual.version === entry.version,
 				sha256Matches: actual.sha256 === entry.sha256,
 			};

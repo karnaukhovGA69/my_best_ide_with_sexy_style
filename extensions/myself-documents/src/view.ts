@@ -45,6 +45,7 @@ export function editorHtml(webview: vscode.Webview, media: vscode.Uri, scriptUri
 <div id="document-counts">
 <span>${label('Words:')} <span id="word-count">0</span></span>
 <span>${label('Characters with spaces:')} <span id="character-count">0</span></span>
+<span>${label('Characters without spaces:')} <span id="character-count-without-spaces">0</span></span>
 </div>
 </div>
 <main><div class="sheet"><textarea id="text" aria-label="${label('Document Text')}" aria-describedby="pageHelp" spellcheck="true" disabled></textarea></div></main>

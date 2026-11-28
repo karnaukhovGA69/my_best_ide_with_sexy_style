@@ -1,0 +1,16 @@
+{
+  "version": "6.5.438",
+  "commit": "0a4153349dc473ba950fc17941c5ca7eda43c1de",
+  "archive": {
+    "url": "https://github.com/mozilla/pdf.js/releases/download/v6.5.438/pdfjs-6.5.438-dist.zip",
+    "sha256": "fcbe9ba21d9911843e3502adc178a7f549a524a4055f887bedc942e5490c6ba1"
+  },
+  "files": {
+    "build/pdf.mjs": "f1ee2b86d34109a9d3475b23f26882e1c8df38e051a74e4f1e8fd72c9a51885a",
+    "build/pdf.worker.mjs": "43710009ea26bfbcb615524946e46e3aaf8ad927514f5e465e8ff6d18044ffe9",
+    "LICENSE": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+  },
+  "esbuildVersion": "0.28.1",
+  "vsceVersion": "4.1.1",
+  "workerSha256": "f38f68b91c9d33b643ce63c2f310fd48c4507f00e4858ebd4c5c7013de1f8713"
+}

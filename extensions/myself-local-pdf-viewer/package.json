@@ -1,0 +1,57 @@
+{
+  "name": "myself-local-pdf-viewer",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "myself",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.146.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.cjs",
+  "l10n": "./l10n",
+  "extensionKind": [
+    "ui"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "myself.localPdfViewer.open",
+        "title": "%open%"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "myself.localPdfViewer.open",
+          "when": "view == workbench.explorer.fileView",
+          "group": "localPdf"
+        }
+      ]
+    }
+  },
+  "files": [
+    "extension.cjs",
+    "local-pdf.cjs",
+    "preview.js",
+    "view.cjs",
+    "worker.mjs",
+    "engine.json",
+    "LICENSE.pdfjs.txt",
+    "LICENSE.txt",
+    "package.nls.json",
+    "package.nls.ru.json",
+    "l10n/bundle.l10n.ru.json"
+  ]
+}

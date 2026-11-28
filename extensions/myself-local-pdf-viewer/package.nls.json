@@ -1,0 +1,5 @@
+{
+  "displayName": "Local PDF Preview",
+  "description": "Offline canvas preview for a limited subset of local PDFs.",
+  "open": "Open Local PDF Preview…"
+}

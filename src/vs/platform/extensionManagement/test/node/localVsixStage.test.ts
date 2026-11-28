@@ -6,11 +6,11 @@
 import assert from 'assert';
 import { createHash } from 'crypto';
 import { closeSync, constants, createWriteStream, openSync, readdirSync, statSync, writeSync } from 'fs';
-import { lstat, mkdir, mkdtemp, readFile, readdir, rm, truncate, writeFile, symlink } from 'fs/promises';
+import { lstat, mkdir, mkdtemp, open, readFile, readdir, rm, truncate, writeFile, symlink, type FileHandle } from 'fs/promises';
 import { tmpdir } from 'os';
 import { promises as streamPromises } from 'stream';
 import { ZipFile } from 'yazl';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Event } from '../../../../base/common/event.js';
 import { dirname, join } from '../../../../base/common/path.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -138,6 +138,104 @@ suite('Local VSIX staging', function () {
 		await assert.rejects(inspectLocalVsixV1(URI.file(source), 32 * 1024 * 1024, token), { name: 'Canceled' });
 		assert.deepStrictEqual(newStageDirectories(), []);
 	});
+
+	type ReadResult = { bytesRead: number; buffer: Buffer };
+	type ReadFault = 'cancel' | 'EIO' | 'EOF';
+	type ReadPhase = 'initial directory lookup' | 'central directory' | 'manifest';
+
+	async function injectOneSnapshotRead<T>(
+		phase: ReadPhase,
+		fault: ReadFault,
+		token: CancellationTokenSource,
+		task: () => Promise<T>,
+	): Promise<T> {
+		const bytes = await readFile(source);
+		const endRecord = bytes.length - 22;
+		const position = phase === 'initial directory lookup'
+			? bytes.length - (20 + 22 + 65535)
+			: phase === 'central directory'
+				? bytes.readUInt32LE(endRecord + 16)
+				: 30 + bytes.readUInt16LE(26) + bytes.readUInt16LE(28);
+		const length = phase === 'initial directory lookup' ? 65536
+			: phase === 'central directory' ? 46 : bytes.readUInt32LE(bytes.readUInt32LE(endRecord + 16) + 20);
+		assert.ok(position > 0 && length > 0);
+
+		const sample = await open(source, 'r');
+		const prototype = Object.getPrototypeOf(sample) as { read(this: FileHandle, ...args: unknown[]): Promise<ReadResult> };
+		await sample.close();
+		const read = prototype.read;
+		let injected = false;
+		let timeout: ReturnType<typeof setTimeout> | undefined;
+		prototype.read = async function (this: FileHandle, ...args: unknown[]): Promise<ReadResult> {
+			if (!injected && args[2] === length && args[3] === position) {
+				injected = true;
+				if (fault === 'EIO') {
+					throw Object.assign(new Error('Synthetic snapshot read failure'), { code: 'EIO' });
+				}
+				if (fault === 'EOF') {
+					return { bytesRead: 0, buffer: args[0] as Buffer };
+				}
+				const result = await Reflect.apply(read, this, args) as ReadResult;
+				token.cancel();
+				return result;
+			}
+			return Reflect.apply(read, this, args) as Promise<ReadResult>;
+		};
+
+		try {
+			return await Promise.race([
+				task(),
+				new Promise<never>((_resolve, reject) => {
+					timeout = setTimeout(() => reject(new Error(`Read interrupt did not settle. Temporary snapshots: ${newStageDirectories().length}.`)), 2000);
+				}),
+			]);
+		} finally {
+			prototype.read = read;
+			clearTimeout(timeout);
+			assert.ok(injected, `The ${phase} read must be intercepted.`);
+		}
+	}
+
+	test('cancellation before opening a source leaves no temporary stage', async () => {
+		await assert.rejects(withStagedLocalVsix(URI.file(source), CancellationToken.Cancelled, async () => assert.fail('Unexpected staged consumer')), { name: 'Canceled' });
+		assert.deepStrictEqual(newStageDirectories(), []);
+	});
+
+	for (const phase of ['initial directory lookup', 'central directory', 'manifest'] as const) {
+		test(`cancellation during ${phase} settles, cleans its snapshot and allows another inspection`, async () => {
+			const entries: { name: string; data: string | Buffer; compress?: boolean }[] = [{ name: manifestName, data: manifest }];
+			if (phase === 'initial directory lookup') {
+				entries.push({ name: 'extension/resource.txt', data: Buffer.alloc(128 * 1024), compress: false });
+			}
+			await archive(entries);
+			const uri = URI.file(source);
+			const token = new CancellationTokenSource();
+			try {
+				await assert.rejects(injectOneSnapshotRead(phase, 'cancel', token, () =>
+					withStagedLocalVsix(uri, token.token, async () => assert.fail('Unexpected staged consumer'))), { name: 'Canceled' });
+				assert.deepStrictEqual(newStageDirectories(), []);
+				assert.strictEqual((await inspectLocalVsixV1(uri, 32 * 1024 * 1024, CancellationToken.None))?.id, 'fixture.example');
+			} finally {
+				token.dispose();
+			}
+		});
+	}
+
+	for (const [phase, fault] of [['central directory', 'EIO'], ['manifest', 'EOF']] as const) {
+		test(`failed ${phase} read (${fault}) settles, cleans its snapshot and preserves later inspections`, async () => {
+			await archive([{ name: manifestName, data: manifest }]);
+			const uri = URI.file(source);
+			const token = new CancellationTokenSource();
+			try {
+				const unavailable = await injectOneSnapshotRead(phase, fault, token, () => inspectLocalVsixV1(uri, 32 * 1024 * 1024, token.token));
+				assert.strictEqual(unavailable, undefined);
+				assert.deepStrictEqual(newStageDirectories(), []);
+				assert.strictEqual((await inspectLocalVsixV1(uri, 32 * 1024 * 1024, CancellationToken.None))?.id, 'fixture.example');
+			} finally {
+				token.dispose();
+			}
+		});
+	}
 
 	test('rejects URI aliases and selected directories or symlinks', async () => {
 		await archive([{ name: manifestName, data: manifest }]);

@@ -27,12 +27,11 @@ export interface ILocalVsixMetadata {
 	readonly engine: string;
 }
 
-async function* readRange(file: FileHandle, size: number, start: number, end: number, checkCancelled: () => void): AsyncIterable<Buffer> {
+async function* readRange(file: FileHandle, size: number, start: number, end: number): AsyncIterable<Buffer> {
 	if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || end > size) {
 		throw new Error('ZIP read is outside the snapshot.');
 	}
 	for (let offset = start; offset < end;) {
-		checkCancelled();
 		const bytes = Buffer.allocUnsafe(Math.min(64 * KiB, end - offset));
 		const { bytesRead } = await file.read(bytes, 0, bytes.length, offset);
 		if (!bytesRead) {
@@ -49,7 +48,15 @@ export async function inspectStagedVsix(file: FileHandle, size: number, checkCan
 	checkCancelled();
 	const reader = new class extends RandomAccessReader {
 		override _readStreamForRange(start: number, end: number): Readable {
-			return Readable.from(readRange(file, size, start, end, checkCancelled));
+			return Readable.from(readRange(file, size, start, end));
+		}
+
+		override createReadStream(options: { start: number; end: number }): Readable {
+			// yauzl's metadata reads forward stream errors without destroying the
+			// chain. Destroy it so the reader's range reference is released.
+			const stream = super.createReadStream(options) as unknown as Readable;
+			stream.once('error', () => stream.destroy());
+			return stream;
 		}
 	}();
 	const zip = await new Promise<ZipFile>((resolve, reject) => {
@@ -61,17 +68,20 @@ export async function inspectStagedVsix(file: FileHandle, size: number, checkCan
 		}, (error, zip) => error ? reject(error) : resolve(zip));
 	});
 	const closed = new Promise<void>(resolve => zip.once('close', resolve));
+	let input: Readable | undefined;
 	try {
+		checkCancelled();
 		const entry = await findManifest(zip, checkCancelled);
 		checkCancelled();
-		const input = await new Promise<Readable>((resolve, reject) => {
+		input = await new Promise<Readable>((resolve, reject) => {
 			zip.openReadStream(entry, (error, stream) => error ? reject(error) : resolve(stream));
 		});
 		const manifest = Buffer.alloc(entry.uncompressedSize);
 		let offset = 0;
 		let checksum = 0;
+		// Let an already-started bounded range and its decoder finish before
+		// checking cancellation. A canceled inspection never returns metadata.
 		for await (const chunk of input as AsyncIterable<Buffer>) {
-			checkCancelled();
 			if (chunk.length > manifest.length - offset) {
 				throw new Error('The VSIX manifest exceeds its declared size.');
 			}
@@ -79,12 +89,13 @@ export async function inspectStagedVsix(file: FileHandle, size: number, checkCan
 			checksum = crc32(chunk, checksum);
 			offset += chunk.length;
 		}
+		checkCancelled();
 		if (offset !== manifest.length || checksum !== entry.crc32) {
 			throw new Error('The VSIX manifest size or checksum is inconsistent.');
 		}
-		checkCancelled();
 		return parseMetadata(manifest);
 	} finally {
+		input?.destroy();
 		zip.close();
 		await closed;
 	}

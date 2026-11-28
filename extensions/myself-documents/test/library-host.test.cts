@@ -106,11 +106,11 @@ async function fixture(options = {}) {
 			},
 			onDidChange: extensionsChange.event,
 		}, Uri: { joinPath: (base, ...parts) => uri(base.path + '/' + parts.join('/')), parse: value => ({ toString: () => value }) },
-		ExtensionKind: { UI: 1, Workspace: 2 },
+		ExtensionKind: { UI: 1, Workspace: 2 }, UIKind: { Desktop: 1, Web: 2 },
 		EventEmitter: class { constructor() { const e = emitter(); this.event = e.event; this.fire = e.fire; } dispose() {} },
 		TreeItem: class { constructor(label) { this.label = label; } }, TreeItemCollapsibleState: { None: 0, Collapsed: 1 }, ThemeIcon: class { constructor(id) { this.id = id; } },
 		Disposable: { from: (...disposables) => ({ dispose: () => disposables.forEach(d => d.dispose()) }) },
-		env: { language: 'en', openExternal: async value => { external.push(value.toString()); return true; } },
+		env: { language: 'en', uiKind: options.uiKind ?? 1, remoteName: options.remoteName, openExternal: async value => { external.push(value.toString()); return true; } },
 		window: {
 			get activeTextEditor() { return activeEditor; },
 			createTreeView: (_id, options) => { provider = options.treeDataProvider; return { dispose() {} }; },
@@ -150,7 +150,7 @@ async function fixture(options = {}) {
 			delete: async resource => { files.delete(resource.path); },
 		} },
 	};
-	const context = { subscriptions: [], extensionUri: uri(bundled), globalStorageUri: { ...uri('/profile'), fsPath: profileRoot, ...options.storage }, globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
+	const context = { subscriptions: [], extensionUri: uri(bundled), extension: { extensionKind: options.extensionKind ?? 1 }, globalStorageUri: { ...uri('/profile'), fsPath: profileRoot, ...options.storage }, globalState: { get: () => state.imports, update: async (_key, value) => { if (options.beforeUpdate) { await options.beforeUpdate(); } state.imports = value; } } };
 	const openFile = localFs.open;
 	localFs.open = async (file, flags) => {
 		if (file.startsWith(root + path.sep)) { localReads.push(file); }
@@ -1303,6 +1303,68 @@ test('only explicit open of a registered PDF sends verified UUID copy bytes to t
 	} finally { f.dispose(); }
 });
 
+test('the local desktop host imports, opens and removes a verified PDF from its vscode-userdata storage', async () => {
+	const viewer = pdfViewer();
+	const f = await fixture({
+		storage: { scheme: 'vscode-userdata' }, remoteName: 'ssh-remote',
+		pdfViewer: viewer.extension, confirmPdfRemoval: button => button,
+	});
+	try {
+		const { original, copy, entry, open } = await preparePdf(f);
+		assert.deepEqual(fs.readFileSync(copy), pdfFixture);
+		assert.deepEqual(viewer.activations, []);
+		await open();
+		assert.deepEqual(viewer.activations, [pdfViewerId]);
+		assert.equal(viewer.opened.length, 1);
+		assert.deepEqual(Buffer.from(viewer.opened[0][0]), pdfFixture);
+		await f.actions.get('myself.documentation.remove')(entry);
+		assert.deepEqual([f.state.imports, f.notices, f.opened, f.external], [[], [], [], []]);
+		assert.equal(fs.existsSync(copy), false);
+		assert.deepEqual(fs.readFileSync(original), pdfFixture);
+	} finally { f.dispose(); }
+});
+
+test('PDF commands reject remote hosts and nonlocal or ambiguous storage before reading or mutating', async () => {
+	const id = 'fa1972c6-6cd0-4b8d-b2a1-e40c261b480b';
+	const entry = { id, group: 'imported', format: 'pdf', title: 'Saved.pdf', file: `pdf-imports/${id}.pdf`, source: '',
+		sha256: createHash('sha256').update(pdfFixture).digest('hex') };
+	const alias = { scheme: 'vscode-userdata' };
+	for (const rejected of [
+		{ storage: { scheme: 'vscode-remote' } },
+		{ storage: { scheme: 'custom-storage' } },
+		{ storage: { ...alias, authority: 'server' } },
+		{ storage: { ...alias, query: 'option' } },
+		{ storage: { ...alias, fragment: 'section' } },
+		{ storage: { ...alias, fsPath: 'relative' } },
+		{ storage: { ...alias, fsPath: '//server/profile' } },
+		{ storage: { ...alias, fsPath: process.platform === 'win32' ? 'C:/profile/../other' : '/profile/../other' } },
+		{ storage: alias, extensionKind: 2 },
+		{ storage: { scheme: 'file' }, extensionKind: 2 },
+		{ storage: alias, uiKind: 2 },
+	]) {
+		const viewer = pdfViewer();
+		let updates = 0;
+		const f = await fixture({
+			...rejected, imports: [entry], pdfViewer: viewer.extension, confirmPdfRemoval: button => button,
+			beforeUpdate: () => { updates++; },
+		});
+		try {
+			const original = writePdfFixture(f);
+			f.select([uri(original)]);
+			f.localReads.length = 0;
+			await f.actions.get('myself.documentation.open')(entry.id);
+			await f.actions.get('myself.documentation.importPdf')();
+			await f.actions.get('myself.documentation.remove')(entry);
+			assert.deepEqual(f.state.imports, [entry]);
+			assert.equal(updates, 0);
+			assert.deepEqual([f.viewerLookups, viewer.activations, viewer.opened, f.localReads], [[], [], [], []]);
+			assert.equal(f.notices.length, 3);
+			assert.equal(fs.existsSync(path.join(f.root, 'profile', 'pdf-imports')), false);
+			assert.deepEqual(fs.readFileSync(original), pdfFixture);
+		} finally { f.dispose(); }
+	}
+});
+
 test('remote, wrong-ID and incompatible active viewers cause no file read or activation', async () => {
 	const f = await fixture();
 	try {
@@ -1483,12 +1545,14 @@ test('PDF import rejects nonlocal, nonregular, linked, oversized and mislabeled 
 		for (const rejected of [
 			{ ...uri(source), scheme: 'https' },
 			{ ...uri(source), authority: 'not-local' },
+			{ ...uri(source), query: 'different-resource' },
+			{ ...uri(source), fragment: 'section' },
 			uri(linked), uri(folder), uri(wrong), uri(large),
 		]) {
 			f.select([rejected]);
 			await importPdf();
 		}
-		assert.equal(f.notices.length, 6);
+		assert.equal(f.notices.length, 8);
 		assert.deepEqual(f.state.imports, []);
 		assert.equal(fs.existsSync(path.join(f.root, 'profile/pdf-imports')), false);
 		assert.deepEqual([f.opened, f.external], [[], []]);

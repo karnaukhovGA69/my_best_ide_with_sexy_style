@@ -10,9 +10,10 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { after, before, test } from 'node:test';
 import type { Browser, Page } from 'playwright-core';
+import { documentPdfHtml } from '../../../src/vs/platform/documentExport/common/documentExport.ts';
 import type { DocumentMessage, PreviewText, ReadyMessage } from '../src/protocol.js';
 import type { createPreviewHtml } from '../src/view.cjs';
-import { vectorDocument } from './pdf-fixture.mts';
+import { imageXObjectDocument, vectorDocument } from './pdf-fixture.mts';
 
 const require = createRequire(import.meta.url);
 const { chromium }: typeof import('playwright-core') = require(process.env.NERDED_PDF_PLAYWRIGHT || 'playwright-core');
@@ -141,6 +142,79 @@ test('the packaged worker renders the embedded synthetic glyph', async () => {
 		await page.locator('canvas').waitFor();
 		assert.deepEqual(await pixels(page), [80, 80, 0, 0, 0, 255]);
 	}, { pdf: vectorDocument({ font: 'embedded' }) });
+});
+
+test('corrupt non-inline JPEG rejects the page without publishing partial pixels', async () => {
+	const incompleteJpeg = Buffer.from('not-a-valid-jpeg');
+	for (const withVector of [false, true]) {
+		await withWebview(async page => {
+			await page.waitForFunction(() => {
+				const canvas = document.querySelector('canvas');
+				const status = document.querySelector('#status');
+				return !canvas?.hidden || status?.textContent === 'Unsupported';
+			});
+			assert.deepEqual([await page.locator('#status').textContent(), await page.locator('canvas').isVisible()], ['Unsupported', false]);
+		}, { pdf: imageXObjectDocument(incompleteJpeg, 'DCTDecode', withVector) });
+	}
+});
+
+test('the QA embedded image control and a valid JPEG both paint red pixels', async () => {
+	await withWebview(async page => {
+		await page.locator('canvas').waitFor();
+		assert.deepEqual(await pixels(page), [80, 80, 255, 0, 0, 255]);
+	}, { pdf: imageXObjectDocument(Buffer.from('FF0000>'), 'ASCIIHexDecode') });
+	// A programmatically generated 1×1 red JPEG.
+	const jpeg = Buffer.from('/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABwn/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdAAYqm//Z', 'base64');
+	await withWebview(async page => {
+		await page.locator('canvas').waitFor();
+		const [width, height, red, green, blue, alpha] = await pixels(page);
+		assert.deepEqual([width, height, alpha], [80, 80, 255]);
+		assert.ok(red > 240 && green < 16 && blue < 16);
+	}, { pdf: imageXObjectDocument(jpeg, 'DCTDecode') });
+});
+
+test('the packaged worker renders Latin and Cyrillic pages from the document exporter in all three font families', async () => {
+	for (const fontFamily of ['sans-serif', 'serif', 'monospace']) {
+		const printing = await browser.newContext({ javaScriptEnabled: false, offline: true });
+		let pdf: Buffer;
+		try {
+			const page = await printing.newPage();
+			await page.setContent(documentPdfHtml({
+				version: 2,
+				format: 'directives',
+				text: '@title Offline export\nLatin text 123 · Café\n@note Проверка кириллицы\n@page\n@title Page two\nВторая страница',
+				suggestedFileName: 'synthetic.pdf',
+				page: { size: 'A4', marginMm: 20, fontFamily, fontSizePt: 16, lineHeight: 1.5 },
+			}));
+			pdf = await page.pdf({ format: 'A4', margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' } });
+		} finally {
+			await printing.close();
+		}
+		await withWebview(async page => {
+			for (const number of [1, 2]) {
+				await page.locator('canvas').waitFor();
+				const position = await page.locator('#position').textContent();
+				const darkPixels = await page.locator('canvas').evaluate(canvas => {
+					if (!(canvas instanceof HTMLCanvasElement)) {
+						return 0;
+					}
+					const data = canvas.getContext('2d')?.getImageData(0, 0, canvas.width, canvas.height).data;
+					let count = 0;
+					for (let offset = 0; data && offset < data.length; offset += 4) {
+						if (data[offset] < 180 && data[offset + 1] < 180 && data[offset + 2] < 180 && data[offset + 3] === 255) {
+							count++;
+						}
+					}
+					return count;
+				});
+				assert.equal(position, `Page ${number} of 2`, fontFamily);
+				assert.ok(darkPixels > 100, `Expected exported text on page ${number} in ${fontFamily}`);
+				if (number === 1) {
+					await page.getByRole('button', { name: 'Next Page' }).click();
+				}
+			}
+		}, { pdf });
+	}
 });
 
 test('missing font has a specific message and the next available page remains usable', async () => {

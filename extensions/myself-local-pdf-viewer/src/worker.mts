@@ -71,6 +71,18 @@ class NoDomFilters {
 	destroy() {}
 }
 
+/** Observe the pinned PDF.js image messages without blocking its dependency resolution. */
+function isMissingImage(message: unknown): boolean {
+	if (typeof message !== 'object' || message === null || !('action' in message) ||
+		!('data' in message) || !Array.isArray(message.data)) {
+		return false;
+	}
+	const payload: readonly unknown[] = message.data;
+	// Page objects include a pageProxyId. Shared objects (including Type3 images) do not.
+	return (message.action === 'obj' && payload[2] === 'Image' && payload[3] === null) ||
+		(message.action === 'commonobj' && payload[1] === 'Image' && payload[2] === null);
+}
+
 async function renderPage(bytes: Uint8Array<ArrayBuffer>, pageNumber: number, onPageCount: (count: number) => void): Promise<RenderedPixels> {
 	if (!(bytes instanceof Uint8Array) || bytes.length === 0 || bytes.length > maxPdfBytes ||
 		!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > maxPages) {
@@ -78,6 +90,13 @@ async function renderPage(bytes: Uint8Array<ArrayBuffer>, pageNumber: number, on
 	}
 
 	const { port1, port2 } = new MessageChannel();
+	let missingImage = false;
+	// Record the failure before PDF.js handles the message and settles the image dependency.
+	port2.addEventListener('message', ({ data }: MessageEvent<unknown>) => {
+		if (isMissingImage(data)) {
+			missingImage = true;
+		}
+	});
 	WorkerMessageHandler.initializeFromPort(port1);
 	const worker = PDFWorker.create({ port: port2 });
 	port1.start();
@@ -145,6 +164,9 @@ async function renderPage(bytes: Uint8Array<ArrayBuffer>, pageNumber: number, on
 			}
 			if (auxiliaryAssetRequested) {
 				throw new AuxiliaryAssetUnavailable();
+			}
+			if (missingImage) {
+				throw new Error('PDF.js could not decode an image on this page');
 			}
 			const rgba = surface.context!.getImageData(0, 0, width, height).data;
 			return { width, height, rgba };

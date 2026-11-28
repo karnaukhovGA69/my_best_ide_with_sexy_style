@@ -29,14 +29,39 @@ export function vectorDocument({ pageCount = 2, dimensions = '40 40', font }: Ve
 			/FirstChar 65 /LastChar 65 /Widths [900] /Resources << >> >>`);
 		objects.push(stream('900 0 0 0 900 900 d1 0 0 900 900 re f'));
 	}
-	let pdf = '%PDF-1.7\n';
+	return pdfFromObjects(objects);
+}
+
+/** Put the image in a separate XObject to exercise the asynchronous image decoder. */
+export function imageXObjectDocument(image: Buffer, filter: 'DCTDecode' | 'ASCIIHexDecode', withVector = false): Buffer {
+	const content = (withVector ? '0 0 1 rg 0 0 40 40 re f ' : '') + 'q 40 0 0 40 0 0 cm /Im0 Do Q';
+	return pdfFromObjects([
+		'<< /Type /Catalog /Pages 2 0 R >>',
+		'<< /Type /Pages /Count 1 /Kids [3 0 R] >>',
+		'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 40 40] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>',
+		`<<  /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`,
+		Buffer.concat([
+			Buffer.from(`<< /Type /XObject /Subtype /Image /Width 1 /Height 1 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /${filter} /Length ${image.length} >>\nstream\n`),
+			image,
+			Buffer.from('\nendstream'),
+		]),
+	]);
+}
+
+function pdfFromObjects(objects: readonly (string | Buffer)[]): Buffer {
+	const chunks = [Buffer.from('%PDF-1.7\n')];
+	let length = chunks[0].length;
 	const offsets = [0];
 	for (const [index, object] of objects.entries()) {
-		offsets.push(Buffer.byteLength(pdf));
-		pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+		offsets.push(length);
+		const prefix = Buffer.from(`${index + 1} 0 obj\n`);
+		const body = Buffer.from(object);
+		const suffix = Buffer.from('\nendobj\n');
+		chunks.push(prefix, body, suffix);
+		length += prefix.length + body.length + suffix.length;
 	}
-	const xref = Buffer.byteLength(pdf);
-	pdf += `xref\n0 ${offsets.length}\n0000000000 65535 f \n`;
+	let pdf = `xref\n0 ${offsets.length}\n0000000000 65535 f \n`;
 	for (const offset of offsets.slice(1)) { pdf += `${String(offset).padStart(10, '0')} 00000 n \n`; }
-	return Buffer.from(pdf + `trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+	chunks.push(Buffer.from(pdf + `trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${length}\n%%EOF\n`));
+	return Buffer.concat(chunks);
 }

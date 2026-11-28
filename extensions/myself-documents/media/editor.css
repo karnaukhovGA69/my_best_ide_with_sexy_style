@@ -11,6 +11,7 @@
 	--document-size: 12pt;
 	--document-leading: 1.5;
 	--document-margin: 20mm;
+	--paper-outline: var(--vscode-panel-border, var(--vscode-descriptionForeground));
 }
 * { box-sizing: border-box; }
 body { margin: 0; color: var(--vscode-foreground); background: var(--vscode-sideBar-background); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
@@ -38,10 +39,15 @@ button:disabled { opacity: 0.5; cursor: default; }
 .document-status, #document-counts { display: flex; flex-wrap: wrap; gap: var(--space-small) var(--space-medium); }
 .document-status { position: sticky; top: 0; z-index: 1; justify-content: space-between; padding: var(--space-small) var(--space-large); background: var(--vscode-sideBar-background); }
 main { padding: 0 var(--space-large) var(--space-large); overflow-x: auto; }
-.sheet { width: 210mm; max-width: 100%; min-height: 297mm; margin: 0 auto; padding: var(--document-margin); background: var(--vscode-editor-background); border: 1px solid var(--vscode-panel-border); }
-#text { display: block; width: 100%; min-height: calc(297mm - 2 * var(--document-margin)); border: 0; padding: 0; resize: none; overflow: hidden; background: transparent; color: var(--vscode-editor-foreground); font-family: var(--document-font); font-size: var(--document-size); line-height: var(--document-leading); white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
+.sheet { position: relative; box-sizing: content-box; width: var(--document-content-width, calc(210mm - 2 * var(--document-margin))); margin: 0 auto; padding: var(--document-margin); background: var(--vscode-editor-background); box-shadow: inset 0 0 0 1px var(--paper-outline); }
+.paper-content { position: relative; }
+.page-breaks { position: absolute; inset-inline: calc(-1 * var(--document-margin)); pointer-events: none; background: repeating-linear-gradient(to bottom, var(--paper-outline) 0 1px, transparent 1px var(--page-step)); }
+.last-page-break { height: 1px; background: var(--paper-outline); }
+.paper-measure { position: absolute; inset: 0 0 auto; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
+#text, .paper-measure { font-family: var(--document-font); font-size: var(--document-size); line-height: var(--document-leading); white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
+#text { position: relative; display: block; width: 100%; min-height: var(--document-content-height, calc(297mm - 2 * var(--document-margin))); field-sizing: content; border: 0; padding: 0; resize: none; overflow: hidden; background: transparent; color: var(--vscode-editor-foreground); }
 #text:focus-visible { outline: none; }
-.sheet:focus-within { border-color: var(--vscode-focusBorder); }
+.sheet:focus-within { box-shadow: inset 0 0 0 1px var(--vscode-focusBorder); }
 footer { padding: var(--space-medium) var(--space-large); }
 #notice:not(:empty) { padding: var(--space-medium) var(--space-large); color: var(--vscode-notifications-foreground); background: var(--vscode-notifications-background); }
 #conflict { margin: 0 var(--space-large) var(--space-medium); padding: var(--space-medium); border: 1px solid var(--vscode-inputValidation-warningBorder); background: var(--vscode-inputValidation-warningBackground); }
@@ -51,8 +57,7 @@ footer { padding: var(--space-medium) var(--space-large); }
 	header, .settings, footer { padding: var(--space-medium); }
 	.document-status { padding-inline: var(--space-medium); }
 	main { padding: 0 var(--space-small) var(--space-medium); }
-	.sheet { padding: var(--space-medium); }
 	.find { padding-left: var(--space-medium); padding-right: var(--space-medium); }
 	#pageHelp { max-width: none; }
 }
-@media (forced-colors: active) { button, .sheet, input, select { border: 1px solid CanvasText; } }
+@media (forced-colors: active) { button, input, select { border: 1px solid CanvasText; } .sheet { outline: 1px solid CanvasText; outline-offset: -1px; } .page-breaks { --paper-outline: CanvasText; forced-color-adjust: none; } }

@@ -35,7 +35,7 @@ export function editorHtml(webview: vscode.Webview, media: vscode.Uri, scriptUri
 <label>${label('Margins (mm)')}<input id="margin" type="number" min="10" max="30" step="1" value="20"></label>
 <label class="pdf-directives"><input id="pdfDirectives" type="checkbox" aria-describedby="pdfDirectivesHelp">${label('Apply PDF Formatting Commands')}</label>
 <span id="pdfDirectivesHelp">${label('Start a line with @title, @note or @page. Use @@ for a literal @.')}</span>
-<span id="pageHelp">${label('Approximate page preview. PDF pagination may differ.')}</span>
+<span id="pageHelp">${label('A4 guides follow plain text. PDF formatting commands can change page breaks.')}</span>
 </section>
 <div id="conflict" role="alert" hidden><p>${label('The file changed while you were typing. Your draft is kept below. Choose which version to use.')}</p>
 <button id="useFile">${label('Use File Version')}</button><button id="keepDraft">${label('Keep My Draft')}</button></div>
@@ -48,7 +48,13 @@ export function editorHtml(webview: vscode.Webview, media: vscode.Uri, scriptUri
 <span>${label('Characters without spaces:')} <span id="character-count-without-spaces">0</span></span>
 </div>
 </div>
-<main><div class="sheet"><textarea id="text" aria-label="${label('Document Text')}" aria-describedby="pageHelp" spellcheck="true" disabled></textarea></div></main>
+<main id="documentScroll"><div id="paper" class="sheet"><div class="paper-content">
+<div id="pageBreaks" class="page-breaks" aria-hidden="true" hidden></div>
+<div id="lastPageBreak" class="page-breaks last-page-break" aria-hidden="true" hidden></div>
+<div class="paper-measure" aria-hidden="true"><div id="paperMirror"></div><div id="lineSample">M
+M</div></div>
+<textarea id="text" aria-label="${label('Document Text')}" aria-describedby="pageHelp" spellcheck="true" disabled></textarea>
+</div></div></main>
 <footer><span>${label('Plain text · Page settings are kept only in this editor')}</span></footer>
 <div id="notice" role="status" aria-live="polite"></div>
 <script nonce="${nonce}" src="${script}"></script></body></html>`;

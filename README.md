@@ -6,23 +6,23 @@
 
 Ранее Myself IDE. Экспериментальный форк Code - OSS: упрощаем интерфейс и состав приложения, сохраняем инструменты разработки и добавляем удобную работу с документами.
 
-[Скачать preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases) · [План проекта](docs/project-plan.md) · [Контекст для агентов](docs/project-handoff.md) · [Сообщить об ошибке](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/issues)
+[Скачать 0.0.13 Preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.13-preview) · [План проекта](docs/project-plan.md) · [Контекст для агентов](docs/project-handoff.md) · [Сообщить об ошибке](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/issues)
 
 **Ранняя версия · macOS Apple Silicon · Рабочее название**
 
 </div>
 
-## Актуальный релиз — 0.0.12-preview
+## Актуальный релиз — 0.0.13 Preview
 
-[Релиз от 14 ноября 2026](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.12-preview) · [ZIP для macOS Apple Silicon](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.12-preview/Nerded-Code-v0.0.12-preview-macOS-arm64.zip) · [SHA-256](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.12-preview/Nerded-Code-v0.0.12-preview-macOS-arm64.zip.sha256)
+[Релиз от 28 ноября 2026](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.13-preview) · [ZIP для macOS Apple Silicon](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.13-preview/Nerded-Code-v0.0.13-preview-macOS-arm64.zip) · [SHA-256](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.13-preview/Nerded-Code-v0.0.13-preview-macOS-arm64.zip.sha256)
 
-В режиме **Open as Document** для `.txt` доступны локальный экспорт PDF, undo/redo, настройки страницы и счётчики слов и символов, которые обновляются вместе с несохранённым текстом. Изменения счётчика и проверки описаны в [PR #25](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/pull/25). Preview имеет подпись ad hoc и распространяется без Apple notarization; проверенная платформа — macOS ARM64.
+- **Редактор документов.** В **Open as Document** для `.txt` живые счётчики показывают число слов и символов с пробелами и без них. Курсор остаётся видимым при вводе и вставке, а границы страниц A4 появляются по мере заполнения документа.
+- **Локальная библиотека.** В представлении **Documentation** доступны импорт файлов HTML, Markdown и TXT и папок с ними, оглавление и полнотекстовый поиск. Справочники Go, Rust, PostgreSQL, Bash и Linux устанавливаются из [VSIX с документацией](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.13-preview/myself.offline-documentation-0.1.0.vsix). Чтобы добавить PDF, выбери **Add PDF to Library**. Для просмотра установи **Local PDF Preview** из [набора опциональных VSIX](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.13-preview/nerded-optional-vsix-set.zip).
+- **Расширения.** В наборе восемь самостоятельных VSIX и манифест SHA-256. В меню **Extensions** можно просмотреть метаданные набора и сравнить локальный VSIX с версией из кэша активного профиля.
 
-Библиотека открывается через **View → Documentation Library** рядом с кодом. Официальные справочники Go, Rust, PostgreSQL, Bash и Linux (4306 записей) устанавливаются отдельным [локальным VSIX-пакетом](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.11-preview/myself.offline-documentation-0.1.0.vsix). Скачанный файл добавляется через **Extensions → … → Install from VSIX…**. Доступны импорт HTML/Markdown/TXT и папок, оглавление, поиск по названиям и внутри страницы; Markdown читается с форматированием. PDF в библиотеке и общий полнотекстовый индекс пока не поддерживаются. Подробности поставки — в [отчёте интеграции](docs/agent-reports/documents-integration-11.md).
+Выпуск проверен на macOS ARM64 и подписан ad hoc. В [отчёте выпуска](docs/agent-reports/development-wave-2.md) описаны проверки рабочего профиля, редактора, локальной справки, PDF и Restricted Mode.
 
-В исходниках подключены Calmer Studio, цветные vscode-icons и утверждённая иконка Nerded Code. Пресет доступен через «Вид → Внешний вид → Стиль интерфейса»; существующие настройки оформления не сбрасываются. Языковые инструменты пользователь устанавливает отдельно. Изменения исходников после релизного тега не попадают в ранее опубликованный ZIP.
-
-Исторические проверки 0.0.8 и локальной 0.0.9 сохранены в [отчёте 0.0.8](docs/agent-reports/release-0.0.8.md) и [отчёте 0.0.9](docs/agent-reports/release-0.0.9-final.md). Их результаты относятся к указанным там сборкам. Каждый новый пакет требует собственных проверок доверия к рабочей папке, фоновой сети, подписи и ключевых пользовательских сценариев.
+В исходниках подключены Calmer Studio, цветные vscode-icons и утверждённая иконка Nerded Code. Пресет доступен через «Вид → Внешний вид → Стиль интерфейса». Существующие настройки оформления сохраняются. Языковые инструменты пользователь устанавливает отдельно.
 
 ## Зачем этот проект
 
@@ -41,25 +41,24 @@
 | Редактор | Сохранены обычные подсказки методов, навигация и ручные форматтеры. Убраны ряд команд и регистраций, включая палитру команд, многокурсорные действия, Sticky Scroll и format-on-save |
 | Терминал и Git | Сохранены терминал, shell integration, Tasks и Git. Сценарии bash/zsh, Tasks и Git прошли smoke-проверки |
 | Markdown | Предпросмотр, Mermaid и математические формулы остаются из коробки |
-| Документы и PDF | New Document/Open as Document, поиск, сохранение, undo/redo, настройки страницы и локальный PDF; кириллица/английский, копируемый текст и переносы страниц |
+| Документы и PDF | New Document и Open as Document, живые счётчики, поиск, сохранение, Undo/Redo, границы A4 и локальный экспорт PDF |
 
 Чистая поставка **от языковых расширений** не означает отсутствие всех встроенных расширений: Git, Markdown, темы и служебные компоненты нужны приложению. Полный технический статус и границы удаления: [docs/myself-ide.md](docs/myself-ide.md).
 
 ## Попробовать
 
-1. Скачай ZIP из [0.0.12-preview](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/tag/v0.0.12-preview) для macOS Apple Silicon. Там же лежит SHA-256.
-2. Распакуй приложение Nerded Code из архива. Текущий preview имеет ad-hoc подпись и не notarized; другие платформы ещё не проверены.
-3. Языковые инструменты ставь по необходимости из локальных VSIX. Наличие расширения и его работоспособность в форке зависят от конкретного расширения.
+1. Скачай [ZIP для macOS Apple Silicon](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.13-preview/Nerded-Code-v0.0.13-preview-macOS-arm64.zip) и [файл SHA-256](https://github.com/karnaukhovGA69/my_best_ide_with_sexy_style/releases/download/v0.0.13-preview/Nerded-Code-v0.0.13-preview-macOS-arm64.zip.sha256) в одну папку. Сверь контрольную сумму из этой папки командой `shasum -a 256 -c Nerded-Code-v0.0.13-preview-macOS-arm64.zip.sha256`.
+2. Распакуй архив, перемести **Nerded Code.app** в «Программы» и открой приложение.
+3. Добавь нужные локальные расширения через **Extensions → … → Install from VSIX…**. Сначала распакуй архив набора, если скачал опциональные пакеты.
 4. Для нового документа выбери **File → New File… → New Document**. Для готового `.txt` нажми **Open as Document** в заголовке редактора. В режиме документа доступны поиск, сохранение, undo/redo, настройки страницы и **Export PDF**.
 5. Для быстрого экспорта из обычного текстового редактора нажми **Export Text as PDF** в заголовке `.txt` либо **File → Export Text as PDF**.
 
-PDF экспортирует обычный текст из текущего буфера, включая несохранённые изменения. Быстрый экспорт использует A4, поля 20 мм, serif 12 pt и интервал 1.5; в режиме документа поля, семейство/размер шрифта и интервал можно выбрать. Markdown/HTML печатаются буквально. Параметры оформления сохраняются только в текущем редакторе и не записываются в `.txt`; предварительный вид страницы приблизительный. В опубликованной 0.0.8 после первого Save As может открыться обычный текстовый редактор — **Open as Document** возвращает режим документа. В локальной 0.0.9 сохранение режима документа исправлено и проверено.
+Экспорт в PDF берёт текст из текущего буфера, включая несохранённые изменения. Быстрый экспорт использует A4, поля 20 мм, шрифт serif 12 pt и интервал 1,5. В режиме документа можно выбрать поля, шрифт и интервал. Команды оформления PDF включаются отдельно и могут менять границы страниц при экспорте. Настройки оформления относятся к текущему редактору, а содержимое сохраняется как обычный `.txt`.
 
 ## Куда движемся
 
 - Завершить очистку встроенного AI/MCP и оставшихся ненужных функций с проверкой зависимостей.
 - Развивать готовый MVP редактора документов: уточнить модель хранения оформления и расширять сценарии учебных ответов и эссе.
-- Развивать существующую библиотеку локальной документации: добавить поддержку PDF и общий полнотекстовый поиск.
 - Локальный перенос настроек через экспорт/импорт файла уже реализован и проверен в локальной 0.0.9: просмотр изменений и явное применение. Собственные GitHub-вход и каталог репозиториев отложены до пользовательского тестирования; облачный backup исключён.
 - Исследовать встраивание Ghostty/другого терминального движка; сохранить рабочий вариант со штатным терминалом и shell-плагинами.
 - Разработать новый бренд и настраиваемый интерфейс: кнопки, вкладки, панели, плотность и цвета.

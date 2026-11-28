@@ -335,18 +335,36 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		await this.open(id);
 	}
 
+	private pdfStoragePath(): string | undefined {
+		const storage = this.context.globalStorageUri;
+		// The desktop host passes its native profile directory with the
+		// vscode-userdata scheme. Only unwrap the host's own storage URI.
+		if (vscode.env.uiKind !== vscode.UIKind.Desktop || this.context.extension.extensionKind !== vscode.ExtensionKind.UI
+			|| (storage.scheme !== 'file' && storage.scheme !== 'vscode-userdata')
+			|| storage.authority || storage.query || storage.fragment) {
+			return undefined;
+		}
+		const file = storage.fsPath;
+		if (!path.isAbsolute(file) || /^[\\/]{2}/.test(file) || file.includes('\0')
+			|| file.split(/[\\/]/).some(part => part === '.' || part === '..')
+			|| (process.platform === 'win32' && (!/^[a-z]:[\\/]/i.test(file) || file.slice(2).includes(':')))) {
+			return undefined;
+		}
+		return file;
+	}
+
 	private async openPdf(entry: LibraryEntry): Promise<void> {
 		if (this.disposed || this.removingPdf === entry || !this.imports.includes(entry)) { return; }
 		const generation = this.invalidateNavigation();
 		const revision = this.pdfRevision;
 		const isCurrent = () => !this.disposed && generation === this.generation && revision === this.pdfRevision
 			&& this.removingPdf !== entry && this.imports.includes(entry);
-		const storage = this.context.globalStorageUri;
-		if (storage.scheme !== 'file' || storage.authority || storage.query || storage.fragment) {
+		const storage = this.pdfStoragePath();
+		if (!storage) {
 			void vscode.window.showErrorMessage(vscode.l10n.t('PDF preview requires a local library copy.'));
 			return;
 		}
-		await openPdfInLocalViewer(() => readPdfCopy(storage.fsPath, entry.id, entry.sha256), isCurrent);
+		await openPdfInLocalViewer(() => readPdfCopy(storage, entry.id, entry.sha256), isCurrent);
 	}
 
 	async open(id: string, fragment = '', addHistory = true, isSourceCurrent?: () => boolean): Promise<void> {
@@ -568,17 +586,17 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		if (this.disposed || selection?.length !== 1) { return; }
 
 		const selected = selection[0];
-		const storage = this.context.globalStorageUri;
+		const storage = this.pdfStoragePath();
 		let rollback: (() => Promise<void>) | undefined;
 		try {
-			if (selected.scheme !== 'file' || selected.authority || storage.scheme !== 'file' || storage.authority) {
+			if (selected.scheme !== 'file' || selected.authority || selected.query || selected.fragment || !storage) {
 				throw new Error('PDF import requires local files');
 			}
 			const bytes = await readSelectedPdf(selected.fsPath);
 			if (this.disposed) { return; }
 			const id = randomUUID();
 			const file = pdfCopyFile(id)!;
-			rollback = await storePdfCopy(storage.fsPath, file, bytes, () => this.disposed);
+			rollback = await storePdfCopy(storage, file, bytes, () => this.disposed);
 			if (this.disposed) { return; }
 			const entry: LibraryEntry = { id, group: 'imported', title: path.basename(selected.fsPath), file, source: '', format: 'pdf', sha256: pdfCopyDigest(bytes) };
 			const entries = [...this.imports, entry];
@@ -655,6 +673,11 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 		const choice = await vscode.window.showWarningMessage(vscode.l10n.t('Remove the imported PDF copy?'),
 			{ modal: true, detail: vscode.l10n.t('The original file is kept.') }, remove);
 		if (this.disposed || choice !== remove) { return; }
+		const storage = this.pdfStoragePath();
+		if (!storage) {
+			void vscode.window.showErrorMessage(vscode.l10n.t('The imported PDF copy could not be removed.'));
+			return;
+		}
 
 		this.pdfRevision++;
 		this.removingPdf = entry;
@@ -664,9 +687,7 @@ class DocumentationLibrary implements vscode.TreeDataProvider<LibraryNode>, vsco
 			await this.context.globalState.update('documentation.imports', entries);
 			this.imports = entries;
 			try {
-				const storage = this.context.globalStorageUri;
-				if (storage.scheme !== 'file' || storage.authority) { throw new Error('PDF library requires local storage'); }
-				await removePdfCopy(storage.fsPath, entry.file, entry.sha256);
+				await removePdfCopy(storage, entry.file, entry.sha256);
 			} catch (error) {
 				// Preserve the registration when its copy cannot be deleted.
 				try {

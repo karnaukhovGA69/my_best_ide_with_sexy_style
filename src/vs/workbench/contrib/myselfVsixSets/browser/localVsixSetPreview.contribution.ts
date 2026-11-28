@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import type { IDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { isWindows } from '../../../../base/common/platform.js';
 import { dirname } from '../../../../base/common/resources.js';
@@ -17,8 +18,9 @@ import { FileType, hasOpenReadWriteCloseCapability, IFileService } from '../../.
 import type { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { VIEWLET_ID } from '../../extensions/common/extensions.js';
-import { localVsixSetMaxBytes, localVsixSetMaxEntries, parseLocalVsixSet, type LocalVsixSetIssue } from '../common/localVsixSet.js';
+import { localVsixSetMaxBytes, localVsixSetMaxEntries, parseLocalVsixSet, type ILocalVsixSet, type LocalVsixSetIssue } from '../common/localVsixSet.js';
 import { checkLocalVsixSetChecksums, localVsixArchiveMaxMiB, localVsixSetReadMaxMiB } from './localVsixSetChecksums.js';
+import { inspectLocalVsixSet, type LocalVsixInspector, type LocalVsixMetadataStatus } from './localVsixSetMetadata.js';
 
 type ManifestReadResult = { readonly bytes: Uint8Array } | { readonly issue: 'size' | 'unavailable' };
 
@@ -77,10 +79,36 @@ function describeIssue(issue: LocalVsixSetIssue): string {
 	}
 }
 
-registerAction2(class PreviewLocalVsixSetAction extends Action2 {
+function describeMetadata(set: ILocalVsixSet, statuses: readonly LocalVsixMetadataStatus[]): string {
+	const label = (matches: boolean) => matches
+		? localize('vsixMetadataMatch', "Match")
+		: localize('vsixMetadataMismatch', "Mismatch");
+	return [
+		localize('vsixMetadataScope', "Signatures, platform compatibility, and installation safety are unverified."),
+		...set.entries.map((entry, index) => {
+			const status = statuses[index];
+			if (status.kind !== 'checked') {
+				const unavailable = status.kind === 'missing'
+					? localize('vsixMetadataFileMissing', "File missing")
+					: localize('vsixMetadataUnavailable', "Unavailable");
+				return localize('vsixMetadataUninspectedEntry', "{0} · {1}\n{2} — {3}", entry.id, entry.version, entry.file, unavailable);
+			}
+			const actual = status.inspection;
+			return [
+				entry.file,
+				localize('vsixMetadataId', "ID: {0} (declared {1}) — {2}", actual.id, entry.id, label(status.idMatches)),
+				localize('vsixMetadataVersion', "Version: {0} (declared {1}) — {2}", actual.version, entry.version, label(status.versionMatches)),
+				localize('vsixMetadataSha256', "SHA-256: {0} (declared {1}) — {2}", actual.sha256, entry.sha256, label(status.sha256Matches)),
+				localize('vsixMetadataEngine', "Required editor version: {0}", actual.engine),
+			].join('\n');
+		}),
+	].join('\n\n');
+}
+
+class PreviewLocalVsixSetAction extends Action2 {
 	private previewInProgress = false;
 
-	constructor() {
+	constructor(private readonly createInspector: (accessor: ServicesAccessor) => LocalVsixInspector) {
 		super({
 			id: 'myself.extensions.previewLocalVsixSet',
 			title: localize2('previewLocalVsixSet', "Preview Local VSIX Set…"),
@@ -102,6 +130,7 @@ registerAction2(class PreviewLocalVsixSetAction extends Action2 {
 		const files = accessor.get(IFileService);
 		const dialogs = accessor.get(IDialogService);
 		const progress = accessor.get(IProgressService);
+		const inspect = this.createInspector(accessor);
 		const title = localize('localVsixSetTitle', "Local VSIX Set");
 		const errorTitle = localize('vsixSetCouldNotPreview', "Could not preview the VSIX set");
 		this.previewInProgress = true;
@@ -140,20 +169,47 @@ registerAction2(class PreviewLocalVsixSetAction extends Action2 {
 			const detail = [
 				localize('vsixSetPreviewStatus', "Package files, hashes, and signatures are unverified."),
 				localize('vsixSetChecksumConsent', "Check SHA-256 reads only the listed VSIX files beside the manifest. Archives must be no larger than {0} MiB. The total read limit is {1} MiB.", localVsixArchiveMaxMiB, localVsixSetReadMaxMiB),
+				localize('vsixSetMetadataConsent', "Inspect VSIX Metadata compares the ID, version, and SHA-256 of those same files from temporary copies. The same per-file and total source size limits apply."),
 				...manifest.set.entries.map(entry => localize('vsixSetEntryPreview', "{0} · {1}\nFile: {2}\nDeclared SHA-256: {3}", entry.id, entry.version, entry.file, entry.sha256)),
 			].join('\n\n');
-			const { result } = await dialogs.prompt({
+			const { result } = await dialogs.prompt<'checksums' | 'metadata'>({
 				type: 'info', message: title, detail, custom: true,
-				buttons: [{ label: localize('checkVsixSetChecksums', "Check SHA-256"), run: () => true }],
+				buttons: [
+					{ label: localize('checkVsixSetChecksums', "Check SHA-256"), run: () => 'checksums' },
+					{ label: localize('inspectVsixSetMetadata', "Inspect VSIX Metadata"), run: () => 'metadata' },
+				],
 				cancelButton: localize('closeVsixPreview', "Close"),
 			});
-			if (result !== true) {
+			if (result !== 'checksums' && result !== 'metadata') {
 				return;
 			}
 
 			const cancellation = new CancellationTokenSource();
 			try {
 				const token = cancellation.token;
+				if (result === 'metadata') {
+					const registrations = files.onDidChangeFileSystemProviderRegistrations(event => {
+						if (event.scheme === Schemas.file) {
+							cancellation.cancel();
+						}
+					});
+					try {
+						const statuses = await progress.withProgress({
+							location: ProgressLocation.Notification,
+							title: localize('inspectingVsixSetMetadata', "Inspecting Local VSIX Metadata"),
+							cancellable: true,
+						}, () => inspectLocalVsixSet(files, inspect, dirname(resource), manifest.set, token), () => cancellation.cancel());
+						if (statuses && !token.isCancellationRequested) {
+							await dialogs.prompt({
+								type: 'info', message: localize('vsixMetadataResultsTitle', "Local VSIX Metadata"),
+								detail: describeMetadata(manifest.set, statuses), custom: true, token,
+							});
+						}
+					} finally {
+						registrations.dispose();
+					}
+					return;
+				}
 				const checksums = await progress.withProgress({
 					location: ProgressLocation.Notification,
 					title: localize('checkingVsixSetChecksums', "Checking Local VSIX Checksums"),
@@ -181,4 +237,12 @@ registerAction2(class PreviewLocalVsixSetAction extends Action2 {
 			this.previewInProgress = false;
 		}
 	}
-});
+}
+
+export function registerLocalVsixSetPreviewAction(createInspector: (accessor: ServicesAccessor) => LocalVsixInspector): IDisposable {
+	return registerAction2(class extends PreviewLocalVsixSetAction {
+		constructor() {
+			super(createInspector);
+		}
+	});
+}

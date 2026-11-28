@@ -17,6 +17,11 @@ import { inspectStagedVsix, type ILocalVsixMetadata } from './localVsixInspect.j
 const maxBytes = 32 * 1024 * 1024;
 const copyChunkBytes = 64 * 1024;
 
+export interface ILocalVsixInspection extends ILocalVsixMetadata {
+	readonly sha256: string;
+	readonly bytes: number;
+}
+
 export interface IStagedLocalVsix {
 	/** Internal path valid only during the consumer callback. */
 	readonly path: string;
@@ -37,6 +42,7 @@ export async function withStagedLocalVsix<T>(
 	source: URI,
 	token: CancellationToken,
 	consume: (stage: IStagedLocalVsix) => Promise<T>,
+	maxSourceBytes = maxBytes,
 ): Promise<T> {
 	const checkCancelled = () => {
 		if (token.isCancellationRequested) {
@@ -44,6 +50,9 @@ export async function withStagedLocalVsix<T>(
 		}
 	};
 	checkCancelled();
+	if (!Number.isSafeInteger(maxSourceBytes) || maxSourceBytes < 22 || maxSourceBytes > maxBytes) {
+		throw new LocalVsixStageError('source-size');
+	}
 	if (source.scheme !== Schemas.file || source.authority || source.query || source.fragment
 		|| !source.path.startsWith('/') || !source.path.toLowerCase().endsWith('.vsix') || /[\\\0]/.test(source.path)
 		|| source.path.slice(1).split('/').some(segment => !segment || segment === '.' || segment === '..')) {
@@ -78,7 +87,7 @@ export async function withStagedLocalVsix<T>(
 			const staged = await open(path, constants.O_CREAT | constants.O_EXCL | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
 			created = true;
 			try {
-				const { bytes, sha256 } = await copySource(source.path, staged, checkCancelled);
+				const { bytes, sha256 } = await copySource(source.path, staged, maxSourceBytes, checkCancelled);
 				snapshot = await staged.stat({ bigint: true });
 				if (!snapshot.isFile() || snapshot.size !== BigInt(bytes) || (snapshot.mode & 0o077n)
 					|| snapshot.uid !== identity.uid || snapshot.nlink !== 1n || !sameFile(snapshot, await lstat(path, { bigint: true }))) {
@@ -116,6 +125,24 @@ export async function withStagedLocalVsix<T>(
 	}
 }
 
+/** Return bounded metadata only after the temporary snapshot is closed and removed. */
+export async function inspectLocalVsixV1(source: URI, maxSourceBytes: number, token: CancellationToken): Promise<ILocalVsixInspection | undefined> {
+	try {
+		const result = await withStagedLocalVsix(source, token, async ({ metadata, sha256, bytes }) => Object.freeze({
+			...metadata, sha256, bytes,
+		}), maxSourceBytes);
+		if (token.isCancellationRequested) {
+			throw new CancellationError();
+		}
+		return result;
+	} catch {
+		if (token.isCancellationRequested) {
+			throw new CancellationError();
+		}
+		return undefined;
+	}
+}
+
 async function removeStage(directory: string, path: string | undefined, identity: BigIntStats | undefined): Promise<void> {
 	try {
 		if (identity) {
@@ -133,13 +160,13 @@ async function removeStage(directory: string, path: string | undefined, identity
 	}
 }
 
-async function copySource(path: string, staged: FileHandle, checkCancelled: () => void): Promise<{ bytes: number; sha256: string }> {
+async function copySource(path: string, staged: FileHandle, maxSourceBytes: number, checkCancelled: () => void): Promise<{ bytes: number; sha256: string }> {
 	checkCancelled();
 	const before = await lstat(path, { bigint: true });
 	if (!before.isFile()) {
 		throw new LocalVsixStageError('invalid-source');
 	}
-	checkSourceSize(before);
+	checkSourceSize(before, maxSourceBytes);
 	checkCancelled();
 	const source = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
 	try {
@@ -192,8 +219,8 @@ async function hashSnapshot(staged: FileHandle, bytes: number, checkCancelled: (
 	return hash.digest('hex');
 }
 
-function checkSourceSize(stat: BigIntStats): void {
-	if (stat.size < 22n || stat.size > BigInt(maxBytes)) {
+function checkSourceSize(stat: BigIntStats, maxSourceBytes: number): void {
+	if (stat.size < 22n || stat.size > BigInt(maxSourceBytes)) {
 		throw new LocalVsixStageError('source-size');
 	}
 }

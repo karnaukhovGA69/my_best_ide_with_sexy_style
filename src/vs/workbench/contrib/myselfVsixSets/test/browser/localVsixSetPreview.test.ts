@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { isWindows } from '../../../../../base/common/platform.js';
 import { dirname, joinPath } from '../../../../../base/common/resources.js';
@@ -14,13 +15,14 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { IDialogService, IFileDialogService, IOpenDialogOptions, IPrompt } from '../../../../../platform/dialogs/common/dialogs.js';
-import { FileSystemProviderCapabilities, FileType, IFileOpenOptions, IFileService, IFileSystemProviderWithOpenReadWriteCloseCapability } from '../../../../../platform/files/common/files.js';
+import { FileSystemProviderCapabilities, FileType, IFileOpenOptions, IFileService, type IFileSystemProviderRegistrationEvent, IFileSystemProviderWithOpenReadWriteCloseCapability } from '../../../../../platform/files/common/files.js';
 import { InstantiationService } from '../../../../../platform/instantiation/common/instantiationService.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { IProgress, IProgressOptions, IProgressService, IProgressStep, Progress } from '../../../../../platform/progress/common/progress.js';
 import { VIEWLET_ID } from '../../../extensions/common/extensions.js';
 import { localVsixSetMaxBytes } from '../../common/localVsixSet.js';
-import '../../browser/localVsixSetPreview.contribution.js';
+import type { LocalVsixInspector } from '../../browser/localVsixSetMetadata.js';
+import { registerLocalVsixSetPreviewAction } from '../../browser/localVsixSetPreview.contribution.js';
 
 suite('Preview Local VSIX Set', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -28,7 +30,7 @@ suite('Preview Local VSIX Set', () => {
 	const manifest = URI.file(isWindows ? 'C:\\example\\set.json' : '/example/set.json');
 	const directory = dirname(manifest);
 	const archive = joinPath(directory, 'extension.vsix');
-	const archiveBytes = new TextEncoder().encode('abc');
+	const archiveBytes = new TextEncoder().encode('abc'.repeat(8));
 	const validBytes = new TextEncoder().encode(JSON.stringify({ version: 1, entries: [
 		{ id: 'publisher.extension', version: '1.2.3', file: 'extension.vsix', sha256: 'ab'.repeat(32) }
 	] }));
@@ -43,7 +45,9 @@ suite('Preview Local VSIX Set', () => {
 		let bytes: Uint8Array = validBytes;
 		let statSize = validBytes.length;
 		let readFails = false;
-		let confirmChecksums = false;
+		let selectedButton: number | undefined;
+		let inspectMetadata: LocalVsixInspector = async () => assert.fail('Unexpected package inspection');
+		const registrations = store.add(new Emitter<IFileSystemProviderRegistrationEvent>());
 		let cancelProgressOnRead = false;
 		let cancelProgress: (() => void) | undefined;
 		let selection: Promise<URI[] | undefined> = Promise.resolve([manifest]);
@@ -109,6 +113,7 @@ suite('Preview Local VSIX Set', () => {
 			}
 		}();
 		const files = new class extends mock<IFileService>() {
+			override readonly onDidChangeFileSystemProviderRegistrations = registrations.event;
 			override getProvider(scheme: string) {
 				assert.strictEqual(scheme, Schemas.file);
 				operations.push('getProvider');
@@ -118,7 +123,7 @@ suite('Preview Local VSIX Set', () => {
 		const dialogs = new class extends mock<IDialogService>() {
 			override prompt = (async (prompt: IPrompt<unknown>) => {
 				preview.push(prompt);
-				const result = preview.length === 1 && confirmChecksums ? await prompt.buttons?.[0].run({ checkboxChecked: false }) : undefined;
+				const result = preview.length === 1 && selectedButton !== undefined ? await prompt.buttons?.[selectedButton].run({ checkboxChecked: false }) : undefined;
 				return { result };
 			}) as IDialogService['prompt'];
 			override async error(message: string, detail?: string): Promise<void> { errors.push({ message, detail }); }
@@ -130,6 +135,7 @@ suite('Preview Local VSIX Set', () => {
 				return task(Progress.None);
 			}
 		}();
+		store.add(registerLocalVsixSetPreviewAction(() => (...args) => inspectMetadata(...args)));
 		const instantiation = store.add(new InstantiationService(new ServiceCollection(
 			[IFileDialogService, fileDialog], [IFileService, files], [IDialogService, dialogs], [IProgressService, progress],
 		), true));
@@ -139,7 +145,13 @@ suite('Preview Local VSIX Set', () => {
 			setBytes: (value: Uint8Array) => { bytes = value; },
 			setStat: (type: FileType, size: number) => { fileType = type; statSize = size; },
 			failRead: () => { readFails = true; },
-			confirmChecksums: () => { confirmChecksums = true; },
+			confirmChecksums: () => { selectedButton = 0; },
+			confirmMetadata: (inspect: LocalVsixInspector) => {
+				selectedButton = 1;
+				inspectMetadata = inspect;
+			},
+			changeProvider: () => registrations.fire({ added: false, scheme: Schemas.file }),
+			cancelProgress: () => cancelProgress?.(),
 			cancelProgressOnRead: () => { cancelProgressOnRead = true; },
 			getReadBytes: () => readBytes,
 			async run(...args: URI[]): Promise<void> {
@@ -194,7 +206,7 @@ suite('Preview Local VSIX Set', () => {
 		assert.match(preview.detail, /publisher\.extension · 1\.2\.3/);
 		assert.match(preview.detail, /File: extension\.vsix/);
 		assert.match(preview.detail, new RegExp('Declared SHA-256: ' + 'ab'.repeat(32)));
-		assert.deepStrictEqual(preview.buttons?.map(button => button.label), ['Check SHA-256']);
+		assert.deepStrictEqual(preview.buttons?.map(button => button.label), ['Check SHA-256', 'Inspect VSIX Metadata']);
 		assert.strictEqual(preview.cancelButton, 'Close');
 		assert.match(preview.detail, /reads only the listed VSIX files beside the manifest\. Archives must be no larger than 32 MiB\. The total read limit is 128 MiB/);
 	});
@@ -225,6 +237,53 @@ suite('Preview Local VSIX Set', () => {
 		assert.strictEqual(state.operations.filter(operation => operation === 'read-archive').length, 1);
 		assert.strictEqual(state.operations.at(-1), 'close-archive');
 	});
+
+	test('compares separate metadata and digest fields after explicit consent with the exact URI and budget', async () => {
+		const state = fixture();
+		state.confirmMetadata(async (resource, maxBytes, token) => {
+			assert.strictEqual(resource.toString(), archive.toString());
+			assert.strictEqual(maxBytes, archiveBytes.length);
+			assert.strictEqual(token.isCancellationRequested, false);
+			assert.strictEqual(state.preview.length, 1);
+			return { id: 'publisher.other', version: '1.2.3', engine: '^1.146.0', sha256: 'f'.repeat(64), bytes: maxBytes };
+		});
+		await state.run(manifest.with({ scheme: 'https' }));
+		assert.deepStrictEqual(state.errors, []);
+		assert.strictEqual(state.preview.length, 2);
+		const results = state.preview[1];
+		assert.ok(typeof results.detail === 'string');
+		assert.match(results.detail, /ID: publisher\.other \(declared publisher\.extension\) — Mismatch/);
+		assert.match(results.detail, /Version: 1\.2\.3 \(declared 1\.2\.3\) — Match/);
+		assert.match(results.detail, /SHA-256: f{64} .* — Mismatch/);
+		assert.match(results.detail, /Signatures, platform compatibility, and installation safety are unverified/);
+		assert.strictEqual(results.buttons, undefined);
+		assert.ok(!state.operations.includes('open-archive'), 'Metadata reads are isolated to the inspector');
+	});
+
+	for (const invalidation of ['cancel', 'provider change']) {
+		test(`ignores a late metadata result after ${invalidation}`, async () => {
+			const state = fixture();
+			const started = new DeferredPromise<void>();
+			const release = new DeferredPromise<void>();
+			state.confirmMetadata(async (_resource, maxBytes, token) => {
+				void started.complete();
+				await release.p;
+				assert.strictEqual(token.isCancellationRequested, true);
+				return { id: 'publisher.extension', version: '1.2.3', engine: '^1.146.0', sha256: 'ab'.repeat(32), bytes: maxBytes };
+			});
+			const inspection = state.run();
+			await started.p;
+			if (invalidation === 'cancel') {
+				state.cancelProgress();
+			} else {
+				state.changeProvider();
+			}
+			await release.complete();
+			await inspection;
+			assert.strictEqual(state.preview.length, 1);
+			assert.deepStrictEqual(state.errors, []);
+		});
+	}
 
 	test('accepts a valid manifest exactly at the byte limit', async () => {
 		const state = fixture();

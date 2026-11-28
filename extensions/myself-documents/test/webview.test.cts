@@ -9,13 +9,20 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { chromium, expect } = require('@playwright/test');
 const { loadWithVscode, viewApi, uri } = require('./helpers.cts');
+const russianLabels = require('../l10n/bundle.l10n.ru.json');
 let server, browser, origin;
 const { editorHtml } = loadWithVscode('view.js', viewApi);
+const { editorHtml: russianEditorHtml } = loadWithVscode('view.js', {
+	...viewApi,
+	env: { language: 'ru' },
+	l10n: { t: text => russianLabels[text] ?? text }
+});
 before(async () => {
 	server = http.createServer((request, response) => {
-		if (request.url === '/') {
+		if (request.url === '/' || request.url === '/ru') {
+			const render = request.url === '/ru' ? russianEditorHtml : editorHtml;
 			response.setHeader('Content-Type', 'text/html');
-			response.end(editorHtml({ cspSource: origin, asWebviewUri: value => value.toString() }, uri(origin + '/media'), uri(origin + '/media/editor.js')));
+			response.end(render({ cspSource: origin, asWebviewUri: value => value.toString() }, uri(origin + '/media'), uri(origin + '/media/editor.js')));
 		} else if (['/media/editor.css', '/media/editor.js'].includes(request.url)) {
 			response.setHeader('Content-Type', request.url.endsWith('.js') ? 'application/javascript' : 'text/css');
 			response.end(fs.readFileSync(path.join(__dirname, '..', request.url.endsWith('.js') ? 'out/webview/editor.js' : 'media/editor.css')));
@@ -26,7 +33,7 @@ before(async () => {
 	browser = await chromium.launch({ headless: true });
 });
 after(async () => { await browser?.close(); await new Promise(resolve => server?.close(resolve)); });
-async function open(restored, forwardHistoryKeys = false, initialText = 'а)1\n\nб)3') {
+async function open(restored, forwardHistoryKeys = false, initialText = 'а)1\n\nб)3', locale = 'en') {
 	const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
 	await page.addInitScript(({ state, forwardHistoryKeys }) => {
 		window.messages = [];
@@ -42,7 +49,7 @@ async function open(restored, forwardHistoryKeys = false, initialText = 'а)1\n\
 			});
 		}
 	}, { state: restored, forwardHistoryKeys });
-	await page.goto(origin);
+	await page.goto(locale === 'ru' ? origin + '/ru' : origin);
 	await page.addStyleTag({ content: ':root { --vscode-foreground: #25282c; --vscode-sideBar-background: #f3f4f5; --vscode-editor-background: #fff; --vscode-editor-foreground: #25282c; --vscode-font-family: system-ui, sans-serif; --vscode-font-size: 13px; --vscode-descriptionForeground: #646a73; --vscode-input-foreground: #25282c; --vscode-input-background: #fff; --vscode-input-border: #c6cad0; --vscode-button-secondaryForeground: #25282c; --vscode-button-secondaryBackground: #e9ebee; --vscode-button-secondaryHoverBackground: #dce0e5; --vscode-button-foreground: #fff; --vscode-button-background: #2463bb; --vscode-button-hoverBackground: #19539f; --vscode-focusBorder: #2463bb; --vscode-panel-border: #d6d9de; }' });
 	await page.waitForFunction(() => window.messages.some(m => m.type === 'ready'));
 	await snapshot(page, { text: initialText, version: 1, dirty: false, name: 'Essay.txt' });
@@ -59,22 +66,36 @@ test('document counts follow typing, clipboard paste and deletion before any ack
 	try {
 		const text = page.locator('#text');
 		const counts = page.locator('#document-counts');
-		await expect(counts).toHaveText('Words: 0 Characters with spaces: 0');
+		await expect(counts).toHaveText('Words: 0 Characters with spaces: 0 Characters without spaces: 0');
 		await text.focus();
 		await page.keyboard.insertText('Привет');
-		await expect(counts).toHaveText('Words: 1 Characters with spaces: 6');
+		await expect(counts).toHaveText('Words: 1 Characters with spaces: 6 Characters without spaces: 6');
 		await page.keyboard.insertText(' мир');
-		await expect(counts).toHaveText('Words: 2 Characters with spaces: 10');
+		await expect(counts).toHaveText('Words: 2 Characters with spaces: 10 Characters without spaces: 9');
 
 		await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
 		await page.evaluate(() => navigator.clipboard.writeText('  cafe\u0301\n👩‍💻\t'));
 		await page.keyboard.press('ControlOrMeta+v');
 		assert.equal(await text.inputValue(), 'Привет мир  cafe\u0301\n👩‍💻\t');
-		await expect(counts).toHaveText('Words: 3 Characters with spaces: 19');
+		await expect(counts).toHaveText('Words: 3 Characters with spaces: 19 Characters without spaces: 14');
 		await page.keyboard.press('ControlOrMeta+a');
 		await page.keyboard.press('Backspace');
-		await expect(counts).toHaveText('Words: 0 Characters with spaces: 0');
+		await expect(counts).toHaveText('Words: 0 Characters with spaces: 0 Characters without spaces: 0');
 		assert.deepEqual((await messages(page)).map(message => message.type), ['ready', 'edit']);
+	} finally { await page.close(); }
+});
+
+test('an opened document shows all localized counts in a narrow viewport', async () => {
+	const page = await open(undefined, false, 'Привет мир', 'ru');
+	try {
+		await page.setViewportSize({ width: 320, height: 800 });
+		const counts = page.locator('#document-counts');
+		await expect(counts.locator(':scope > span')).toHaveText(['Слов: 2', 'Символов с пробелами: 10', 'Символы без пробелов: 9']);
+		const bounds = await counts.locator(':scope > span').evaluateAll(items => items.map(item => item.getBoundingClientRect().toJSON()));
+		assert.ok(bounds.every(({ left, right, top, bottom, height }) => left >= 0 && right <= 320 && top >= 0 && bottom <= 800 && height > 0));
+		await snapshot(page, { text: '🇺\u00a0🇳\u2009\t\n', version: 2, dirty: false, name: 'Essay.txt' });
+		// Keep the original grapheme boundaries even when whitespace separates regional indicators.
+		await expect(counts.locator(':scope > span')).toHaveText(['Слов: 0', 'Символов с пробелами: 6', 'Символы без пробелов: 2']);
 	} finally { await page.close(); }
 });
 
@@ -140,12 +161,12 @@ test('reload restores a pending draft and surfaces a conflict with changed disk 
 	const page = await open({ base: 'old text', draft: 'recovered draft', page: { size: 'A4', fontFamily: 'monospace', fontSizePt: 14, lineHeight: 1.8, marginMm: 15 } });
 	try {
 		assert.equal(await page.locator('#text').inputValue(), 'recovered draft');
-		await expect(page.locator('#document-counts')).toHaveText('Words: 2 Characters with spaces: 15');
+		await expect(page.locator('#document-counts')).toHaveText('Words: 2 Characters with spaces: 15 Characters without spaces: 14');
 		assert.equal(await page.locator('#conflict').isVisible(), true);
 		assert.equal(await page.locator('#fontSize').inputValue(), '14');
 		await page.locator('#useFile').click();
 		assert.equal(await page.locator('#text').inputValue(), 'а)1\n\nб)3');
-		await expect(page.locator('#document-counts')).toHaveText('Words: 4 Characters with spaces: 8');
+		await expect(page.locator('#document-counts')).toHaveText('Words: 4 Characters with spaces: 8 Characters without spaces: 6');
 		assert.equal((await messages(page)).some(m => m.type === 'edit'), false);
 	} finally { await page.close(); }
 });

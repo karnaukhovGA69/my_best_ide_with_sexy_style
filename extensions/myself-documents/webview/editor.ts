@@ -19,9 +19,11 @@ function element<T extends HTMLElement>(id: string): T {
 	const sync = element<HTMLElement>('sync');
 	const wordCount = element<HTMLElement>('word-count');
 	const characterCount = element<HTMLElement>('character-count');
+	const characterCountWithoutSpaces = element<HTMLElement>('character-count-without-spaces');
 	const locale = document.documentElement.lang || undefined;
 	const words = new Intl.Segmenter(locale, { granularity: 'word' });
 	const characters = new Intl.Segmenter(locale, { granularity: 'grapheme' });
+	const nonWhitespace = /\S/u;
 	const numberFormat = new Intl.NumberFormat(locale);
 	const notice = element<HTMLElement>('notice');
 	const conflictPanel = element<HTMLElement>('conflict');
@@ -71,11 +73,16 @@ function element<T extends HTMLElement>(id: string): T {
 			}
 		}
 		let characterTotal = 0;
-		for (const _ of characters.segment(value)) {
+		let characterTotalWithoutSpaces = 0;
+		for (const { segment } of characters.segment(value)) {
 			characterTotal++;
+			if (nonWhitespace.test(segment)) {
+				characterTotalWithoutSpaces++;
+			}
 		}
 		wordCount.textContent = numberFormat.format(wordTotal);
 		characterCount.textContent = numberFormat.format(characterTotal);
+		characterCountWithoutSpaces.textContent = numberFormat.format(characterTotalWithoutSpaces);
 	}
 	function renderState() {
 		conflictPanel.hidden = !conflict;

@@ -15,7 +15,7 @@ import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Event } from '../../../../base/common/event.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { withStagedLocalVsix } from '../../node/localVsixStage.js';
+import { inspectLocalVsixV1, withStagedLocalVsix } from '../../node/localVsixStage.js';
 
 suite('Local VSIX staging', function () {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -115,6 +115,28 @@ suite('Local VSIX staging', function () {
 		assert.ok(path);
 		await assert.rejects(lstat(dirname(path)), { code: 'ENOENT' });
 		assert.strictEqual(await readFile(source, 'utf8'), 'replaced original');
+	});
+
+	test('exposes only bounded metadata after native inspection and removes the snapshot before resolving', async () => {
+		await archive([{ name: manifestName, data: manifest }]);
+		const bytes = await readFile(source);
+		const uri = URI.file(source);
+		assert.strictEqual(await inspectLocalVsixV1(uri, bytes.length - 1, CancellationToken.None), undefined);
+		assert.strictEqual(await inspectLocalVsixV1(uri, 32 * 1024 * 1024 + 1, CancellationToken.None), undefined);
+		assert.strictEqual(await inspectLocalVsixV1(uri.with({ scheme: 'https' }), bytes.length, CancellationToken.None), undefined);
+		assert.deepStrictEqual(await inspectLocalVsixV1(uri, bytes.length, CancellationToken.None), {
+			id: 'fixture.example', version: '1.2.3-beta.1+local', engine: '^1.140.0',
+			sha256: createHash('sha256').update(bytes).digest('hex'), bytes: bytes.length,
+		});
+		assert.deepStrictEqual(newStageDirectories(), []);
+		assert.deepStrictEqual(await readFile(source), bytes);
+	});
+
+	test('propagates native inspection cancellation after cleanup', async () => {
+		await archive([{ name: manifestName, data: manifest }]);
+		const token = atCopiedSize(1, () => true);
+		await assert.rejects(inspectLocalVsixV1(URI.file(source), 32 * 1024 * 1024, token), { name: 'Canceled' });
+		assert.deepStrictEqual(newStageDirectories(), []);
 	});
 
 	test('rejects URI aliases and selected directories or symlinks', async () => {

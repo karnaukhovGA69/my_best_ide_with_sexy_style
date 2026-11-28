@@ -56,6 +56,10 @@ function isPinnedVersion(value: string): boolean {
 	return value === version.version + (version.build.length ? `+${version.build.join('.')}` : '');
 }
 
+export function isLocalVsixArchiveBasename(filename: string): boolean {
+	return /^[a-z0-9][a-z0-9._+-]{0,122}\.vsix$/i.test(filename) && isValidBasename(filename, true);
+}
+
 function readEntry(node: Node): ILocalVsixSetEntry | undefined {
 	const fields = readFields(node, ['id', 'version', 'file', 'sha256']);
 	const id: unknown = fields?.get('id')?.value;
@@ -64,7 +68,7 @@ function readEntry(node: Node): ILocalVsixSetEntry | undefined {
 	const sha256: unknown = fields?.get('sha256')?.value;
 	if (typeof id !== 'string' || id.length > 128 || id.trim() !== id || !EXTENSION_IDENTIFIER_REGEX.test(id)
 		|| typeof version !== 'string' || !isPinnedVersion(version)
-		|| typeof file !== 'string' || file.trim() !== file || !/^[a-z0-9][a-z0-9._+-]{0,122}\.vsix$/i.test(file) || !isValidBasename(file, true)
+		|| typeof file !== 'string' || !isLocalVsixArchiveBasename(file)
 		|| typeof sha256 !== 'string' || sha256.length !== 64 || !/^[a-f0-9]+$/i.test(sha256)) {
 		return undefined;
 	}

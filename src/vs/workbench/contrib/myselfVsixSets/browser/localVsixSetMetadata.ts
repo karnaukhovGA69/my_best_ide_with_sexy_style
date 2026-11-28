@@ -6,13 +6,12 @@
 import type { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { joinPath } from '../../../../base/common/resources.js';
-import { parse } from '../../../../base/common/semver/semver.js';
 import type { URI } from '../../../../base/common/uri.js';
 import { EXTENSION_IDENTIFIER_REGEX } from '../../../../platform/extensionManagement/common/extensionManagement.js';
 import type { ILocalVsixInspection } from '../../../../platform/extensionManagement/common/extensionManagementIpc.js';
 import { isValidVersionStr } from '../../../../platform/extensions/common/extensionValidator.js';
 import { FileSystemProviderErrorCode, FileType, type IFileService, type IStat, toFileSystemProviderErrorCode } from '../../../../platform/files/common/files.js';
-import { isLocalVsixArchiveBasename, type ILocalVsixSet, type ILocalVsixSetEntry } from '../common/localVsixSet.js';
+import { isLocalVsixArchiveBasename, parsePinnedVsixVersion, type ILocalVsixSet, type ILocalVsixSetEntry } from '../common/localVsixSet.js';
 import { localVsixArchiveMaxMiB, localVsixSetReadMaxMiB } from './localVsixSetChecksums.js';
 
 const MiB = 1024 * 1024;
@@ -31,17 +30,16 @@ export type LocalVsixMetadataStatus =
 		readonly sha256Matches: boolean;
 	};
 
-function isInspection(value: ILocalVsixInspection | undefined, expectedSize: number): value is ILocalVsixInspection {
+export function isLocalVsixInspection(value: ILocalVsixInspection | undefined, expectedSize: number): value is ILocalVsixInspection {
 	if (!value || value.bytes !== expectedSize || typeof value.id !== 'string' || value.id.length > 128
 		|| value.id !== value.id.toLowerCase() || !EXTENSION_IDENTIFIER_REGEX.test(value.id)
-		|| typeof value.version !== 'string' || value.version.length > 64
+		|| typeof value.version !== 'string' || !parsePinnedVsixVersion(value.version)
 		|| typeof value.engine !== 'string' || value.engine.length > 128 || value.engine.trim() !== value.engine
 		|| /[\p{Cc}\p{Cf}]/u.test(value.engine) || !isValidVersionStr(value.engine)
 		|| typeof value.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(value.sha256)) {
 		return false;
 	}
-	const version = parse(value.version);
-	return !!version && value.version === version.version + (version.build.length ? '+' + version.build.join('.') : '');
+	return true;
 }
 
 /** Inspect one proven basename at a time, reserving read budget even if an inspection fails. */
@@ -90,7 +88,7 @@ export async function inspectLocalVsixSet(
 			}
 			remaining -= before.size + 1;
 			const actual = await inspect(archive, before.size, token);
-			if (!isCurrent() || !isInspection(actual, before.size)) {
+			if (!isCurrent() || !isLocalVsixInspection(actual, before.size)) {
 				return { kind: 'unavailable' };
 			}
 			const after = await provider.stat(archive);

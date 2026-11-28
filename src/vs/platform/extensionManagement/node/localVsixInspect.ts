@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { FileHandle } from 'node:fs/promises';
-import { Readable } from 'node:stream';
-import { crc32 } from 'node:zlib';
+import type { FileHandle } from 'fs/promises';
+import { Readable } from 'stream';
+import { crc32 } from 'zlib';
 import type { Entry, ZipFile } from 'yauzl';
 import { isValidBasename } from '../../../base/common/extpath.js';
 import { parseTree, type Node, type ParseError } from '../../../base/common/json.js';

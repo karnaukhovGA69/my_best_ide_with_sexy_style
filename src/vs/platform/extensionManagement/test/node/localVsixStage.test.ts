@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { createHash } from 'node:crypto';
-import { closeSync, constants, createWriteStream, openSync, readdirSync, statSync, writeSync } from 'node:fs';
-import { lstat, mkdir, mkdtemp, readFile, readdir, rm, truncate, writeFile, symlink } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
-import { pipeline } from 'node:stream/promises';
+import { createHash } from 'crypto';
+import { closeSync, constants, createWriteStream, openSync, readdirSync, statSync, writeSync } from 'fs';
+import { lstat, mkdir, mkdtemp, readFile, readdir, rm, truncate, writeFile, symlink } from 'fs/promises';
+import { tmpdir } from 'os';
+import { promises as streamPromises } from 'stream';
 import { ZipFile } from 'yazl';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Event } from '../../../../base/common/event.js';
+import { dirname, join } from '../../../../base/common/path.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { inspectLocalVsixV1, withStagedLocalVsix } from '../../node/localVsixStage.js';
@@ -46,7 +46,7 @@ suite('Local VSIX staging', function () {
 			zip.addBuffer(Buffer.isBuffer(data) ? data : Buffer.from(data), name, { mode, compress });
 		}
 		zip.end();
-		await pipeline(zip.outputStream, createWriteStream(source));
+		await streamPromises.pipeline(zip.outputStream, createWriteStream(source));
 	}
 
 	async function rejects(code: string, uri = URI.file(source)): Promise<void> {

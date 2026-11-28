@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createHash } from 'node:crypto';
-import { constants, type BigIntStats } from 'node:fs';
-import { lstat, mkdtemp, open, rm, rmdir, type FileHandle } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { createHash } from 'crypto';
+import { constants, type BigIntStats } from 'fs';
+import { lstat, mkdtemp, open, rm, rmdir, type FileHandle } from 'fs/promises';
+import { tmpdir } from 'os';
 import type { CancellationToken } from '../../../base/common/cancellation.js';
 import { CancellationError } from '../../../base/common/errors.js';
 import { Schemas } from '../../../base/common/network.js';
+import { join } from '../../../base/common/path.js';
 import type { URI } from '../../../base/common/uri.js';
 import type { ILocalVsixInspection } from '../common/extensionManagementIpc.js';
 import { inspectStagedVsix, type ILocalVsixMetadata } from './localVsixInspect.js';

@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type * as vscode from 'vscode';
-import { PdfInputError, readLocalPdf, type LocalPdfUri, type PdfInputFailure } from './local-pdf.cjs';
+import { copyPdfBytes, PdfInputError, readLocalPdf, type LocalPdfUri, type PdfInputFailure } from './local-pdf.cjs';
 import type { DocumentMessage, PreviewText, ReadyMessage } from './protocol.js';
 import { createPreviewHtml } from './view.cjs';
 
@@ -15,6 +15,13 @@ interface PreviewPanel extends Pick<vscode.WebviewPanel, 'dispose' | 'onDidDispo
 }
 
 type Localize = (message: string, ...args: string[]) => string;
+type PreviewLocation = Parameters<typeof vscode.window.createWebviewPanel>[2];
+
+export interface LocalPdfViewerApi {
+	readonly apiVersion: 1;
+	/** Resolve true when the panel accepts the document. Rendering happens asynchronously in the panel. */
+	openBytes(bytes: Uint8Array): Promise<boolean>;
+}
 
 export interface PreviewHost {
 	readonly commands: { registerCommand(id: string, handler: () => Promise<void>): vscode.Disposable };
@@ -25,7 +32,7 @@ export interface PreviewHost {
 		showOpenDialog(options: vscode.OpenDialogOptions): Thenable<readonly LocalPdfUri[] | undefined>;
 		showWarningMessage(message: string): Thenable<unknown>;
 		showErrorMessage(message: string): Thenable<unknown>;
-		createWebviewPanel(viewType: string, title: string, column: vscode.ViewColumn,
+		createWebviewPanel(viewType: string, title: string, location: PreviewLocation,
 			options: vscode.WebviewPanelOptions & vscode.WebviewOptions): PreviewPanel;
 	};
 }
@@ -79,53 +86,66 @@ function isReadyMessage(message: unknown): message is ReadyMessage {
 		'kind' in message && message.kind === 'ready' && 'token' in message && typeof message.token === 'string';
 }
 
-/** Register a visible, argument-free action. The picker supplies the only input URI. */
-export function registerPreview(vscode: PreviewHost, context: Pick<vscode.ExtensionContext, 'subscriptions'>): void {
+/** Register the argument-free picker command and the library API on one panel controller. */
+function registerPreview(vscode: PreviewHost, context: Pick<vscode.ExtensionContext, 'subscriptions'>): LocalPdfViewerApi {
 	const t = vscode.l10n.t;
 	const text = messages(t);
 	let activePanel: PreviewPanel | undefined;
-	let opening = false;
+	let pending: symbol | undefined;
 	let disposed = false;
 
-	context.subscriptions.push({ dispose() { disposed = true; activePanel?.dispose(); } });
-	context.subscriptions.push(vscode.commands.registerCommand(commandId, async () => {
-		if (opening || disposed) {
-			return;
+	function beginRequest(): symbol | undefined {
+		if (pending || disposed) {
+			return undefined;
 		}
-		opening = true;
+		pending = Symbol();
+		return pending;
+	}
+
+	function finishRequest(request: symbol): void {
+		if (pending === request) {
+			pending = undefined;
+		}
+	}
+
+	function closePanel(): void {
+		const panel = activePanel;
+		activePanel = undefined;
+		panel?.dispose();
+	}
+
+	async function openPanel(request: symbol, bytes: ArrayBuffer, preserveFocus: boolean): Promise<boolean> {
+		const { source, worker } = await loadAssets();
+		if (pending !== request) {
+			return false;
+		}
+		const { token, html } = createPreviewHtml(source, text, vscode.env.language);
+		const location = preserveFocus ? { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true } : vscode.ViewColumn.Beside;
+		closePanel();
+		if (pending !== request) {
+			return false;
+		}
+		const panel = vscode.window.createWebviewPanel(viewType, text.title, location, {
+			enableScripts: true,
+			enableCommandUris: false,
+			enableFindWidget: false,
+			localResourceRoots: [],
+			retainContextWhenHidden: false,
+		});
+		if (pending !== request) {
+			panel.dispose();
+			return false;
+		}
+		activePanel = panel;
+		let messages: vscode.Disposable | undefined;
 		try {
-			const selected = await vscode.window.showOpenDialog({
-				title: t('Open Local PDF Preview'),
-				canSelectFiles: true,
-				canSelectFolders: false,
-				canSelectMany: false,
-				filters: { PDF: ['pdf'] },
+			panel.onDidDispose(() => {
+				messages?.dispose();
+				if (activePanel === panel) {
+					activePanel = undefined;
+				}
 			});
-			if (disposed || !selected?.length) {
-				return;
-			}
-			let bytes: ArrayBuffer;
-			try {
-				bytes = await readLocalPdf(selected[0]);
-			} catch (error) {
-				void vscode.window.showWarningMessage(describeInputError(t, error instanceof PdfInputError ? error.reason : undefined));
-				return;
-			}
-			const { source, worker } = await loadAssets();
-			if (disposed) {
-				return;
-			}
-			activePanel?.dispose();
-			const { token, html } = createPreviewHtml(source, text, vscode.env.language);
-			const panel = vscode.window.createWebviewPanel(viewType, text.title, vscode.ViewColumn.Beside, {
-				enableScripts: true,
-				enableCommandUris: false,
-				enableFindWidget: false,
-				localResourceRoots: [],
-				retainContextWhenHidden: false,
-			});
-			activePanel = panel;
-			const messages = panel.webview.onDidReceiveMessage(message => {
+			messages = panel.webview.onDidReceiveMessage(message => {
 				if (activePanel !== panel || !isReadyMessage(message) || message.token !== token) {
 					return;
 				}
@@ -134,22 +154,78 @@ export function registerPreview(vscode: PreviewHost, context: Pick<vscode.Extens
 				const document: DocumentMessage = { kind: 'document', token, bytes, engine };
 				void panel.webview.postMessage(document).then(undefined, () => {});
 			});
-			panel.onDidDispose(() => {
-				messages.dispose();
-				if (activePanel === panel) {
-					activePanel = undefined;
-				}
-			});
 			panel.webview.html = html;
+			return activePanel === panel && pending === request;
+		} catch (error) {
+			closePanel();
+			throw error;
+		}
+	}
+
+	context.subscriptions.push({
+		dispose() {
+			disposed = true;
+			pending = undefined;
+			closePanel();
+		},
+	});
+	context.subscriptions.push(vscode.commands.registerCommand(commandId, async () => {
+		const request = beginRequest();
+		if (!request) {
+			return;
+		}
+		try {
+			const selected = await vscode.window.showOpenDialog({
+				title: t('Open Local PDF Preview'),
+				canSelectFiles: true,
+				canSelectFolders: false,
+				canSelectMany: false,
+				filters: { PDF: ['pdf'] },
+			});
+			if (pending !== request || !selected?.length) {
+				return;
+			}
+			let bytes: ArrayBuffer;
+			try {
+				bytes = await readLocalPdf(selected[0]);
+			} catch (error) {
+				if (pending === request) {
+					void vscode.window.showWarningMessage(describeInputError(t, error instanceof PdfInputError ? error.reason : undefined));
+				}
+				return;
+			}
+			if (pending === request) {
+				await openPanel(request, bytes, false);
+			}
 		} catch {
-			void vscode.window.showErrorMessage(t('The packaged local PDF renderer is unavailable.'));
+			if (pending === request) {
+				void vscode.window.showErrorMessage(t('The packaged local PDF renderer is unavailable.'));
+			}
 		} finally {
-			opening = false;
+			finishRequest(request);
 		}
 	}));
+
+	return {
+		apiVersion: 1,
+		async openBytes(input: Uint8Array) {
+			const request = beginRequest();
+			if (!request) {
+				return false;
+			}
+			try {
+				const bytes = copyPdfBytes(input);
+				return bytes ? await openPanel(request, bytes, true) : false;
+			} catch {
+				return false;
+			} finally {
+				finishRequest(request);
+			}
+		},
+	};
 }
 
-export function activate(context: vscode.ExtensionContext): void {
+export function activate(context: Pick<vscode.ExtensionContext, 'subscriptions'>): LocalPdfViewerApi {
 	const host: typeof vscode = require('vscode');
-	registerPreview(host, context);
+	return registerPreview(host, context);
 }

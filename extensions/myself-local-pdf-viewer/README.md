@@ -4,7 +4,9 @@ Install the VSIX with **Extensions → Install from VSIX…**. In the Files view
 
 The preview supports a subset of PDFs up to 16 MiB and 200 pages. Pages requiring fonts, character maps, or other resources absent from the package show an error. Password-protected PDFs are unsupported. The preview displays page pixels. Text selection, links, interactive forms, annotations, printing, and embedded PDF actions are unavailable.
 
-The extension runs locally. It reads the selected file once and uses a packaged PDF.js worker to render pages without external resources. The standalone VSIX opens files through its own picker.
+The extension runs locally. It reads the selected file once and uses a packaged PDF.js worker to render pages without external resources.
+
+The installed extension `myself.myself-local-pdf-viewer` also exports `apiVersion: 1` and `openBytes(bytes: Uint8Array): Promise<boolean>` to extensions in the same extension host. The byte API keeps focus in the editor and returns whether the preview panel accepted the document. It takes PDF bytes from the caller and copies the selected range before opening the panel.
 
 ## Offline package build
 

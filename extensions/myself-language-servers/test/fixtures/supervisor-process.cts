@@ -54,7 +54,8 @@ async function fixtureEnvironment(root: string, id: string) {
 function launchFixture(runtime: string, role: Role, root: string, id: string, lease?: FileHandle): FixtureProcess {
 	const child: ChildProcess = spawn(runtime, [__filename, role, root, id], {
 		cwd: root,
-		env: {},
+		// Keep fixture subprocesses in Node mode when process.execPath is the packaged Electron binary.
+		env: process.versions.electron ? { ELECTRON_RUN_AS_NODE: '1' } : {},
 		shell: false,
 		stdio: ['ignore', 'ignore', 'inherit', ...(lease ? [lease.fd] : []), 'ipc'],
 	});

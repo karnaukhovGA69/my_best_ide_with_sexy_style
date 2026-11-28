@@ -2,21 +2,28 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+import { randomBytes } from 'node:crypto';
+import type { PreviewText } from './protocol.js';
 
-const { randomBytes } = require('node:crypto');
+const htmlEntities: Readonly<Record<string, string>> = {
+	'&': '&amp;',
+	'<': '&lt;',
+	'>': '&gt;',
+	'"': '&quot;',
+	'\'': '&#39;',
+};
 
-function escapeText(text) {
-	return text.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+function escapeText(text: string) {
+	return text.replace(/[&<>"']/g, character => htmlEntities[character]);
 }
 
 /** Embed only installed, trusted UI code and localizable text. PDF bytes arrive by IPC. */
-function createPreviewHtml(source, text, language) {
+export function createPreviewHtml(source: string, text: PreviewText, language: string) {
 	if (/<\/script/i.test(source)) {
 		throw new Error('Unexpected script close in packaged UI');
 	}
 	const nonce = randomBytes(24).toString('base64url');
-	const label = key => escapeText(text[key]);
+	const label = (key: keyof PreviewText) => escapeText(text[key]);
 	const messages = Object.entries(text).map(([key, value]) => `data-${key}="${escapeText(value)}"`).join(' ');
 	return {
 		token: nonce,
@@ -56,5 +63,3 @@ function createPreviewHtml(source, text, language) {
 </html>`,
 	};
 }
-
-module.exports = { createPreviewHtml };

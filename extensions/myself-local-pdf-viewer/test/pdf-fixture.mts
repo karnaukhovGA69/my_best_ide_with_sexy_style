@@ -2,10 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+interface VectorOptions {
+	pageCount?: number;
+	dimensions?: string;
+	font?: 'standard' | 'embedded';
+}
 
-function vectorDocument({ pageCount = 2, dimensions = '40 40', font } = {}) {
-	const stream = content => `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`;
+export function vectorDocument({ pageCount = 2, dimensions = '40 40', font }: VectorOptions = {}): Buffer {
+	const stream = (content: string) => `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`;
 	const objects = [
 		'<< /Type /Catalog /Pages 2 0 R /OpenAction << /S /JavaScript /JS (this.print\(\);) >> >>',
 		`<< /Type /Pages /Count ${pageCount} /Kids [${Array.from({ length: pageCount }, (_, index) => `${index + 6} 0 R`).join(' ')}] >>`,
@@ -36,5 +40,3 @@ function vectorDocument({ pageCount = 2, dimensions = '40 40', font } = {}) {
 	for (const offset of offsets.slice(1)) { pdf += `${String(offset).padStart(10, '0')} 00000 n \n`; }
 	return Buffer.from(pdf + `trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
 }
-
-module.exports = { vectorDocument };

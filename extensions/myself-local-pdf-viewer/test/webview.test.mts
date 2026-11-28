@@ -2,44 +2,63 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import * as fs from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { after, before, test } from 'node:test';
+import type { Browser, Page } from 'playwright-core';
+import type { DocumentMessage, PreviewText, ReadyMessage } from '../src/protocol.js';
+import type { createPreviewHtml } from '../src/view.cjs';
+import { vectorDocument } from './pdf-fixture.mts';
 
-const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
-const { after, before, test } = require('node:test');
-const { vectorDocument } = require('./pdf-fixture.cjs');
-const { chromium } = require(process.env.NERDED_PDF_PLAYWRIGHT || 'playwright-core');
+const require = createRequire(import.meta.url);
+const { chromium }: typeof import('playwright-core') = require(process.env.NERDED_PDF_PLAYWRIGHT || 'playwright-core');
+
+interface FixtureWindow extends Window {
+	printCalls: number;
+	messages: ReadyMessage[];
+	acquireVsCodeApi(): { postMessage(message: ReadyMessage): void };
+}
 
 const address = 'https://local-pdf-webview.invalid/';
-const archive = process.env.NERDED_PDF_TEST_VSIX;
-let browser;
-let engine;
-let packagedHtml;
-const text = {
+const archive = process.env.NERDED_PDF_TEST_VSIX ?? '';
+assert.ok(archive, 'Pass the built VSIX in NERDED_PDF_TEST_VSIX');
+let browser: Browser;
+let engine: Buffer;
+let packagedHtml: ReturnType<typeof createPreviewHtml>;
+const text: PreviewText = {
 	title: 'Local PDF Preview', previous: 'Previous Page', next: 'Next Page', position: 'Page {page} of {count}',
 	coverage: 'Limited preview', canvas: 'Rendered PDF page', loading: 'Loading', resource: 'Resource unavailable',
 	limit: 'Too large', password: 'Password protected', timeout: 'Timed out', unsupported: 'Unsupported', worker: 'Worker unavailable',
 };
 
-function extract(entry) {
+function extract(entry: string) {
 	return execFileSync('unzip', ['-p', archive, 'extension/' + entry], { maxBuffer: 4 * 1024 * 1024 });
 }
 
 before(async () => {
-	assert.ok(archive, 'Pass the built VSIX in NERDED_PDF_TEST_VSIX');
 	engine = extract('worker.mjs');
-	// Evaluate the packaged view factory as CommonJS. It only imports node:crypto.
-	const createPreviewHtml = new Function('require', 'module', extract('view.cjs').toString() + '\nreturn module.exports.createPreviewHtml;')(require, {});
-	packagedHtml = createPreviewHtml(extract('preview.js').toString(), text, 'en');
+	const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'nerded-pdf-webview-test-'));
+	try {
+		const file = path.join(temporary, 'view.cjs');
+		await fs.writeFile(file, extract('view.cjs'));
+		const view: typeof import('../src/view.cjs') = require(file);
+		packagedHtml = view.createPreviewHtml(extract('preview.js').toString(), text, 'en');
+	} finally {
+		await fs.rm(temporary, { recursive: true, force: true });
+	}
 	browser = await chromium.launch({ headless: true });
 });
 
 after(async () => browser?.close());
 
-async function withWebview(run, { worker = engine, pdf = vectorDocument() } = {}) {
+async function withWebview(run: (page: Page) => Promise<void>, { worker = engine, pdf = vectorDocument() } = {}) {
 	const context = await browser.newContext({ serviceWorkers: 'block' });
-	const requests = [];
-	const popups = [];
+	const requests: string[] = [];
+	const popups: Page[] = [];
 	let served = false;
 	try {
 		await context.route('**/*', route => {
@@ -53,26 +72,25 @@ async function withWebview(run, { worker = engine, pdf = vectorDocument() } = {}
 		});
 		const page = await context.newPage();
 		page.setDefaultTimeout(8000);
-		const errors = [];
+		const errors: string[] = [];
 		page.on('console', message => {
 			if (message.type() === 'error') { errors.push(message.text()); }
 		});
 		page.on('pageerror', error => errors.push(error.message));
 		page.on('popup', popup => popups.push(popup));
 		await page.addInitScript(() => {
-			window.printCalls = 0;
-			window.print = () => window.printCalls++;
-			window.messages = [];
-			window.acquireVsCodeApi = () => ({ postMessage: message => window.messages.push(message) });
+			const view = window as unknown as FixtureWindow;
+			view.printCalls = 0;
+			view.print = () => view.printCalls++;
+			view.messages = [];
+			view.acquireVsCodeApi = () => ({ postMessage: message => view.messages.push(message) });
 		});
 		await page.goto(address);
 		await context.setOffline(true);
 		await page.evaluate(({ pdf64, engine64, token }) => {
-			postMessage({
-				kind: 'document', token,
-				bytes: Uint8Array.fromBase64(pdf64).buffer,
-				engine: Uint8Array.fromBase64(engine64).buffer,
-			}, location.origin);
+			const decode = (base64: string) => Uint8Array.from(atob(base64), character => character.charCodeAt(0)).buffer;
+			const payload: DocumentMessage = { kind: 'document', token, bytes: decode(pdf64), engine: decode(engine64) };
+			postMessage(payload, location.origin);
 		}, { pdf64: pdf.toString('base64'), engine64: worker.toString('base64'), token: packagedHtml.token });
 		try {
 			await run(page);
@@ -82,18 +100,26 @@ async function withWebview(run, { worker = engine, pdf = vectorDocument() } = {}
 		}
 		assert.deepEqual(requests, []);
 		assert.deepEqual(popups, []);
-		assert.deepEqual(await page.evaluate(() => [
-			window.printCalls, document.querySelectorAll('a, iframe, object, embed, form').length, window.messages.map(message => message.kind),
-		]), [0, 0, ['ready']]);
+		assert.deepEqual(await page.evaluate(() => {
+			const view = window as unknown as FixtureWindow;
+			return [view.printCalls, document.querySelectorAll('a, iframe, object, embed, form').length, view.messages.map(message => message.kind)];
+		}), [0, 0, ['ready']]);
 	} finally {
 		await context.close();
 	}
 }
 
-async function pixels(page) {
-	return await page.locator('canvas').evaluate(canvas => [
-		canvas.width, canvas.height, ...canvas.getContext('2d').getImageData(canvas.width >> 1, canvas.height >> 1, 1, 1).data,
-	]);
+async function pixels(page: Page) {
+	return await page.locator('canvas').evaluate(canvas => {
+		if (!(canvas instanceof HTMLCanvasElement)) {
+			throw new Error('Missing preview canvas');
+		}
+		const context = canvas.getContext('2d');
+		if (!context) {
+			throw new Error('Missing canvas context');
+		}
+		return [canvas.width, canvas.height, ...context.getImageData(canvas.width >> 1, canvas.height >> 1, 1, 1).data];
+	});
 }
 
 test('packaged PDF.js navigates the vector fixture offline under the actual CSP, with no active links or print', async () => {
@@ -166,7 +192,6 @@ test('changing pages during a render replaces the worker and cannot paint stale 
 		assert.deepEqual(await pixels(page), [1, 1, 255, 0, 0, 255]);
 	}, { worker });
 });
-
 
 test('worker CSP blocks outbound connections', async () => {
 	const worker = Buffer.from(`self.onmessage = ({ ports: [reply] }) => {

@@ -2,18 +2,38 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+import { createHash } from 'node:crypto';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import type * as vscode from 'vscode';
+import { PdfInputError, readLocalPdf, type LocalPdfUri, type PdfInputFailure } from './local-pdf.cjs';
+import type { DocumentMessage, PreviewText, ReadyMessage } from './protocol.js';
+import { createPreviewHtml } from './view.cjs';
 
-const { createHash } = require('node:crypto');
-const fs = require('node:fs/promises');
-const path = require('node:path');
-const { PdfInputError, readLocalPdf } = require('./local-pdf.cjs');
-const { createPreviewHtml } = require('./view.cjs');
+interface PreviewPanel extends Pick<vscode.WebviewPanel, 'dispose' | 'onDidDispose'> {
+	readonly webview: Pick<vscode.Webview, 'html' | 'postMessage'> & { onDidReceiveMessage: vscode.Event<unknown> };
+}
+
+type Localize = (message: string, ...args: string[]) => string;
+
+export interface PreviewHost {
+	readonly commands: { registerCommand(id: string, handler: () => Promise<void>): vscode.Disposable };
+	readonly env: Pick<typeof vscode.env, 'language'>;
+	readonly l10n: { t: Localize };
+	readonly ViewColumn: Pick<typeof vscode.ViewColumn, 'Beside'>;
+	readonly window: {
+		showOpenDialog(options: vscode.OpenDialogOptions): Thenable<readonly LocalPdfUri[] | undefined>;
+		showWarningMessage(message: string): Thenable<unknown>;
+		showErrorMessage(message: string): Thenable<unknown>;
+		createWebviewPanel(viewType: string, title: string, column: vscode.ViewColumn,
+			options: vscode.WebviewPanelOptions & vscode.WebviewOptions): PreviewPanel;
+	};
+}
 
 const commandId = 'myself.localPdfViewer.open';
 const viewType = 'myself.localPdfViewer.canvas';
 
-function messages(t) {
+function messages(t: Localize): PreviewText {
 	return {
 		title: t('Local PDF Preview'),
 		previous: t('Previous Page'),
@@ -31,7 +51,7 @@ function messages(t) {
 	};
 }
 
-function describeInputError(t, reason) {
+function describeInputError(t: Localize, reason: PdfInputFailure | undefined) {
 	switch (reason) {
 		case 'local': return t('Choose a regular local PDF file.');
 		case 'size': return t('Choose a PDF of 16 MiB or less.');
@@ -47,17 +67,23 @@ async function loadAssets() {
 		fs.readFile(path.join(__dirname, 'worker.mjs')),
 		fs.readFile(path.join(__dirname, 'engine.json'), 'utf8'),
 	]);
-	if (createHash('sha256').update(worker).digest('hex') !== JSON.parse(lock).workerSha256) {
+	const engineLock: { workerSha256?: string } = JSON.parse(lock);
+	if (createHash('sha256').update(worker).digest('hex') !== engineLock.workerSha256) {
 		throw new Error('Packaged PDF renderer digest mismatch');
 	}
 	return { source, worker };
 }
 
+function isReadyMessage(message: unknown): message is ReadyMessage {
+	return typeof message === 'object' && message !== null &&
+		'kind' in message && message.kind === 'ready' && 'token' in message && typeof message.token === 'string';
+}
+
 /** Register a visible, argument-free action. The picker supplies the only input URI. */
-function registerPreview(vscode, context) {
+export function registerPreview(vscode: PreviewHost, context: Pick<vscode.ExtensionContext, 'subscriptions'>): void {
 	const t = vscode.l10n.t;
 	const text = messages(t);
-	let activePanel;
+	let activePanel: PreviewPanel | undefined;
 	let opening = false;
 	let disposed = false;
 
@@ -78,7 +104,7 @@ function registerPreview(vscode, context) {
 			if (disposed || !selected?.length) {
 				return;
 			}
-			let bytes;
+			let bytes: ArrayBuffer;
 			try {
 				bytes = await readLocalPdf(selected[0]);
 			} catch (error) {
@@ -100,12 +126,13 @@ function registerPreview(vscode, context) {
 			});
 			activePanel = panel;
 			const messages = panel.webview.onDidReceiveMessage(message => {
-				if (activePanel !== panel || message?.kind !== 'ready' || message.token !== token) {
+				if (activePanel !== panel || !isReadyMessage(message) || message.token !== token) {
 					return;
 				}
 				// Slice the exact worker bytes. Never send backing-buffer padding or a file path.
 				const engine = worker.buffer.slice(worker.byteOffset, worker.byteOffset + worker.byteLength);
-				void panel.webview.postMessage({ kind: 'document', token, bytes, engine }).then(undefined, () => {});
+				const document: DocumentMessage = { kind: 'document', token, bytes, engine };
+				void panel.webview.postMessage(document).then(undefined, () => {});
 			});
 			panel.onDidDispose(() => {
 				messages.dispose();
@@ -122,8 +149,7 @@ function registerPreview(vscode, context) {
 	}));
 }
 
-function activate(context) {
-	registerPreview(require('vscode'), context);
+export function activate(context: vscode.ExtensionContext): void {
+	const host: typeof vscode = require('vscode');
+	registerPreview(host, context);
 }
-
-module.exports = { activate, registerPreview };

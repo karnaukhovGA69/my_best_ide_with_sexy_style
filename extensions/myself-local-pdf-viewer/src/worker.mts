@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 import { AnnotationMode, getDocument, PDFWorker, VerbosityLevel } from 'pdfjs-display';
 import { WorkerMessageHandler } from 'pdfjs-parser';
+import type { RenderFailure, RenderReply, RenderRequest, RenderedPixels } from './protocol.js';
 
 const maxPdfBytes = 16 * 1024 * 1024;
 const maxPages = 200;
@@ -14,11 +15,16 @@ const maxCanvasPixels = 8_000_000;
 class PreviewLimit extends Error {}
 class AuxiliaryAssetUnavailable extends Error {}
 
+interface CanvasSurface {
+	canvas: OffscreenCanvas | null;
+	context: OffscreenCanvasRenderingContext2D | null;
+}
+
 class CanvasBudget {
 	#pixels = 0;
-	#sizes = new WeakMap();
+	#sizes = new WeakMap<OffscreenCanvas, number>();
 
-	#resize(canvas, width, height) {
+	#resize(canvas: OffscreenCanvas, width: number, height: number) {
 		const pixels = width * height;
 		const previous = this.#sizes.get(canvas) ?? 0;
 		const total = this.#pixels - previous + pixels;
@@ -38,25 +44,25 @@ class CanvasBudget {
 		this.#sizes.set(canvas, pixels);
 	}
 
-	create(width, height, alpha = true) {
+	create(width: number, height: number, alpha = true) {
 		const canvas = new OffscreenCanvas(1, 1);
 		this.#resize(canvas, width, height);
 		return { canvas, context: alpha ? canvas.getContext('2d', { willReadFrequently: true }) : this.getNoAlphaContext(canvas) };
 	}
 
-	getNoAlphaContext(canvas) {
+	getNoAlphaContext(canvas: OffscreenCanvas) {
 		return canvas.getContext('2d', { alpha: false, willReadFrequently: true });
 	}
 
-	reset({ canvas }, width, height) {
-		this.#resize(canvas, width, height);
+	reset({ canvas }: CanvasSurface, width: number, height: number) {
+		this.#resize(canvas!, width, height);
 	}
 
-	destroy(surface) {
+	destroy(surface: CanvasSurface) {
 		const { canvas } = surface;
-		this.#pixels -= this.#sizes.get(canvas) ?? 0;
-		this.#sizes.delete(canvas);
-		canvas.width = canvas.height = 0;
+		this.#pixels -= this.#sizes.get(canvas!) ?? 0;
+		this.#sizes.delete(canvas!);
+		canvas!.width = canvas!.height = 0;
 		surface.canvas = surface.context = null;
 	}
 }
@@ -65,7 +71,7 @@ class NoDomFilters {
 	destroy() {}
 }
 
-async function renderPage(bytes, pageNumber, onPageCount) {
+async function renderPage(bytes: Uint8Array<ArrayBuffer>, pageNumber: number, onPageCount: (count: number) => void): Promise<RenderedPixels> {
 	if (!(bytes instanceof Uint8Array) || bytes.length === 0 || bytes.length > maxPdfBytes ||
 		!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > maxPages) {
 		throw new PreviewLimit();
@@ -82,10 +88,15 @@ async function renderPage(bytes, pageNumber, onPageCount) {
 		data: bytes,
 		verbosity: VerbosityLevel.ERRORS,
 		worker,
-		CanvasFactory: class { constructor() { return budget; } },
+		CanvasFactory: class extends CanvasBudget {
+			constructor() {
+				super();
+				return budget;
+			}
+		},
 		FilterFactory: NoDomFilters,
 		BinaryDataFactory: class {
-			fetch() {
+			fetch(): never {
 				auxiliaryAssetRequested = true;
 				throw new AuxiliaryAssetUnavailable();
 			}
@@ -127,10 +138,15 @@ async function renderPage(bytes, pageNumber, onPageCount) {
 		try {
 			try {
 				await page.render({ canvas: surface.canvas, viewport, annotationMode: AnnotationMode.DISABLE }).promise;
-			} finally {
-				if (auxiliaryAssetRequested) { throw new AuxiliaryAssetUnavailable(); }
+			} catch (error) {
+				if (!auxiliaryAssetRequested) {
+					throw error;
+				}
 			}
-			const rgba = surface.context.getImageData(0, 0, width, height).data;
+			if (auxiliaryAssetRequested) {
+				throw new AuxiliaryAssetUnavailable();
+			}
+			const rgba = surface.context!.getImageData(0, 0, width, height).data;
 			return { width, height, rgba };
 		} finally {
 			budget.destroy(surface);
@@ -145,24 +161,24 @@ async function renderPage(bytes, pageNumber, onPageCount) {
 }
 
 let started = false;
-self.addEventListener('message', async ({ data, ports: [reply] }) => {
+(self as DedicatedWorkerGlobalScope).addEventListener('message', async ({ data, ports: [reply] }: MessageEvent<RenderRequest>) => {
 	if (started || data?.kind !== 'render-pdf-page' || !reply) {
 		return;
 	}
 	started = true;
-	let pageCount;
+	let pageCount: number | undefined;
 	try {
 		const result = await renderPage(data.bytes, data.pageNumber, count => { pageCount = count; });
-		reply.postMessage({ kind: 'rendered', pageCount, ...result }, [result.rgba.buffer]);
+		reply.postMessage({ kind: 'rendered', pageCount: pageCount!, ...result } satisfies RenderReply, [result.rgba.buffer]);
 	} catch (error) {
-		let reason = 'unsupported';
+		let reason: RenderFailure = 'unsupported';
 		if (error instanceof PreviewLimit) {
 			reason = 'limit';
 		} else if (error instanceof AuxiliaryAssetUnavailable) {
 			reason = 'resource';
-		} else if (error?.name === 'PasswordException') {
+		} else if ((error as Error | undefined)?.name === 'PasswordException') {
 			reason = 'password';
 		}
-		reply.postMessage({ kind: 'failed', reason, pageCount });
+		reply.postMessage({ kind: 'failed', reason, pageCount } satisfies RenderReply);
 	}
 });

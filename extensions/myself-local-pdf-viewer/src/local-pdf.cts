@@ -2,29 +2,30 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+import { constants, type BigIntStats } from 'node:fs';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import type { Uri } from 'vscode';
 
-const { constants } = require('node:fs');
-const fs = require('node:fs/promises');
-const path = require('node:path');
-
-const maxPdfBytes = 16 * 1024 * 1024;
+export const maxPdfBytes = 16 * 1024 * 1024;
 const pdfHeader = Buffer.from('%PDF-');
 
-class PdfInputError extends Error {
-	constructor(reason) {
+export type LocalPdfUri = Pick<Uri, 'scheme' | 'authority' | 'fsPath' | 'path' | 'query' | 'fragment'>;
+export type PdfInputFailure = 'local' | 'size' | 'changed' | 'format';
+
+export class PdfInputError extends Error {
+	constructor(readonly reason: PdfInputFailure) {
 		super(reason);
-		this.reason = reason;
 	}
 }
 
-function sameFile(before, after) {
+function sameFile(before: BigIntStats, after: BigIntStats) {
 	return before.dev === after.dev && before.ino === after.ino && before.size === after.size &&
 		before.mtimeNs === after.mtimeNs && before.ctimeNs === after.ctimeNs;
 }
 
 /** Read only the file just chosen in the native picker, using a bounded descriptor read. */
-async function readLocalPdf(uri) {
+export async function readLocalPdf(uri: LocalPdfUri): Promise<ArrayBuffer> {
 	if (uri?.scheme !== 'file' || uri.authority || !path.isAbsolute(uri.fsPath) ||
 		path.extname(uri.fsPath).toLowerCase() !== '.pdf' || uri.query || uri.fragment ||
 		uri.path.startsWith('//') || /^[/\\]{2}/.test(uri.fsPath)) {
@@ -75,5 +76,3 @@ async function readLocalPdf(uri) {
 		await file.close();
 	}
 }
-
-module.exports = { maxPdfBytes, PdfInputError, readLocalPdf };

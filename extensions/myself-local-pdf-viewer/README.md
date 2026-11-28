@@ -8,11 +8,11 @@ The extension runs locally. It reads the selected file once and uses a packaged 
 
 ## Offline package build
 
-Requires Node.js, `unzip`, esbuild 0.28.1 and VSCE 4.1.1 already available locally. Pass the official Mozilla `pdfjs-6.5.438-dist.zip` saved to disk. The packager verifies the archive, the extracted modules and license, and the resulting worker against `engine.json`.
+Requires Node.js with TypeScript stripping, `unzip`, esbuild 0.28.1 and VSCE 4.1.1 already available locally. Pass the official Mozilla `pdfjs-6.5.438-dist.zip` saved to disk. The packager verifies the archive, the extracted modules and license, and the resulting worker against `engine.json`.
 
 ```sh
 NERDED_PDF_ESBUILD=/path/to/esbuild NERDED_PDF_VSCE=/path/to/vsce \
-  node scripts/package.mjs /path/to/pdfjs-6.5.438-dist.zip /path/to/local-pdf-preview.vsix
+  node scripts/package.mts /path/to/pdfjs-6.5.438-dist.zip /path/to/local-pdf-preview.vsix
 ```
 
 The extension source is MIT-licensed. The bundled PDF.js engine is from Mozilla PDF.js 6.5.438 under Apache-2.0. The package includes the engine license and its notices.

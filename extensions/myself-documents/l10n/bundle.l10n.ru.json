@@ -18,7 +18,7 @@
   "Size (pt)": "Размер (пт)",
   "Line Spacing": "Межстрочный интервал",
   "Margins (mm)": "Поля (мм)",
-  "Approximate page preview. PDF pagination may differ.": "Приблизительный вид страницы. Разбиение PDF на страницы может отличаться.",
+  "A4 guides follow plain text. PDF formatting commands can change page breaks.": "Границы A4 рассчитаны для обычного текста. Команды оформления PDF могут изменить разбиение.",
   "The file changed while you were typing. Your draft is kept below. Choose which version to use.": "Файл изменился во время набора. Ваш черновик сохранён ниже. Выберите нужную версию.",
   "Use File Version": "Взять версию файла",
   "Keep My Draft": "Оставить мой черновик",

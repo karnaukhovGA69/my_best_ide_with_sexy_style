@@ -49,8 +49,16 @@ async function open(restored, forwardHistoryKeys = false, initialText = 'а)1\n\
 	return page;
 }
 async function snapshot(page, value) {
-	await page.evaluate(message => window.postMessage({ type: 'snapshot', ...message }, '*'), value);
-	await page.waitForTimeout(20);
+	await page.evaluate(message => new Promise(resolve => {
+		const received = event => {
+			if (event.data?.type === 'snapshot' && event.data.version === message.version && event.data.ack === message.ack) {
+				window.removeEventListener('message', received);
+				resolve();
+			}
+		};
+		window.addEventListener('message', received);
+		window.postMessage({ type: 'snapshot', ...message }, '*');
+	}), value);
 }
 const messages = page => page.evaluate(() => window.messages);
 
@@ -280,6 +288,102 @@ test('the new list item stays in view at the bottom of a long document', async (
 		await text.press('Enter');
 		assert.equal(await text.inputValue(), original + '\n2) ');
 		assert.equal(await text.evaluate(el => el.getBoundingClientRect().bottom - window.innerHeight < parseFloat(getComputedStyle(el).lineHeight) / 2), true);
+	} finally { await page.close(); }
+});
+
+test('typing and acknowledgement keep the end in view while manual reading stays where the user scrolled', async () => {
+	const original = Array.from({ length: 160 }, (_, i) => `Paragraph ${i + 1}`).join('\n');
+	const page = await open(undefined, false, original);
+	try {
+		const text = page.locator('#text');
+		const paper = page.locator('#paper');
+		await expect(paper).toHaveAttribute('data-page-count', '4');
+		await text.focus();
+		await text.evaluate(el => {
+			el.setSelectionRange(el.value.length, el.value.length);
+			window.scrollTo(0, document.documentElement.scrollHeight);
+		});
+		const previousScroll = await page.evaluate(() => window.scrollY);
+		assert.ok(previousScroll > 2000);
+		await page.keyboard.insertText('!');
+		await expect(text).toHaveValue(original + '!');
+		await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(previousScroll - 40);
+		const edit = (await messages(page)).find(m => m.type === 'edit');
+		assert.equal(edit.text, original + '!');
+		await snapshot(page, { text: edit.text, version: 2, dirty: true, ack: edit.id, name: 'Paper.txt' });
+		assert.ok(await page.evaluate(() => window.scrollY) > previousScroll - 40);
+		assert.equal(await text.evaluate(el => el.selectionStart), edit.text.length);
+		await page.evaluate(() => window.scrollTo(0, 200));
+		await snapshot(page, { text: edit.text, version: 3, dirty: false, name: 'Paper.txt' });
+		assert.equal(await page.evaluate(() => window.scrollY), 200);
+		assert.equal(await text.evaluate(el => el.selectionStart), edit.text.length);
+	} finally { await page.close(); }
+});
+
+test('A4 boundaries and widow adjustment follow edits and page settings with one original text selection', async () => {
+	const rows = count => Array.from({ length: count }, (_, i) => `Row ${i + 1}`).join('\n');
+	const page = await open(undefined, false, rows(42));
+	try {
+		const paper = page.locator('#paper');
+		const text = page.locator('#text');
+		await expect(paper).toHaveAttribute('data-page-count', '2');
+		await expect(paper).toHaveAttribute('data-rows-per-page', '40');
+		await expect(paper).toHaveAttribute('data-last-break-row', '40');
+		await expect(page.locator('#pageBreaks')).toBeVisible();
+		await expect(page.locator('#lastPageBreak')).toBeHidden();
+		await snapshot(page, { text: rows(41), version: 2, dirty: false, name: 'Paper.txt' });
+		await expect(paper).toHaveAttribute('data-last-break-row', '39');
+		await expect(page.locator('#pageBreaks')).toBeHidden();
+		await expect(page.locator('#lastPageBreak')).toBeVisible();
+		await snapshot(page, { text: rows(81), version: 3, dirty: false, name: 'Paper.txt' });
+		await expect(paper).toHaveAttribute('data-page-count', '3');
+		await expect(paper).toHaveAttribute('data-last-break-row', '79');
+		await text.evaluate(el => el.setSelectionRange(4, 44, 'backward'));
+		await page.locator('#fontSize').fill('16');
+		await page.locator('#margin').fill('25');
+		await expect(paper).toHaveAttribute('data-rows-per-page', '29');
+		await expect(paper).toHaveAttribute('data-last-break-row', '58');
+		assert.deepEqual(await text.evaluate(el => [el.selectionStart, el.selectionEnd, el.selectionDirection]), [4, 44, 'backward']);
+		assert.equal(await text.inputValue(), rows(81));
+		assert.equal(await page.locator('textarea').count(), 1);
+		assert.equal((await messages(page)).some(m => m.type === 'edit'), false);
+		await snapshot(page, { text: 'Short', version: 4, dirty: false, name: 'Paper.txt' });
+		await expect(paper).toHaveAttribute('data-page-count', '1');
+		await expect(page.locator('#pageBreaks')).toBeHidden();
+		await expect(page.locator('#lastPageBreak')).toBeHidden();
+		await snapshot(page, { text: rows(165), version: 5, dirty: false, name: 'Paper.txt' });
+		await page.locator('#lineHeight').fill('1');
+		await page.locator('#margin').fill('30');
+		// PDF margins round down to points before Blink lays out the content.
+		await expect(paper).toHaveAttribute('data-rows-per-page', '42');
+		await expect(paper).toHaveAttribute('data-page-count', '4');
+		await expect(paper).toHaveAttribute('data-last-break-row', '126');
+		assert.equal(await page.locator('#paperMirror').evaluate(el => el.getBoundingClientRect().width), 568);
+	} finally { await page.close(); }
+});
+
+test('pasting across a page boundary reveals the caret and posts only the plain text', async () => {
+	const original = 'Printable line\n'.repeat(39) + 'Last line';
+	const page = await open(undefined, false, original);
+	try {
+		const text = page.locator('#text');
+		await expect(page.locator('#paper')).toHaveAttribute('data-page-count', '1');
+		await text.focus();
+		await text.evaluate(el => el.setSelectionRange(el.value.length, el.value.length));
+		await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
+		const pasted = '\nSecond page\nContinued here';
+		await page.evaluate(value => navigator.clipboard.writeText(value), pasted);
+		await page.keyboard.press(process.platform === 'darwin' ? 'Meta+v' : 'Control+v');
+		await expect(text).toHaveValue(original + pasted);
+		await expect(page.locator('#paper')).toHaveAttribute('data-page-count', '2');
+		const caretInView = await text.evaluate(el => {
+			const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+			const caretBottom = el.getBoundingClientRect().top + 42 * lineHeight;
+			return caretBottom > 0 && caretBottom <= window.innerHeight + 1;
+		});
+		assert.equal(caretInView, true);
+		assert.equal(await text.evaluate(el => el.selectionStart), (original + pasted).length);
+		assert.equal((await messages(page)).find(m => m.type === 'edit').text, original + pasted);
 	} finally { await page.close(); }
 });
 

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DocumentPagination } from './pagination';
+
 type FontFamily = 'serif' | 'sans-serif' | 'monospace';
 interface PageOptions { size: 'A4'; fontFamily: FontFamily; fontSizePt: number; lineHeight: number; marginMm: number }
 interface SavedState { base: string; draft: string; page: PageOptions; selectionStart: number; selectionEnd: number; pdfDirectives?: boolean }
@@ -17,6 +19,10 @@ function element<T extends HTMLElement>(id: string): T {
 	const vscode = acquireVsCodeApi();
 	const text = element<HTMLTextAreaElement>('text');
 	const sync = element<HTMLElement>('sync');
+	const pagination = new DocumentPagination(
+		text, element('paper'), element('documentScroll'), sync.parentElement!,
+		element('paperMirror'), element('lineSample'), element('pageBreaks'), element('lastPageBreak'),
+	);
 	const wordCount = element<HTMLElement>('word-count');
 	const characterCount = element<HTMLElement>('character-count');
 	const locale = document.documentElement.lang || undefined;
@@ -53,10 +59,6 @@ function element<T extends HTMLElement>(id: string): T {
 	function persist() {
 		vscode.setState({ base, draft: text.value, page: pageOptions(), selectionStart: text.selectionStart, selectionEnd: text.selectionEnd, pdfDirectives: pdfDirectives.checked });
 	}
-	function resize() {
-		text.style.height = 'auto';
-		text.style.height = `${text.scrollHeight}px`;
-	}
 	function renderCounts() {
 		countFrame = undefined;
 		const value = text.value;
@@ -90,7 +92,7 @@ function element<T extends HTMLElement>(id: string): T {
 			countFrame = window.requestAnimationFrame(renderCounts);
 		}
 		persist();
-		resize();
+		pagination.update();
 	}
 	function applyPage() {
 		const page = pageOptions();
@@ -99,6 +101,7 @@ function element<T extends HTMLElement>(id: string): T {
 			document.documentElement.style.setProperty('--document-size', `${page.fontSizePt}pt`);
 			document.documentElement.style.setProperty('--document-leading', String(page.lineHeight));
 			document.documentElement.style.setProperty('--document-margin', `${page.marginMm}mm`);
+			pagination.setPageStyle(page.marginMm);
 		}
 		renderState();
 	}
@@ -175,11 +178,10 @@ function element<T extends HTMLElement>(id: string): T {
 		} else {
 			if (message.conflict || (text.value !== base && message.text !== base)) {
 				enterConflict();
-			} else if (!conflict && text.value === base) {
-				const start = text.selectionStart;
-				const end = text.selectionEnd;
+			} else if (!conflict && text.value === base && text.value !== message.text) {
+				const { selectionStart, selectionEnd, selectionDirection } = text;
 				text.value = message.text;
-				text.setSelectionRange(Math.min(start, text.value.length), Math.min(end, text.value.length));
+				text.setSelectionRange(Math.min(selectionStart, text.value.length), Math.min(selectionEnd, text.value.length), selectionDirection);
 			}
 			base = message.text;
 		}
@@ -195,6 +197,7 @@ function element<T extends HTMLElement>(id: string): T {
 		}
 		numberedListEdit = undefined;
 		notice.textContent = '';
+		pagination.update(!event.isComposing && !composing);
 		renderState();
 		flush();
 	});
@@ -234,7 +237,7 @@ function element<T extends HTMLElement>(id: string): T {
 		}
 	});
 	text.addEventListener('compositionstart', () => { composing = true; });
-	text.addEventListener('compositionend', () => { composing = false; flush(); });
+	text.addEventListener('compositionend', () => { composing = false; pagination.update(true); flush(); });
 	text.addEventListener('beforeinput', event => {
 		if (event.inputType === 'historyUndo' || event.inputType === 'historyRedo') {
 			event.preventDefault();
@@ -274,12 +277,13 @@ function element<T extends HTMLElement>(id: string): T {
 		let match = search.exec(text.value);
 		if (!match) { search.lastIndex = 0; match = search.exec(text.value); }
 		if (match) {
-			text.focus(); text.setSelectionRange(match.index, match.index + match[0].length);
+			text.focus({ preventScroll: true });
+			text.setSelectionRange(match.index, match.index + match[0].length);
+			pagination.update(true);
 		}
 	}
 	element<HTMLElement>('findNext').addEventListener('click', findNext);
 	element<HTMLInputElement>('query').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); findNext(); } });
-	window.addEventListener('resize', resize);
 	if (restored?.page) {
 		const page = restored.page;
 		if (['serif', 'sans-serif', 'monospace'].includes(page.fontFamily)) { fields.font.value = page.fontFamily; }

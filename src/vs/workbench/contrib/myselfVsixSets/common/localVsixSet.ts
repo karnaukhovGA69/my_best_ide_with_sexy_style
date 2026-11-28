@@ -45,15 +45,12 @@ function readFields(node: Node | undefined, expected: readonly string[]): Map<st
 	return fields;
 }
 
-function isPinnedVersion(value: string): boolean {
+export function parsePinnedVsixVersion(value: string) {
 	if (value.length > 64) {
-		return false;
+		return undefined;
 	}
 	const version = parse(value);
-	if (!version) {
-		return false;
-	}
-	return value === version.version + (version.build.length ? `+${version.build.join('.')}` : '');
+	return version && value === version.version + (version.build.length ? `+${version.build.join('.')}` : '') ? version : undefined;
 }
 
 export function isLocalVsixArchiveBasename(filename: string): boolean {
@@ -67,7 +64,7 @@ function readEntry(node: Node): ILocalVsixSetEntry | undefined {
 	const file: unknown = fields?.get('file')?.value;
 	const sha256: unknown = fields?.get('sha256')?.value;
 	if (typeof id !== 'string' || id.length > 128 || id.trim() !== id || !EXTENSION_IDENTIFIER_REGEX.test(id)
-		|| typeof version !== 'string' || !isPinnedVersion(version)
+		|| typeof version !== 'string' || !parsePinnedVsixVersion(version)
 		|| typeof file !== 'string' || !isLocalVsixArchiveBasename(file)
 		|| typeof sha256 !== 'string' || sha256.length !== 64 || !/^[a-f0-9]+$/i.test(sha256)) {
 		return undefined;

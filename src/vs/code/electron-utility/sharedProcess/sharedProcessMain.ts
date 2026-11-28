@@ -33,6 +33,7 @@ import { ExtensionGalleryService } from '../../../platform/extensionManagement/c
 import { IAllowedExtensionsService, IExtensionGalleryService, IExtensionManagementService, IExtensionTipsService, IGlobalExtensionEnablementService } from '../../../platform/extensionManagement/common/extensionManagement.js';
 import { ExtensionSignatureVerificationService, IExtensionSignatureVerificationService } from '../../../platform/extensionManagement/node/extensionSignatureVerificationService.js';
 import { ExtensionManagementChannel, ExtensionTipsChannel } from '../../../platform/extensionManagement/common/extensionManagementIpc.js';
+import { inspectLocalVsixV1 } from '../../../platform/extensionManagement/node/localVsixStage.js';
 import { ExtensionManagementService, INativeServerExtensionManagementService } from '../../../platform/extensionManagement/node/extensionManagementService.js';
 import { IExtensionRecommendationNotificationService } from '../../../platform/extensionRecommendations/common/extensionRecommendations.js';
 import { IFileService } from '../../../platform/files/common/files.js';
@@ -446,7 +447,20 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 		this.server.registerChannel(agentHostMcpOAuthMetadataChannelName, ProxyChannel.fromService(instantiationService.createInstance(AgentHostMcpOAuthMetadataService), this._store));
 
 		// Extensions Management
-		const channel = new ExtensionManagementChannel(accessor.get(IExtensionManagementService), () => null);
+		let inspectingLocalVsix = false;
+		const channel = new ExtensionManagementChannel(accessor.get(IExtensionManagementService), () => null, async (source, maxBytes, token) => {
+			if (inspectingLocalVsix || token.isCancellationRequested) {
+				return undefined;
+			}
+			inspectingLocalVsix = true;
+			try {
+				return await inspectLocalVsixV1(source, maxBytes, token);
+			} catch {
+				return undefined;
+			} finally {
+				inspectingLocalVsix = false;
+			}
+		});
 		this.server.registerChannel('extensions', channel);
 
 		// Mcp Management

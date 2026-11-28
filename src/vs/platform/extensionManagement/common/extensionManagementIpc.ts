@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { CancellationToken } from '../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../base/common/event.js';
+import { Schemas } from '../../../base/common/network.js';
 import { cloneAndChange } from '../../../base/common/objects.js';
 import { URI, UriComponents } from '../../../base/common/uri.js';
 import { DefaultURITransformer, IURITransformer, transformAndReviveIncomingURIs } from '../../../base/common/uriIpc.js';
@@ -45,6 +47,16 @@ function transformOutgoingExtension(extension: ILocalExtension, transformer: IUR
 	return transformer ? cloneAndChange(extension, value => value instanceof URI ? transformer.transformOutgoingURI(value) : undefined) : extension;
 }
 
+export interface ILocalVsixInspection {
+	readonly id: string;
+	readonly version: string;
+	readonly engine: string;
+	readonly sha256: string;
+	readonly bytes: number;
+}
+
+export const inspectLocalVsixCommand = 'inspectLocalVsixV1';
+
 export class ExtensionManagementChannel<TContext = RemoteAgentConnectionContext | string> implements IServerChannel<TContext> {
 
 	readonly onInstallExtension: Event<InstallExtensionEvent>;
@@ -53,7 +65,11 @@ export class ExtensionManagementChannel<TContext = RemoteAgentConnectionContext 
 	readonly onDidUninstallExtension: Event<DidUninstallExtensionEvent>;
 	readonly onDidUpdateExtensionMetadata: Event<DidUpdateExtensionMetadata>;
 
-	constructor(private service: IExtensionManagementService, private getUriTransformer: (requestContext: TContext) => IURITransformer | null) {
+	constructor(
+		private service: IExtensionManagementService,
+		private getUriTransformer: (requestContext: TContext) => IURITransformer | null,
+		private readonly inspectLocalVsix?: (source: URI, maxBytes: number, token: CancellationToken) => Promise<ILocalVsixInspection | undefined>,
+	) {
 		this.onInstallExtension = Event.buffer(service.onInstallExtension, 'onInstallExtension', true);
 		this.onDidInstallExtensions = Event.buffer(service.onDidInstallExtensions, 'onDidInstallExtensions', true);
 		this.onUninstallExtension = Event.buffer(service.onUninstallExtension, 'onUninstallExtension', true);
@@ -111,7 +127,7 @@ export class ExtensionManagementChannel<TContext = RemoteAgentConnectionContext 
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async call(context: any, command: string, args?: any): Promise<any> {
+	async call(context: any, command: string, args?: any, token = CancellationToken.None): Promise<any> {
 		const uriTransformer: IURITransformer | null = this.getUriTransformer(context);
 		switch (command) {
 			case 'zip': {
@@ -130,6 +146,18 @@ export class ExtensionManagementChannel<TContext = RemoteAgentConnectionContext 
 			}
 			case 'getManifest': {
 				return this.service.getManifest(transformIncomingURI(args[0], uriTransformer));
+			}
+			case inspectLocalVsixCommand: {
+				if (!this.inspectLocalVsix || uriTransformer || token.isCancellationRequested || !Array.isArray(args) || args.length !== 2) {
+					return undefined;
+				}
+				const [source, maxBytes] = args as [UriComponents | null, unknown];
+				if (source?.scheme !== Schemas.file || source.authority || source.query || source.fragment
+					|| typeof source.path !== 'string' || !source.path.startsWith('/') || source.path.startsWith('//') || source.path.length > 4096
+					|| typeof maxBytes !== 'number' || !Number.isSafeInteger(maxBytes)) {
+					return undefined;
+				}
+				return this.inspectLocalVsix(URI.from({ scheme: Schemas.file, path: source.path }), maxBytes, token);
 			}
 			case 'getTargetPlatform': {
 				return this.service.getTargetPlatform();

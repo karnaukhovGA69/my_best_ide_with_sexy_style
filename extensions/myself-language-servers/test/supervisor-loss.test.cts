@@ -80,6 +80,7 @@ for (const scenario of ['starting', 'running', 'unknown', 'stale and invalid pro
 		});
 
 		function launch(role: 'loss-supervisor' | 'surviving-server' | 'remove'): FixtureProcess {
+			t.signal.throwIfAborted();
 			const fixture = launchFixture(runtime, role, root, id);
 			fixtures.push(fixture);
 			return fixture;

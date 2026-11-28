@@ -1,0 +1,22 @@
+{
+	"Local PDF Preview": "Локальный просмотр PDF",
+	"Previous Page": "Предыдущая страница",
+	"Next Page": "Следующая страница",
+	"Page {0} of {1}": "Страница {0} из {1}",
+	"Rendered PDF page": "Изображение страницы PDF",
+	"Limited preview for PDFs with supported content and embedded resources. Up to 16 MiB and 200 pages.": "Предпросмотр PDF с поддерживаемым содержимым и встроенными ресурсами. До 16 МиБ и 200 страниц.",
+	"Rendering page…": "Отрисовка страницы…",
+	"This page needs a font, character map, or another resource outside the supported preview.": "Для этой страницы нужен шрифт, карта символов или другой ресурс, который не входит в поставку.",
+	"This PDF or page exceeds the preview limits.": "Размер PDF или страницы превышает ограничения просмотра.",
+	"Password-protected PDFs are unavailable in this preview.": "Просмотр PDF, защищённых паролем, недоступен.",
+	"Rendering took too long.": "Отрисовка заняла слишком много времени.",
+	"This page could not be rendered by the limited PDF preview.": "Не удалось отрисовать эту страницу в режиме ограниченного просмотра PDF.",
+	"The local PDF renderer could not start.": "Не удалось запустить локальный просмотр PDF.",
+	"Choose a regular local PDF file.": "Выберите обычный локальный PDF-файл.",
+	"Choose a PDF of 16 MiB or less.": "Выберите PDF размером не более 16 МиБ.",
+	"The PDF changed while it was being read. Choose it again.": "PDF изменился во время чтения. Выберите его снова.",
+	"The selected file does not start with a PDF header.": "В начале выбранного файла нет заголовка PDF.",
+	"The selected local PDF could not be read.": "Не удалось прочитать выбранный PDF.",
+	"Open Local PDF Preview": "Открыть локальный PDF",
+	"The packaged local PDF renderer is unavailable.": "Модуль локального просмотра PDF недоступен."
+}

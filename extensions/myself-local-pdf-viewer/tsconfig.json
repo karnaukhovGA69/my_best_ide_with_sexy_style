@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"target": "ES2024",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"lib": ["ES2024", "DOM"],
+		"types": ["node"],
+		"noEmit": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"allowImportingTsExtensions": true
+	},
+	"include": [
+		"src/*.cts",
+		"src/*.ts",
+		"scripts/*.mts",
+		"test/*.mts",
+		"../../src/vscode-dts/vscode.d.ts"
+	],
+	"exclude": ["src/pdfjs.d.ts"]
+}

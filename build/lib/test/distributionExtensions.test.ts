@@ -82,6 +82,7 @@ suite('Myself IDE extension distribution', () => {
 			'myself-folder-compare',
 			'myself-http-client',
 			'myself-language-servers',
+			'myself-local-pdf-viewer',
 			'myself-local-review',
 			'myself-postgresql-schema',
 		];
@@ -90,6 +91,7 @@ suite('Myself IDE extension distribution', () => {
 			`${name}/package.json`,
 			`${name}\\out\\extension.js`,
 			`${name}/dist/extension.js`,
+			`${name}/extension.cjs`,
 		]).filter(isDistributionExtensionFile), []);
 	});
 });

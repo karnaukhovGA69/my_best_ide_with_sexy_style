@@ -9,10 +9,12 @@ import { Event } from '../../../../base/common/event.js';
 import { URI } from '../../../../base/common/uri.js';
 import { DefaultURITransformer } from '../../../../base/common/uriIpc.js';
 import { mock } from '../../../../base/test/common/mock.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IExtensionManagementService } from '../../common/extensionManagement.js';
 import { ExtensionManagementChannel, inspectLocalVsixCommand, type ILocalVsixInspection } from '../../common/extensionManagementIpc.js';
 
 suite('Local VSIX inspection IPC', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
 	const metadata = { id: 'test.fixture', version: '0.1.0', engine: '^1.95.0', sha256: 'a'.repeat(64), bytes: 50 };
 	const local = URI.file('/chosen/fixture.vsix');
 

@@ -5,16 +5,19 @@
 
 import type { ChildProcess } from 'node:child_process';
 import type { FileHandle } from 'node:fs/promises';
+import type { RuntimeMarker } from './supervisor-loss-marker.cts';
 
 const assert = require('node:assert/strict');
 const { spawn } = require('node:child_process');
+const { randomUUID } = require('node:crypto');
 const { on, once } = require('node:events');
 const { closeSync, fstatSync } = require('node:fs');
 const { lstat, readFile, realpath, rm } = require('node:fs/promises');
 const { basename, dirname, join } = require('node:path');
 const { tryAcquireLease } = require('../../src/lease.ts');
+const { readRuntimeMarker, replaceRuntimeMarker, writeRuntimeMarker } = require('./supervisor-loss-marker.cts');
 
-type Role = 'coordinator' | 'supervisor' | 'server' | 'remove';
+type Role = 'coordinator' | 'supervisor' | 'server' | 'loss-supervisor' | 'surviving-server' | 'remove';
 type Exit = { code: number | null; signal: NodeJS.Signals | null } | { error: string };
 type FixtureProcess = { child: ChildProcess; exited: Promise<Exit> };
 type Message = { type: string; nonce?: string; [key: string]: unknown };
@@ -30,6 +33,7 @@ function fixturePaths(root: string, id: string) {
 		locks: join(store, 'locks'),
 		packages: join(store, 'packages'),
 		lease: join(store, 'locks', id + '.lock'),
+		runtimeMarker: join(store, 'locks', id + '.runtime.json'),
 		stage: join(store, 'packages', id),
 	};
 }
@@ -114,14 +118,17 @@ async function endServer(server: FixtureProcess): Promise<Exit> {
 	return within(server.exited, 'fixture server exit');
 }
 
-async function serve(): Promise<void> {
-	const fd = 3;
-	const inherited = identity(fstatSync(fd, { bigint: true }));
-	closeSync(fd);
-	assert.throws(() => fstatSync(fd), { code: 'EBADF' });
-
+async function serve(inheritLease: boolean): Promise<void> {
 	const commands = on(process, 'message', { close: ['disconnect'], signal: AbortSignal.timeout(18_000) });
-	await send(process, { type: 'ready', inherited, fdClosed: true });
+	if (inheritLease) {
+		const fd = 3;
+		const inherited = identity(fstatSync(fd, { bigint: true }));
+		closeSync(fd);
+		assert.throws(() => fstatSync(fd), { code: 'EBADF' });
+		await send(process, { type: 'ready', inherited, fdClosed: true });
+	} else {
+		await send(process, { type: 'ready' });
+	}
 	for await (const [message] of commands) {
 		if (message.type === 'stop') {
 			return;
@@ -189,6 +196,34 @@ async function supervise(root: string, id: string, paths: ReturnType<typeof fixt
 	}
 }
 
+async function superviseLoss(paths: ReturnType<typeof fixturePaths>): Promise<void> {
+	const lease = await tryAcquireLease(paths.lease);
+	assert.ok(lease, 'loss supervisor must hold its own lease');
+	const control = on(process, 'message', { close: ['disconnect'], signal: AbortSignal.timeout(18_000) });
+	const marker: RuntimeMarker = { version: 1, generation: randomUUID(), state: 'starting' };
+	try {
+		try {
+			await writeRuntimeMarker(paths.runtimeMarker, marker);
+		} catch {
+			await send(process, { type: 'start-refused' });
+			return;
+		}
+		const inode = identity(await lease.stat({ bigint: true }));
+		await send(process, { type: 'marked', marker, inode });
+		for await (const [message] of control) {
+			assert.equal(message.type, 'record-state');
+			assert.equal(message.generation, marker.generation);
+			assert.ok(message.state === 'running' || message.state === 'unknown');
+			marker.state = message.state;
+			await replaceRuntimeMarker(paths.runtimeMarker, marker);
+			await send(process, { type: 'recorded', marker });
+		}
+	} finally {
+		await lease.close();
+		await control.return();
+	}
+}
+
 async function remove(paths: ReturnType<typeof fixturePaths>): Promise<void> {
 	const lease = await tryAcquireLease(paths.lease);
 	if (!lease) {
@@ -196,12 +231,18 @@ async function remove(paths: ReturnType<typeof fixturePaths>): Promise<void> {
 		return;
 	}
 	try {
+		const ownership = await readRuntimeMarker(paths.runtimeMarker);
+		const inode = identity(await lease.stat({ bigint: true }));
+		if (ownership !== 'absent') {
+			await send(process, { type: 'result', status: 'ownership-unconfirmed', state: typeof ownership === 'string' ? ownership : ownership.state, inode });
+			return;
+		}
+
 		const stage = await lstat(paths.stage);
 		assert.ok(stage.isDirectory() && stage.uid === process.getuid?.() && (stage.mode & 0o077) === 0);
 		const marker = join(paths.stage, 'fixture.txt');
 		assert.ok((await lstat(marker)).isFile());
 		assert.equal(await readFile(marker, 'utf8'), stageCaption);
-		const inode = identity(await lease.stat({ bigint: true }));
 		await rm(paths.stage, { recursive: true });
 		await send(process, { type: 'result', status: 'removed', inode });
 	} finally {
@@ -222,7 +263,9 @@ async function main(): Promise<void> {
 			return;
 		}
 		case 'supervisor': return supervise(root, id, paths);
-		case 'server': return serve();
+		case 'server': return serve(true);
+		case 'loss-supervisor': return superviseLoss(paths);
+		case 'surviving-server': return serve(false);
 		case 'remove': return remove(paths);
 		default: assert.fail('Unknown fixture role');
 	}
@@ -240,5 +283,8 @@ if (require.main === module) {
 		}
 	});
 }
+
+export type FixturePaths = ReturnType<typeof fixturePaths>;
+export type { FixtureProcess, Message };
 
 module.exports = { fixturePaths, identity, isLive, launchFixture, receive, rootPrefix, send, stageCaption, within };
